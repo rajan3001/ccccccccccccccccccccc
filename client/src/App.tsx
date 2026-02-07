@@ -3,14 +3,22 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import LandingPage from "@/pages/landing-page";
+import ChatPage from "@/pages/chat-page";
+import SubscriptionPage from "@/pages/subscription-page";
 import NotFound from "@/pages/not-found";
+import { useAuth } from "@/hooks/use-auth";
 
 function Router() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) return null;
+
   return (
     <Switch>
-      {/* Add pages below */}
-      {/* <Route path="/" component={Home}/> */}
-      {/* Fallback to 404 */}
+      <Route path="/" component={isAuthenticated ? ChatPage : LandingPage} />
+      <Route path="/chat/:id" component={isAuthenticated ? ChatPage : LandingPage} />
+      <Route path="/subscription" component={SubscriptionPage} />
       <Route component={NotFound} />
     </Switch>
   );
