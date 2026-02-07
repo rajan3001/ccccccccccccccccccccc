@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { sql } from "drizzle-orm";
@@ -14,6 +14,7 @@ export const messages = pgTable("messages", {
   conversationId: integer("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
   role: text("role").notNull(),
   content: text("content").notNull(),
+  attachments: jsonb("attachments").default([]),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 

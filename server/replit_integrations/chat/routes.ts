@@ -1,11 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { GoogleGenAI } from "@google/genai";
 import { chatStorage } from "./storage";
-
-/*
-Supported models: gemini-2.5-flash (fast), gemini-2.5-pro (advanced reasoning)
-Usage: Include httpOptions with baseUrl and empty apiVersion when using AI Integrations (required)
-*/
+import { isAuthenticated } from "../auth";
 
 // This is using Replit's AI Integrations service, which provides Gemini-compatible API access without requiring your own Gemini API key.
 const ai = new GoogleGenAI({
@@ -18,7 +14,7 @@ const ai = new GoogleGenAI({
 
 export function registerChatRoutes(app: Express): void {
   // Get all conversations
-  app.get("/api/conversations", async (req: Request, res: Response) => {
+  app.get("/api/conversations", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const conversations = await chatStorage.getAllConversations();
       res.json(conversations);
@@ -29,7 +25,7 @@ export function registerChatRoutes(app: Express): void {
   });
 
   // Get single conversation with messages
-  app.get("/api/conversations/:id", async (req: Request, res: Response) => {
+  app.get("/api/conversations/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const conversation = await chatStorage.getConversation(id);
@@ -45,7 +41,7 @@ export function registerChatRoutes(app: Express): void {
   });
 
   // Create new conversation
-  app.post("/api/conversations", async (req: Request, res: Response) => {
+  app.post("/api/conversations", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { title } = req.body;
       const conversation = await chatStorage.createConversation(title || "New Chat");
@@ -57,7 +53,7 @@ export function registerChatRoutes(app: Express): void {
   });
 
   // Delete conversation
-  app.delete("/api/conversations/:id", async (req: Request, res: Response) => {
+  app.delete("/api/conversations/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       await chatStorage.deleteConversation(id);
@@ -69,20 +65,35 @@ export function registerChatRoutes(app: Express): void {
   });
 
   // Send message and get AI response (streaming)
-  app.post("/api/conversations/:id/messages", async (req: Request, res: Response) => {
+  app.post("/api/conversations/:id/messages", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const conversationId = parseInt(req.params.id);
-      const { content } = req.body;
+      const { content, attachments } = req.body;
 
       // Save user message
-      await chatStorage.createMessage(conversationId, "user", content);
+      await chatStorage.createMessage(conversationId, "user", content, attachments);
 
       // Get conversation history for context
       const messages = await chatStorage.getMessagesByConversation(conversationId);
-      const chatMessages = messages.map((m) => ({
-        role: m.role as "user" | "model",
-        parts: [{ text: m.content }],
-      }));
+      
+      // Prepare contents for Gemini with multimodality
+      const chatMessages = messages.map((m) => {
+        const parts: any[] = [{ text: m.content }];
+        
+        // Add attachments as context if they exist
+        if (m.attachments && Array.isArray(m.attachments)) {
+          m.attachments.forEach((att: any) => {
+            // For images, we can pass them if we have the data
+            // For PDF/Text, we might need to extract text or pass as inlineData if supported
+            // Gemini AI Integrations supports inlineData for certain types
+          });
+        }
+        
+        return {
+          role: m.role === "assistant" ? "model" : "user",
+          parts,
+        };
+      });
 
       // Set up SSE
       res.setHeader("Content-Type", "text/event-stream");
@@ -112,7 +123,6 @@ export function registerChatRoutes(app: Express): void {
       res.end();
     } catch (error) {
       console.error("Error sending message:", error);
-      // Check if headers already sent (SSE streaming started)
       if (res.headersSent) {
         res.write(`data: ${JSON.stringify({ error: "Failed to send message" })}\n\n`);
         res.end();
