@@ -153,20 +153,31 @@ Return ONLY a valid JSON array. No markdown.`;
           }
         }
       } else {
+        const today = new Date();
+        const requestedDate = new Date(dateStr + "T00:00:00");
+        const diffDays = Math.floor((today.getTime() - requestedDate.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (diffDays <= 1) {
+          return res.status(404).json({
+            error: "not_available_yet",
+            message: "Today's current affairs are not available yet. NextIAS typically publishes daily analysis later in the day. Please try again in a few hours."
+          });
+        }
+
         const stateContext = stateInfo
           ? `\n\nADDITIONALLY: ${stateInfo.context} For state-specific topics, use "${stateInfo.newspaper}" as the source. Mark these state-specific topics with category "State".`
           : "";
 
-        const prompt = `You are a Current Affairs compiler for UPSC and State PSC exam preparation. Generate the most important and exam-relevant current affairs topics for ${dateStr}.
+        const prompt = `You are a Current Affairs compiler for UPSC and State PSC exam preparation. Find and compile the most important and exam-relevant current affairs topics that were actually published on ${dateStr} in Indian newspapers.
 
-IMPORTANT RULES:
-- Pick real news that was actually reported/published in The Hindu or Indian Express.
-- Do NOT invent or fabricate news stories.
-- Focus on news important for UPSC/State PSC exam preparation.
+CRITICAL RULES:
+- You MUST use Google Search to find REAL news articles from The Hindu, Indian Express that were published on or around ${dateStr}.
+- Every topic MUST be based on a real, verifiable news event. Do NOT invent or fabricate any news.
+- Search for "The Hindu ${dateStr} UPSC current affairs" and "Indian Express ${dateStr} current affairs" to find actual articles.
 ${stateContext}
 
-Create exactly ${stateFilter ? "10-12" : "8-10"} important topics. For each topic provide:
-1. title: The headline
+Compile exactly ${stateFilter ? "10-12" : "8-10"} important topics. For each topic provide:
+1. title: The actual headline from the newspaper
 2. summary: A 3-4 sentence explanation covering key facts, significance, and UPSC syllabus connection.
 3. category: One of "National", "International", "Economy", "Science & Tech", "Environment", "Polity & Governance", "Social Issues", "Sports & Culture"${stateFilter ? ', "State"' : ""}
 4. gsCategory: One of "GS-I", "GS-II", "GS-III", "GS-IV", "Prelims"
@@ -180,6 +191,9 @@ No markdown, no explanations, just the JSON array.`;
         const response = await ai.models.generateContent({
           model: "gemini-2.5-flash",
           contents: [{ role: "user", parts: [{ text: prompt }] }],
+          config: {
+            tools: [{ googleSearch: {} }],
+          },
         });
 
         let responseText = response.text || "";

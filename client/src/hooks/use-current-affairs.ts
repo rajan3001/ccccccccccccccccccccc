@@ -15,6 +15,7 @@ export interface DailyTopic {
   gsCategory: string;
   relevance: string | null;
   source: string | null;
+  pageNumber: number | null;
   revised: boolean;
   createdAt: string;
 }
@@ -56,7 +57,13 @@ export function useGenerateCurrentAffairs() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ stateFilter: stateFilter || null }),
       });
-      if (!res.ok) throw new Error("Failed to generate current affairs");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        if (errorData?.error === "not_available_yet") {
+          throw new Error(errorData.message || "Current affairs not available yet. Please try again later.");
+        }
+        throw new Error("Failed to generate current affairs");
+      }
       return res.json() as Promise<{ digest: DailyDigest; topics: DailyTopic[] }>;
     },
     onSuccess: (_, { date }) => {

@@ -131,7 +131,18 @@ export default function CurrentAffairsPage() {
   const totalCount = topics.length;
 
   const handleGenerate = () => {
-    generateMutation.mutate({ date: dateStr, stateFilter: stateFilter === "none" ? null : stateFilter });
+    generateMutation.mutate(
+      { date: dateStr, stateFilter: stateFilter === "none" ? null : stateFilter },
+      {
+        onError: (error: Error) => {
+          toast({
+            title: "Not Available",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      }
+    );
   };
 
   const goToPreviousDay = () => {
