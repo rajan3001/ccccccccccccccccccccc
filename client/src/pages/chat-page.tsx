@@ -154,9 +154,21 @@ export default function ChatPage() {
                   </Button>
                 </div>
               )}
-              {conversationData?.messages.map((msg) => (
-                <MessageBubble key={msg.id} message={msg} conversationId={conversationId || undefined} />
-              ))}
+              {conversationData?.messages.map((msg, idx) => {
+                let prevUserQuery: string | undefined;
+                if (msg.role === "assistant") {
+                  const msgs = conversationData.messages;
+                  for (let i = idx - 1; i >= 0; i--) {
+                    if (msgs[i].role === "user") {
+                      prevUserQuery = msgs[i].content;
+                      break;
+                    }
+                  }
+                }
+                return (
+                  <MessageBubble key={msg.id} message={msg} conversationId={conversationId || undefined} userQuery={prevUserQuery} />
+                );
+              })}
               
               {isStreaming && pendingUserMessage && !conversationData?.messages.some(m => m.content === pendingUserMessage && m.role === "user") && (
                 <MessageBubble 
