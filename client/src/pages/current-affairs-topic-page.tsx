@@ -222,9 +222,16 @@ export default function CurrentAffairsTopicPage() {
             })}
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 leading-tight" data-testid="text-topic-title">
-            {topic.title}
-          </h1>
+          <div className="flex flex-wrap items-start gap-3 mb-3">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight" data-testid="text-topic-title">
+              {topic.title}
+            </h1>
+            {topic.pageNumber && (
+              <span className="text-xs font-semibold text-muted-foreground bg-muted px-2 py-1 rounded mt-1.5 flex-shrink-0" data-testid="text-topic-page">
+                Page {topic.pageNumber}
+              </span>
+            )}
+          </div>
 
           <p className="text-muted-foreground text-base leading-relaxed mb-5" data-testid="text-topic-summary">
             {topic.summary}

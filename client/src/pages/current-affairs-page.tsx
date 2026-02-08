@@ -391,9 +391,16 @@ export default function CurrentAffairsPage() {
                                     })}
                                   </div>
 
-                                  <h4 className="font-semibold text-[15px] text-foreground mb-1.5 leading-snug" data-testid={`text-title-${topic.id}`}>
-                                    {topic.title}
-                                  </h4>
+                                  <div className="flex items-center gap-2 mb-1.5">
+                                    <h4 className="font-semibold text-[15px] text-foreground leading-snug" data-testid={`text-title-${topic.id}`}>
+                                      {topic.title}
+                                    </h4>
+                                    {topic.pageNumber && (
+                                      <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0" data-testid={`text-page-${topic.id}`}>
+                                        Pg {topic.pageNumber}
+                                      </span>
+                                    )}
+                                  </div>
 
                                   <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2" data-testid={`text-summary-${topic.id}`}>
                                     {topic.summary}

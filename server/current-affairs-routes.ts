@@ -4,6 +4,7 @@ import { isAuthenticated } from "./replit_integrations/auth";
 import { db } from "./db";
 import { dailyDigests, dailyTopics } from "@shared/schema";
 import { eq, desc, sql } from "drizzle-orm";
+import { scrapeTheHindu, type ScrapedArticle } from "./hindu-scraper";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
@@ -62,52 +63,67 @@ export function registerCurrentAffairsRoutes(app: Express): void {
         return res.json({ digest: existing, topics });
       }
 
+      console.log(`[Current Affairs] Scraping The Hindu for ${dateStr}...`);
+      let scrapedArticles: ScrapedArticle[] = [];
+      try {
+        scrapedArticles = await scrapeTheHindu();
+        console.log(`[Current Affairs] Scraped ${scrapedArticles.length} articles from The Hindu`);
+      } catch (scrapeErr: any) {
+        console.warn("[Current Affairs] Scraping failed, falling back to AI-only:", scrapeErr.message);
+      }
+
       const stateNewspaperMap: Record<string, { newspaper: string; context: string }> = {
-        "Jharkhand": { newspaper: "Prabhat Khabar", context: "Include 2-3 topics specifically about Jharkhand state from Prabhat Khabar - government policies, development projects, tribal welfare, mining/industry, education, or local governance issues relevant to JPSC exam." },
-        "Bihar": { newspaper: "Dainik Jagran / Hindustan", context: "Include 2-3 topics specifically about Bihar state from Dainik Jagran or Hindustan - government schemes, flood management, educational initiatives, industrial development, or local governance issues relevant to BPSC exam." },
-        "Jammu & Kashmir": { newspaper: "Greater Kashmir / Daily Excelsior", context: "Include 2-3 topics specifically about J&K from Greater Kashmir or Daily Excelsior - UT governance, tourism, security issues, infrastructure development, or cultural events relevant to JKPSC exam." },
-        "Uttar Pradesh": { newspaper: "Dainik Jagran / Amar Ujala", context: "Include 2-3 topics specifically about UP from Dainik Jagran or Amar Ujala - state government policies, industrial corridors, law & order, education, infrastructure, or welfare schemes relevant to UPPSC exam." },
-        "Madhya Pradesh": { newspaper: "Dainik Bhaskar / Nai Dunia", context: "Include 2-3 topics specifically about MP from Dainik Bhaskar or Nai Dunia - state schemes, tribal development, tourism, agriculture, forest conservation, or governance issues relevant to MPPSC exam." },
-        "Rajasthan": { newspaper: "Rajasthan Patrika / Dainik Bhaskar", context: "Include 2-3 topics specifically about Rajasthan from Rajasthan Patrika or Dainik Bhaskar - desert development, water management, tourism, renewable energy, cultural heritage, or governance issues relevant to RPSC RAS exam." },
-        "Odisha": { newspaper: "Dharitri / The Sambad", context: "Include 2-3 topics specifically about Odisha from Dharitri or The Sambad - cyclone preparedness, tribal welfare, mining, industrial development, or temple/heritage conservation relevant to OPSC exam." },
-        "Haryana": { newspaper: "Dainik Jagran / Dainik Bhaskar", context: "Include 2-3 topics specifically about Haryana from Dainik Jagran or Dainik Bhaskar - agricultural economy, industrial development, sports achievements, education policy, or governance issues relevant to HPSC HCS exam." },
-        "Uttarakhand": { newspaper: "Amar Ujala / Dainik Jagran", context: "Include 2-3 topics specifically about Uttarakhand from Amar Ujala or Dainik Jagran - disaster management, pilgrimage tourism, hydropower, forest conservation, migration issues, or state governance relevant to UKPSC exam." },
-        "Himachal Pradesh": { newspaper: "Divya Himachal / Dainik Jagran", context: "Include 2-3 topics specifically about HP from Divya Himachal or Dainik Jagran - apple economy, hydropower projects, tourism, tribal areas, education, or governance issues relevant to HPPSC exam." },
-        "Assam": { newspaper: "The Assam Tribune / Pratidin Time", context: "Include 2-3 topics specifically about Assam from The Assam Tribune or Pratidin Time - tea industry, flood management, NRC/immigration issues, oil & gas, wildlife conservation, or NE governance relevant to APSC exam." },
-        "Meghalaya": { newspaper: "The Shillong Times / Meghalaya Guardian", context: "Include 2-3 topics specifically about Meghalaya from The Shillong Times - mining issues, autonomous councils, tribal governance, rainfall/climate, border issues, or NE development relevant to Meghalaya PSC exam." },
-        "Sikkim": { newspaper: "Sikkim Express / Now!", context: "Include 2-3 topics specifically about Sikkim from Sikkim Express - organic farming, tourism, Buddhist heritage, border issues, renewable energy, or state governance relevant to Sikkim PSC exam." },
-        "Tripura": { newspaper: "Tripura Times / Dainik Sambad", context: "Include 2-3 topics specifically about Tripura from Tripura Times or Dainik Sambad - rubber/tea industry, tribal welfare, connectivity projects, border trade, or NE development relevant to Tripura PSC exam." },
-        "Arunachal Pradesh": { newspaper: "The Arunachal Times / Echo of Arunachal", context: "Include 2-3 topics specifically about Arunachal Pradesh from The Arunachal Times - border issues, tribal development, hydropower, biodiversity, infrastructure, or NE governance relevant to Arunachal Pradesh PSC exam." },
+        "Jharkhand": { newspaper: "Prabhat Khabar", context: "Include 2-3 topics specifically about Jharkhand state - government policies, development projects, tribal welfare, mining/industry, education, or local governance issues relevant to JPSC exam." },
+        "Bihar": { newspaper: "Dainik Jagran / Hindustan", context: "Include 2-3 topics specifically about Bihar state - government schemes, flood management, educational initiatives, industrial development, or local governance issues relevant to BPSC exam." },
+        "Jammu & Kashmir": { newspaper: "Greater Kashmir / Daily Excelsior", context: "Include 2-3 topics specifically about J&K - UT governance, tourism, security issues, infrastructure development, or cultural events relevant to JKPSC exam." },
+        "Uttar Pradesh": { newspaper: "Dainik Jagran / Amar Ujala", context: "Include 2-3 topics specifically about UP - state government policies, industrial corridors, law & order, education, infrastructure, or welfare schemes relevant to UPPSC exam." },
+        "Madhya Pradesh": { newspaper: "Dainik Bhaskar / Nai Dunia", context: "Include 2-3 topics specifically about MP - state schemes, tribal development, tourism, agriculture, forest conservation, or governance issues relevant to MPPSC exam." },
+        "Rajasthan": { newspaper: "Rajasthan Patrika / Dainik Bhaskar", context: "Include 2-3 topics specifically about Rajasthan - desert development, water management, tourism, renewable energy, cultural heritage, or governance issues relevant to RPSC RAS exam." },
+        "Odisha": { newspaper: "Dharitri / The Sambad", context: "Include 2-3 topics specifically about Odisha - cyclone preparedness, tribal welfare, mining, industrial development, or temple/heritage conservation relevant to OPSC exam." },
+        "Haryana": { newspaper: "Dainik Jagran / Dainik Bhaskar", context: "Include 2-3 topics specifically about Haryana - agricultural economy, industrial development, sports achievements, education policy, or governance issues relevant to HPSC HCS exam." },
+        "Uttarakhand": { newspaper: "Amar Ujala / Dainik Jagran", context: "Include 2-3 topics specifically about Uttarakhand - disaster management, pilgrimage tourism, hydropower, forest conservation, migration issues, or state governance relevant to UKPSC exam." },
+        "Himachal Pradesh": { newspaper: "Divya Himachal / Dainik Jagran", context: "Include 2-3 topics specifically about HP - apple economy, hydropower projects, tourism, tribal areas, education, or governance issues relevant to HPPSC exam." },
+        "Assam": { newspaper: "The Assam Tribune / Pratidin Time", context: "Include 2-3 topics specifically about Assam - tea industry, flood management, NRC/immigration issues, oil & gas, wildlife conservation, or NE governance relevant to APSC exam." },
+        "Meghalaya": { newspaper: "The Shillong Times / Meghalaya Guardian", context: "Include 2-3 topics specifically about Meghalaya - mining issues, autonomous councils, tribal governance, rainfall/climate, border issues, or NE development relevant to Meghalaya PSC exam." },
+        "Sikkim": { newspaper: "Sikkim Express / Now!", context: "Include 2-3 topics specifically about Sikkim - organic farming, tourism, Buddhist heritage, border issues, renewable energy, or state governance relevant to Sikkim PSC exam." },
+        "Tripura": { newspaper: "Tripura Times / Dainik Sambad", context: "Include 2-3 topics specifically about Tripura - rubber/tea industry, tribal welfare, connectivity projects, border trade, or NE development relevant to Tripura PSC exam." },
+        "Arunachal Pradesh": { newspaper: "The Arunachal Times / Echo of Arunachal", context: "Include 2-3 topics specifically about Arunachal Pradesh - border issues, tribal development, hydropower, biodiversity, infrastructure, or NE governance relevant to Arunachal Pradesh PSC exam." },
       };
 
       const stateInfo = stateFilter && stateNewspaperMap[stateFilter] ? stateNewspaperMap[stateFilter] : null;
       const stateContext = stateInfo
-        ? `\n\nIMPORTANT: ${stateInfo.context} For state-specific topics, use "${stateInfo.newspaper}" as the source. Mark these state-specific topics with category "State" and tag them with the state name in the title or summary.`
+        ? `\n\nADDITIONALLY: ${stateInfo.context} For state-specific topics, use "${stateInfo.newspaper}" as the source. Mark these state-specific topics with category "State".`
         : "";
 
-      const prompt = `You are a Current Affairs compiler for UPSC and State PSC exam preparation. Your job is to pick the most important and exam-relevant news articles published on or around ${dateStr} from premium Indian newspapers.
+      let articlesContext = "";
+      if (scrapedArticles.length > 0) {
+        const articlesList = scrapedArticles.map((a, i) =>
+          `${i + 1}. [Page ${a.pageNumber}] [${a.section.toUpperCase()}] "${a.title}" - ${a.summary || "(no summary)"}`
+        ).join("\n");
+        articlesContext = `\n\nHere are the actual articles scraped from today's The Hindu newspaper (with print edition page numbers):\n\n${articlesList}\n\nYou MUST select the most UPSC-relevant articles from this list. Use the EXACT titles from the scraped articles (you may refine/shorten them slightly). Use the provided page numbers for each article. If the scraped list has fewer than 10 good articles, you may add 1-2 more from your knowledge of today's news, but prioritize the scraped articles.`;
+      }
 
-PRIMARY SOURCES (you MUST attribute each topic to one of these):
-- The Hindu
-- The Indian Express
-${stateInfo ? `- ${stateInfo.newspaper} (for state-specific news)` : ""}
+      const prompt = `You are a Current Affairs compiler for UPSC and State PSC exam preparation. Your job is to select the most important and exam-relevant news articles from The Hindu newspaper for ${dateStr}.
+${articlesContext}
 
 IMPORTANT RULES:
-- ONLY pick news that was actually reported/published in The Hindu or The Indian Express (or the state newspaper for state topics).
-- Do NOT invent or fabricate news stories. Pick real, significant news events.
-- Focus on news that is important for UPSC/State PSC exam preparation.
-- Each topic must be a real news article that an exam aspirant would find in these newspapers.
-
-Create exactly ${stateFilter ? "10-12" : "8-10"} important topics. For each topic provide:
-1. title: A concise headline as it would appear in the newspaper
-2. summary: A 3-4 sentence explanation covering key facts, significance, and how it connects to the UPSC/State PSC syllabus. Write it in an analytical style suitable for exam preparation.
-3. category: One of "National", "International", "Economy", "Science & Tech", "Environment", "Polity & Governance", "Social Issues", "Sports & Culture"${stateFilter ? ', "State"' : ""}
-4. gsCategory: The relevant GS Paper - one of "GS-I", "GS-II", "GS-III", "GS-IV", "Prelims"
-5. relevance: A brief note on why this is important for UPSC/State PSC exams (1 sentence)
-6. source: The exact newspaper name from which this topic is sourced (e.g., "The Hindu", "The Indian Express"${stateInfo ? `, "${stateInfo.newspaper}"` : ""})
+${scrapedArticles.length > 0 ? "- PRIORITIZE articles from the scraped list above. Use their exact or close headlines." : "- Pick real news that was actually reported/published in The Hindu."}
+- Do NOT invent or fabricate news stories.
+- Focus on news important for UPSC/State PSC exam preparation.
+- Include the print edition page number for each article.
+${scrapedArticles.length === 0 ? "- Since no scraped articles are available, use your knowledge of real news from The Hindu for this date." : ""}
 ${stateContext}
 
-Return ONLY a valid JSON array of objects with these exact keys: title, summary, category, gsCategory, relevance, source.
+Create exactly ${stateFilter ? "10-12" : "8-10"} important topics. For each topic provide:
+1. title: The headline (use scraped headline if available, may refine slightly)
+2. summary: A 3-4 sentence explanation covering key facts, significance, and UPSC syllabus connection.
+3. category: One of "National", "International", "Economy", "Science & Tech", "Environment", "Polity & Governance", "Social Issues", "Sports & Culture"${stateFilter ? ', "State"' : ""}
+4. gsCategory: One of "GS-I", "GS-II", "GS-III", "GS-IV", "Prelims"
+5. relevance: Why this is important for UPSC/State PSC exams (1 sentence)
+6. source: "The Hindu"${stateInfo ? ` or "${stateInfo.newspaper}" for state topics` : ""}
+7. pageNumber: The print edition page number (use from scraped data if available, otherwise estimate based on section: Front Page=1, National=2-4, States=5, Editorial=8, Op-Ed=9, International=10, Business=12, Sports=14)
+
+Return ONLY a valid JSON array of objects with these exact keys: title, summary, category, gsCategory, relevance, source, pageNumber.
 No markdown, no explanations, just the JSON array.`;
 
       const response = await ai.models.generateContent({
@@ -137,7 +153,8 @@ No markdown, no explanations, just the JSON array.`;
           category: topic.category || "National",
           gsCategory: topic.gsCategory || "Prelims",
           relevance: topic.relevance || null,
-          source: topic.source || null,
+          source: topic.source || "The Hindu",
+          pageNumber: typeof topic.pageNumber === "number" ? topic.pageNumber : null,
         }).returning();
         insertedTopics.push(inserted);
       }
