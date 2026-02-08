@@ -145,8 +145,24 @@ export function MessageBubble({ message, isStreaming, conversationId }: MessageB
   };
 
   const openSaveDialog = () => {
-    const firstLine = (message.content || "").split("\n")[0].replace(/[#*_]/g, "").trim().slice(0, 100);
-    setNoteTitle(firstLine);
+    const content = message.content || "";
+    const lines = content.split("\n").map(l => l.replace(/[#*_`]/g, "").trim()).filter(Boolean);
+    const headingMatch = content.match(/^#{1,3}\s+(.+)/m);
+    let title = "";
+    if (headingMatch) {
+      title = headingMatch[1].replace(/[#*_`]/g, "").trim();
+    } else if (lines.length > 0) {
+      const firstLine = lines[0];
+      const sentenceEnd = firstLine.search(/[.!?]/);
+      if (sentenceEnd > 5 && sentenceEnd < 80) {
+        title = firstLine.slice(0, sentenceEnd);
+      } else {
+        const words = firstLine.split(/\s+/).slice(0, 8);
+        title = words.join(" ");
+      }
+    }
+    title = title.slice(0, 60) || "Untitled Note";
+    setNoteTitle(title);
     setShowSaveDialog(true);
   };
 
