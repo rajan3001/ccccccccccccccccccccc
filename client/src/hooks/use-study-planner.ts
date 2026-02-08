@@ -128,6 +128,47 @@ export function useDeleteGoal() {
   });
 }
 
+export function useAIGenerateTimetable() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { targetExams: string[] }) => {
+      const res = await fetch("/api/study-planner/ai-generate-timetable", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Failed to generate timetable" }));
+        throw new Error(err.error || "Failed to generate timetable");
+      }
+      return res.json();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/study-planner/timetable"] }),
+  });
+}
+
+export function useAIGenerateGoals() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { targetExams: string[]; date: string }) => {
+      const res = await fetch("/api/study-planner/ai-generate-goals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Failed to generate goals" }));
+        throw new Error(err.error || "Failed to generate goals");
+      }
+      return res.json();
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["/api/study-planner/daily-goals", vars.date] });
+      qc.invalidateQueries({ predicate: (q) => q.queryKey[0] === "/api/study-planner/dashboard" });
+    },
+  });
+}
+
 export function usePlannerDashboard(examType: string) {
   return useQuery<{
     overallProgress: number;

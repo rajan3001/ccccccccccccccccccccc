@@ -11,6 +11,7 @@ import {
 } from "@shared/schema";
 import { eq, and, sql, desc } from "drizzle-orm";
 import { z } from "zod";
+import { GoogleGenAI } from "@google/genai";
 
 type SyllabusSection = { parent: string; topics: string[] };
 type ExamSyllabus = { examType: string; papers: { gsPaper: string; topics: SyllabusSection[] }[] };
@@ -908,6 +909,226 @@ export function registerStudyPlannerRoutes(app: Express): void {
     } catch (error) {
       console.error("Error fetching exam types:", error);
       res.status(500).json({ error: "Failed to fetch exam types" });
+    }
+  });
+
+  const ai = new GoogleGenAI({
+    apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
+    httpOptions: {
+      apiVersion: "",
+      baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
+    },
+  });
+
+  const EXAM_LABELS: Record<string, string> = {
+    UPSC: "UPSC CSE",
+    JPSC: "JPSC (Jharkhand)",
+    BPSC: "BPSC (Bihar)",
+    JKPSC: "JKPSC (J&K)",
+    UPPSC: "UPPSC (Uttar Pradesh)",
+    MPPSC: "MPPSC (Madhya Pradesh)",
+    RPSC: "RPSC (Rajasthan)",
+    OPSC: "OPSC (Odisha)",
+    HPSC: "HPSC (Haryana)",
+    UKPSC: "UKPSC (Uttarakhand)",
+    HPPSC: "HPPSC (Himachal Pradesh)",
+    APSC_Assam: "APSC (Assam)",
+    MeghalayaPSC: "Meghalaya PSC",
+    SikkimPSC: "Sikkim PSC",
+    TripuraPSC: "Tripura PSC",
+    ArunachalPSC: "Arunachal PSC",
+  };
+
+  app.post("/api/study-planner/ai-generate-timetable", isAuthenticated, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { targetExams } = req.body as { targetExams: string[] };
+      const exams = targetExams && targetExams.length > 0 ? targetExams : ["UPSC"];
+      const examNames = exams.map(e => EXAM_LABELS[e] || e).join(", ");
+
+      const topics = await db.select().from(syllabusTopics)
+        .where(sql`${syllabusTopics.examType} IN ${exams}`)
+        .orderBy(syllabusTopics.orderIndex);
+
+      const progress = await db.select().from(userSyllabusProgress).where(eq(userSyllabusProgress.userId, userId));
+      const completedIds = new Set(progress.filter(p => p.completed).map(p => p.topicId));
+
+      const pendingByPaper: Record<string, string[]> = {};
+      for (const t of topics) {
+        if (t.parentTopic && !completedIds.has(t.id)) {
+          const key = `${t.gsPaper}`;
+          if (!pendingByPaper[key]) pendingByPaper[key] = [];
+          if (pendingByPaper[key].length < 5) pendingByPaper[key].push(t.topic);
+        }
+      }
+
+      const pendingSummary = Object.entries(pendingByPaper)
+        .map(([paper, topics]) => `${paper}: ${topics.join(", ")}`)
+        .join("\n");
+
+      const prompt = `You are a UPSC/State PSC exam preparation expert. Create a practical weekly study timetable for a student preparing for ${examNames}.
+
+The student has these pending topics to cover:
+${pendingSummary || "General revision across all papers"}
+
+Generate a realistic weekly timetable (Monday to Saturday, Sunday is rest/revision) with 4-6 study slots per day. Each slot should be 1-2 hours. Include morning, afternoon, and evening sessions. Mix different papers/subjects for variety.
+
+IMPORTANT: Respond ONLY with a valid JSON array. No markdown, no explanation, no code blocks.
+Each item must have exactly these fields:
+- "dayOfWeek": number (1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday)
+- "startTime": string in "HH:MM" 24hr format
+- "endTime": string in "HH:MM" 24hr format
+- "gsPaper": string (the paper name like "GS Paper I", "GS Paper II", "GS Paper III", "GS Paper IV", "Current Affairs", "Optional Subject", "Essay", or exam-specific paper names)
+- "subject": string (specific topic to study)
+
+Example: [{"dayOfWeek":1,"startTime":"06:00","endTime":"08:00","gsPaper":"GS Paper I","subject":"Ancient Indian History - Indus Valley Civilization"}]
+
+Generate 25-30 slots covering the full week with a balanced schedule.`;
+
+      const result = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+      });
+
+      const responseText = result.text || "";
+      const jsonMatch = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+
+      let slots: any[];
+      try {
+        slots = JSON.parse(jsonMatch);
+      } catch {
+        console.error("Failed to parse AI timetable response:", responseText.substring(0, 500));
+        return res.status(500).json({ error: "AI generated an invalid response. Please try again." });
+      }
+
+      if (!Array.isArray(slots) || slots.length === 0) {
+        return res.status(500).json({ error: "AI generated no timetable slots. Please try again." });
+      }
+
+      await db.delete(timetableSlots).where(eq(timetableSlots.userId, userId));
+
+      const insertData = slots
+        .filter(s => s.dayOfWeek >= 0 && s.dayOfWeek <= 6 && s.startTime && s.endTime && s.gsPaper && s.subject)
+        .map(s => ({
+          userId,
+          dayOfWeek: typeof s.dayOfWeek === "number" ? s.dayOfWeek : parseInt(s.dayOfWeek),
+          startTime: s.startTime,
+          endTime: s.endTime,
+          gsPaper: s.gsPaper,
+          subject: s.subject,
+        }));
+
+      if (insertData.length > 0) {
+        await db.insert(timetableSlots).values(insertData);
+      }
+
+      const newSlots = await db.select().from(timetableSlots)
+        .where(eq(timetableSlots.userId, userId))
+        .orderBy(timetableSlots.dayOfWeek);
+
+      res.json(newSlots);
+    } catch (error) {
+      console.error("Error generating AI timetable:", error);
+      res.status(500).json({ error: "Failed to generate timetable. Please try again." });
+    }
+  });
+
+  app.post("/api/study-planner/ai-generate-goals", isAuthenticated, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { targetExams, date } = req.body as { targetExams: string[]; date: string };
+      const exams = targetExams && targetExams.length > 0 ? targetExams : ["UPSC"];
+      const goalDate = date || new Date().toISOString().split("T")[0];
+      const examNames = exams.map(e => EXAM_LABELS[e] || e).join(", ");
+
+      const dayOfWeek = new Date(goalDate).toLocaleDateString("en-US", { weekday: "long" });
+
+      const topics = await db.select().from(syllabusTopics)
+        .where(sql`${syllabusTopics.examType} IN ${exams}`)
+        .orderBy(syllabusTopics.orderIndex);
+
+      const progress = await db.select().from(userSyllabusProgress).where(eq(userSyllabusProgress.userId, userId));
+      const completedIds = new Set(progress.filter(p => p.completed).map(p => p.topicId));
+
+      const pendingTopics = topics
+        .filter(t => t.parentTopic && !completedIds.has(t.id))
+        .slice(0, 20)
+        .map(t => `${t.gsPaper} > ${t.topic}`);
+
+      const timetable = await db.select().from(timetableSlots)
+        .where(eq(timetableSlots.userId, userId));
+
+      const todaySlots = timetable
+        .filter(s => {
+          const d = new Date(goalDate).getDay();
+          return s.dayOfWeek === d;
+        })
+        .map(s => `${s.startTime}-${s.endTime}: ${s.gsPaper} - ${s.subject}`);
+
+      const prompt = `You are a UPSC/State PSC exam preparation expert. Create practical, actionable daily study goals for a student preparing for ${examNames}.
+
+Today is ${dayOfWeek}, ${goalDate}.
+
+${todaySlots.length > 0 ? `Today's timetable:\n${todaySlots.join("\n")}` : "No timetable slots for today."}
+
+${pendingTopics.length > 0 ? `Pending syllabus topics:\n${pendingTopics.join("\n")}` : "General preparation topics."}
+
+Generate 6-10 specific, actionable study goals for today. Include a mix of:
+- Subject study goals (read chapter, make notes, solve PYQs)
+- Current affairs reading (newspaper analysis, monthly magazine)
+- Answer writing practice
+- Revision tasks
+- Test/quiz practice
+
+IMPORTANT: Respond ONLY with a valid JSON array of strings. No markdown, no explanation, no code blocks.
+Each string should be a concise, specific goal (under 80 characters).
+
+Example: ["Read NCERT Ch.3 - Indian National Movement","Write 2 GS Paper II answers on Polity","Solve 30 MCQs on Indian Economy","Read today's newspaper editorial analysis","Revise Environment & Ecology notes","Practice map marking - India rivers"]`;
+
+      const result = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+      });
+
+      const responseText = result.text || "";
+      const jsonMatch = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+
+      let goalTitles: string[];
+      try {
+        goalTitles = JSON.parse(jsonMatch);
+      } catch {
+        console.error("Failed to parse AI goals response:", responseText.substring(0, 500));
+        return res.status(500).json({ error: "AI generated an invalid response. Please try again." });
+      }
+
+      if (!Array.isArray(goalTitles) || goalTitles.length === 0) {
+        return res.status(500).json({ error: "AI generated no goals. Please try again." });
+      }
+
+      const existingGoals = await db.select().from(dailyStudyGoals)
+        .where(and(eq(dailyStudyGoals.userId, userId), eq(dailyStudyGoals.goalDate, goalDate)));
+      const existingTitles = new Set(existingGoals.map(g => g.title.toLowerCase()));
+
+      const newGoals = goalTitles
+        .filter(t => typeof t === "string" && t.trim().length > 0 && !existingTitles.has(t.trim().toLowerCase()))
+        .map(t => ({
+          userId,
+          goalDate,
+          title: t.trim(),
+        }));
+
+      if (newGoals.length > 0) {
+        await db.insert(dailyStudyGoals).values(newGoals);
+      }
+
+      const allGoals = await db.select().from(dailyStudyGoals)
+        .where(and(eq(dailyStudyGoals.userId, userId), eq(dailyStudyGoals.goalDate, goalDate)))
+        .orderBy(dailyStudyGoals.createdAt);
+
+      res.json(allGoals);
+    } catch (error) {
+      console.error("Error generating AI goals:", error);
+      res.status(500).json({ error: "Failed to generate goals. Please try again." });
     }
   });
 }

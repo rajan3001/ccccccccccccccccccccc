@@ -115,6 +115,8 @@ shared/
 - `PATCH /api/study-planner/daily-goals/:id` - Toggle goal completion
 - `DELETE /api/study-planner/daily-goals/:id` - Delete daily goal
 - `GET /api/study-planner/dashboard` - Dashboard with overall progress, per-paper progress, weak areas from quiz data, recommended topics, today's goals
+- `POST /api/study-planner/ai-generate-timetable` - AI generates a practical weekly timetable based on user's target exams and pending syllabus topics (body: targetExams[])
+- `POST /api/study-planner/ai-generate-goals` - AI generates daily study goals based on target exams, pending topics, and timetable (body: targetExams[], date)
 
 ## Recent Changes
 - 2026-02-08: Added multi-step onboarding flow (name, user type, target exam) and personalized dashboard with greeting, quick actions, daily tips, suggested topics

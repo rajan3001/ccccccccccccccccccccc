@@ -43,6 +43,7 @@ import {
   ChevronDown,
   ChevronRight,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -56,6 +57,8 @@ import {
   useToggleGoal,
   useDeleteGoal,
   usePlannerDashboard,
+  useAIGenerateTimetable,
+  useAIGenerateGoals,
 } from "@/hooks/use-study-planner";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -136,10 +139,11 @@ function ExamSelector({ selectedExam, onExamChange, userExams }: { selectedExam:
   );
 }
 
-function TimetableTab() {
+function TimetableTab({ userExams }: { userExams: string[] }) {
   const { data: slots, isLoading } = useTimetable();
   const createSlot = useCreateSlot();
   const deleteSlot = useDeleteSlot();
+  const aiGenerate = useAIGenerateTimetable();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({
@@ -164,6 +168,17 @@ function TimetableTab() {
     });
   };
 
+  const handleAIGenerate = () => {
+    aiGenerate.mutate({ targetExams: userExams }, {
+      onSuccess: () => {
+        toast({ title: "Timetable created by AI", description: "Your weekly study timetable has been generated based on your syllabus." });
+      },
+      onError: (err) => {
+        toast({ title: "Failed to generate", description: err.message, variant: "destructive" });
+      },
+    });
+  };
+
   if (isLoading) {
     return <div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
@@ -175,13 +190,18 @@ function TimetableTab() {
           <h3 className="text-lg font-semibold" data-testid="text-timetable-heading">Weekly Timetable</h3>
           <p className="text-sm text-muted-foreground">Plan your study schedule for the week</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-add-slot">
-              <Plus className="h-4 w-4 mr-1.5" />
-              Add Slot
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" onClick={handleAIGenerate} disabled={aiGenerate.isPending} data-testid="button-ai-generate-timetable">
+            {aiGenerate.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Sparkles className="h-4 w-4 mr-1.5" />}
+            {aiGenerate.isPending ? "Generating..." : "AI Generate"}
+          </Button>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-add-slot">
+                <Plus className="h-4 w-4 mr-1.5" />
+                Add Slot
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add Study Slot</DialogTitle>
@@ -221,6 +241,7 @@ function TimetableTab() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="grid gap-3">
@@ -398,13 +419,14 @@ function SyllabusTab({ selectedExam, onExamChange, userExams }: { selectedExam: 
   );
 }
 
-function DailyGoalsTab() {
+function DailyGoalsTab({ userExams }: { userExams: string[] }) {
   const today = new Date().toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState(today);
   const { data: goals, isLoading } = useDailyGoals(selectedDate);
   const createGoal = useCreateGoal();
   const toggleGoal = useToggleGoal();
   const deleteGoal = useDeleteGoal();
+  const aiGenerate = useAIGenerateGoals();
   const { toast } = useToast();
   const [newGoal, setNewGoal] = useState("");
 
@@ -414,6 +436,17 @@ function DailyGoalsTab() {
       onSuccess: () => {
         setNewGoal("");
         toast({ title: "Goal added" });
+      },
+    });
+  };
+
+  const handleAIGenerate = () => {
+    aiGenerate.mutate({ targetExams: userExams, date: selectedDate }, {
+      onSuccess: () => {
+        toast({ title: "Goals created by AI", description: "Practical study goals have been added for this day." });
+      },
+      onError: (err) => {
+        toast({ title: "Failed to generate", description: err.message, variant: "destructive" });
       },
     });
   };
@@ -428,13 +461,19 @@ function DailyGoalsTab() {
           <h3 className="text-lg font-semibold" data-testid="text-goals-heading">Daily Study Goals</h3>
           <p className="text-sm text-muted-foreground">Set and track your daily study targets</p>
         </div>
-        <Input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="w-auto"
-          data-testid="input-goal-date"
-        />
+        <div className="flex items-center gap-2 flex-wrap">
+          <Input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="w-auto"
+            data-testid="input-goal-date"
+          />
+          <Button variant="outline" onClick={handleAIGenerate} disabled={aiGenerate.isPending} data-testid="button-ai-generate-goals">
+            {aiGenerate.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Sparkles className="h-4 w-4 mr-1.5" />}
+            {aiGenerate.isPending ? "Generating..." : "AI Generate"}
+          </Button>
+        </div>
       </div>
 
       {totalCount > 0 && (
@@ -659,13 +698,13 @@ export default function StudyPlannerPage() {
               <DashboardTab selectedExam={selectedExam} onExamChange={setSelectedExam} userExams={userExams} />
             </TabsContent>
             <TabsContent value="timetable">
-              <TimetableTab />
+              <TimetableTab userExams={userExams} />
             </TabsContent>
             <TabsContent value="syllabus">
               <SyllabusTab selectedExam={selectedExam} onExamChange={setSelectedExam} userExams={userExams} />
             </TabsContent>
             <TabsContent value="goals">
-              <DailyGoalsTab />
+              <DailyGoalsTab userExams={userExams} />
             </TabsContent>
           </Tabs>
         </div>
