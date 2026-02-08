@@ -56,14 +56,128 @@ const EXAM_OPTIONS = [
   { value: "ArunachalPSC", label: "Arunachal PSC" },
 ];
 
-const PAPER_TYPES = [
-  { value: "GS-I", label: "General Studies Paper I" },
-  { value: "GS-II", label: "General Studies Paper II" },
-  { value: "GS-III", label: "General Studies Paper III" },
-  { value: "GS-IV", label: "General Studies Paper IV (Ethics)" },
-  { value: "Essay", label: "Essay Paper" },
-  { value: "Optional", label: "Optional Subject" },
-];
+const EXAM_PAPER_TYPES: Record<string, { value: string; label: string }[]> = {
+  UPSC: [
+    { value: "GS-I", label: "GS Paper I (History, Culture, Geography)" },
+    { value: "GS-II", label: "GS Paper II (Polity, Governance, IR)" },
+    { value: "GS-III", label: "GS Paper III (Economy, S&T, Environment)" },
+    { value: "GS-IV", label: "GS Paper IV (Ethics, Integrity, Aptitude)" },
+    { value: "Essay", label: "Essay Paper" },
+    { value: "Optional-I", label: "Optional Subject Paper I" },
+    { value: "Optional-II", label: "Optional Subject Paper II" },
+  ],
+  JPSC: [
+    { value: "Paper-II", label: "Paper II (Language & Literature)" },
+    { value: "Paper-III", label: "Paper III (Social Sciences - History & Geography)" },
+    { value: "Paper-IV", label: "Paper IV (Constitution, Polity & Governance)" },
+    { value: "Paper-V", label: "Paper V (Economy, Globalization & Sustainable Dev)" },
+    { value: "Paper-VI", label: "Paper VI (General Science, Environment & Tech)" },
+  ],
+  BPSC: [
+    { value: "GS-I", label: "GS Paper I (Indian & Bihar History, Culture, Economy)" },
+    { value: "GS-II", label: "GS Paper II (Polity, Economy, Science & Tech)" },
+    { value: "Essay", label: "Essay Paper" },
+  ],
+  JKPSC: [
+    { value: "Essay", label: "Essay Paper" },
+    { value: "GS-I", label: "GS Paper I (Heritage, Culture, History, Geography)" },
+    { value: "GS-II", label: "GS Paper II (Governance, Polity, Social Justice, IR)" },
+    { value: "GS-III", label: "GS Paper III (Technology, Economy, Environment, Security)" },
+    { value: "GS-IV", label: "GS Paper IV (Ethics, Integrity & Aptitude)" },
+    { value: "Optional-I", label: "Optional Subject Paper I" },
+    { value: "Optional-II", label: "Optional Subject Paper II" },
+  ],
+  UPPSC: [
+    { value: "Essay", label: "Essay Paper" },
+    { value: "GS-I", label: "GS Paper I (History, Culture)" },
+    { value: "GS-II", label: "GS Paper II (Polity, Governance)" },
+    { value: "GS-III", label: "GS Paper III (Economy, Science & Tech)" },
+    { value: "GS-IV", label: "GS Paper IV (Ethics, Aptitude)" },
+    { value: "GS-V", label: "GS Paper V (UP Specific)" },
+    { value: "GS-VI", label: "GS Paper VI (UP Specific)" },
+  ],
+  MPPSC: [
+    { value: "GS-I", label: "GS Paper I (History, Culture, Geography)" },
+    { value: "GS-II", label: "GS Paper II (Constitution, Governance, Social Sector)" },
+    { value: "GS-III", label: "GS Paper III (Economy, Science, Environment)" },
+    { value: "GS-IV", label: "GS Paper IV (Ethics, Philosophy, Aptitude)" },
+    { value: "GS-V", label: "GS Paper V (India & MP: Geography, Polity)" },
+    { value: "GS-VI", label: "GS Paper VI (India & MP: Economy, Science)" },
+  ],
+  RPSC: [
+    { value: "GS-I", label: "GS Paper I (History, Economics, Sociology)" },
+    { value: "GS-II", label: "GS Paper II (Ethics, Science & Tech, Geography)" },
+    { value: "GS-III", label: "GS Paper III (Polity, Public Admin, Law)" },
+    { value: "GS-IV", label: "Paper IV (General Hindi & English)" },
+  ],
+  OPSC: [
+    { value: "Essay", label: "Essay Paper" },
+    { value: "GS-I", label: "GS Paper I (History, Culture, Geography, Society)" },
+    { value: "GS-II", label: "GS Paper II (Constitution, Governance, IR)" },
+    { value: "GS-III", label: "GS Paper III (Economy, S&T, Environment)" },
+    { value: "GS-IV", label: "GS Paper IV (Ethics, Integrity & Aptitude)" },
+    { value: "Optional-I", label: "Optional Subject Paper I" },
+    { value: "Optional-II", label: "Optional Subject Paper II" },
+  ],
+  HPSC: [
+    { value: "Paper-I", label: "Paper I (English)" },
+    { value: "Paper-II", label: "Paper II (Hindi)" },
+    { value: "GS", label: "Paper III (General Studies)" },
+    { value: "Optional", label: "Paper IV (Optional Subject)" },
+  ],
+  UKPSC: [
+    { value: "Essay", label: "Essay Paper" },
+    { value: "GS-I", label: "GS Paper I (Heritage, Culture, History, Geography)" },
+    { value: "GS-II", label: "GS Paper II (Governance, Polity, Social Justice, IR)" },
+    { value: "GS-III", label: "GS Paper III (Technology, Economy, Environment)" },
+    { value: "GS-IV", label: "GS Paper IV (Ethics, Integrity & Aptitude)" },
+    { value: "GS-V", label: "GS Paper V (Uttarakhand Specific)" },
+    { value: "GS-VI", label: "GS Paper VI (Uttarakhand Specific)" },
+  ],
+  HPPSC: [
+    { value: "Essay", label: "Essay Paper" },
+    { value: "GS-I", label: "GS Paper I (History, Culture, Geography)" },
+    { value: "GS-II", label: "GS Paper II (Polity, Governance, Social Justice)" },
+    { value: "GS-III", label: "GS Paper III (Economy, Science, Environment)" },
+    { value: "Optional-I", label: "Optional Subject Paper I" },
+    { value: "Optional-II", label: "Optional Subject Paper II" },
+  ],
+  APSC_Assam: [
+    { value: "Essay", label: "Essay Paper" },
+    { value: "GS-I", label: "GS Paper I" },
+    { value: "GS-II", label: "GS Paper II" },
+    { value: "GS-III", label: "GS Paper III" },
+    { value: "GS-IV", label: "GS Paper IV" },
+    { value: "GS-Assam", label: "GS Paper - Assam Specific" },
+  ],
+  MeghalayaPSC: [
+    { value: "Essay", label: "Essay Paper" },
+    { value: "GS-I", label: "GS Paper I" },
+    { value: "GS-II", label: "GS Paper II" },
+    { value: "GS-III", label: "GS Paper III" },
+    { value: "GS-IV", label: "GS Paper IV" },
+    { value: "Optional-I", label: "Optional Subject Paper I" },
+    { value: "Optional-II", label: "Optional Subject Paper II" },
+  ],
+  SikkimPSC: [
+    { value: "GS-I", label: "GS Paper I" },
+    { value: "GS-II", label: "GS Paper II" },
+    { value: "Essay", label: "Essay Paper" },
+    { value: "Optional", label: "Optional Subject" },
+  ],
+  TripuraPSC: [
+    { value: "GS-I", label: "GS Paper I" },
+    { value: "GS-II", label: "GS Paper II" },
+    { value: "Essay", label: "Essay Paper" },
+    { value: "Optional", label: "Optional Subject" },
+  ],
+  ArunachalPSC: [
+    { value: "GS-I", label: "GS Paper I" },
+    { value: "GS-II", label: "GS Paper II" },
+    { value: "Essay", label: "Essay Paper" },
+    { value: "Optional", label: "Optional Subject" },
+  ],
+};
 
 const ALLOWED_TYPES = [
   "image/jpeg", "image/png", "image/webp",
@@ -125,6 +239,14 @@ export default function PaperEvaluationPage() {
   const [examType, setExamType] = useState("UPSC");
   const [paperType, setPaperType] = useState("GS-I");
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
+
+  const paperTypes = EXAM_PAPER_TYPES[examType] || EXAM_PAPER_TYPES.UPSC;
+
+  const handleExamTypeChange = (value: string) => {
+    setExamType(value);
+    const newPaperTypes = EXAM_PAPER_TYPES[value] || EXAM_PAPER_TYPES.UPSC;
+    setPaperType(newPaperTypes[0].value);
+  };
   const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null);
   const [showCompetency, setShowCompetency] = useState(false);
   const [view, setView] = useState<"upload" | "result" | "history">("upload");
@@ -245,7 +367,7 @@ export default function PaperEvaluationPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium mb-1.5 block">Exam Type</label>
-              <Select value={examType} onValueChange={setExamType}>
+              <Select value={examType} onValueChange={handleExamTypeChange}>
                 <SelectTrigger data-testid="select-exam-type">
                   <SelectValue />
                 </SelectTrigger>
@@ -263,7 +385,7 @@ export default function PaperEvaluationPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {PAPER_TYPES.map((p) => (
+                  {paperTypes.map((p: { value: string; label: string }) => (
                     <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
                   ))}
                 </SelectContent>
