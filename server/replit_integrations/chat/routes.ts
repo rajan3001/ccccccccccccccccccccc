@@ -41,6 +41,30 @@ async function readFileContent(objectPath: string, fileType: string): Promise<st
   }
 }
 
+async function generateTitle(conversationId: number, firstMessage: string): Promise<void> {
+  try {
+    const result = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: `Generate a very short title (maximum 6 words) for a chat conversation that starts with this message. Return ONLY the title text, nothing else. No quotes, no punctuation at the end.\n\nMessage: ${firstMessage.substring(0, 500)}`,
+            },
+          ],
+        },
+      ],
+    });
+    const title = (result.text || "").trim().replace(/^["']|["']$/g, "").substring(0, 100);
+    if (title) {
+      await chatStorage.updateConversationTitle(conversationId, title);
+    }
+  } catch (error) {
+    console.error("Failed to generate title:", error);
+  }
+}
+
 export function registerChatRoutes(app: Express): void {
   app.get("/api/conversations", isAuthenticated, async (req: Request, res: Response) => {
     try {
@@ -97,6 +121,13 @@ export function registerChatRoutes(app: Express): void {
       await chatStorage.createMessage(conversationId, "user", content, attachments);
 
       const messages = await chatStorage.getMessagesByConversation(conversationId);
+
+      const userMessages = messages.filter(m => m.role === "user");
+      if (userMessages.length === 1) {
+        generateTitle(conversationId, content).catch(err =>
+          console.error("Auto-title generation failed:", err)
+        );
+      }
       
       const chatMessages = [];
       
