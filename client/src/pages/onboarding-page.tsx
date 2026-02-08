@@ -6,6 +6,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Logo } from "@/components/ui/logo";
 import { Progress } from "@/components/ui/progress";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
@@ -71,7 +72,7 @@ export default function OnboardingPage() {
     defaultValues: {
       displayName: "",
       userType: undefined,
-      targetExam: "",
+      targetExams: [],
     },
   });
 
@@ -99,7 +100,7 @@ export default function OnboardingPage() {
     const values = form.getValues();
     if (step === 0) return values.displayName.trim().length > 0;
     if (step === 1) return !!values.userType;
-    if (step === 2) return values.targetExam.length > 0;
+    if (step === 2) return values.targetExams.length > 0;
     return false;
   };
 
@@ -115,20 +116,31 @@ export default function OnboardingPage() {
     if (step > 0) setStep(step - 1);
   };
 
+  const toggleExam = (examValue: string) => {
+    const current = form.getValues("targetExams");
+    if (current.includes(examValue)) {
+      form.setValue("targetExams", current.filter((e) => e !== examValue), { shouldValidate: true });
+    } else {
+      form.setValue("targetExams", [...current, examValue], { shouldValidate: true });
+    }
+  };
+
   const nationalExams = EXAM_OPTIONS.filter(e => e.group === "National");
   const stateExams = EXAM_OPTIONS.filter(e => e.group === "State PSC");
   const neExams = EXAM_OPTIONS.filter(e => e.group === "NE State PSC");
+
+  const selectedExams = form.watch("targetExams");
 
   const renderExamGroup = (title: string, exams: typeof EXAM_OPTIONS) => (
     <div>
       <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 block">{title}</span>
       {exams.map((exam) => {
-        const isSelected = form.watch("targetExam") === exam.value;
+        const isSelected = selectedExams.includes(exam.value);
         return (
           <button
             key={exam.value}
             type="button"
-            onClick={() => form.setValue("targetExam", exam.value)}
+            onClick={() => toggleExam(exam.value)}
             className={`w-full flex items-center justify-between gap-2 p-3 rounded-md border mb-2 text-left ${
               isSelected
                 ? "border-primary bg-primary/5 dark:bg-primary/10"
@@ -259,12 +271,24 @@ export default function OnboardingPage() {
               {step === 2 && (
                 <div>
                   <h2 className="text-xl font-display font-bold text-center mb-1" data-testid="text-step-heading">
-                    Which exam are you preparing for?
+                    Which exams are you preparing for?
                   </h2>
-                  <p className="text-sm text-muted-foreground text-center mb-6">
-                    Select your target examination
+                  <p className="text-sm text-muted-foreground text-center mb-3">
+                    Select all that apply
                   </p>
-                  <div className="space-y-4 max-h-[320px] overflow-y-auto pr-1">
+                  {selectedExams.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-4" data-testid="selected-exams-badges">
+                      {selectedExams.map((val) => {
+                        const exam = EXAM_OPTIONS.find(e => e.value === val);
+                        return (
+                          <Badge key={val} variant="secondary" className="text-xs">
+                            {exam?.label || val}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div className="space-y-4 max-h-[280px] overflow-y-auto pr-1">
                     {renderExamGroup("National", nationalExams)}
                     {renderExamGroup("State PSC", stateExams)}
                     {renderExamGroup("NE State PSC", neExams)}

@@ -50,7 +50,7 @@ shared/
 ```
 
 ## Database Schema
-- **users** - Replit Auth users (with displayName, userType, targetExam, onboardingCompleted)
+- **users** - Replit Auth users (with displayName, userType, targetExams jsonb array, onboardingCompleted)
 - **conversations** - Chat conversation titles
 - **messages** - Chat messages with attachments (jsonb)
 - **subscriptions** - User subscription plans
@@ -60,7 +60,7 @@ shared/
 - **quiz_questions** - Questions per attempt with question, options (text[]), correctIndex, explanation, userAnswer, isCorrect
 
 ## API Routes
-- `POST /api/onboarding` - Submit onboarding data (displayName, userType, targetExam)
+- `POST /api/onboarding` - Submit onboarding data (displayName, userType, targetExams[])
 - `GET/POST/DELETE /api/conversations` - Chat CRUD
 - `POST /api/conversations/:id/messages` - Send message + stream AI response (SSE)
 - `POST /api/uploads/request-url` - Get presigned upload URL

@@ -119,7 +119,8 @@ export default function DashboardPage() {
   }
 
   const displayName = user?.displayName || user?.firstName || "Aspirant";
-  const examLabel = user?.targetExam ? EXAM_LABELS[user.targetExam] || user.targetExam : null;
+  const targetExams: string[] = (user?.targetExams as string[]) || [];
+  const examLabels = targetExams.map((e) => EXAM_LABELS[e] || e);
   const userTypeLabel = user?.userType ? USER_TYPE_LABELS[user.userType] || user.userType : null;
 
   return (
@@ -134,8 +135,8 @@ export default function DashboardPage() {
               {getGreeting()}, {displayName}
             </h1>
             <p className="text-muted-foreground text-sm sm:text-base mt-1" data-testid="text-dashboard-subtitle">
-              {examLabel ? (
-                <>Preparing for <span className="font-semibold text-primary">{examLabel}</span></>
+              {examLabels.length > 0 ? (
+                <>Preparing for <span className="font-semibold text-primary">{examLabels.join(", ")}</span></>
               ) : (
                 "Your AI-powered preparation hub"
               )}

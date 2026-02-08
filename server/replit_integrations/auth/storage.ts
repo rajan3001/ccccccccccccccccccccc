@@ -37,7 +37,7 @@ class AuthStorage implements IAuthStorage {
       .set({
         displayName: data.displayName,
         userType: data.userType,
-        targetExam: data.targetExam,
+        targetExams: data.targetExams,
         onboardingCompleted: true,
         updatedAt: new Date(),
       })

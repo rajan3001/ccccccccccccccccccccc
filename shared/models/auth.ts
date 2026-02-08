@@ -25,7 +25,7 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   displayName: varchar("display_name"),
   userType: varchar("user_type"),
-  targetExam: varchar("target_exam"),
+  targetExams: jsonb("target_exams").$type<string[]>().default([]),
   onboardingCompleted: boolean("onboarding_completed").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -34,7 +34,7 @@ export const users = pgTable("users", {
 export const onboardingSchema = z.object({
   displayName: z.string().min(1, "Name is required").max(100),
   userType: z.enum(["college_student", "working_professional", "full_time_aspirant"]),
-  targetExam: z.string().min(1, "Please select an exam"),
+  targetExams: z.array(z.string()).min(1, "Please select at least one exam"),
 });
 
 export type OnboardingData = z.infer<typeof onboardingSchema>;
