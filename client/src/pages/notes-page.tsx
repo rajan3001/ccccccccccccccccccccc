@@ -42,37 +42,56 @@ import {
   StickyNote,
   Bell,
   Filter,
+  FolderPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Note } from "@shared/models/notes";
 
-const GS_FILTER_OPTIONS = [
-  { value: "all", label: "All Categories" },
-  { value: "GS-I", label: "GS Paper I" },
-  { value: "GS-II", label: "GS Paper II" },
-  { value: "GS-III", label: "GS Paper III" },
-  { value: "GS-IV", label: "GS Paper IV" },
-  { value: "Prelims", label: "Prelims" },
-  { value: "Essay", label: "Essay" },
+const SUBJECT_OPTIONS = [
+  { value: "all", label: "All Subjects" },
+  { value: "History", label: "History" },
+  { value: "Geography", label: "Geography" },
+  { value: "Polity", label: "Polity & Governance" },
+  { value: "Economics", label: "Economics" },
+  { value: "Science", label: "Science & Technology" },
+  { value: "Environment", label: "Environment & Ecology" },
+  { value: "Ethics", label: "Ethics & Integrity" },
+  { value: "International Relations", label: "International Relations" },
+  { value: "Society", label: "Society & Social Issues" },
+  { value: "Art & Culture", label: "Art & Culture" },
   { value: "Current Affairs", label: "Current Affairs" },
-  { value: "Optional", label: "Optional" },
+  { value: "Essay", label: "Essay" },
+  { value: "Mathematics", label: "Mathematics" },
+  { value: "Reasoning", label: "Reasoning & Aptitude" },
+  { value: "English", label: "English Language" },
+  { value: "General Knowledge", label: "General Knowledge" },
+  { value: "Other", label: "Other" },
 ];
 
-const GS_COLORS: Record<string, string> = {
-  "GS-I": "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-  "GS-II": "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-  "GS-III": "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
-  "GS-IV": "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
-  "Prelims": "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
-  "Essay": "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300",
+const SUBJECT_COLORS: Record<string, string> = {
+  "History": "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+  "Geography": "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  "Polity": "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  "Economics": "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
+  "Science": "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300",
+  "Environment": "bg-lime-100 text-lime-800 dark:bg-lime-900/30 dark:text-lime-300",
+  "Ethics": "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300",
+  "International Relations": "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300",
+  "Society": "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+  "Art & Culture": "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
   "Current Affairs": "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300",
-  "Optional": "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
+  "Essay": "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300",
+  "Mathematics": "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
+  "Reasoning": "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300",
+  "English": "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/30 dark:text-fuchsia-300",
+  "General Knowledge": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  "Other": "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300",
 };
 
 export default function NotesPage() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
-  const [gsFilter, setGsFilter] = useState("all");
+  const [subjectFilter, setSubjectFilter] = useState("all");
   const [folderFilter, setFolderFilter] = useState("all");
   const [tagFilter, setTagFilter] = useState("all");
   const [showDueOnly, setShowDueOnly] = useState(false);
@@ -80,14 +99,16 @@ export default function NotesPage() {
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
-  const [editGsCategory, setEditGsCategory] = useState("none");
+  const [editSubject, setEditSubject] = useState("none");
   const [editTags, setEditTags] = useState("");
   const [editFolder, setEditFolder] = useState("");
+  const [showNewEditFolder, setShowNewEditFolder] = useState(false);
+  const [newEditFolderName, setNewEditFolderName] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
   const filters: any = {};
   if (searchQuery) filters.search = searchQuery;
-  if (gsFilter !== "all") filters.gsCategory = gsFilter;
+  if (subjectFilter !== "all") filters.gsCategory = subjectFilter;
   if (folderFilter !== "all") filters.folder = folderFilter;
   if (tagFilter !== "all") filters.tag = tagFilter;
   if (showDueOnly) filters.dueForReview = true;
@@ -109,22 +130,25 @@ export default function NotesPage() {
     setSelectedNote(note);
     setEditTitle(note.title);
     setEditContent(note.content);
-    setEditGsCategory(note.gsCategory || "none");
+    setEditSubject(note.gsCategory || "none");
     setEditTags(((note.tags as string[]) || []).join(", "));
     setEditFolder(note.folder || "");
+    setShowNewEditFolder(false);
+    setNewEditFolderName("");
     setView("edit");
   };
 
   const handleSaveEdit = () => {
     if (!selectedNote) return;
     const tagsArr = editTags.split(",").map((t) => t.trim()).filter(Boolean);
+    const folderValue = showNewEditFolder ? newEditFolderName.trim() : editFolder;
     updateNote.mutate({
       id: selectedNote.id,
       title: editTitle,
       content: editContent,
-      gsCategory: editGsCategory === "none" ? null : editGsCategory,
+      gsCategory: editSubject === "none" ? null : editSubject,
       tags: tagsArr,
-      folder: editFolder.trim() || null,
+      folder: folderValue || null,
     }, {
       onSuccess: (updated: Note) => {
         setSelectedNote(updated);
@@ -238,13 +262,13 @@ export default function NotesPage() {
         {showFilters && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">GS Category</label>
-              <Select value={gsFilter} onValueChange={setGsFilter}>
-                <SelectTrigger data-testid="select-gs-filter">
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Subject</label>
+              <Select value={subjectFilter} onValueChange={setSubjectFilter}>
+                <SelectTrigger data-testid="select-subject-filter">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {GS_FILTER_OPTIONS.map((opt) => (
+                  {SUBJECT_OPTIONS.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                   ))}
                 </SelectContent>
@@ -292,12 +316,12 @@ export default function NotesPage() {
             <StickyNote className="h-8 w-8 text-primary" />
           </div>
           <h3 className="text-lg font-semibold mb-2">
-            {searchQuery || gsFilter !== "all" || folderFilter !== "all" || tagFilter !== "all" || showDueOnly
+            {searchQuery || subjectFilter !== "all" || folderFilter !== "all" || tagFilter !== "all" || showDueOnly
               ? "No matching notes found"
               : "No notes yet"}
           </h3>
           <p className="text-muted-foreground text-sm max-w-md">
-            {searchQuery || gsFilter !== "all"
+            {searchQuery || subjectFilter !== "all"
               ? "Try adjusting your filters or search query."
               : "Save AI responses from your chat conversations as notes to build your study library."}
           </p>
@@ -329,7 +353,7 @@ export default function NotesPage() {
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     {note.gsCategory && (
-                      <Badge variant="secondary" className={cn("text-xs", GS_COLORS[note.gsCategory] || "")}>
+                      <Badge variant="secondary" className={cn("text-xs", SUBJECT_COLORS[note.gsCategory] || "")}>
                         {note.gsCategory}
                       </Badge>
                     )}
@@ -432,7 +456,7 @@ export default function NotesPage() {
 
           <div className="flex items-center gap-2 flex-wrap mb-4">
             {selectedNote.gsCategory && (
-              <Badge variant="secondary" className={GS_COLORS[selectedNote.gsCategory] || ""}>
+              <Badge variant="secondary" className={SUBJECT_COLORS[selectedNote.gsCategory] || ""}>
                 {selectedNote.gsCategory}
               </Badge>
             )}
@@ -512,14 +536,14 @@ export default function NotesPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="text-sm font-medium mb-1.5 block">GS Category</label>
-                <Select value={editGsCategory} onValueChange={setEditGsCategory}>
-                  <SelectTrigger data-testid="select-edit-gs">
+                <label className="text-sm font-medium mb-1.5 block">Subject</label>
+                <Select value={editSubject} onValueChange={setEditSubject}>
+                  <SelectTrigger data-testid="select-edit-subject">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No category</SelectItem>
-                    {GS_FILTER_OPTIONS.filter((o) => o.value !== "all").map((opt) => (
+                    <SelectItem value="none">No subject</SelectItem>
+                    {SUBJECT_OPTIONS.filter((o) => o.value !== "all").map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                     ))}
                   </SelectContent>
@@ -536,12 +560,46 @@ export default function NotesPage() {
               </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Folder</label>
-                <Input
-                  value={editFolder}
-                  onChange={(e) => setEditFolder(e.target.value)}
-                  placeholder="e.g. Indian History"
-                  data-testid="input-edit-folder"
-                />
+                {showNewEditFolder ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={newEditFolderName}
+                      onChange={(e) => setNewEditFolderName(e.target.value)}
+                      placeholder="New folder name..."
+                      autoFocus
+                      data-testid="input-new-edit-folder"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => { setShowNewEditFolder(false); setNewEditFolderName(""); }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Select value={editFolder || "none"} onValueChange={(v) => setEditFolder(v === "none" ? "" : v)}>
+                      <SelectTrigger data-testid="select-edit-folder" className="flex-1">
+                        <SelectValue placeholder="Select folder" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No folder</SelectItem>
+                        {(folders || []).map((f) => (
+                          <SelectItem key={f} value={f}>{f}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setShowNewEditFolder(true)}
+                      data-testid="button-create-edit-folder"
+                    >
+                      <FolderPlus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
 

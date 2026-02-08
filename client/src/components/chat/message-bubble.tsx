@@ -2,12 +2,12 @@ import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
 import { Message } from "@/hooks/use-chat";
 import { Logo } from "@/components/ui/logo";
-import { User, Copy, Check, FileText, Image as ImageIcon, File, BookmarkPlus } from "lucide-react";
+import { User, Copy, Check, FileText, Image as ImageIcon, File, BookmarkPlus, FolderPlus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import {
   Dialog,
@@ -38,16 +38,25 @@ interface MessageBubbleProps {
   conversationId?: number;
 }
 
-const GS_OPTIONS = [
-  { value: "none", label: "No category" },
-  { value: "GS-I", label: "GS Paper I" },
-  { value: "GS-II", label: "GS Paper II" },
-  { value: "GS-III", label: "GS Paper III" },
-  { value: "GS-IV", label: "GS Paper IV" },
-  { value: "Prelims", label: "Prelims" },
-  { value: "Essay", label: "Essay" },
+const SUBJECT_OPTIONS = [
+  { value: "none", label: "No subject" },
+  { value: "History", label: "History" },
+  { value: "Geography", label: "Geography" },
+  { value: "Polity", label: "Polity & Governance" },
+  { value: "Economics", label: "Economics" },
+  { value: "Science", label: "Science & Technology" },
+  { value: "Environment", label: "Environment & Ecology" },
+  { value: "Ethics", label: "Ethics & Integrity" },
+  { value: "International Relations", label: "International Relations" },
+  { value: "Society", label: "Society & Social Issues" },
+  { value: "Art & Culture", label: "Art & Culture" },
   { value: "Current Affairs", label: "Current Affairs" },
-  { value: "Optional", label: "Optional" },
+  { value: "Essay", label: "Essay" },
+  { value: "Mathematics", label: "Mathematics" },
+  { value: "Reasoning", label: "Reasoning & Aptitude" },
+  { value: "English", label: "English Language" },
+  { value: "General Knowledge", label: "General Knowledge" },
+  { value: "Other", label: "Other" },
 ];
 
 export function MessageBubble({ message, isStreaming, conversationId }: MessageBubbleProps) {
@@ -55,11 +64,18 @@ export function MessageBubble({ message, isStreaming, conversationId }: MessageB
   const [copied, setCopied] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [noteTitle, setNoteTitle] = useState("");
-  const [noteGsCategory, setNoteGsCategory] = useState("none");
+  const [noteSubject, setNoteSubject] = useState("none");
   const [noteTags, setNoteTags] = useState("");
   const [noteFolder, setNoteFolder] = useState("");
+  const [showNewFolderInput, setShowNewFolderInput] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const { data: existingFolders } = useQuery<string[]>({
+    queryKey: ["/api/notes/folders"],
+    enabled: showSaveDialog,
+  });
 
   const saveNoteMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -71,9 +87,11 @@ export function MessageBubble({ message, isStreaming, conversationId }: MessageB
       toast({ title: "Note saved successfully" });
       setShowSaveDialog(false);
       setNoteTitle("");
-      setNoteGsCategory("none");
+      setNoteSubject("none");
       setNoteTags("");
       setNoteFolder("");
+      setShowNewFolderInput(false);
+      setNewFolderName("");
     },
     onError: () => {
       toast({ title: "Failed to save note", variant: "destructive" });
@@ -99,9 +117,9 @@ export function MessageBubble({ message, isStreaming, conversationId }: MessageB
     saveNoteMutation.mutate({
       title,
       content: message.content || "",
-      gsCategory: noteGsCategory === "none" ? null : noteGsCategory,
+      gsCategory: noteSubject === "none" ? null : noteSubject,
       tags,
-      folder: noteFolder.trim() || null,
+      folder: (showNewFolderInput ? newFolderName.trim() : noteFolder) || null,
       sourceMessageId: (message as any).id || null,
       sourceConversationId: conversationId || null,
     });
@@ -149,7 +167,6 @@ export function MessageBubble({ message, isStreaming, conversationId }: MessageB
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6"
                   onClick={openSaveDialog}
                   data-testid="button-save-note"
                 >
@@ -158,7 +175,6 @@ export function MessageBubble({ message, isStreaming, conversationId }: MessageB
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6"
                   onClick={handleCopy}
                   data-testid="button-copy-message"
                 >
@@ -243,13 +259,13 @@ export function MessageBubble({ message, isStreaming, conversationId }: MessageB
               />
             </div>
             <div>
-              <label className="text-sm font-medium mb-1.5 block">GS Category</label>
-              <Select value={noteGsCategory} onValueChange={setNoteGsCategory}>
-                <SelectTrigger data-testid="select-note-gs-category">
+              <label className="text-sm font-medium mb-1.5 block">Subject</label>
+              <Select value={noteSubject} onValueChange={setNoteSubject}>
+                <SelectTrigger data-testid="select-note-subject">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {GS_OPTIONS.map((opt) => (
+                  {SUBJECT_OPTIONS.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                   ))}
                 </SelectContent>
@@ -266,12 +282,46 @@ export function MessageBubble({ message, isStreaming, conversationId }: MessageB
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">Folder</label>
-              <Input
-                value={noteFolder}
-                onChange={(e) => setNoteFolder(e.target.value)}
-                placeholder="e.g. Indian History, Environment..."
-                data-testid="input-note-folder"
-              />
+              {showNewFolderInput ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={newFolderName}
+                    onChange={(e) => setNewFolderName(e.target.value)}
+                    placeholder="New folder name..."
+                    autoFocus
+                    data-testid="input-new-folder"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => { setShowNewFolderInput(false); setNewFolderName(""); }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Select value={noteFolder || "none"} onValueChange={(v) => setNoteFolder(v === "none" ? "" : v)}>
+                    <SelectTrigger data-testid="select-note-folder" className="flex-1">
+                      <SelectValue placeholder="Select folder" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No folder</SelectItem>
+                      {(existingFolders || []).map((f) => (
+                        <SelectItem key={f} value={f}>{f}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setShowNewFolderInput(true)}
+                    data-testid="button-create-folder"
+                  >
+                    <FolderPlus className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
