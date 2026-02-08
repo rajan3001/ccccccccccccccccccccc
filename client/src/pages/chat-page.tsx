@@ -47,11 +47,15 @@ export default function ChatPage() {
   const [prefillSent, setPrefillSent] = useState(false);
 
   const handleHomeSend = async (message: string) => {
-    createMutation.mutate("New Chat", {
-      onSuccess: (newChat) => {
-        setLocation(`/chat/${newChat.id}?prefill=${encodeURIComponent(message)}`);
-      },
-    });
+    if (conversationId) {
+      sendMessage(message);
+    } else {
+      createMutation.mutate("New Chat", {
+        onSuccess: (newChat) => {
+          setLocation(`/chat/${newChat.id}?prefill=${encodeURIComponent(message)}`);
+        },
+      });
+    }
   };
 
   useEffect(() => {
@@ -88,7 +92,7 @@ export default function ChatPage() {
       
       <main className="flex-1 flex flex-col min-h-0 relative">
         <div className="flex-1 overflow-y-auto scroll-smooth">
-          {!conversationId ? (
+          {!conversationId || (!isChatLoading && !hasMessages && !isStreaming) ? (
             <div className="flex flex-col items-center justify-center h-full animate-in fade-in duration-500">
               <div className="hidden sm:flex flex-col items-center pb-4">
                 <Logo size="xl" className="mb-6" />
