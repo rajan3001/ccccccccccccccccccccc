@@ -20,8 +20,10 @@ export const chatStorage: IChatStorage = {
   },
 
   async getAllConversations() {
+    const MAX_HISTORY = 20;
     const allConvos = await db.select().from(conversations).orderBy(desc(conversations.createdAt));
     const nonEmpty = [];
+    const toDelete = [];
     for (const convo of allConvos) {
       const [msgCount] = await db
         .select({ count: sql<number>`count(*)::int` })
@@ -29,7 +31,20 @@ export const chatStorage: IChatStorage = {
         .where(eq(messages.conversationId, convo.id));
       if (msgCount?.count > 0) {
         nonEmpty.push(convo);
+      } else {
+        toDelete.push(convo.id);
       }
+    }
+    for (const id of toDelete) {
+      await db.delete(conversations).where(eq(conversations.id, id));
+    }
+    if (nonEmpty.length > MAX_HISTORY) {
+      const overflow = nonEmpty.slice(MAX_HISTORY);
+      for (const convo of overflow) {
+        await db.delete(messages).where(eq(messages.conversationId, convo.id));
+        await db.delete(conversations).where(eq(conversations.id, convo.id));
+      }
+      return nonEmpty.slice(0, MAX_HISTORY);
     }
     return nonEmpty;
   },
