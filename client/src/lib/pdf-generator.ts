@@ -40,30 +40,30 @@ interface PDFOptions {
 }
 
 function addPageBranding(doc: jsPDF, logo: string, pageWidth: number, pageHeight: number) {
-  doc.setGState(new (doc as any).GState({ opacity: 0.06 }));
-  const wmSize = 60;
+  doc.setGState(new (doc as any).GState({ opacity: 0.12 }));
+  const wmSize = 70;
   doc.addImage(logo, "PNG", (pageWidth - wmSize) / 2, (pageHeight - wmSize) / 2, wmSize, wmSize);
   doc.setGState(new (doc as any).GState({ opacity: 1 }));
 
-  doc.addImage(logo, "PNG", 14, 8, 10, 10);
+  doc.addImage(logo, "PNG", 20, 8, 10, 10);
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(33, 33, 33);
-  doc.text("Learnpro", 26, 14);
+  doc.text("Learnpro", 32, 14);
   doc.setTextColor(59, 130, 246);
-  doc.text("AI", 26 + doc.getTextWidth("Learnpro") + 2, 14);
+  doc.text("AI", 32 + doc.getTextWidth("Learnpro") + 2, 14);
   doc.setTextColor(33, 33, 33);
 
   doc.setDrawColor(220, 220, 220);
-  doc.line(14, 22, pageWidth - 14, 22);
+  doc.line(20, 22, pageWidth - 20, 22);
 
   doc.setFontSize(7);
   doc.setFont("helvetica", "italic");
   doc.setTextColor(140, 140, 140);
-  doc.text("This is an AI generated PDF by Learnpro AI", pageWidth / 2, pageHeight - 8, { align: "center" });
+  doc.text("This is an AI generated PDF by Learnpro AI", pageWidth / 2, pageHeight - 10, { align: "center" });
   const dateStr = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
-  doc.text(dateStr, pageWidth - 14, pageHeight - 8, { align: "right" });
-  doc.text(`Page ${doc.getNumberOfPages()}`, 14, pageHeight - 8);
+  doc.text(dateStr, pageWidth - 20, pageHeight - 10, { align: "right" });
+  doc.text(`Page ${doc.getNumberOfPages()}`, 20, pageHeight - 10);
 }
 
 function renderTextWithBold(doc: jsPDF, text: string, x: number, y: number, fontSize: number, normalColor: [number, number, number], boldColor: [number, number, number]) {
@@ -204,11 +204,11 @@ export async function generatePDF(options: PDFOptions): Promise<void> {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  const marginLeft = 14;
-  const marginRight = 14;
+  const marginLeft = 20;
+  const marginRight = 20;
   const contentWidth = pageWidth - marginLeft - marginRight;
   const topMargin = 28;
-  const bottomMargin = 16;
+  const bottomMargin = 18;
   let y = topMargin;
 
   addPageBranding(doc, logo, pageWidth, pageHeight);
@@ -273,57 +273,15 @@ export async function generatePDF(options: PDFOptions): Promise<void> {
       }
       case "text": {
         const rawText = section.text || "";
-        const hasBold = rawText.includes("**");
         doc.setFontSize(10);
         doc.setTextColor(35, 35, 35);
-
-        if (hasBold) {
-          const plainText = rawText.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1");
-          const wrappedLines = doc.splitTextToSize(plainText, contentWidth);
-          
-          let charPos = 0;
-          for (const wLine of wrappedLines) {
-            checkNewPage(5);
-            const lineEnd = charPos + wLine.length;
-            
-            let originalSegment = "";
-            let origIdx = 0;
-            let plainIdx = 0;
-            while (plainIdx < lineEnd && origIdx < rawText.length) {
-              if (rawText[origIdx] === '*' && rawText[origIdx + 1] === '*') {
-                const endBold = rawText.indexOf("**", origIdx + 2);
-                if (endBold > -1) {
-                  const boldContent = rawText.substring(origIdx + 2, endBold);
-                  originalSegment += "**" + boldContent + "**";
-                  plainIdx += boldContent.length;
-                  origIdx = endBold + 2;
-                  continue;
-                }
-              }
-              if (rawText[origIdx] === '*' && rawText[origIdx + 1] !== '*') {
-                origIdx++;
-                continue;
-              }
-              if (plainIdx >= charPos) {
-                originalSegment += rawText[origIdx];
-              }
-              plainIdx++;
-              origIdx++;
-            }
-            
-            renderTextWithBold(doc, originalSegment || wLine, marginLeft, y, 10, [35, 35, 35], [20, 20, 20]);
-            y += 4.5;
-            charPos = lineEnd;
-          }
-        } else {
-          const cleaned = rawText.replace(/\*(.*?)\*/g, "$1");
-          doc.setFont("helvetica", "normal");
-          const textLines = doc.splitTextToSize(cleaned, contentWidth);
-          for (const tl of textLines) {
-            checkNewPage(5);
-            doc.text(tl, marginLeft, y);
-            y += 4.5;
-          }
+        doc.setFont("helvetica", "normal");
+        const plainText = rawText.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1");
+        const textLines = doc.splitTextToSize(plainText, contentWidth);
+        for (const tl of textLines) {
+          checkNewPage(5);
+          doc.text(tl, marginLeft, y);
+          y += 4.5;
         }
         y += 2;
         break;
