@@ -100,59 +100,53 @@ export default function ChatPage() {
       <main className="flex-1 flex flex-col min-h-0 relative">
         <div className="flex-1 overflow-y-auto scroll-smooth">
           {!conversationId ? (
-            <div className="flex flex-col items-center px-4 py-4 sm:p-8 animate-in fade-in duration-500">
-              <Logo size="xl" className="mb-6 mt-6 hidden sm:block" />
-              <h2 className="text-lg sm:text-3xl font-display font-bold mb-1 sm:mb-4 text-center" data-testid="text-welcome-heading">
+            <div className="flex flex-col items-center animate-in fade-in duration-500">
+              <div className="hidden sm:flex flex-col items-center pt-8 pb-4">
+                <Logo size="xl" className="mb-6" />
+              </div>
+              <h2 className="text-lg sm:text-3xl font-display font-bold mt-3 sm:mt-0 mb-0.5 sm:mb-4 text-center px-4" data-testid="text-welcome-heading">
                 Welcome back, {user?.firstName || "Aspirant"}
               </h2>
-              <p className="text-xs sm:text-lg text-muted-foreground max-w-lg mb-4 sm:mb-8 text-center">
+              <p className="text-xs sm:text-lg text-muted-foreground max-w-lg mb-3 sm:mb-8 text-center px-4">
                 Your AI tutor for UPSC & State PSC exams
               </p>
 
-              <div className="grid grid-cols-2 gap-2 sm:gap-4 max-w-2xl w-full mb-5 sm:mb-10">
+              <div className="grid grid-cols-2 gap-2 sm:gap-4 max-w-2xl w-full px-3 sm:px-4 mb-4 sm:mb-10">
                 {[
                   { text: "Doctrine of Lapse", icon: BookOpen },
-                  { text: "Article 21 Summary", icon: Scale },
-                  { text: "G20 Summit Highlights", icon: Newspaper },
-                  { text: "Deccan Plateau Geography", icon: Lightbulb },
+                  { text: "Article 21", icon: Scale },
+                  { text: "G20 Summit", icon: Newspaper },
+                  { text: "Deccan Plateau", icon: Lightbulb },
                 ].map((prompt, i) => (
                   <button
                     key={i}
                     data-testid={`button-prompt-${i}`}
-                    className="p-3 sm:p-4 text-left rounded-xl bg-secondary/50 hover-elevate border border-transparent hover:border-primary/20 transition-all"
+                    className="flex items-center gap-2 p-2.5 sm:p-4 text-left rounded-lg sm:rounded-xl bg-secondary/50 hover-elevate border border-transparent hover:border-primary/20 transition-all"
                   >
-                    <prompt.icon className="h-4 w-4 text-primary mb-1.5 sm:mb-2" />
-                    <span className="text-xs sm:text-sm font-medium leading-tight block">{prompt.text}</span>
+                    <prompt.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
+                    <span className="text-[11px] sm:text-sm font-medium leading-tight">{prompt.text}</span>
                   </button>
                 ))}
               </div>
 
-              <div className="w-full max-w-4xl">
-                <h3 className="text-base sm:text-2xl font-display font-bold mb-1 sm:mb-2 text-center" data-testid="text-toolkit-heading">
+              <div className="w-full max-w-4xl px-3 sm:px-4">
+                <h3 className="text-sm sm:text-2xl font-display font-bold mb-2 sm:mb-2 text-center" data-testid="text-toolkit-heading">
                   Exam Prep Toolkit
                 </h3>
-                <p className="text-muted-foreground mb-3 sm:mb-8 text-xs sm:text-base text-center">
-                  Everything you need to crack UPSC & State PCS
-                </p>
 
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 text-left">
+                <div className="flex sm:hidden gap-2 overflow-x-auto pb-3 -mx-3 px-3 snap-x snap-mandatory scrollbar-hide">
                   {toolkitFeatures.map((feature, i) => {
                     const content = (
-                      <Card
+                      <div
                         key={i}
                         data-testid={`card-feature-${i}`}
-                        className={feature.link ? "hover-elevate cursor-pointer" : ""}
+                        className="flex-shrink-0 w-[140px] snap-start rounded-lg border bg-card p-2.5"
                       >
-                        <CardContent className="p-3 sm:p-5">
-                          <div className={`h-8 w-8 sm:h-10 sm:w-10 rounded-lg flex items-center justify-center mb-2 sm:mb-4 ${feature.color}`}>
-                            <feature.icon className="h-4 w-4 sm:h-5 sm:w-5" />
-                          </div>
-                          <h4 className="font-semibold mb-0.5 sm:mb-2 text-xs sm:text-base leading-tight">{feature.title}</h4>
-                          <p className="text-[10px] sm:text-sm text-muted-foreground leading-snug sm:leading-relaxed line-clamp-2 sm:line-clamp-none">
-                            {feature.description}
-                          </p>
-                        </CardContent>
-                      </Card>
+                        <div className={`h-7 w-7 rounded-md flex items-center justify-center mb-1.5 ${feature.color}`}>
+                          <feature.icon className="h-3.5 w-3.5" />
+                        </div>
+                        <h4 className="font-semibold text-[11px] leading-tight">{feature.title}</h4>
+                      </div>
                     );
 
                     if (feature.link) {
@@ -165,6 +159,43 @@ export default function ChatPage() {
 
                     return content;
                   })}
+                </div>
+
+                <div className="hidden sm:block">
+                  <p className="text-muted-foreground mb-8 text-base text-center">
+                    Everything you need to crack UPSC & State PCS
+                  </p>
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 text-left">
+                    {toolkitFeatures.map((feature, i) => {
+                      const content = (
+                        <Card
+                          key={i}
+                          data-testid={`card-feature-desktop-${i}`}
+                          className={feature.link ? "hover-elevate cursor-pointer" : ""}
+                        >
+                          <CardContent className="p-5">
+                            <div className={`h-10 w-10 rounded-lg flex items-center justify-center mb-4 ${feature.color}`}>
+                              <feature.icon className="h-5 w-5" />
+                            </div>
+                            <h4 className="font-semibold mb-2">{feature.title}</h4>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              {feature.description}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      );
+
+                      if (feature.link) {
+                        return (
+                          <Link key={i} href={feature.link}>
+                            {content}
+                          </Link>
+                        );
+                      }
+
+                      return content;
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
