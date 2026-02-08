@@ -64,6 +64,8 @@ export default function ChatPage() {
     }
   };
 
+  const queryLimitReached = queryStatus?.remaining === 0;
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [conversationData?.messages, streamedContent]);
@@ -114,30 +116,9 @@ export default function ChatPage() {
               <h2 className="text-lg sm:text-2xl font-display font-semibold mb-1 text-center px-4" data-testid="text-welcome-heading">
                 Let's begin learning, {user?.firstName || "Aspirant"}
               </h2>
-              <p className="text-xs sm:text-sm text-muted-foreground max-w-md mb-6 sm:mb-8 text-center px-4">
+              <p className="text-xs sm:text-sm text-muted-foreground max-w-md text-center px-4">
                 Ask me anything about UPSC & State PSC preparation
               </p>
-
-              <div className="grid grid-cols-2 gap-2 sm:gap-3 max-w-xl w-full px-3 sm:px-4">
-                {[
-                  { text: "Doctrine of Lapse", icon: BookOpen },
-                  { text: "Article 21", icon: Scale },
-                  { text: "G20 Summit", icon: Newspaper },
-                  { text: "Deccan Plateau", icon: Lightbulb },
-                ].map((prompt, i) => (
-                  <Button
-                    key={i}
-                    variant="outline"
-                    data-testid={`button-prompt-${i}`}
-                    onClick={() => handleHomeSend(prompt.text)}
-                    disabled={createMutation.isPending || (queryStatus?.remaining === 0)}
-                    className="justify-start gap-2 bg-secondary/50 border-primary/10"
-                  >
-                    <prompt.icon className="h-4 w-4 text-primary flex-shrink-0" />
-                    <span className="text-sm font-medium">{prompt.text}</span>
-                  </Button>
-                ))}
-              </div>
             </div>
           ) : isChatLoading ? (
             <div className="h-full flex items-center justify-center">
@@ -235,11 +216,19 @@ export default function ChatPage() {
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background to-transparent pt-6 sm:pt-10 pb-4 sm:pb-6 px-2 sm:px-4">
-          <ChatInput 
-            onSend={conversationId ? sendMessage : handleHomeSend} 
-            isStreaming={isStreaming} 
-            onStop={stopStream}
-          />
+          {queryLimitReached ? (
+            <div className="max-w-3xl mx-auto text-center py-3 px-4 rounded-lg bg-destructive/10 border border-destructive/20">
+              <p className="text-sm text-destructive font-medium" data-testid="text-query-limit">
+                Daily query limit reached. Upgrade to Pro for unlimited queries.
+              </p>
+            </div>
+          ) : (
+            <ChatInput 
+              onSend={conversationId ? sendMessage : handleHomeSend} 
+              isStreaming={isStreaming} 
+              onStop={stopStream}
+            />
+          )}
         </div>
       </main>
     </div>
