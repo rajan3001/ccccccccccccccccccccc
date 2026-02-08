@@ -18,6 +18,7 @@ export const dailyTopics = pgTable("daily_topics", {
   gsCategory: text("gs_category").notNull(),
   relevance: text("relevance"),
   source: text("source"),
+  pageNumber: integer("page_number"),
   revised: boolean("revised").default(false).notNull(),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
