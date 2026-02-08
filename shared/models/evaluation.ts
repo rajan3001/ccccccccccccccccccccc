@@ -11,6 +11,9 @@ export const evaluationSessions = pgTable("evaluation_sessions", {
   paperType: text("paper_type").notNull().default("GS-I"),
   fileName: text("file_name").notNull(),
   fileObjectPath: text("file_object_path").notNull(),
+  totalMarks: integer("total_marks").notNull().default(250),
+  totalQuestions: integer("total_questions").notNull().default(20),
+  questionsAttempted: integer("questions_attempted").notNull().default(20),
   status: text("status").notNull().default("processing"),
   totalScore: real("total_score"),
   maxScore: real("max_score"),
@@ -36,6 +39,7 @@ export const evaluationQuestions = pgTable("evaluation_questions", {
 
 export interface CompetencyFeedback {
   name: string;
+  score?: number;
   strengths: string[];
   improvements: string[];
 }
@@ -45,6 +49,9 @@ export const createEvaluationSchema = z.object({
   paperType: z.string().min(1),
   fileName: z.string().min(1),
   fileObjectPath: z.string().min(1),
+  totalMarks: z.number().int().min(1).max(2000),
+  totalQuestions: z.number().int().min(1).max(200),
+  questionsAttempted: z.number().int().min(1).max(200),
 });
 
 export const insertEvaluationSessionSchema = createInsertSchema(evaluationSessions).omit({

@@ -1,14 +1,23 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useUpload } from "@/hooks/use-upload";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Upload,
   FileText,
@@ -27,6 +36,13 @@ import {
   LayoutList,
   MessageCircle,
   Target,
+  Info,
+  BarChart3,
+  Lightbulb,
+  Type,
+  Ruler,
+  Award,
+  Presentation,
 } from "lucide-react";
 import {
   Select,
@@ -186,13 +202,14 @@ const ALLOWED_TYPES = [
 
 const MAX_SIZE = 20 * 1024 * 1024;
 
-const COMPETENCY_ICONS: Record<string, any> = {
-  "Content Competence": BookOpen,
-  "Contextual Competence": Target,
-  "Introduction Competence": PenLine,
-  "Structured Presentation": LayoutList,
-  "Language Competence": MessageCircle,
-  "Conclusion Competence": CheckCircle2,
+const PARAMETER_ICONS: Record<string, any> = {
+  "Contextual Understanding": Target,
+  "Introduction Proficiency": PenLine,
+  "Language": Type,
+  "Word Limit Adherence": Ruler,
+  "Conclusion": CheckCircle2,
+  "Value Addition": Lightbulb,
+  "Presentation": Presentation,
 };
 
 interface EvaluationQuestion {
@@ -211,6 +228,7 @@ interface EvaluationQuestion {
 
 interface CompetencyFeedback {
   name: string;
+  score?: number;
   strengths: string[];
   improvements: string[];
 }
@@ -220,6 +238,9 @@ interface EvaluationSession {
   examType: string;
   paperType: string;
   fileName: string;
+  totalMarks: number;
+  totalQuestions: number;
+  questionsAttempted: number;
   status: string;
   totalScore: number | null;
   maxScore: number | null;
@@ -238,6 +259,10 @@ export default function PaperEvaluationPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [examType, setExamType] = useState("UPSC");
   const [paperType, setPaperType] = useState("GS-I");
+  const [totalMarks, setTotalMarks] = useState("");
+  const [totalQuestions, setTotalQuestions] = useState("");
+  const [questionsAttempted, setQuestionsAttempted] = useState("");
+  const [showInstructions, setShowInstructions] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
 
   const paperTypes = EXAM_PAPER_TYPES[examType] || EXAM_PAPER_TYPES.UPSC;
@@ -248,8 +273,15 @@ export default function PaperEvaluationPage() {
     setPaperType(newPaperTypes[0].value);
   };
   const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null);
-  const [showCompetency, setShowCompetency] = useState(false);
+  const [showCompetency, setShowCompetency] = useState(true);
   const [view, setView] = useState<"upload" | "result" | "history">("upload");
+
+  useEffect(() => {
+    const hasSeenInstructions = sessionStorage.getItem("evalInstructionsSeen");
+    if (!hasSeenInstructions) {
+      setShowInstructions(true);
+    }
+  }, []);
 
   const { uploadFile, isUploading, progress: uploadProgress } = useUpload();
 
@@ -268,7 +300,7 @@ export default function PaperEvaluationPage() {
   });
 
   const submitMutation = useMutation({
-    mutationFn: async (data: { examType: string; paperType: string; fileName: string; fileObjectPath: string }) => {
+    mutationFn: async (data: { examType: string; paperType: string; fileName: string; fileObjectPath: string; totalMarks: number; totalQuestions: number; questionsAttempted: number }) => {
       const res = await apiRequest("POST", "/api/evaluations", data);
       return res.json();
     },
@@ -310,6 +342,27 @@ export default function PaperEvaluationPage() {
   const handleSubmit = async () => {
     if (!selectedFile) return;
 
+    const marks = parseInt(totalMarks);
+    const questions = parseInt(totalQuestions);
+    const attempted = parseInt(questionsAttempted);
+
+    if (!marks || marks <= 0) {
+      toast({ title: "Enter total marks", description: "Please enter the total marks for the paper.", variant: "destructive" });
+      return;
+    }
+    if (!questions || questions <= 0) {
+      toast({ title: "Enter total questions", description: "Please enter the total number of questions.", variant: "destructive" });
+      return;
+    }
+    if (!attempted || attempted <= 0) {
+      toast({ title: "Enter questions attempted", description: "Please enter how many questions you attempted.", variant: "destructive" });
+      return;
+    }
+    if (attempted > questions) {
+      toast({ title: "Invalid input", description: "Questions attempted cannot exceed total questions.", variant: "destructive" });
+      return;
+    }
+
     const result = await uploadFile(selectedFile);
     if (!result) {
       toast({ title: "Upload failed", description: "Please try again.", variant: "destructive" });
@@ -321,6 +374,9 @@ export default function PaperEvaluationPage() {
       paperType,
       fileName: selectedFile.name,
       fileObjectPath: result.objectPath,
+      totalMarks: marks,
+      totalQuestions: questions,
+      questionsAttempted: attempted,
     });
   };
 
@@ -393,6 +449,56 @@ export default function PaperEvaluationPage() {
             </div>
           </div>
 
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Total Marks</label>
+              <Input
+                type="number"
+                placeholder="e.g. 250"
+                value={totalMarks}
+                onChange={(e) => setTotalMarks(e.target.value)}
+                min={1}
+                data-testid="input-total-marks"
+              />
+              <span className="text-xs text-muted-foreground mt-1 block">Full marks of the paper</span>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Total Questions</label>
+              <Input
+                type="number"
+                placeholder="e.g. 20"
+                value={totalQuestions}
+                onChange={(e) => setTotalQuestions(e.target.value)}
+                min={1}
+                data-testid="input-total-questions"
+              />
+              <span className="text-xs text-muted-foreground mt-1 block">Questions in the paper</span>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Questions Attempted</label>
+              <Input
+                type="number"
+                placeholder="e.g. 18"
+                value={questionsAttempted}
+                onChange={(e) => setQuestionsAttempted(e.target.value)}
+                min={1}
+                data-testid="input-questions-attempted"
+              />
+              <span className="text-xs text-muted-foreground mt-1 block">How many you answered</span>
+            </div>
+          </div>
+
+          <Button
+            variant="link"
+            size="sm"
+            className="px-0 h-auto text-xs"
+            onClick={() => setShowInstructions(true)}
+            data-testid="button-show-instructions"
+          >
+            <Info className="h-3.5 w-3.5 mr-1.5" />
+            Important instructions for accurate evaluation
+          </Button>
+
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
               selectedFile ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/30"
@@ -445,7 +551,7 @@ export default function PaperEvaluationPage() {
             className="w-full"
             size="lg"
             onClick={handleSubmit}
-            disabled={!selectedFile || isProcessing}
+            disabled={!selectedFile || isProcessing || !totalMarks || !totalQuestions || !questionsAttempted}
             data-testid="button-evaluate"
           >
             {isProcessing ? (
@@ -599,8 +705,12 @@ export default function PaperEvaluationPage() {
                 <span className="font-medium truncate max-w-[200px]">{activeResult.fileName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Questions Found</span>
-                <span className="font-medium">{questions.length}</span>
+                <span className="text-muted-foreground">Total Marks</span>
+                <span className="font-medium">{activeResult.totalMarks}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Questions</span>
+                <span className="font-medium">{activeResult.questionsAttempted} / {activeResult.totalQuestions} attempted</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Date</span>
@@ -627,20 +737,27 @@ export default function PaperEvaluationPage() {
               data-testid="button-toggle-competency"
             >
               <h2 className="text-base font-semibold flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-primary" />
-                Competency Analysis
+                <BarChart3 className="h-4 w-4 text-primary" />
+                Parameter-wise Analysis
               </h2>
               {showCompetency ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
             {showCompetency && (
               <div className="mt-4 space-y-4">
                 {competencies.map((comp) => {
-                  const IconComp = COMPETENCY_ICONS[comp.name] || Star;
+                  const IconComp = PARAMETER_ICONS[comp.name] || Star;
                   return (
                     <div key={comp.name} className="border border-border rounded-md p-4" data-testid={`competency-${comp.name.replace(/\s+/g, "-").toLowerCase()}`}>
-                      <div className="flex items-center gap-2 mb-3">
-                        <IconComp className="h-4 w-4 text-primary" />
-                        <h3 className="font-semibold text-sm">{comp.name}</h3>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <IconComp className="h-4 w-4 text-primary" />
+                          <h3 className="font-semibold text-sm">{comp.name}</h3>
+                        </div>
+                        {comp.score !== undefined && (
+                          <Badge variant="secondary" className={comp.score >= 7 ? "text-emerald-600 dark:text-emerald-400" : comp.score >= 5 ? "text-amber-600 dark:text-amber-400" : "text-red-600 dark:text-red-400"}>
+                            {comp.score}/10
+                          </Badge>
+                        )}
                       </div>
                       {comp.strengths.length > 0 && (
                         <div className="mb-2">
@@ -865,6 +982,50 @@ export default function PaperEvaluationPage() {
           {view === "history" && renderHistoryView()}
         </div>
       </main>
+
+      <Dialog open={showInstructions} onOpenChange={(open) => {
+        setShowInstructions(open);
+        if (!open) sessionStorage.setItem("evalInstructionsSeen", "true");
+      }}>
+        <DialogContent className="max-w-lg" data-testid="dialog-instructions">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Info className="h-5 w-5 text-primary" />
+              Instructions for Accurate Evaluation
+            </DialogTitle>
+            <DialogDescription>
+              Follow these guidelines to get the most accurate evaluation of your answer sheet.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            <div className="flex items-start gap-3 p-3 rounded-md bg-amber-500/5 border border-amber-500/20">
+              <span className="font-bold text-amber-600 dark:text-amber-400 mt-0.5">1</span>
+              <p><span className="font-semibold">Write question numbers clearly</span> on every answer. Label each answer with its question number (e.g., Q1, Q2a, Q3b).</p>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-md bg-amber-500/5 border border-amber-500/20">
+              <span className="font-bold text-amber-600 dark:text-amber-400 mt-0.5">2</span>
+              <p><span className="font-semibold">Mention marks for each question</span> next to the question number. Write the marks allotted (e.g., "10 marks", "15 marks") so the AI can evaluate proportionally.</p>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-md bg-amber-500/5 border border-amber-500/20">
+              <span className="font-bold text-amber-600 dark:text-amber-400 mt-0.5">3</span>
+              <p><span className="font-semibold">Ensure clear handwriting</span> or typed text. Blurry images or illegible handwriting will reduce evaluation accuracy.</p>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-md bg-amber-500/5 border border-amber-500/20">
+              <span className="font-bold text-amber-600 dark:text-amber-400 mt-0.5">4</span>
+              <p><span className="font-semibold">Upload all pages</span> in a single PDF file if possible. For images, upload one page at a time.</p>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-md bg-amber-500/5 border border-amber-500/20">
+              <span className="font-bold text-amber-600 dark:text-amber-400 mt-0.5">5</span>
+              <p><span className="font-semibold">Fill in paper details accurately</span> - total marks, total questions, and questions attempted help the AI calculate scores correctly.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => { setShowInstructions(false); sessionStorage.setItem("evalInstructionsSeen", "true"); }} data-testid="button-close-instructions">
+              Got it, let's start
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

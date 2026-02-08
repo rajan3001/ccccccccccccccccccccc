@@ -17,80 +17,106 @@ const ai = new GoogleGenAI({
 
 const objectStorage = new ObjectStorageService();
 
-const EVALUATION_PROMPT = `You are an expert UPSC/State PSC Mains answer evaluator. You evaluate answer sheets strictly as per UPSC Mains evaluation norms.
+function buildEvaluationPrompt(examType: string, paperType: string, totalMarks: number, totalQuestions: number, questionsAttempted: number): string {
+  return `You are an expert ${examType} Mains answer evaluator with decades of experience. Evaluate the uploaded answer sheet strictly as per ${examType} ${paperType} evaluation norms.
 
-Analyze the uploaded answer sheet image(s) carefully. Identify each question and the student's handwritten/typed answer.
+PAPER DETAILS PROVIDED BY STUDENT:
+- Exam: ${examType} - ${paperType}
+- Total Marks of Paper: ${totalMarks}
+- Total Questions in Paper: ${totalQuestions}
+- Questions Attempted by Student: ${questionsAttempted}
 
-For each question you can identify, evaluate based on these competencies:
-1. **Content Competence** - Factual accuracy, depth of knowledge, relevant examples, data/statistics
-2. **Contextual Competence** - Understanding of the question directive (discuss/analyze/examine/critically evaluate), addressing all parts
-3. **Introduction Competence** - Quality of opening, setting context, defining key terms
-4. **Structured Presentation** - Use of headings, subheadings, diagrams, flowcharts, logical flow
-5. **Language Competence** - Clarity, precision, formal tone, grammar
-6. **Conclusion Competence** - Forward-looking synthesis, policy recommendations, not just restating
+Use these details to understand the marking scheme. The student should have written question numbers and individual marks on their answer sheet. If marks per question are not visible, distribute ${totalMarks} marks proportionally across ${questionsAttempted} attempted questions.
 
-Score each question out of the maximum marks (typically 10 for short answers, 15 or 20 for long answers). Use 0.5 increments.
+EVALUATE EACH ANSWER ON THESE 7 PARAMETERS:
+1. **Contextual Understanding** - Did the student understand what the question is actually asking? Did they address the directive word (Discuss/Analyze/Examine/Critically Evaluate/Comment) correctly? Did they cover all dimensions of the question?
+2. **Introduction Proficiency** - Is the introduction relevant, crisp, and sets the right context? Does it define key terms? Does it hook the reader into the answer?
+3. **Language** - Grammar, sentence structure, vocabulary, clarity of expression, formal tone appropriate for civil services examination
+4. **Word Limit Adherence** - Is the answer within expected word limit for the marks allotted? Is it too brief (underdeveloped) or too long (rambling)?
+5. **Conclusion** - Does the conclusion provide a forward-looking perspective? Does it give policy recommendations, a balanced view, or a constructive way forward? (Not just restating the introduction)
+6. **Value Addition** - Use of relevant examples, data, statistics, reports (e.g., NITI Aayog, Economic Survey, UN reports), case studies, current affairs references, committee recommendations, court judgments
+7. **Presentation** - Use of headings, subheadings, bullet points, diagrams, flowcharts, maps, tables where appropriate. Overall neatness and structure of the answer
+
+OVERALL FEEDBACK RULES:
+- Overall feedback MUST be in pointwise format (bullet points), NOT generic paragraphs
+- Each point should be a specific, actionable observation
+- Be direct and straightforward - tell the student exactly what they did well and what they need to fix
+- Do NOT write vague statements like "generally good" or "needs improvement" - be specific
 
 You MUST respond with ONLY valid JSON in this exact format (no markdown, no code blocks, just raw JSON):
 {
-  "totalScore": <number>,
-  "maxScore": <number>,
-  "overallFeedback": "<comprehensive overall feedback paragraph covering all competencies>",
+  "totalScore": <number - total marks scored across all questions>,
+  "maxScore": ${totalMarks},
+  "overallFeedback": "- Point 1: Specific observation about overall performance\\n- Point 2: Another specific observation\\n- Point 3: Key strength across answers\\n- Point 4: Most critical area needing improvement\\n- Point 5: Specific strategy to improve scores\\n- Point 6: Final actionable recommendation",
   "competencyFeedback": [
     {
-      "name": "Content Competence",
-      "strengths": ["strength1", "strength2"],
-      "improvements": ["improvement1", "improvement2"]
+      "name": "Contextual Understanding",
+      "score": <number 1-10>,
+      "strengths": ["specific strength with example from their answer"],
+      "improvements": ["specific improvement with what they should have written instead"]
     },
     {
-      "name": "Contextual Competence",
+      "name": "Introduction Proficiency",
+      "score": <number 1-10>,
       "strengths": ["..."],
       "improvements": ["..."]
     },
     {
-      "name": "Introduction Competence",
+      "name": "Language",
+      "score": <number 1-10>,
       "strengths": ["..."],
       "improvements": ["..."]
     },
     {
-      "name": "Structured Presentation",
+      "name": "Word Limit Adherence",
+      "score": <number 1-10>,
       "strengths": ["..."],
       "improvements": ["..."]
     },
     {
-      "name": "Language Competence",
+      "name": "Conclusion",
+      "score": <number 1-10>,
       "strengths": ["..."],
       "improvements": ["..."]
     },
     {
-      "name": "Conclusion Competence",
+      "name": "Value Addition",
+      "score": <number 1-10>,
+      "strengths": ["..."],
+      "improvements": ["..."]
+    },
+    {
+      "name": "Presentation",
+      "score": <number 1-10>,
       "strengths": ["..."],
       "improvements": ["..."]
     }
   ],
   "questions": [
     {
-      "questionNumber": "Q1.A",
-      "questionText": "<the question text as you read it>",
+      "questionNumber": "Q1",
+      "questionText": "<the question as read from the sheet>",
       "score": <number>,
-      "maxScore": <number>,
-      "strengths": ["strength1", "strength2", "strength3"],
-      "improvements": ["improvement1 with specific suggestion", "improvement2 with example"],
-      "detailedFeedback": "<2-3 paragraph detailed analysis>",
-      "introductionFeedback": "<specific feedback on the introduction>",
-      "bodyFeedback": "<specific feedback on the body/content>",
-      "conclusionFeedback": "<specific feedback on the conclusion>"
+      "maxScore": <marks for this question>,
+      "strengths": ["specific strength 1", "specific strength 2"],
+      "improvements": ["specific improvement with example of what to write", "another specific suggestion"],
+      "detailedFeedback": "- Point 1: ...\\n- Point 2: ...\\n- Point 3: ...",
+      "introductionFeedback": "<specific feedback on this answer's introduction>",
+      "bodyFeedback": "<specific feedback on this answer's body/content>",
+      "conclusionFeedback": "<specific feedback on this answer's conclusion>"
     }
   ]
 }
 
-IMPORTANT RULES:
-- Be strict but fair, like a real UPSC examiner
-- Give specific, actionable suggestions with examples of what should have been included
-- Reference specific government schemes, constitutional provisions, court judgments, or data that the student missed
+CRITICAL RULES:
+- Be strict but fair, like a real ${examType} examiner
+- Give SPECIFIC, ACTIONABLE suggestions - mention exact schemes, articles, judgments, data the student missed
+- Reference specific government schemes, constitutional provisions, court judgments, committee reports, or statistics
 - If a question has sub-parts (a, b, c), evaluate each sub-part separately
-- For the exam type "EXAM_TYPE_PLACEHOLDER", use the evaluation standards specific to that examination
+- Score using 0.5 increments
+- The "score" field in competencyFeedback is a rating out of 10 for that parameter across all answers
 - Respond with ONLY the JSON object, no other text`;
+}
 
 export function registerEvaluationRoutes(app: Express): void {
   app.post("/api/evaluations", isAuthenticated, async (req: any, res: Response) => {
@@ -102,7 +128,7 @@ export function registerEvaluationRoutes(app: Express): void {
         return res.status(400).json({ error: parsed.error.errors[0].message });
       }
 
-      const { examType, paperType, fileName, fileObjectPath } = parsed.data;
+      const { examType, paperType, fileName, fileObjectPath, totalMarks, totalQuestions, questionsAttempted } = parsed.data;
 
       const [session] = await db.insert(evaluationSessions).values({
         userId,
@@ -110,12 +136,15 @@ export function registerEvaluationRoutes(app: Express): void {
         paperType,
         fileName,
         fileObjectPath,
+        totalMarks,
+        totalQuestions,
+        questionsAttempted,
         status: "processing",
       }).returning();
 
       res.json({ sessionId: session.id, status: "processing" });
 
-      processEvaluation(session.id, fileObjectPath, fileName, examType, paperType).catch(err => {
+      processEvaluation(session.id, fileObjectPath, fileName, examType, paperType, totalMarks, totalQuestions, questionsAttempted).catch(err => {
         console.error("Evaluation processing failed:", err);
         db.update(evaluationSessions)
           .set({ status: "failed", overallFeedback: "Evaluation failed. Please try again." })
@@ -173,14 +202,17 @@ async function processEvaluation(
   fileObjectPath: string,
   fileName: string,
   examType: string,
-  paperType: string
+  paperType: string,
+  totalMarks: number,
+  totalQuestions: number,
+  questionsAttempted: number
 ): Promise<void> {
   const file = await objectStorage.getObjectEntityFile(fileObjectPath);
   const [fileData] = await file.download();
   const [metadata] = await file.getMetadata();
 
   const contentType = metadata.contentType || guessContentType(fileName);
-  const prompt = EVALUATION_PROMPT.replace("EXAM_TYPE_PLACEHOLDER", `${examType} ${paperType}`);
+  const prompt = buildEvaluationPrompt(examType, paperType, totalMarks, totalQuestions, questionsAttempted);
 
   const parts: any[] = [{ text: prompt }];
 
