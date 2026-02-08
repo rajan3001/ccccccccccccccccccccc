@@ -21,21 +21,21 @@ export default function SubscriptionPage() {
   };
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex flex-col md:flex-row h-[100dvh] bg-background overflow-hidden">
       <Sidebar />
       
-      <main className="flex-1 overflow-y-auto p-6 md:p-12">
+      <main className="flex-1 overflow-y-auto min-h-0 px-4 py-6 sm:p-6 md:p-12">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-display font-bold mb-4">Upgrade Your Preparation</h1>
-            <p className="text-xl text-muted-foreground">
+          <div className="text-center mb-8 sm:mb-12">
+            <h1 className="text-2xl sm:text-4xl font-display font-bold mb-3 sm:mb-4">Upgrade Your Preparation</h1>
+            <p className="text-base sm:text-xl text-muted-foreground">
               Unlock the full potential of Learnpro AI for your exam success.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 items-start">
             {/* Free Plan */}
-            <div className="p-8 rounded-3xl border border-border bg-card shadow-sm opacity-80">
+            <div className="p-5 sm:p-8 rounded-3xl border border-border bg-card shadow-sm opacity-80">
               <h3 className="text-2xl font-bold mb-2">Free Plan</h3>
               <div className="text-4xl font-display font-bold mb-6">₹0<span className="text-base font-sans font-normal text-muted-foreground">/month</span></div>
               <p className="text-muted-foreground mb-8">Basic access for casual learners.</p>
@@ -61,7 +61,7 @@ export default function SubscriptionPage() {
             </div>
 
             {/* Pro Plan */}
-            <div className="relative p-8 rounded-3xl border-2 border-primary bg-gradient-to-b from-primary/5 to-background shadow-xl shadow-primary/10">
+            <div className="relative p-5 sm:p-8 rounded-3xl border-2 border-primary bg-gradient-to-b from-primary/5 to-background shadow-xl shadow-primary/10">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-bold shadow-lg flex items-center gap-1">
                 <Crown className="h-3 w-3" /> Most Popular
               </div>

@@ -297,23 +297,23 @@ export default function PracticeQuizPage() {
   const answeredCount = Object.keys(selectedAnswers).length;
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex flex-col md:flex-row h-[100dvh] bg-background">
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="border-b px-6 py-4 flex items-center justify-between gap-4 flex-wrap bg-background sticky top-0 z-40">
-          <div className="flex items-center gap-3">
-            <Brain className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold" data-testid="text-quiz-title">Practice Quiz</h1>
+      <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+        <div className="border-b px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-4 flex-wrap bg-background sticky top-0 z-40">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Brain className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <h1 className="text-lg sm:text-xl font-bold" data-testid="text-quiz-title">Practice Quiz</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <Button
               variant={view === "create" || view === "quiz" || view === "results" ? "default" : "ghost"}
               size="sm"
               onClick={handleNewQuiz}
               data-testid="button-new-quiz"
             >
-              <Sparkles className="h-4 w-4 mr-1" />
-              New Quiz
+              <Sparkles className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline">New Quiz</span>
             </Button>
             <Button
               variant={view === "history" ? "default" : "ghost"}
@@ -321,8 +321,8 @@ export default function PracticeQuizPage() {
               onClick={() => setView("history")}
               data-testid="button-quiz-history"
             >
-              <ListChecks className="h-4 w-4 mr-1" />
-              History
+              <ListChecks className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline">History</span>
             </Button>
             <Button
               variant={view === "analytics" ? "default" : "ghost"}
@@ -330,14 +330,14 @@ export default function PracticeQuizPage() {
               onClick={() => setView("analytics")}
               data-testid="button-quiz-analytics"
             >
-              <BarChart3 className="h-4 w-4 mr-1" />
-              Analytics
+              <BarChart3 className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline">Analytics</span>
             </Button>
           </div>
         </div>
 
         <ScrollArea className="flex-1">
-          <div className="max-w-3xl mx-auto p-6">
+          <div className="max-w-3xl mx-auto px-4 py-4 sm:p-6">
             {view === "create" && (
               <CreateQuizView
                 examType={examType}

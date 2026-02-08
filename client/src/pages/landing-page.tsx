@@ -54,7 +54,7 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <main className="flex-1">
-        <section className="relative overflow-hidden py-20 lg:py-32">
+        <section className="relative overflow-hidden py-12 sm:py-20 lg:py-32">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-background to-background opacity-70"></div>
           
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -64,13 +64,13 @@ export default function LandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <span className="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-6 border border-primary/20">
+                <span className="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-semibold mb-4 sm:mb-6 border border-primary/20">
                   New: UPSC Prelims 2025 Ready
                 </span>
-                <h1 className="text-5xl md:text-7xl font-display font-bold text-foreground mb-6 leading-tight">
+                <h1 className="text-3xl sm:text-5xl md:text-7xl font-display font-bold text-foreground mb-4 sm:mb-6 leading-tight">
                   Master Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-amber-600">Competitive Exams</span> with AI
                 </h1>
-                <p className="text-xl text-muted-foreground mb-10 leading-relaxed max-w-2xl mx-auto">
+                <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-10 leading-relaxed max-w-2xl mx-auto">
                   Your intelligent companion for UPSC and State PSC preparation. Get instant, accurate, and syllabus-aligned answers powered by advanced AI.
                 </p>
                 
@@ -97,9 +97,9 @@ export default function LandingPage() {
         </section>
 
         {/* Features Grid */}
-        <section className="py-20 bg-secondary/30">
+        <section className="py-12 sm:py-20 bg-secondary/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
               {features.map((feature, idx) => (
                 <motion.div 
                   key={idx}
@@ -107,13 +107,13 @@ export default function LandingPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.1 }}
-                  className="bg-background p-8 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow"
+                  className="bg-background p-5 sm:p-8 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow"
                 >
-                  <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
-                    <feature.icon className="h-6 w-6 text-primary" />
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4 sm:mb-6">
+                    <feature.icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                   </div>
-                  <h3 className="text-xl font-bold mb-3 font-display">{feature.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">
+                  <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3 font-display">{feature.title}</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                     {feature.description}
                   </p>
                 </motion.div>
@@ -123,9 +123,9 @@ export default function LandingPage() {
         </section>
         
         {/* Trust/Social Proof */}
-        <section className="py-20 bg-background border-t border-border">
+        <section className="py-12 sm:py-20 bg-background border-t border-border">
           <div className="max-w-4xl mx-auto px-4 text-center">
-            <h2 className="text-3xl font-display font-bold mb-12">Why Aspirants Choose Learnpro</h2>
+            <h2 className="text-2xl sm:text-3xl font-display font-bold mb-8 sm:mb-12">Why Aspirants Choose Learnpro</h2>
             <div className="grid sm:grid-cols-2 gap-6 text-left">
               {[
                 "Instant doubt resolution 24/7",

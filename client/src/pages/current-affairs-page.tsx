@@ -153,41 +153,45 @@ export default function CurrentAffairsPage() {
   }, {} as Record<string, typeof topics>);
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex flex-col md:flex-row h-[100dvh] bg-background overflow-hidden">
       <Sidebar />
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto p-6 pb-20">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-2xl font-display font-bold" data-testid="text-page-title">
-                Daily Current Affairs
-              </h1>
-              <p className="text-muted-foreground text-sm mt-1">
-                AI-curated UPSC-relevant topics for your daily revision
-              </p>
-            </div>
+      <main className="flex-1 overflow-y-auto min-h-0">
+        <div className="max-w-4xl mx-auto px-4 py-4 sm:p-6 pb-20">
+          <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h1 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-page-title">
+                  Daily Current Affairs
+                </h1>
+                <p className="text-muted-foreground text-xs sm:text-sm mt-0.5 sm:mt-1">
+                  AI-curated UPSC-relevant topics for daily revision
+                </p>
+              </div>
 
-            {stats && stats.total > 0 && (
-              <Card className="p-3 flex items-center gap-3 min-w-[200px]">
-                <BarChart3 className="h-5 w-5 text-primary flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">
-                    Overall Revision
-                  </div>
-                  <Progress
-                    value={(stats.revised / stats.total) * 100}
-                    className="h-2"
-                  />
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {stats.revised}/{stats.total} topics
-                  </div>
+              {stats && stats.total > 0 && (
+                <div className="hidden sm:flex">
+                  <Card className="p-3 flex items-center gap-3 min-w-[200px]">
+                    <BarChart3 className="h-5 w-5 text-primary flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-muted-foreground mb-1">
+                        Overall Revision
+                      </div>
+                      <Progress
+                        value={(stats.revised / stats.total) * 100}
+                        className="h-2"
+                      />
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {stats.revised}/{stats.total} topics
+                      </div>
+                    </div>
+                  </Card>
                 </div>
-              </Card>
-            )}
+              )}
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 mb-6">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-4 sm:mb-6">
             <Button
               variant="outline"
               size="icon"
@@ -200,11 +204,11 @@ export default function CurrentAffairsPage() {
             <Button
               variant="outline"
               onClick={() => setShowCalendar(!showCalendar)}
-              className="gap-2"
+              className="gap-1.5 sm:gap-2 text-xs sm:text-sm"
               data-testid="button-toggle-calendar"
             >
               <CalendarDays className="h-4 w-4" />
-              <span className="text-sm font-medium">{formatDisplayDate(dateStr)}</span>
+              <span className="font-medium truncate max-w-[180px] sm:max-w-none">{formatDisplayDate(dateStr)}</span>
             </Button>
 
             <Button

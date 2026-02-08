@@ -40,22 +40,22 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
 
   return (
     <div className={cn(
-      "group flex gap-4 p-6 transition-colors duration-200",
+      "group flex gap-3 sm:gap-4 px-3 py-4 sm:p-6 transition-colors duration-200",
       isUser ? "bg-muted/30" : "bg-background"
     )}>
       <div className="flex-shrink-0 mt-1">
         {isUser ? (
-          <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center border border-border">
-            <User className="h-5 w-5 text-secondary-foreground/70" />
+          <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-secondary flex items-center justify-center border border-border">
+            <User className="h-4 w-4 sm:h-5 sm:w-5 text-secondary-foreground/70" />
           </div>
         ) : (
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
+          <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
              <Logo size="sm" withText={false} />
           </div>
         )}
       </div>
 
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden min-w-0">
         <div className="flex items-center justify-between gap-1 mb-1">
           <span className="text-sm font-semibold text-foreground/80">
             {isUser ? "You" : "Learnpro Assistant"}

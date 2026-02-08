@@ -218,7 +218,7 @@ export function Sidebar() {
       </div>
 
       {/* Mobile Header & Sidebar */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b bg-background sticky top-0 z-50">
+      <div className="md:hidden flex items-center justify-between px-3 py-2.5 border-b bg-background sticky top-0 z-50 flex-shrink-0">
         <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon">
