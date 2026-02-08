@@ -15,7 +15,7 @@ Learnpro AI is an AI-powered learning platform for UPSC and State PSC exam prepa
 1. **AI Chat** - Streaming chat with Gemini, conversation history, file attachments
 2. **File Upload** - Upload images/PDFs/text files, stored in Object Storage, passed as context to AI
 3. **Daily Current Affairs** - AI-generated daily digests with GS paper categorization, revision tracking, calendar view
-4. **Practice Quiz** - AI-generated UPSC-style MCQs with score tracking, review mode, and performance analytics
+4. **Practice Quiz** - AI-generated MCQs for UPSC + 20 State PSC exams (JPSC, BPSC, APPSC, etc.) with exam-specific prompts, score tracking, review mode, and performance analytics
 5. **Subscription System** - Free/Pro plan tracking
 
 ## Project Structure
@@ -54,7 +54,7 @@ shared/
 - **subscriptions** - User subscription plans
 - **daily_digests** - One per date, stores digest generation timestamp
 - **daily_topics** - Topics per digest with title, summary, category, gsCategory, relevance, revised flag
-- **quiz_attempts** - Quiz attempts with userId, gsCategory, difficulty, totalQuestions, score, completedAt
+- **quiz_attempts** - Quiz attempts with userId, examType, gsCategory, difficulty, totalQuestions, score, completedAt
 - **quiz_questions** - Questions per attempt with question, options (text[]), correctIndex, explanation, userAnswer, isCorrect
 
 ## API Routes
@@ -67,13 +67,14 @@ shared/
 - `PATCH /api/current-affairs/topics/:id/revise` - Toggle revision
 - `GET /api/current-affairs/stats/revision` - Revision statistics
 - `GET /api/current-affairs-dates` - List dates with digests
-- `POST /api/quizzes/generate` - Generate AI quiz (body: gsCategory, difficulty, numQuestions)
+- `POST /api/quizzes/generate` - Generate AI quiz (body: examType, gsCategory, difficulty, numQuestions)
 - `GET /api/quizzes/history` - List user's quiz attempts
 - `GET /api/quizzes/analytics` - Performance analytics by GS paper
 - `GET /api/quizzes/:id` - Get quiz attempt with questions
 - `POST /api/quizzes/:id/submit` - Submit quiz answers
 
 ## Recent Changes
+- 2026-02-08: Added multi-exam support for Practice Quiz: UPSC + 20 State PSC exams (JPSC, BPSC, APPSC, MeghalayaPSC, etc.) with exam-specific AI prompts, state-specific categories, and examType tracking
 - 2026-02-08: Added Practice Quiz feature with AI-generated MCQs, score tracking, review mode, performance analytics
 - 2026-02-08: Added file upload support with Object Storage, attachment previews in messages, file context for AI
 - 2026-02-08: Added Daily Current Affairs with AI generation, calendar view, GS categorization, revision tracking

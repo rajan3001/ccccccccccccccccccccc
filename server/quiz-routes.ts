@@ -15,6 +15,7 @@ const ai = new GoogleGenAI({
 });
 
 const generateQuizSchema = z.object({
+  examType: z.string().min(1).default("UPSC"),
   gsCategory: z.string().min(1),
   difficulty: z.enum(["easy", "medium", "hard"]),
   numQuestions: z.number().int().min(3).max(20),
@@ -33,7 +34,7 @@ export function registerQuizRoutes(app: Express): void {
         return res.status(400).json({ error: "Invalid request", details: parsed.error.flatten() });
       }
 
-      const { gsCategory, difficulty, numQuestions, sourceDate } = parsed.data;
+      const { examType, gsCategory, difficulty, numQuestions, sourceDate } = parsed.data;
       const userId = (req as any).user.claims.sub;
 
       let topicContext = "";
@@ -54,7 +55,34 @@ export function registerQuizRoutes(app: Express): void {
         hard: "complex questions involving critical analysis, comparison of concepts, and application to scenarios",
       };
 
-      const prompt = `Generate exactly ${numQuestions} UPSC-style multiple choice questions for ${gsCategory} preparation.
+      const examContextMap: Record<string, string> = {
+        "UPSC": "UPSC Civil Services Examination (Union Public Service Commission). Focus on national-level governance, Indian Constitution, national policies, pan-India geography, and national history.",
+        "JPSC": "Jharkhand Public Service Commission (JPSC) exam. Include questions relevant to Jharkhand state - its tribal culture, mineral resources, Chota Nagpur plateau, state governance, Jharkhand Movement, and state-specific policies alongside general topics.",
+        "BPSC": "Bihar Public Service Commission (BPSC) exam. Include questions relevant to Bihar state - its ancient history (Magadha, Nalanda, Vikramshila), Bihar's geography, state governance, Champaran Satyagraha, Bihar Movement, and state-specific policies alongside general topics.",
+        "APPSC": "Andhra Pradesh Public Service Commission (APPSC) exam. Include questions relevant to Andhra Pradesh - its history (Satavahanas, Kakatiya), coastal geography, Amaravati capital, state governance, Telugu culture, and state-specific policies alongside general topics.",
+        "MPPSC": "Madhya Pradesh Public Service Commission (MPPSC) exam. Include questions relevant to Madhya Pradesh - tribal areas, Narmada basin, historical monuments (Sanchi, Bhimbetka), state governance, and state-specific policies alongside general topics.",
+        "UPPSC": "Uttar Pradesh Public Service Commission (UPPSC) exam. Include questions relevant to Uttar Pradesh - Mughal history, Gangetic plains, state governance, demographic challenges, and state-specific policies alongside general topics.",
+        "RPSC": "Rajasthan Public Service Commission (RPSC) exam. Include questions relevant to Rajasthan - Rajput history, Thar Desert, arts & culture, state governance, water resource management, and state-specific policies alongside general topics.",
+        "WBPSC": "West Bengal Public Service Commission (WBPSC) exam. Include questions relevant to West Bengal - Bengal Renaissance, Sundarbans, tea industry, state governance, cultural heritage, and state-specific policies alongside general topics.",
+        "KPSC": "Karnataka Public Service Commission (KPSC) exam. Include questions relevant to Karnataka - Vijayanagara Empire, Western Ghats, IT industry, state governance, Kannada culture, and state-specific policies alongside general topics.",
+        "TNPSC": "Tamil Nadu Public Service Commission (TNPSC) exam. Include questions relevant to Tamil Nadu - Dravidian history, Chola dynasty, coastal geography, state governance, Sangam literature, and state-specific policies alongside general topics.",
+        "MPSC": "Maharashtra Public Service Commission (MPSC) exam. Include questions relevant to Maharashtra - Maratha Empire, Western Ghats, industrial economy, state governance, Pune Agreement, and state-specific policies alongside general topics.",
+        "CGPSC": "Chhattisgarh Public Service Commission (CGPSC) exam. Include questions relevant to Chhattisgarh - tribal culture, mineral resources, Bastar, state governance, and state-specific policies alongside general topics.",
+        "OPSC": "Odisha Public Service Commission (OPSC) exam. Include questions relevant to Odisha - Kalinga history, Konark & Puri, cyclone management, tribal welfare, state governance, and state-specific policies alongside general topics.",
+        "HPSC": "Haryana Public Service Commission (HPSC) exam. Include questions relevant to Haryana - agricultural economy, Kurukshetra, state governance, industrial development, and state-specific policies alongside general topics.",
+        "GPSC": "Gujarat Public Service Commission (GPSC) exam. Include questions relevant to Gujarat - Indus Valley Civilization, Rann of Kutch, industrial development, state governance, and state-specific policies alongside general topics.",
+        "MeghalayaPSC": "Meghalaya Public Service Commission exam. Include questions relevant to Meghalaya - Khasi, Garo & Jaintia tribes, living root bridges, wettest place on Earth (Mawsynram/Cherrapunji), state governance, and state-specific policies alongside general topics.",
+        "APSC_Assam": "Assam Public Service Commission (APSC) exam. Include questions relevant to Assam - Ahom dynasty, Brahmaputra valley, tea industry, Kaziranga, state governance, and state-specific policies alongside general topics.",
+        "UKPSC": "Uttarakhand Public Service Commission (UKPSC) exam. Include questions relevant to Uttarakhand - Himalayan geography, pilgrimage sites, disaster management, state governance, and state-specific policies alongside general topics.",
+        "PPSC": "Punjab Public Service Commission (PPSC) exam. Include questions relevant to Punjab - Sikh history, Green Revolution, agricultural economy, state governance, and state-specific policies alongside general topics.",
+        "JKPSC": "Jammu & Kashmir Public Service Commission (JKPSC) exam. Include questions relevant to J&K - unique governance history, Article 370, Himalayan geography, state governance, and state-specific policies alongside general topics.",
+      };
+
+      const examContext = examContextMap[examType] || `${examType} examination. Tailor questions to the specific syllabus and regional context of this exam.`;
+
+      const prompt = `Generate exactly ${numQuestions} multiple choice questions for ${examType} - ${gsCategory} preparation.
+
+Exam context: ${examContext}
 
 Difficulty level: ${difficulty} - ${difficultyDesc[difficulty]}
 
@@ -63,6 +91,7 @@ Requirements:
 - Questions should be exam-relevant and test conceptual understanding
 - Include a detailed explanation for the correct answer (2-3 sentences)
 - Cover diverse sub-topics within ${gsCategory}
+- Questions should reflect the actual exam pattern and syllabus of ${examType}
 ${topicContext}
 
 Return ONLY a valid JSON array of objects with these exact keys:
@@ -95,6 +124,7 @@ No markdown, no explanations outside the JSON, just the JSON array.`;
 
       const [attempt] = await db.insert(quizAttempts).values({
         userId,
+        examType,
         gsCategory,
         difficulty,
         totalQuestions: questionsData.length,
@@ -148,6 +178,7 @@ No markdown, no explanations outside the JSON, just the JSON array.`;
 
       const analytics = await db
         .select({
+          examType: quizAttempts.examType,
           gsCategory: quizAttempts.gsCategory,
           totalAttempts: sql<number>`count(*)::int`,
           totalQuestions: sql<number>`sum(${quizAttempts.totalQuestions})::int`,
@@ -159,10 +190,11 @@ No markdown, no explanations outside the JSON, just the JSON array.`;
           eq(quizAttempts.userId, userId),
           sql`${quizAttempts.score} is not null`
         ))
-        .groupBy(quizAttempts.gsCategory);
+        .groupBy(quizAttempts.examType, quizAttempts.gsCategory);
 
       const recentTrend = await db
         .select({
+          examType: quizAttempts.examType,
           gsCategory: quizAttempts.gsCategory,
           score: quizAttempts.score,
           totalQuestions: quizAttempts.totalQuestions,

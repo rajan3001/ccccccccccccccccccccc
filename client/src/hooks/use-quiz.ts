@@ -4,6 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 export interface QuizAttempt {
   id: number;
   userId: string;
+  examType: string;
   gsCategory: string;
   difficulty: string;
   totalQuestions: number;
@@ -25,6 +26,7 @@ export interface QuizQuestion {
 
 export interface QuizAnalytics {
   analytics: {
+    examType: string;
     gsCategory: string;
     totalAttempts: number;
     totalQuestions: number;
@@ -32,6 +34,7 @@ export interface QuizAnalytics {
     avgScore: number;
   }[];
   recentTrend: {
+    examType: string;
     gsCategory: string;
     score: number;
     totalQuestions: number;
@@ -40,6 +43,7 @@ export interface QuizAnalytics {
 }
 
 export interface GenerateQuizParams {
+  examType: string;
   gsCategory: string;
   difficulty: string;
   numQuestions: number;

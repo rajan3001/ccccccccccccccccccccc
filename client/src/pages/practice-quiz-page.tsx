@@ -29,16 +29,58 @@ import {
   ListChecks,
   Sparkles,
   RotateCcw,
+  GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const GS_CATEGORIES = [
+const EXAM_TYPES = [
+  { value: "UPSC", label: "UPSC (Union Public Service Commission)", group: "National" },
+  { value: "JPSC", label: "JPSC (Jharkhand)", group: "State PSC" },
+  { value: "BPSC", label: "BPSC (Bihar)", group: "State PSC" },
+  { value: "APPSC", label: "APPSC (Andhra Pradesh)", group: "State PSC" },
+  { value: "APSC_Assam", label: "APSC (Assam)", group: "State PSC" },
+  { value: "MPPSC", label: "MPPSC (Madhya Pradesh)", group: "State PSC" },
+  { value: "UPPSC", label: "UPPSC (Uttar Pradesh)", group: "State PSC" },
+  { value: "RPSC", label: "RPSC (Rajasthan)", group: "State PSC" },
+  { value: "WBPSC", label: "WBPSC (West Bengal)", group: "State PSC" },
+  { value: "KPSC", label: "KPSC (Karnataka)", group: "State PSC" },
+  { value: "TNPSC", label: "TNPSC (Tamil Nadu)", group: "State PSC" },
+  { value: "MPSC", label: "MPSC (Maharashtra)", group: "State PSC" },
+  { value: "GPSC", label: "GPSC (Gujarat)", group: "State PSC" },
+  { value: "CGPSC", label: "CGPSC (Chhattisgarh)", group: "State PSC" },
+  { value: "OPSC", label: "OPSC (Odisha)", group: "State PSC" },
+  { value: "HPSC", label: "HPSC (Haryana)", group: "State PSC" },
+  { value: "PPSC", label: "PPSC (Punjab)", group: "State PSC" },
+  { value: "UKPSC", label: "UKPSC (Uttarakhand)", group: "State PSC" },
+  { value: "JKPSC", label: "JKPSC (Jammu & Kashmir)", group: "State PSC" },
+  { value: "MeghalayaPSC", label: "Meghalaya PSC", group: "State PSC (NE)" },
+];
+
+const UPSC_GS_CATEGORIES = [
   { value: "GS-I", label: "GS Paper I - History, Geography, Society" },
   { value: "GS-II", label: "GS Paper II - Polity, Governance, IR" },
   { value: "GS-III", label: "GS Paper III - Economy, Science, Environment" },
   { value: "GS-IV", label: "GS Paper IV - Ethics, Integrity, Aptitude" },
   { value: "Prelims", label: "Prelims - General Studies" },
 ];
+
+const STATE_PSC_CATEGORIES = [
+  { value: "GS-I", label: "General Studies I - History, Geography, Culture" },
+  { value: "GS-II", label: "General Studies II - Polity, Governance, Social" },
+  { value: "GS-III", label: "General Studies III - Economy, Science, Tech" },
+  { value: "State-Specific", label: "State-Specific - Local History, Geography, Culture" },
+  { value: "Prelims", label: "Prelims - General Knowledge" },
+  { value: "CSAT", label: "CSAT - Aptitude & Reasoning" },
+];
+
+function getCategoriesForExam(examType: string) {
+  if (examType === "UPSC" || !examType) return UPSC_GS_CATEGORIES;
+  return STATE_PSC_CATEGORIES;
+}
+
+function getExamLabel(examType: string) {
+  return EXAM_TYPES.find(e => e.value === examType)?.label || examType;
+}
 
 const DIFFICULTIES = [
   { value: "easy", label: "Easy" },
@@ -57,6 +99,7 @@ type ViewMode = "create" | "quiz" | "results" | "history" | "analytics";
 
 export default function PracticeQuizPage() {
   const [view, setView] = useState<ViewMode>("create");
+  const [examType, setExamType] = useState("UPSC");
   const [gsCategory, setGsCategory] = useState("");
   const [difficulty, setDifficulty] = useState("");
   const [numQuestions, setNumQuestions] = useState("10");
@@ -77,7 +120,7 @@ export default function PracticeQuizPage() {
       return;
     }
     generateMutation.mutate(
-      { gsCategory, difficulty, numQuestions: parseInt(numQuestions) },
+      { examType, gsCategory, difficulty, numQuestions: parseInt(numQuestions) },
       {
         onSuccess: (data) => {
           setActiveQuizId(data.attempt.id);
@@ -176,6 +219,8 @@ export default function PracticeQuizPage() {
           <div className="max-w-3xl mx-auto p-6">
             {view === "create" && (
               <CreateQuizView
+                examType={examType}
+                setExamType={(v) => { setExamType(v); setGsCategory(""); }}
                 gsCategory={gsCategory}
                 setGsCategory={setGsCategory}
                 difficulty={difficulty}
@@ -247,6 +292,8 @@ export default function PracticeQuizPage() {
 }
 
 function CreateQuizView({
+  examType,
+  setExamType,
   gsCategory,
   setGsCategory,
   difficulty,
@@ -256,6 +303,8 @@ function CreateQuizView({
   onGenerate,
   isGenerating,
 }: {
+  examType: string;
+  setExamType: (v: string) => void;
   gsCategory: string;
   setGsCategory: (v: string) => void;
   difficulty: string;
@@ -265,23 +314,60 @@ function CreateQuizView({
   onGenerate: () => void;
   isGenerating: boolean;
 }) {
+  const categories = getCategoriesForExam(examType);
+  const nationalExams = EXAM_TYPES.filter(e => e.group === "National");
+  const stateExams = EXAM_TYPES.filter(e => e.group === "State PSC");
+  const neExams = EXAM_TYPES.filter(e => e.group === "State PSC (NE)");
+
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold" data-testid="text-create-heading">Create a Practice Quiz</h2>
-        <p className="text-muted-foreground">Generate UPSC-style MCQs powered by AI</p>
+        <p className="text-muted-foreground">Generate exam-style MCQs powered by AI for UPSC & State PSC exams</p>
       </div>
 
       <Card>
         <CardContent className="pt-6 space-y-5">
           <div className="space-y-2">
-            <label className="text-sm font-medium">GS Paper / Subject</label>
-            <Select value={gsCategory} onValueChange={setGsCategory}>
-              <SelectTrigger data-testid="select-gs-category">
-                <SelectValue placeholder="Select GS Paper" />
+            <label className="text-sm font-medium flex items-center gap-2">
+              <GraduationCap className="h-4 w-4" />
+              Select Exam
+            </label>
+            <Select value={examType} onValueChange={setExamType}>
+              <SelectTrigger data-testid="select-exam-type">
+                <SelectValue placeholder="Select exam" />
               </SelectTrigger>
               <SelectContent>
-                {GS_CATEGORIES.map((cat) => (
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">National</div>
+                {nationalExams.map((exam) => (
+                  <SelectItem key={exam.value} value={exam.value} data-testid={`option-exam-${exam.value}`}>
+                    {exam.label}
+                  </SelectItem>
+                ))}
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-1">State PSC</div>
+                {stateExams.map((exam) => (
+                  <SelectItem key={exam.value} value={exam.value} data-testid={`option-exam-${exam.value}`}>
+                    {exam.label}
+                  </SelectItem>
+                ))}
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-1">North-East PSC</div>
+                {neExams.map((exam) => (
+                  <SelectItem key={exam.value} value={exam.value} data-testid={`option-exam-${exam.value}`}>
+                    {exam.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Subject / Paper</label>
+            <Select value={gsCategory} onValueChange={setGsCategory}>
+              <SelectTrigger data-testid="select-gs-category">
+                <SelectValue placeholder="Select subject" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
                   <SelectItem key={cat.value} value={cat.value} data-testid={`option-gs-${cat.value}`}>
                     {cat.label}
                   </SelectItem>
@@ -331,7 +417,7 @@ function CreateQuizView({
             {isGenerating ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Generating Quiz...
+                Generating {getExamLabel(examType)} Quiz...
               </>
             ) : (
               <>
@@ -377,7 +463,8 @@ function QuizView({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge variant="default">{attempt.examType || "UPSC"}</Badge>
           <Badge variant="secondary">{attempt.gsCategory}</Badge>
           <Badge variant="outline" className="capitalize">{attempt.difficulty}</Badge>
         </div>
@@ -504,7 +591,8 @@ function ResultsView({
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="space-y-1">
               <h2 className="text-xl font-bold" data-testid="text-results-heading">Quiz Results</h2>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge variant="default">{attempt.examType || "UPSC"}</Badge>
                 <Badge variant="secondary">{attempt.gsCategory}</Badge>
                 <Badge variant="outline" className="capitalize">{attempt.difficulty}</Badge>
               </div>
@@ -684,7 +772,8 @@ function HistoryView({
                       {isComplete ? <Trophy className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="default" className="text-xs">{attempt.examType || "UPSC"}</Badge>
                         <span className="font-medium text-sm">{attempt.gsCategory}</span>
                         <Badge variant="outline" className="capitalize text-xs">{attempt.difficulty}</Badge>
                       </div>
@@ -780,14 +869,17 @@ function AnalyticsView({
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Accuracy by GS Paper</CardTitle>
+              <CardTitle className="text-base">Accuracy by Exam & Paper</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {analytics.map((a) => (
-                  <div key={a.gsCategory} data-testid={`analytics-category-${a.gsCategory}`}>
+                {analytics.map((a, idx) => (
+                  <div key={`${a.examType}-${a.gsCategory}-${idx}`} data-testid={`analytics-category-${a.gsCategory}`}>
                     <div className="flex items-center justify-between gap-4 mb-1">
-                      <span className="text-sm font-medium">{a.gsCategory}</span>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="default" className="text-xs">{a.examType || "UPSC"}</Badge>
+                        <span className="text-sm font-medium">{a.gsCategory}</span>
+                      </div>
                       <span className="text-sm text-muted-foreground">
                         {a.totalCorrect}/{a.totalQuestions} ({a.avgScore}%)
                       </span>
@@ -825,7 +917,8 @@ function AnalyticsView({
                     const pct = Math.round((r.score / r.totalQuestions) * 100);
                     return (
                       <div key={i} className="flex items-center justify-between gap-4 py-1.5 border-b border-border last:border-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="default" className="text-xs">{r.examType || "UPSC"}</Badge>
                           <Badge variant="secondary" className="text-xs">{r.gsCategory}</Badge>
                           <span className="text-xs text-muted-foreground">
                             {new Date(r.createdAt).toLocaleDateString()}
