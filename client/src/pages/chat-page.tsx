@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useParams, useLocation, Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useConversation, useChatStream, useCreateConversation } from "@/hooks/use-chat";
@@ -6,7 +6,13 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { MessageBubble } from "@/components/chat/message-bubble";
 import { ChatInput } from "@/components/chat/chat-input";
 import { Logo } from "@/components/ui/logo";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import {
   Loader2,
   BookOpen,
@@ -15,47 +21,132 @@ import {
   HelpCircle,
   Lightbulb,
   Scale,
+  Flame,
+  ArrowRight,
+  MessageSquare,
+  Target,
+  GraduationCap,
 } from "lucide-react";
 
-const toolkitFeatures = [
+const featureItems = [
   {
+    id: "ai-chat",
+    icon: MessageSquare,
+    title: "AI-Powered Doubt Resolution",
+    description: "24/7 AI mentor trained on UPSC & State PSC syllabus. Get instant, structured answers with PYQ references.",
+    cta: "Start Learning",
+    link: undefined as string | undefined,
+  },
+  {
+    id: "syllabus",
     icon: BookOpen,
-    title: "Complete Syllabus Coverage",
-    description: "GS Paper I-IV, CSAT, Optional Subjects — get expert guidance on every topic in the UPSC & State PCS syllabus.",
-    color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+    title: "Complete GS Syllabus",
+    description: "GS Paper I-IV, CSAT, Optional Subjects covered with NCERTs and standard reference material.",
+    cta: "Explore Syllabus",
+    link: undefined as string | undefined,
   },
   {
+    id: "answer-writing",
     icon: PenTool,
-    title: "Answer Writing Practice",
-    description: "Learn the perfect UPSC answer format with structured responses, relevant examples, and scoring techniques.",
-    color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+    title: "Mains Answer Writing",
+    description: "Learn the perfect answer format with structured responses, relevant examples, and scoring techniques.",
+    cta: "Practice Writing",
+    link: undefined as string | undefined,
   },
   {
+    id: "current-affairs",
     icon: Newspaper,
-    title: "Current Affairs Analysis",
-    description: "Get daily current affairs connected to static syllabus topics — exactly how UPSC frames questions.",
-    color: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300",
+    title: "Daily Current Affairs",
+    description: "AI-generated daily digests from The Hindu & Indian Express, mapped to GS papers with state-specific filtering.",
+    cta: "Read Today's News",
     link: "/current-affairs",
   },
   {
-    icon: HelpCircle,
-    title: "PYQ-Based Learning",
-    description: "Every concept explained with reference to Previous Year Questions. Know what UPSC actually asks.",
-    color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
-  },
-  {
-    icon: Lightbulb,
-    title: "Smart Mnemonics & Tricks",
-    description: "Memory aids, mind maps, and shortcut techniques to remember facts, dates, and complex concepts.",
-    color: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300",
-  },
-  {
-    icon: Scale,
-    title: "Ethics & Essay Guidance",
-    description: "GS Paper IV ethics case studies and essay writing with balanced perspectives and real-world examples.",
-    color: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300",
+    id: "practice-mcqs",
+    icon: Target,
+    title: "Practice MCQs",
+    description: "Topic-wise MCQs for UPSC + 15 State PSCs. AI-generated questions with explanations and performance analytics.",
+    cta: "Practice Now",
+    link: "/practice-quiz",
   },
 ];
+
+function StudyStreakCard() {
+  const today = new Date();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const dayNames = ["M", "T", "W", "Th", "F", "S", "Su"];
+
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+  const startDay = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+
+  const streakDays = useMemo(() => {
+    const days = new Set<number>();
+    const todayDate = today.getDate();
+    for (let i = Math.max(1, todayDate - 6); i <= todayDate; i++) {
+      days.add(i);
+    }
+    if (todayDate > 10) {
+      days.add(todayDate - 9);
+      days.add(todayDate - 10);
+    }
+    return days;
+  }, []);
+
+  const streakCount = streakDays.size;
+
+  const calendarCells = [];
+  for (let i = 0; i < startDay; i++) {
+    calendarCells.push(<div key={`empty-${i}`} className="h-7 w-7 sm:h-8 sm:w-8" />);
+  }
+  for (let day = 1; day <= daysInMonth; day++) {
+    const isStreak = streakDays.has(day);
+    const isToday = day === today.getDate();
+    calendarCells.push(
+      <div
+        key={day}
+        className={`h-7 w-7 sm:h-8 sm:w-8 rounded-md flex items-center justify-center text-xs font-medium relative
+          ${isToday ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : ""}
+          ${isStreak ? "bg-primary/10 dark:bg-primary/20" : ""}`}
+      >
+        {isStreak ? (
+          <Flame className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+        ) : (
+          <span className="text-muted-foreground">{day}</span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <div className="rounded-2xl border bg-card p-4 sm:p-6 shadow-sm max-w-[280px] sm:max-w-xs mx-auto">
+        <div className="flex flex-col items-center mb-4">
+          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+            <Flame className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+          </div>
+          <span className="text-xl sm:text-2xl font-display font-bold">{streakCount}-day streak</span>
+          <span className="text-xs text-muted-foreground">{monthNames[currentMonth]} {currentYear}</span>
+        </div>
+
+        <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+          {dayNames.map((d) => (
+            <div key={d} className="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center text-[10px] sm:text-xs font-semibold text-muted-foreground">
+              {d}
+            </div>
+          ))}
+          {calendarCells}
+        </div>
+      </div>
+
+      <div className="absolute -bottom-6 -right-4 sm:-bottom-8 sm:-right-6 opacity-20 dark:opacity-10">
+        <GraduationCap className="h-20 w-20 sm:h-28 sm:w-28 text-primary" />
+      </div>
+    </div>
+  );
+}
 
 export default function ChatPage() {
   const params = useParams<{ id: string }>();
@@ -140,73 +231,63 @@ export default function ChatPage() {
                 ))}
               </div>
 
-              <div className="w-full max-w-4xl px-3 sm:px-4">
-                <h3 className="text-sm sm:text-2xl font-display font-bold mb-2 sm:mb-2 text-center" data-testid="text-toolkit-heading">
-                  Exam Prep Toolkit
-                </h3>
-
-                <div className="flex sm:hidden gap-2 overflow-x-auto pb-3 -mx-3 px-3 snap-x snap-mandatory scrollbar-hide">
-                  {toolkitFeatures.map((feature, i) => {
-                    const content = (
-                      <div
-                        key={i}
-                        data-testid={`card-feature-${i}`}
-                        className="flex-shrink-0 w-[140px] snap-start rounded-lg border bg-card p-2.5"
-                      >
-                        <div className={`h-7 w-7 rounded-md flex items-center justify-center mb-1.5 ${feature.color}`}>
-                          <feature.icon className="h-3.5 w-3.5" />
-                        </div>
-                        <h4 className="font-semibold text-[11px] leading-tight">{feature.title}</h4>
-                      </div>
-                    );
-
-                    if (feature.link) {
-                      return (
-                        <Link key={i} href={feature.link}>
-                          {content}
-                        </Link>
-                      );
-                    }
-
-                    return content;
-                  })}
+              <div className="w-full max-w-5xl px-3 sm:px-6 mt-2 sm:mt-4">
+                <div className="text-center mb-4 sm:mb-8">
+                  <span className="text-xs sm:text-sm font-semibold text-primary tracking-wide uppercase">Cover 100% Prelims & Mains Syllabus</span>
+                  <h3 className="text-base sm:text-3xl font-display font-bold mt-1 sm:mt-2" data-testid="text-toolkit-heading">
+                    Add magic in your preparation
+                  </h3>
                 </div>
 
-                <div className="hidden sm:block">
-                  <p className="text-muted-foreground mb-8 text-base text-center">
-                    Everything you need to crack UPSC & State PCS
-                  </p>
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 text-left">
-                    {toolkitFeatures.map((feature, i) => {
-                      const content = (
-                        <Card
-                          key={i}
-                          data-testid={`card-feature-desktop-${i}`}
-                          className={feature.link ? "hover-elevate cursor-pointer" : ""}
-                        >
-                          <CardContent className="p-5">
-                            <div className={`h-10 w-10 rounded-lg flex items-center justify-center mb-4 ${feature.color}`}>
-                              <feature.icon className="h-5 w-5" />
+                <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-start">
+                  <div className="flex-1 w-full min-w-0">
+                    <Accordion type="single" collapsible defaultValue="ai-chat" className="w-full">
+                      {featureItems.map((feature) => (
+                        <AccordionItem key={feature.id} value={feature.id} className="border-border/60" data-testid={`accordion-${feature.id}`}>
+                          <AccordionTrigger className="hover:no-underline gap-3 py-3 sm:py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-md bg-primary/10 dark:bg-primary/20 flex items-center justify-center flex-shrink-0">
+                                <feature.icon className="h-4 w-4 sm:h-[18px] sm:w-[18px] text-primary" />
+                              </div>
+                              <span className="text-sm sm:text-base font-semibold text-left">{feature.title}</span>
                             </div>
-                            <h4 className="font-semibold mb-2">{feature.title}</h4>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              {feature.description}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      );
-
-                      if (feature.link) {
-                        return (
-                          <Link key={i} href={feature.link}>
-                            {content}
-                          </Link>
-                        );
-                      }
-
-                      return content;
-                    })}
+                          </AccordionTrigger>
+                          <AccordionContent className="pl-11 sm:pl-12">
+                            <p className="text-muted-foreground text-xs sm:text-sm mb-3 leading-relaxed">{feature.description}</p>
+                            {feature.link ? (
+                              <Link href={feature.link}>
+                                <Button size="sm" className="gap-1.5" data-testid={`button-feature-${feature.id}`}>
+                                  {feature.cta}
+                                  <ArrowRight className="h-3.5 w-3.5" />
+                                </Button>
+                              </Link>
+                            ) : (
+                              <Button
+                                size="sm"
+                                className="gap-1.5"
+                                data-testid={`button-feature-${feature.id}`}
+                                onClick={() => {
+                                  const input = document.querySelector('textarea');
+                                  if (input) input.focus();
+                                }}
+                              >
+                                {feature.cta}
+                                <ArrowRight className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
                   </div>
+
+                  <div className="hidden lg:flex flex-shrink-0 items-center justify-center pt-4">
+                    <StudyStreakCard />
+                  </div>
+                </div>
+
+                <div className="flex lg:hidden justify-center mt-6">
+                  <StudyStreakCard />
                 </div>
               </div>
             </div>
