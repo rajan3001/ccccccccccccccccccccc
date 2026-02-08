@@ -22,16 +22,17 @@ Learnpro AI is an AI-powered learning platform for UPSC and State PSC exam prepa
 8. **Subscription System** - Free/Pro plan tracking
 9. **PDF Export** - Client-side PDF generation with Learnpro branding (logo header, watermark, footer) for Chat, Current Affairs, and Evaluation reports
 10. **My Notes** - Save AI chat responses as notes with GS category, tags, folder organization, markdown editor, search/filter, PDF/markdown export, and spaced repetition review reminders
+11. **Study Planner** - Weekly timetable builder, UPSC syllabus tracker (GS Paper I-IV), daily study goals, preparation dashboard with weak areas analysis
 
 ## Project Structure
 ```
 client/src/
-  pages/          - onboarding-page, dashboard-page, chat-page, current-affairs-page, practice-quiz-page, paper-evaluation-page, notes-page, landing-page, subscription-page
+  pages/          - onboarding-page, dashboard-page, chat-page, current-affairs-page, practice-quiz-page, paper-evaluation-page, notes-page, landing-page, subscription-page, study-planner-page
   components/
     chat/         - chat-input (with file upload), message-bubble (with attachment previews, save as note)
-    layout/       - sidebar (with Current Affairs, Practice Quiz, Answer Evaluation, My Notes nav links)
+    layout/       - sidebar (with Current Affairs, Practice Quiz, Answer Evaluation, My Notes, Study Planner nav links)
     ui/           - shadcn components
-  hooks/          - use-auth, use-chat, use-current-affairs, use-quiz, use-subscription, use-notes
+  hooks/          - use-auth, use-chat, use-current-affairs, use-quiz, use-subscription, use-notes, use-study-planner
   lib/
     pdf-generator.ts - Client-side PDF generation with Learnpro branding
 
@@ -42,6 +43,7 @@ server/
   quiz-routes.ts  - Practice quiz API (generate, submit, history, analytics)
   evaluation-routes.ts - Paper evaluation API (create, history, results)
   notes-routes.ts - Notes CRUD, search/filter, spaced repetition API
+  study-planner-routes.ts - Study planner API (timetable, syllabus tracker, daily goals, dashboard)
   replit_integrations/
     auth/          - Replit Auth
     chat/          - Chat routes with Gemini streaming + attachment context
@@ -55,6 +57,7 @@ shared/
     current-affairs.ts - Daily digests, daily topics
     quiz.ts        - Quiz attempts, quiz questions
     notes.ts       - Notes with spaced repetition (title, content, gsCategory, tags, folder, reviewCount, nextReviewAt)
+    study-planner.ts - Timetable slots, syllabus topics, user syllabus progress, daily study goals
 ```
 
 ## Database Schema
@@ -69,6 +72,10 @@ shared/
 - **evaluation_sessions** - Answer sheet evaluation sessions with userId, examType, paperType, fileName, fileObjectPath, totalMarks (nullable), totalQuestions (nullable), questionsAttempted (nullable), questionPaperObjectPath (nullable), status, totalScore, maxScore, overallFeedback, competencyFeedback (jsonb with 7 parameters: Contextual Understanding, Introduction Proficiency, Language, Word Limit Adherence, Conclusion, Value Addition, Presentation - each with score/10, strengths, improvements)
 - **evaluation_questions** - Per-question evaluation with score, maxScore, strengths, improvements, detailedFeedback, introductionFeedback, bodyFeedback, conclusionFeedback
 - **notes** - User study notes with title, content (markdown), gsCategory, tags (jsonb), folder, sourceMessageId, sourceConversationId, reviewCount, lastReviewedAt, nextReviewAt (spaced repetition)
+- **timetable_slots** - Weekly study timetable (userId, dayOfWeek, startTime, endTime, gsPaper, subject, notes)
+- **syllabus_topics** - UPSC GS Paper I-IV official syllabus topics (gsPaper, parentTopic, topic, orderIndex) - seeded automatically on first run
+- **user_syllabus_progress** - Per-user topic completion tracking (userId, topicId, completed, completedAt)
+- **daily_study_goals** - Daily study goals (userId, goalDate, title, completed)
 
 ## API Routes
 - `POST /api/onboarding` - Submit onboarding data (displayName, userType, targetExams[])
@@ -98,6 +105,16 @@ shared/
 - `PATCH /api/notes/:id` - Update note
 - `DELETE /api/notes/:id` - Delete note
 - `POST /api/notes/:id/review` - Mark note as reviewed (updates spaced repetition schedule)
+- `GET /api/study-planner/timetable` - Get user's weekly timetable slots
+- `POST /api/study-planner/timetable` - Create timetable slot (body: dayOfWeek, startTime, endTime, gsPaper, subject)
+- `DELETE /api/study-planner/timetable/:id` - Delete timetable slot
+- `GET /api/study-planner/syllabus` - Get all syllabus topics with user's completion status
+- `PATCH /api/study-planner/syllabus/:topicId` - Toggle topic completion
+- `GET /api/study-planner/daily-goals?date=` - Get daily goals for date
+- `POST /api/study-planner/daily-goals` - Create daily goal (body: title, goalDate)
+- `PATCH /api/study-planner/daily-goals/:id` - Toggle goal completion
+- `DELETE /api/study-planner/daily-goals/:id` - Delete daily goal
+- `GET /api/study-planner/dashboard` - Dashboard with overall progress, per-paper progress, weak areas from quiz data, recommended topics, today's goals
 
 ## Recent Changes
 - 2026-02-08: Added multi-step onboarding flow (name, user type, target exam) and personalized dashboard with greeting, quick actions, daily tips, suggested topics
@@ -113,3 +130,4 @@ shared/
 - 2026-02-08: Enhanced chat UX - action bar at end of each AI message (Save, Copy, Download as PDF with labels and icons), chat suggestions panel ("You can also ask" with contextual prompts like Create Prelims MCQs, Write Mains Answer, How to Write Answers, etc.)
 - 2026-02-08: Improved markdown rendering - better heading hierarchy (h1-h6), darker/bolder text colors, stronger bold text, table support, improved list formatting
 - 2026-02-08: Overhauled PDF generator - proper markdown parsing (headings, bold, numbered lists, bullet lists), darker text colors, blue accent under headings, structured evaluation reports with labeled sections
+- 2026-02-08: Added Study Planner with weekly timetable builder, UPSC syllabus tracker (GS Paper I-IV with 134 topics), daily study goals, and preparation dashboard with weak areas analysis from quiz performance

@@ -8,6 +8,7 @@ import { registerCurrentAffairsRoutes } from "./current-affairs-routes";
 import { registerQuizRoutes } from "./quiz-routes";
 import { registerEvaluationRoutes } from "./evaluation-routes";
 import { registerNotesRoutes } from "./notes-routes";
+import { registerStudyPlannerRoutes } from "./study-planner-routes";
 import { api } from "@shared/routes";
 
 export async function registerRoutes(
@@ -23,6 +24,7 @@ export async function registerRoutes(
   registerQuizRoutes(app);
   registerEvaluationRoutes(app);
   registerNotesRoutes(app);
+  registerStudyPlannerRoutes(app);
 
   // Subscription Routes
   app.get(api.subscription.get.path, isAuthenticated, async (req: any, res) => {
