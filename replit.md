@@ -12,16 +12,18 @@ Learnpro AI is an AI-powered learning platform for UPSC and State PSC exam prepa
 - **AI**: Gemini 2.5 Flash via Replit AI Integrations
 
 ## Key Features
-1. **AI Chat** - Streaming chat with Gemini, conversation history, file attachments
-2. **File Upload** - Upload images/PDFs/text files, stored in Object Storage, passed as context to AI
-3. **Daily Current Affairs** - AI-generated daily digests with GS paper categorization, revision tracking, calendar view
-4. **Practice Quiz** - AI-generated MCQs for UPSC + 20 State PSC exams (JPSC, BPSC, APPSC, etc.) with exam-specific prompts, score tracking, review mode, and performance analytics
-5. **Subscription System** - Free/Pro plan tracking
+1. **Onboarding Flow** - Multi-step wizard (name, user type, target exam) for new users after login
+2. **Personalized Dashboard** - Greeting, quick actions (Chat/Current Affairs/Quiz), daily tips, suggested topics
+3. **AI Chat** - Streaming chat with Gemini, conversation history, file attachments
+4. **File Upload** - Upload images/PDFs/text files, stored in Object Storage, passed as context to AI
+5. **Daily Current Affairs** - AI-generated daily digests with GS paper categorization, revision tracking, calendar view
+6. **Practice Quiz** - AI-generated MCQs for UPSC + 15 State PSC exams with exam-specific prompts, score tracking, review mode, and performance analytics
+7. **Subscription System** - Free/Pro plan tracking
 
 ## Project Structure
 ```
 client/src/
-  pages/          - chat-page, current-affairs-page, practice-quiz-page, landing-page, subscription-page
+  pages/          - onboarding-page, dashboard-page, chat-page, current-affairs-page, practice-quiz-page, landing-page, subscription-page
   components/
     chat/         - chat-input (with file upload), message-bubble (with attachment previews)
     layout/       - sidebar (with Current Affairs + Practice Quiz nav links)
@@ -48,7 +50,7 @@ shared/
 ```
 
 ## Database Schema
-- **users** - Replit Auth users
+- **users** - Replit Auth users (with displayName, userType, targetExam, onboardingCompleted)
 - **conversations** - Chat conversation titles
 - **messages** - Chat messages with attachments (jsonb)
 - **subscriptions** - User subscription plans
@@ -58,6 +60,7 @@ shared/
 - **quiz_questions** - Questions per attempt with question, options (text[]), correctIndex, explanation, userAnswer, isCorrect
 
 ## API Routes
+- `POST /api/onboarding` - Submit onboarding data (displayName, userType, targetExam)
 - `GET/POST/DELETE /api/conversations` - Chat CRUD
 - `POST /api/conversations/:id/messages` - Send message + stream AI response (SSE)
 - `POST /api/uploads/request-url` - Get presigned upload URL
@@ -74,6 +77,7 @@ shared/
 - `POST /api/quizzes/:id/submit` - Submit quiz answers
 
 ## Recent Changes
+- 2026-02-08: Added multi-step onboarding flow (name, user type, target exam) and personalized dashboard with greeting, quick actions, daily tips, suggested topics
 - 2026-02-08: Refined exam list to UPSC + 15 State PSCs (JPSC, BPSC, JKPSC, UPPSC, MPPSC, RPSC, OPSC, HPSC, UKPSC, HPPSC, APSC Assam, Meghalaya PSC, Sikkim PSC, Tripura PSC, Arunachal PSC). Each exam uses actual paper structure from official syllabus (exam-specific categories, not generic GS-I/II). Added state-specific current affairs filtering with 15 states supported for State PSC candidates.
 - 2026-02-08: Added Practice Quiz feature with AI-generated MCQs, score tracking, review mode, performance analytics
 - 2026-02-08: Added file upload support with Object Storage, attachment previews in messages, file context for AI

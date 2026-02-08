@@ -1,4 +1,4 @@
-import { users, type User, type UpsertUser } from "@shared/models/auth";
+import { users, type User, type UpsertUser, type OnboardingData } from "@shared/models/auth";
 import { db } from "../../db";
 import { eq } from "drizzle-orm";
 
@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 export interface IAuthStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  completeOnboarding(id: string, data: OnboardingData): Promise<User>;
 }
 
 class AuthStorage implements IAuthStorage {
@@ -26,6 +27,21 @@ class AuthStorage implements IAuthStorage {
           updatedAt: new Date(),
         },
       })
+      .returning();
+    return user;
+  }
+
+  async completeOnboarding(id: string, data: OnboardingData): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        displayName: data.displayName,
+        userType: data.userType,
+        targetExam: data.targetExam,
+        onboardingCompleted: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
       .returning();
     return user;
   }

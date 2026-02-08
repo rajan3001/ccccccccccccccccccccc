@@ -16,7 +16,8 @@ import {
 
 export default function ChatPage() {
   const params = useParams<{ id: string }>();
-  const conversationId = params.id ? parseInt(params.id) : null;
+  const parsedId = params.id ? parseInt(params.id) : NaN;
+  const conversationId = !isNaN(parsedId) ? parsedId : null;
   const { user, isLoading: isAuthLoading } = useAuth();
   const [, setLocation] = useLocation();
   
