@@ -103,9 +103,18 @@ export function registerChatRoutes(app: Express): void {
   });
 
   const FREE_DAILY_LIMIT = 2;
+  const ADMIN_EMAILS = ["rajan.kumar3001@gmail.com"];
+
+  function isAdmin(req: any): boolean {
+    const email = req.user?.claims?.email;
+    return ADMIN_EMAILS.includes(email);
+  }
 
   app.get("/api/chat/query-status", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      if (isAdmin(req)) {
+        return res.json({ used: 0, limit: 999, remaining: 999, isAdmin: true });
+      }
       const used = await chatStorage.getTodayUserMessageCount();
       res.json({ used, limit: FREE_DAILY_LIMIT, remaining: Math.max(0, FREE_DAILY_LIMIT - used) });
     } catch (error) {
@@ -130,9 +139,11 @@ export function registerChatRoutes(app: Express): void {
       const conversationId = parseInt(req.params.id);
       const { content, attachments } = req.body;
 
-      const todayCount = await chatStorage.getTodayUserMessageCount();
-      if (todayCount >= FREE_DAILY_LIMIT) {
-        return res.status(429).json({ error: "Daily query limit reached. Upgrade to Pro for unlimited queries." });
+      if (!isAdmin(req)) {
+        const todayCount = await chatStorage.getTodayUserMessageCount();
+        if (todayCount >= FREE_DAILY_LIMIT) {
+          return res.status(429).json({ error: "Daily query limit reached. Upgrade to Pro for unlimited queries." });
+        }
       }
 
       await chatStorage.createMessage(conversationId, "user", content, attachments);

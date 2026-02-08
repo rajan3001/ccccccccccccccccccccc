@@ -33,80 +33,140 @@ export default function SubscriptionPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 items-start">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 items-start">
             {/* Free Plan */}
-            <div className="p-5 sm:p-8 rounded-3xl border border-border bg-card shadow-sm opacity-80">
-              <h3 className="text-2xl font-bold mb-2">Free Plan</h3>
-              <div className="text-4xl font-display font-bold mb-6">₹0<span className="text-base font-sans font-normal text-muted-foreground">/month</span></div>
-              <p className="text-muted-foreground mb-8">Basic access for casual learners.</p>
+            <div className="p-5 sm:p-6 rounded-2xl border border-border bg-card shadow-sm opacity-80">
+              <h3 className="text-xl font-bold mb-2">Free</h3>
+              <div className="text-3xl font-display font-bold mb-1">₹0</div>
+              <p className="text-sm text-muted-foreground mb-6">Basic access</p>
               
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-green-500" />
-                  <span>Limited daily queries</span>
+              <ul className="space-y-3 mb-6 text-sm">
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  <span>2 queries per day</span>
                 </li>
-                <li className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-green-500" />
-                  <span>Standard response speed</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-green-500" />
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
                   <span>Basic chat history</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  <span>Standard speed</span>
                 </li>
               </ul>
 
               <Button variant="outline" className="w-full" disabled>
-                Current Plan
+                {isPro ? "Free Plan" : "Current Plan"}
               </Button>
             </div>
 
-            {/* Pro Plan */}
-            <div className="relative p-5 sm:p-8 rounded-3xl border-2 border-primary bg-gradient-to-b from-primary/5 to-background shadow-xl shadow-primary/10">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-bold shadow-lg flex items-center gap-1">
-                <Crown className="h-3 w-3" /> Most Popular
-              </div>
-
-              <h3 className="text-2xl font-bold mb-2 flex items-center gap-2">
-                Pro Plan
-              </h3>
-              <div className="text-4xl font-display font-bold mb-6">₹999<span className="text-base font-sans font-normal text-muted-foreground">/month</span></div>
-              <p className="text-muted-foreground mb-8">Everything serious aspirants need.</p>
+            {/* Monthly Plan */}
+            <div className="p-5 sm:p-6 rounded-2xl border border-border bg-card shadow-sm">
+              <h3 className="text-xl font-bold mb-2">Monthly</h3>
+              <div className="text-3xl font-display font-bold mb-1">₹299<span className="text-sm font-sans font-normal text-muted-foreground">/mo</span></div>
+              <p className="text-sm text-muted-foreground mb-6">Pay as you go</p>
               
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center gap-3">
-                  <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Zap className="h-3.5 w-3.5 text-primary" />
+              <ul className="space-y-3 mb-6 text-sm">
+                <li className="flex items-center gap-2">
+                  <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <Zap className="h-3 w-3 text-primary" />
                   </div>
                   <span className="font-medium">Unlimited queries</span>
                 </li>
-                <li className="flex items-center gap-3">
-                  <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center">
-                    <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                <li className="flex items-center gap-2">
+                  <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <ShieldCheck className="h-3 w-3 text-primary" />
                   </div>
-                  <span className="font-medium">Verified sources citation</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Crown className="h-3.5 w-3.5 text-primary" />
-                  </div>
-                  <span className="font-medium">Priority access to new models</span>
+                  <span className="font-medium">All features</span>
                 </li>
               </ul>
 
               <Button 
                 onClick={handleUpgrade}
                 disabled={isPro || upgradeMutation.isPending}
-                className="w-full h-12 text-lg font-semibold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25"
+                className="w-full"
               >
-                {upgradeMutation.isPending ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : isPro ? (
-                  "Active"
-                ) : (
-                  "Upgrade Now"
-                )}
+                {upgradeMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : isPro ? "Active" : "Get Monthly"}
               </Button>
-              {isPro && <p className="text-center text-sm text-green-600 mt-2 font-medium">Your plan is active</p>}
+            </div>
+
+            {/* 6 Month Plan */}
+            <div className="relative p-5 sm:p-6 rounded-2xl border-2 border-primary bg-gradient-to-b from-primary/5 to-background shadow-xl shadow-primary/10">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-0.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+                <Crown className="h-3 w-3" /> Best Value
+              </div>
+
+              <h3 className="text-xl font-bold mb-2">6 Months</h3>
+              <div className="text-3xl font-display font-bold mb-1">₹1,200</div>
+              <p className="text-sm text-muted-foreground mb-1">₹200/mo <span className="text-xs line-through text-muted-foreground/60">₹299/mo</span></p>
+              <p className="text-xs text-green-600 font-medium mb-5">Save ₹594 (33% off)</p>
+              
+              <ul className="space-y-3 mb-6 text-sm">
+                <li className="flex items-center gap-2">
+                  <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <Zap className="h-3 w-3 text-primary" />
+                  </div>
+                  <span className="font-medium">Unlimited queries</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <ShieldCheck className="h-3 w-3 text-primary" />
+                  </div>
+                  <span className="font-medium">All features</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <Crown className="h-3 w-3 text-primary" />
+                  </div>
+                  <span className="font-medium">Priority support</span>
+                </li>
+              </ul>
+
+              <Button 
+                onClick={handleUpgrade}
+                disabled={isPro || upgradeMutation.isPending}
+                className="w-full bg-primary shadow-lg shadow-primary/25"
+              >
+                {upgradeMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : isPro ? "Active" : "Get 6 Months"}
+              </Button>
+              {isPro && <p className="text-center text-xs text-green-600 mt-2 font-medium">Your plan is active</p>}
+            </div>
+
+            {/* Yearly Plan */}
+            <div className="p-5 sm:p-6 rounded-2xl border border-border bg-card shadow-sm">
+              <h3 className="text-xl font-bold mb-2">1 Year</h3>
+              <div className="text-3xl font-display font-bold mb-1">₹2,000</div>
+              <p className="text-sm text-muted-foreground mb-1">₹167/mo <span className="text-xs line-through text-muted-foreground/60">₹299/mo</span></p>
+              <p className="text-xs text-green-600 font-medium mb-5">Save ₹1,588 (44% off)</p>
+              
+              <ul className="space-y-3 mb-6 text-sm">
+                <li className="flex items-center gap-2">
+                  <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <Zap className="h-3 w-3 text-primary" />
+                  </div>
+                  <span className="font-medium">Unlimited queries</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <ShieldCheck className="h-3 w-3 text-primary" />
+                  </div>
+                  <span className="font-medium">All features</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <Crown className="h-3 w-3 text-primary" />
+                  </div>
+                  <span className="font-medium">Priority support</span>
+                </li>
+              </ul>
+
+              <Button 
+                onClick={handleUpgrade}
+                disabled={isPro || upgradeMutation.isPending}
+                className="w-full"
+              >
+                {upgradeMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : isPro ? "Active" : "Get Yearly"}
+              </Button>
             </div>
           </div>
         </div>

@@ -102,7 +102,7 @@ export default function ChatPage() {
         <div className="flex-1 overflow-y-auto scroll-smooth">
           {!conversationId || (!isChatLoading && !hasMessages && !isStreaming) ? (
             <div className="flex flex-col items-center justify-center h-full animate-in fade-in duration-500">
-              {queryStatus && (
+              {queryStatus && !(queryStatus as any).isAdmin && (
                 <div className="mb-6" data-testid="query-status-badge">
                   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
                     <MessageCircle className="h-4 w-4 text-primary" />
