@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Loader2,
   Sparkles,
@@ -32,6 +33,7 @@ import {
   Scale,
   Users,
   Trophy,
+  MapPin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -52,7 +54,27 @@ const CATEGORY_ICONS: Record<string, typeof Landmark> = {
   "Polity & Governance": Scale,
   "Social Issues": Users,
   "Sports & Culture": Trophy,
+  "State": MapPin,
 };
+
+const STATE_FILTERS = [
+  { value: "none", label: "National Only (UPSC)" },
+  { value: "Jharkhand", label: "Jharkhand (JPSC)" },
+  { value: "Bihar", label: "Bihar (BPSC)" },
+  { value: "Jammu & Kashmir", label: "J&K (JKPSC)" },
+  { value: "Uttar Pradesh", label: "Uttar Pradesh (UPPSC)" },
+  { value: "Madhya Pradesh", label: "Madhya Pradesh (MPPSC)" },
+  { value: "Rajasthan", label: "Rajasthan (RPSC)" },
+  { value: "Odisha", label: "Odisha (OPSC)" },
+  { value: "Haryana", label: "Haryana (HPSC)" },
+  { value: "Uttarakhand", label: "Uttarakhand (UKPSC)" },
+  { value: "Himachal Pradesh", label: "Himachal Pradesh (HPPSC)" },
+  { value: "Assam", label: "Assam (APSC)" },
+  { value: "Meghalaya", label: "Meghalaya PSC" },
+  { value: "Sikkim", label: "Sikkim PSC" },
+  { value: "Tripura", label: "Tripura PSC" },
+  { value: "Arunachal Pradesh", label: "Arunachal PSC" },
+];
 
 function formatDate(date: Date): string {
   return date.toISOString().split("T")[0];
@@ -71,6 +93,7 @@ function formatDisplayDate(dateStr: string): string {
 export default function CurrentAffairsPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
+  const [stateFilter, setStateFilter] = useState("none");
   const [, setLocation] = useLocation();
 
   const dateStr = formatDate(selectedDate);
@@ -88,7 +111,7 @@ export default function CurrentAffairsPage() {
   const totalCount = topics.length;
 
   const handleGenerate = () => {
-    generateMutation.mutate(dateStr);
+    generateMutation.mutate({ date: dateStr, stateFilter: stateFilter === "none" ? null : stateFilter });
   };
 
   const handleToggleRevised = (topicId: number, currentState: boolean) => {
@@ -255,9 +278,29 @@ export default function CurrentAffairsPage() {
               <h3 className="text-lg font-semibold mb-2">
                 No digest for {formatDisplayDate(dateStr)}
               </h3>
-              <p className="text-muted-foreground text-sm mb-6 max-w-md">
+              <p className="text-muted-foreground text-sm mb-4 max-w-md">
                 Generate an AI-curated daily digest of important current affairs topics relevant to UPSC and State PSC exams.
               </p>
+
+              <div className="w-full max-w-xs mb-6">
+                <label className="text-sm font-medium flex items-center gap-2 mb-2 justify-center">
+                  <MapPin className="h-4 w-4" />
+                  Include State-Specific News
+                </label>
+                <Select value={stateFilter} onValueChange={setStateFilter}>
+                  <SelectTrigger data-testid="select-state-filter">
+                    <SelectValue placeholder="Select state focus" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATE_FILTERS.map((s) => (
+                      <SelectItem key={s.value} value={s.value} data-testid={`option-state-${s.value}`}>
+                        {s.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <Button
                 onClick={handleGenerate}
                 disabled={generateMutation.isPending}
@@ -269,7 +312,7 @@ export default function CurrentAffairsPage() {
                 ) : (
                   <Sparkles className="h-4 w-4" />
                 )}
-                Generate Daily Digest
+                Generate Daily Digest{stateFilter !== "none" ? ` + ${stateFilter} News` : ""}
               </Button>
             </div>
           ) : (

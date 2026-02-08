@@ -74,7 +74,7 @@ shared/
 - `POST /api/quizzes/:id/submit` - Submit quiz answers
 
 ## Recent Changes
-- 2026-02-08: Added multi-exam support for Practice Quiz: UPSC + 20 State PSC exams (JPSC, BPSC, APPSC, MeghalayaPSC, etc.) with exam-specific AI prompts, state-specific categories, and examType tracking
+- 2026-02-08: Refined exam list to UPSC + 15 State PSCs (JPSC, BPSC, JKPSC, UPPSC, MPPSC, RPSC, OPSC, HPSC, UKPSC, HPPSC, APSC Assam, Meghalaya PSC, Sikkim PSC, Tripura PSC, Arunachal PSC). Each exam uses actual paper structure from official syllabus (exam-specific categories, not generic GS-I/II). Added state-specific current affairs filtering with 15 states supported for State PSC candidates.
 - 2026-02-08: Added Practice Quiz feature with AI-generated MCQs, score tracking, review mode, performance analytics
 - 2026-02-08: Added file upload support with Object Storage, attachment previews in messages, file context for AI
 - 2026-02-08: Added Daily Current Affairs with AI generation, calendar view, GS categorization, revision tracking

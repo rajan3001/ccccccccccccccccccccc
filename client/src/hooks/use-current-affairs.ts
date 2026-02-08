@@ -49,15 +49,16 @@ export function useCurrentAffairsDates() {
 export function useGenerateCurrentAffairs() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (date: string) => {
+    mutationFn: async ({ date, stateFilter }: { date: string; stateFilter?: string | null }) => {
       const res = await fetch(`/api/current-affairs/generate/${date}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stateFilter: stateFilter || null }),
       });
       if (!res.ok) throw new Error("Failed to generate current affairs");
       return res.json() as Promise<{ digest: DailyDigest; topics: DailyTopic[] }>;
     },
-    onSuccess: (_, date) => {
+    onSuccess: (_, { date }) => {
       queryClient.invalidateQueries({ queryKey: ["/api/current-affairs", date] });
       queryClient.invalidateQueries({ queryKey: ["/api/current-affairs-dates"] });
       queryClient.invalidateQueries({ queryKey: ["/api/current-affairs/stats/revision"] });
