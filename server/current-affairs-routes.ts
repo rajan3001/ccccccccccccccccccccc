@@ -171,6 +171,92 @@ No markdown, no explanations, just the JSON array.`;
     }
   });
 
+  app.get("/api/current-affairs/topics/:id/detail", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const topicId = parseInt(req.params.id as string);
+      const [topic] = await db.select().from(dailyTopics).where(eq(dailyTopics.id, topicId));
+
+      if (!topic) {
+        return res.status(404).json({ error: "Topic not found" });
+      }
+
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+
+      const sourceInfo = topic.source ? ` (Source: ${topic.source})` : "";
+      const prompt = `You are an expert UPSC/State PSC exam mentor. A student wants to read in detail about this current affairs topic:
+
+**${topic.title}**${sourceInfo}
+
+${topic.summary}
+
+Provide a comprehensive analysis covering:
+
+## Background & Context
+Explain the complete background - what led to this news, historical context, and why it matters now.
+
+## Key Facts & Details
+List all important facts, data points, statistics, dates, and specific details that an exam aspirant must know.
+
+## Constitutional/Legal/Policy Framework
+Explain any relevant constitutional provisions, laws, acts, government policies, or institutional mechanisms involved.
+
+## UPSC Mains Relevance
+- Which GS Paper(s) this connects to
+- Specific syllabus topics it links to
+- How it can be used in essay/ethics/case study papers
+
+## Prelims Angle
+- Potential MCQ areas from this topic
+- Important terms, organizations, or facts to remember
+- Previous year question connections if any
+
+## Connected Topics
+- Related static topics from NCERT or standard reference books
+- How this connects to other current affairs themes
+
+## Multiple Perspectives
+- Different viewpoints and dimensions on this issue
+- Government's position vs. critics' arguments
+- International comparisons if relevant
+
+## Possible UPSC Questions
+Write 2-3 possible Mains-style questions that could be framed from this topic. For each question, provide a brief outline of how to approach the answer.
+
+Keep the analysis exam-focused, analytical, and factual. Use markdown formatting for readability.`;
+
+      let clientClosed = false;
+      req.on("close", () => {
+        clientClosed = true;
+      });
+
+      const stream = await ai.models.generateContentStream({
+        model: "gemini-2.5-flash",
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+      });
+
+      for await (const chunk of stream) {
+        if (clientClosed) break;
+        const text = chunk.text || "";
+        if (text) {
+          res.write(`data: ${JSON.stringify({ text })}\n\n`);
+        }
+      }
+
+      if (!clientClosed) {
+        res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+      }
+      res.end();
+    } catch (error) {
+      if (!res.writableEnded) {
+        console.error("Error generating topic detail:", error);
+        res.write(`data: ${JSON.stringify({ error: "Failed to generate detail" })}\n\n`);
+        res.end();
+      }
+    }
+  });
+
   app.get("/api/current-affairs/stats/revision", isAuthenticated, async (_req: Request, res: Response) => {
     try {
       const result = await db

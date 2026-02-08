@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import {
   useCurrentAffairs,
@@ -8,14 +7,14 @@ import {
   useRevisionStats,
   useCurrentAffairsDates,
 } from "@/hooks/use-current-affairs";
-import { useCreateConversation } from "@/hooks/use-chat";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import ReactMarkdown from "react-markdown";
 import {
   Loader2,
   Sparkles,
@@ -37,6 +36,9 @@ import {
   MapPin,
   Download,
   Newspaper,
+  X,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { generatePDF, currentAffairsToPDFSections } from "@/lib/pdf-generator";
@@ -98,8 +100,20 @@ export default function CurrentAffairsPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
   const [stateFilter, setStateFilter] = useState("none");
-  const [, setLocation] = useLocation();
+  const [expandedTopicId, setExpandedTopicId] = useState<number | null>(null);
+  const [detailContent, setDetailContent] = useState<Record<number, string>>({});
+  const [loadingDetail, setLoadingDetail] = useState<number | null>(null);
   const { toast } = useToast();
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+    };
+  }, []);
 
   const dateStr = formatDate(selectedDate);
   const { data, isLoading } = useCurrentAffairs(dateStr);
@@ -107,7 +121,6 @@ export default function CurrentAffairsPage() {
   const toggleRevision = useToggleRevision();
   const { data: stats } = useRevisionStats();
   const { data: availableDates } = useCurrentAffairsDates();
-  const createChat = useCreateConversation();
 
   const topics = data?.topics || [];
   const hasDigest = !!data?.digest;
@@ -123,15 +136,77 @@ export default function CurrentAffairsPage() {
     toggleRevision.mutate({ topicId, revised: !currentState });
   };
 
-  const handleReadInDetail = (topicTitle: string, topicSummary: string, topicSource?: string | null) => {
-    const sourceInfo = topicSource ? ` (Source: ${topicSource})` : "";
-    const prefillMessage = `I want to read in detail about this current affairs topic for UPSC/State PSC preparation:\n\n**${topicTitle}**${sourceInfo}\n\n${topicSummary}\n\nPlease provide a comprehensive analysis covering:\n1. Complete background and context of this news\n2. Key facts, data points, and important details\n3. Constitutional/legal/policy framework involved\n4. UPSC Mains relevance - which GS paper and specific topics it connects to\n5. Prelims angle - potential MCQ areas from this topic\n6. Connected static topics from NCERT/standard books\n7. Multiple dimensions and perspectives on this issue\n8. 2-3 possible UPSC Mains questions that could be framed from this topic`;
-    createChat.mutate(`Current Affairs: ${topicTitle}`, {
-      onSuccess: (newChat) => {
-        setLocation(`/chat/${newChat.id}?prefill=${encodeURIComponent(prefillMessage)}`);
-      },
-    });
-  };
+  const handleReadInDetail = useCallback((topicId: number) => {
+    if (expandedTopicId === topicId) {
+      setExpandedTopicId(null);
+      return;
+    }
+
+    setExpandedTopicId(topicId);
+
+    if (topicId in detailContent) {
+      return;
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    setLoadingDetail(topicId);
+    setDetailContent((prev) => ({ ...prev, [topicId]: "" }));
+
+    fetch(`/api/current-affairs/topics/${topicId}/detail`, {
+      signal: controller.signal,
+      credentials: "include",
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Failed to fetch");
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error("No reader");
+
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const events = buffer.split("\n\n");
+          buffer = events.pop() || "";
+
+          for (const event of events) {
+            const dataLine = event.split("\n").find((l) => l.startsWith("data: "));
+            if (!dataLine) continue;
+            try {
+              const parsed = JSON.parse(dataLine.slice(6));
+              if (parsed.text) {
+                setDetailContent((prev) => ({
+                  ...prev,
+                  [topicId]: (prev[topicId] || "") + parsed.text,
+                }));
+              }
+              if (parsed.done) {
+                setLoadingDetail((prev) => prev === topicId ? null : prev);
+                abortControllerRef.current = null;
+              }
+              if (parsed.error) {
+                toast({ title: parsed.error, variant: "destructive" });
+                setLoadingDetail((prev) => prev === topicId ? null : prev);
+                abortControllerRef.current = null;
+              }
+            } catch {}
+          }
+        }
+        setLoadingDetail((prev) => prev === topicId ? null : prev);
+        abortControllerRef.current = null;
+      })
+      .catch((err) => {
+        if (err.name !== "AbortError") {
+          toast({ title: "Failed to load details", variant: "destructive" });
+          setLoadingDetail((prev) => prev === topicId ? null : prev);
+        }
+        abortControllerRef.current = null;
+      });
+  }, [expandedTopicId, detailContent, toast]);
 
   const goToPreviousDay = () => {
     const prev = new Date(selectedDate);
@@ -358,78 +433,128 @@ export default function CurrentAffairsPage() {
                     {category}
                   </h3>
                   <div className="space-y-3">
-                    {categoryTopics.map((topic) => (
-                      <Card
-                        key={topic.id}
-                        data-testid={`card-topic-${topic.id}`}
-                        className={cn(
-                          "transition-all",
-                          topic.revised && "border-green-200 dark:border-green-800/50 bg-green-50/30 dark:bg-green-900/10"
-                        )}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between gap-3 mb-2">
-                            <h4 className="font-semibold text-base flex-1">{topic.title}</h4>
-                            <Badge
-                              className={cn(
-                                "text-xs flex-shrink-0 no-default-hover-elevate no-default-active-elevate",
-                                GS_COLORS[topic.gsCategory] || "bg-secondary text-secondary-foreground"
-                              )}
-                            >
-                              {topic.gsCategory}
-                            </Badge>
-                          </div>
+                    {categoryTopics.map((topic) => {
+                      const isExpanded = expandedTopicId === topic.id;
+                      const isLoadingThis = loadingDetail === topic.id;
+                      const content = detailContent[topic.id] || "";
 
-                          <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
-                            {topic.summary}
-                          </p>
-
-                          {topic.relevance && (
-                            <p className="text-xs text-primary/80 italic mb-3">
-                              Exam relevance: {topic.relevance}
-                            </p>
+                      return (
+                        <Card
+                          key={topic.id}
+                          data-testid={`card-topic-${topic.id}`}
+                          className={cn(
+                            "transition-all",
+                            topic.revised && "border-green-200 dark:border-green-800/50 bg-green-50/30 dark:bg-green-900/10"
                           )}
-
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <Button
-                                variant={topic.revised ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => handleToggleRevised(topic.id, topic.revised)}
-                                disabled={toggleRevision.isPending}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                              <h4 className="font-semibold text-base flex-1">{topic.title}</h4>
+                              <Badge
                                 className={cn(
-                                  "gap-1",
-                                  topic.revised && "bg-green-600 border-green-600 text-white"
+                                  "text-xs flex-shrink-0 no-default-hover-elevate no-default-active-elevate",
+                                  GS_COLORS[topic.gsCategory] || "bg-secondary text-secondary-foreground"
                                 )}
-                                data-testid={`button-revise-${topic.id}`}
                               >
-                                <Check className="h-3.5 w-3.5" />
-                                {topic.revised ? "Revised" : "Mark Revised"}
-                              </Button>
-
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleReadInDetail(topic.title, topic.summary, topic.source)}
-                                disabled={createChat.isPending}
-                                className="gap-1"
-                                data-testid={`button-read-detail-${topic.id}`}
-                              >
-                                <BookOpenCheck className="h-3.5 w-3.5" />
-                                Read in Detail
-                              </Button>
+                                {topic.gsCategory}
+                              </Badge>
                             </div>
 
-                            {topic.source && (
-                              <span className="text-xs text-muted-foreground flex items-center gap-1" data-testid={`text-source-${topic.id}`}>
-                                <Newspaper className="h-3 w-3" />
-                                {topic.source}
-                              </span>
+                            <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
+                              {topic.summary}
+                            </p>
+
+                            {topic.relevance && (
+                              <p className="text-xs text-primary/80 italic mb-3">
+                                Exam relevance: {topic.relevance}
+                              </p>
                             )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Button
+                                  variant={topic.revised ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => handleToggleRevised(topic.id, topic.revised)}
+                                  disabled={toggleRevision.isPending}
+                                  className={cn(
+                                    "gap-1",
+                                    topic.revised && "bg-green-600 border-green-600 text-white"
+                                  )}
+                                  data-testid={`button-revise-${topic.id}`}
+                                >
+                                  <Check className="h-3.5 w-3.5" />
+                                  {topic.revised ? "Revised" : "Mark Revised"}
+                                </Button>
+
+                                <Button
+                                  variant={isExpanded ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => handleReadInDetail(topic.id)}
+                                  disabled={isLoadingThis}
+                                  className="gap-1"
+                                  data-testid={`button-read-detail-${topic.id}`}
+                                >
+                                  {isLoadingThis ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                  ) : (
+                                    <BookOpenCheck className="h-3.5 w-3.5" />
+                                  )}
+                                  Read in Detail
+                                  {isExpanded ? (
+                                    <ChevronUp className="h-3.5 w-3.5" />
+                                  ) : (
+                                    <ChevronDown className="h-3.5 w-3.5" />
+                                  )}
+                                </Button>
+                              </div>
+
+                              {topic.source && (
+                                <span className="text-xs text-muted-foreground flex items-center gap-1" data-testid={`text-source-${topic.id}`}>
+                                  <Newspaper className="h-3 w-3" />
+                                  {topic.source}
+                                </span>
+                              )}
+                            </div>
+
+                            {isExpanded && (
+                              <div className="mt-4 pt-4 border-t" data-testid={`detail-panel-${topic.id}`}>
+                                <div className="flex items-center justify-between mb-3">
+                                  <h5 className="text-sm font-semibold text-primary flex items-center gap-1.5">
+                                    <BookOpenCheck className="h-4 w-4" />
+                                    Detailed Analysis
+                                  </h5>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setExpandedTopicId(null)}
+                                    data-testid={`button-close-detail-${topic.id}`}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+
+                                {isLoadingThis && !content && (
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Generating detailed analysis...
+                                  </div>
+                                )}
+
+                                {content && (
+                                  <div className="prose prose-sm dark:prose-invert max-w-none text-foreground prose-headings:text-foreground prose-h2:text-lg prose-h2:font-bold prose-h2:mt-5 prose-h2:mb-2 prose-h3:text-base prose-h3:font-semibold prose-h3:mt-4 prose-h3:mb-1.5 prose-p:my-2 prose-li:my-0.5 prose-strong:text-foreground prose-strong:font-bold">
+                                    <ReactMarkdown>{content}</ReactMarkdown>
+                                    {isLoadingThis && (
+                                      <span className="inline-block w-2 h-4 bg-primary/60 animate-pulse ml-0.5" />
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
