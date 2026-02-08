@@ -1,5 +1,6 @@
 export * from "./models/auth";
 export * from "./models/chat";
+export * from "./models/current-affairs";
 
 import { pgTable, text, serial, boolean, timestamp, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";

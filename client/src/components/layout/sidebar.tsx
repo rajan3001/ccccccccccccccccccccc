@@ -8,11 +8,10 @@ import {
   Plus, 
   MessageSquare, 
   Trash2, 
-  Settings, 
   LogOut, 
   Crown,
   Menu,
-  X
+  Newspaper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
@@ -77,10 +76,22 @@ export function Sidebar() {
           disabled={createMutation.isPending}
           className="w-full mt-6 justify-start gap-2 h-12 text-base font-medium shadow-sm hover:shadow-md transition-all bg-background hover:bg-background border-2 border-primary/20 text-foreground hover:border-primary/50"
           variant="outline"
+          data-testid="button-new-chat"
         >
           <Plus className="h-5 w-5 text-primary" />
           New Chat
         </Button>
+
+        <Link href="/current-affairs" onClick={() => setIsMobileOpen(false)}>
+          <Button
+            variant={location === "/current-affairs" ? "default" : "ghost"}
+            className="w-full mt-2 justify-start gap-2"
+            data-testid="link-current-affairs"
+          >
+            <Newspaper className="h-5 w-5" />
+            Current Affairs
+          </Button>
+        </Link>
       </div>
 
       <div className="flex-1 overflow-hidden px-4">

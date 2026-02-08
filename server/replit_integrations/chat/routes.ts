@@ -2,8 +2,8 @@ import type { Express, Request, Response } from "express";
 import { GoogleGenAI } from "@google/genai";
 import { chatStorage } from "./storage";
 import { isAuthenticated } from "../auth";
+import { ObjectStorageService } from "../object_storage";
 
-// This is using Replit's AI Integrations service, which provides Gemini-compatible API access without requiring your own Gemini API key.
 const ai = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
   httpOptions: {
@@ -12,8 +12,36 @@ const ai = new GoogleGenAI({
   },
 });
 
+const objectStorage = new ObjectStorageService();
+
+async function readFileContent(objectPath: string, fileType: string): Promise<string | null> {
+  try {
+    const file = await objectStorage.getObjectEntityFile(objectPath);
+    const [metadata] = await file.getMetadata();
+
+    if (fileType.startsWith("text/") || fileType === "text/plain" || fileType === "text/csv" || fileType === "text/markdown") {
+      const [content] = await file.download();
+      return content.toString("utf-8");
+    }
+
+    if (fileType === "application/pdf") {
+      const [content] = await file.download();
+      const textContent = content.toString("utf-8");
+      const cleanText = textContent.replace(/[^\x20-\x7E\n\r\t]/g, " ").replace(/\s+/g, " ").trim();
+      if (cleanText.length > 100) {
+        return cleanText.substring(0, 5000);
+      }
+      return "[PDF file attached - content could not be extracted as text]";
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error reading file content:", error);
+    return null;
+  }
+}
+
 export function registerChatRoutes(app: Express): void {
-  // Get all conversations
   app.get("/api/conversations", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const conversations = await chatStorage.getAllConversations();
@@ -24,7 +52,6 @@ export function registerChatRoutes(app: Express): void {
     }
   });
 
-  // Get single conversation with messages
   app.get("/api/conversations/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
@@ -40,7 +67,6 @@ export function registerChatRoutes(app: Express): void {
     }
   });
 
-  // Create new conversation
   app.post("/api/conversations", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { title } = req.body;
@@ -52,7 +78,6 @@ export function registerChatRoutes(app: Express): void {
     }
   });
 
-  // Delete conversation
   app.delete("/api/conversations/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
@@ -64,43 +89,57 @@ export function registerChatRoutes(app: Express): void {
     }
   });
 
-  // Send message and get AI response (streaming)
   app.post("/api/conversations/:id/messages", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const conversationId = parseInt(req.params.id);
       const { content, attachments } = req.body;
 
-      // Save user message
       await chatStorage.createMessage(conversationId, "user", content, attachments);
 
-      // Get conversation history for context
       const messages = await chatStorage.getMessagesByConversation(conversationId);
       
-      // Prepare contents for Gemini with multimodality
-      const chatMessages = messages.map((m) => {
+      const chatMessages = [];
+      
+      for (const m of messages) {
         const parts: any[] = [{ text: m.content }];
         
-        // Add attachments as context if they exist
         if (m.attachments && Array.isArray(m.attachments)) {
-          m.attachments.forEach((att: any) => {
-            // For images, we can pass them if we have the data
-            // For PDF/Text, we might need to extract text or pass as inlineData if supported
-            // Gemini AI Integrations supports inlineData for certain types
-          });
+          for (const att of m.attachments as any[]) {
+            if (att.type?.startsWith("image/") && att.objectPath) {
+              try {
+                const file = await objectStorage.getObjectEntityFile(att.objectPath);
+                const [imageData] = await file.download();
+                const base64 = imageData.toString("base64");
+                parts.push({
+                  inlineData: {
+                    mimeType: att.type,
+                    data: base64,
+                  }
+                });
+              } catch (e) {
+                parts.push({ text: `[Image attached: ${att.name}]` });
+              }
+            } else if (att.objectPath) {
+              const fileContent = await readFileContent(att.objectPath, att.type || "text/plain");
+              if (fileContent) {
+                parts.push({ text: `\n\n--- Attached File: ${att.name} ---\n${fileContent}\n--- End of File ---\n` });
+              } else {
+                parts.push({ text: `[File attached: ${att.name} (${att.type})]` });
+              }
+            }
+          }
         }
         
-        return {
+        chatMessages.push({
           role: m.role === "assistant" ? "model" : "user",
           parts,
-        };
-      });
+        });
+      }
 
-      // Set up SSE
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
 
-      // Stream response from Gemini
       const stream = await ai.models.generateContentStream({
         model: "gemini-2.5-flash",
         contents: chatMessages,
@@ -116,7 +155,6 @@ export function registerChatRoutes(app: Express): void {
         }
       }
 
-      // Save assistant message
       await chatStorage.createMessage(conversationId, "assistant", fullResponse);
 
       res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
@@ -132,4 +170,3 @@ export function registerChatRoutes(app: Express): void {
     }
   });
 }
-

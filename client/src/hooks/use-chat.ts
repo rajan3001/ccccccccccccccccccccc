@@ -2,11 +2,17 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 
-// Types from schema (recreating here for frontend usage if direct import fails or for specific view logic)
 export interface Conversation {
   id: number;
   title: string;
   createdAt: string;
+}
+
+export interface MessageAttachment {
+  name: string;
+  type: string;
+  objectPath: string;
+  size: number;
 }
 
 export interface Message {
@@ -14,6 +20,7 @@ export interface Message {
   conversationId: number;
   role: "user" | "assistant" | "model";
   content: string;
+  attachments?: MessageAttachment[];
   createdAt: string;
 }
 
@@ -86,19 +93,16 @@ export function useChatStream(conversationId: number) {
   const [isStreaming, setIsStreaming] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (content: string, attachments?: MessageAttachment[]) => {
     try {
       setIsStreaming(true);
       setStreamedContent("");
       abortControllerRef.current = new AbortController();
 
-      // Optimistically add user message to UI via query cache (optional, or rely on parent state)
-      // Here we just handle the stream response
-
       const response = await fetch(`/api/conversations/${conversationId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content, attachments }),
         signal: abortControllerRef.current.signal,
       });
 
@@ -126,7 +130,6 @@ export function useChatStream(conversationId: number) {
               }
               
               if (data.done) {
-                // Stream complete
                 break;
               }
               
@@ -150,9 +153,7 @@ export function useChatStream(conversationId: number) {
     } finally {
       setIsStreaming(false);
       setStreamedContent("");
-      // Invalidate query to fetch the full message history including the newly persisted assistant message
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId] });
-      // Also update list in case title changed (if we implemented auto-titling)
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
     }
   };
