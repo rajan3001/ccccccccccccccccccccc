@@ -3,6 +3,7 @@ export * from "./models/chat";
 export * from "./models/current-affairs";
 export * from "./models/quiz";
 export * from "./models/evaluation";
+export * from "./models/notes";
 
 import { pgTable, text, serial, boolean, timestamp, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
