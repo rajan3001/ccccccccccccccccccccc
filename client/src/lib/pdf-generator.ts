@@ -24,7 +24,7 @@ async function getLogoDataUrl(): Promise<string> {
 }
 
 interface PDFSection {
-  type: "heading" | "subheading" | "text" | "bulletList" | "scoreLine" | "divider" | "badge" | "spacer";
+  type: "heading" | "subheading" | "text" | "boldText" | "bulletList" | "numberedList" | "scoreLine" | "divider" | "badge" | "spacer";
   text?: string;
   items?: string[];
   label?: string;
@@ -66,6 +66,139 @@ function addPageBranding(doc: jsPDF, logo: string, pageWidth: number, pageHeight
   doc.text(`Page ${doc.getNumberOfPages()}`, 14, pageHeight - 8);
 }
 
+function renderTextWithBold(doc: jsPDF, text: string, x: number, y: number, fontSize: number, normalColor: [number, number, number], boldColor: [number, number, number]) {
+  doc.setFontSize(fontSize);
+  let currentX = x;
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  for (const part of parts) {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      const boldText = part.slice(2, -2);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...boldColor);
+      doc.text(boldText, currentX, y);
+      currentX += doc.getTextWidth(boldText);
+    } else if (part) {
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(...normalColor);
+      doc.text(part, currentX, y);
+      currentX += doc.getTextWidth(part);
+    }
+  }
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...normalColor);
+}
+
+function parseMarkdownToSections(markdown: string): PDFSection[] {
+  const sections: PDFSection[] = [];
+  const lines = markdown.split("\n");
+  let i = 0;
+  let textBuffer = "";
+
+  const flushText = () => {
+    if (textBuffer.trim()) {
+      sections.push({ type: "text", text: textBuffer.trim() });
+      textBuffer = "";
+    }
+  };
+
+  while (i < lines.length) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      flushText();
+      i++;
+      continue;
+    }
+
+    if (trimmed.startsWith("# ")) {
+      flushText();
+      sections.push({ type: "heading", text: trimmed.slice(2).trim() });
+      i++;
+      continue;
+    }
+    if (trimmed.startsWith("## ")) {
+      flushText();
+      sections.push({ type: "heading", text: trimmed.slice(3).trim() });
+      i++;
+      continue;
+    }
+    if (trimmed.startsWith("### ")) {
+      flushText();
+      sections.push({ type: "subheading", text: trimmed.slice(4).trim() });
+      i++;
+      continue;
+    }
+    if (trimmed.startsWith("#### ") || trimmed.startsWith("##### ") || trimmed.startsWith("###### ")) {
+      flushText();
+      const headingText = trimmed.replace(/^#{1,6}\s*/, "");
+      sections.push({ type: "subheading", text: headingText });
+      i++;
+      continue;
+    }
+
+    const numberedMatch = trimmed.match(/^(\d+)\.\s+/);
+    if (numberedMatch) {
+      flushText();
+      const items: string[] = [];
+      while (i < lines.length) {
+        const nLine = lines[i].trim();
+        const nMatch = nLine.match(/^(\d+)\.\s+(.*)/);
+        if (nMatch) {
+          items.push(nMatch[2]);
+          i++;
+        } else if (nLine.startsWith("   ") || nLine.startsWith("\t")) {
+          if (items.length > 0) {
+            items[items.length - 1] += " " + nLine.trim();
+          }
+          i++;
+        } else {
+          break;
+        }
+      }
+      sections.push({ type: "numberedList", items });
+      continue;
+    }
+
+    if (trimmed.startsWith("- ") || trimmed.startsWith("* ") || trimmed.startsWith("+ ")) {
+      flushText();
+      const items: string[] = [];
+      while (i < lines.length) {
+        const bLine = lines[i].trim();
+        if (bLine.startsWith("- ") || bLine.startsWith("* ") || bLine.startsWith("+ ")) {
+          items.push(bLine.slice(2).trim());
+          i++;
+        } else if (bLine.startsWith("  ") || bLine.startsWith("\t")) {
+          if (items.length > 0) {
+            items[items.length - 1] += " " + bLine.trim();
+          }
+          i++;
+        } else {
+          break;
+        }
+      }
+      sections.push({ type: "bulletList", items });
+      continue;
+    }
+
+    if (trimmed.startsWith("---") || trimmed.startsWith("***") || trimmed.startsWith("___")) {
+      flushText();
+      sections.push({ type: "divider" });
+      i++;
+      continue;
+    }
+
+    if (textBuffer) {
+      textBuffer += " " + trimmed;
+    } else {
+      textBuffer = trimmed;
+    }
+    i++;
+  }
+  flushText();
+  return sections;
+}
+
 export async function generatePDF(options: PDFOptions): Promise<void> {
   const logo = await getLogoDataUrl();
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -90,7 +223,7 @@ export async function generatePDF(options: PDFOptions): Promise<void> {
 
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(33, 33, 33);
+  doc.setTextColor(20, 20, 20);
   const titleLines = doc.splitTextToSize(options.title, contentWidth);
   checkNewPage(titleLines.length * 7 + 4);
   doc.text(titleLines, marginLeft, y);
@@ -99,7 +232,7 @@ export async function generatePDF(options: PDFOptions): Promise<void> {
   if (options.subtitle) {
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(120, 120, 120);
+    doc.setTextColor(100, 100, 100);
     const subLines = doc.splitTextToSize(options.subtitle, contentWidth);
     doc.text(subLines, marginLeft, y);
     y += subLines.length * 5 + 4;
@@ -110,52 +243,144 @@ export async function generatePDF(options: PDFOptions): Promise<void> {
   for (const section of options.sections) {
     switch (section.type) {
       case "heading": {
-        checkNewPage(12);
+        checkNewPage(14);
+        y += 2;
         doc.setFontSize(13);
         doc.setFont("helvetica", "bold");
-        doc.setTextColor(33, 33, 33);
-        const hLines = doc.splitTextToSize(section.text || "", contentWidth);
+        doc.setTextColor(20, 20, 20);
+        const cleanedHeading = (section.text || "").replace(/\*\*(.*?)\*\*/g, "$1");
+        const hLines = doc.splitTextToSize(cleanedHeading, contentWidth);
         doc.text(hLines, marginLeft, y);
-        y += hLines.length * 6 + 3;
+        y += hLines.length * 6 + 2;
+        doc.setDrawColor(59, 130, 246);
+        doc.setLineWidth(0.5);
+        doc.line(marginLeft, y, marginLeft + 30, y);
+        doc.setLineWidth(0.2);
+        y += 3;
         break;
       }
       case "subheading": {
         checkNewPage(10);
+        y += 1;
         doc.setFontSize(11);
         doc.setFont("helvetica", "bold");
-        doc.setTextColor(80, 80, 80);
-        const shLines = doc.splitTextToSize(section.text || "", contentWidth);
+        doc.setTextColor(40, 40, 40);
+        const cleanedSub = (section.text || "").replace(/\*\*(.*?)\*\*/g, "$1");
+        const shLines = doc.splitTextToSize(cleanedSub, contentWidth);
         doc.text(shLines, marginLeft, y);
         y += shLines.length * 5 + 2;
         break;
       }
       case "text": {
+        const rawText = section.text || "";
+        const hasBold = rawText.includes("**");
         doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(60, 60, 60);
-        const cleaned = (section.text || "")
-          .replace(/\*\*(.*?)\*\*/g, "$1")
-          .replace(/\*(.*?)\*/g, "$1")
-          .replace(/#{1,6}\s*/g, "")
-          .replace(/^[-*]\s+/gm, "  - ");
-        const textLines = doc.splitTextToSize(cleaned, contentWidth);
-        for (let i = 0; i < textLines.length; i++) {
+        doc.setTextColor(35, 35, 35);
+
+        if (hasBold) {
+          const plainText = rawText.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1");
+          const wrappedLines = doc.splitTextToSize(plainText, contentWidth);
+          
+          let charPos = 0;
+          for (const wLine of wrappedLines) {
+            checkNewPage(5);
+            const lineEnd = charPos + wLine.length;
+            
+            let originalSegment = "";
+            let origIdx = 0;
+            let plainIdx = 0;
+            while (plainIdx < lineEnd && origIdx < rawText.length) {
+              if (rawText[origIdx] === '*' && rawText[origIdx + 1] === '*') {
+                const endBold = rawText.indexOf("**", origIdx + 2);
+                if (endBold > -1) {
+                  const boldContent = rawText.substring(origIdx + 2, endBold);
+                  originalSegment += "**" + boldContent + "**";
+                  plainIdx += boldContent.length;
+                  origIdx = endBold + 2;
+                  continue;
+                }
+              }
+              if (rawText[origIdx] === '*' && rawText[origIdx + 1] !== '*') {
+                origIdx++;
+                continue;
+              }
+              if (plainIdx >= charPos) {
+                originalSegment += rawText[origIdx];
+              }
+              plainIdx++;
+              origIdx++;
+            }
+            
+            renderTextWithBold(doc, originalSegment || wLine, marginLeft, y, 10, [35, 35, 35], [20, 20, 20]);
+            y += 4.5;
+            charPos = lineEnd;
+          }
+        } else {
+          const cleaned = rawText.replace(/\*(.*?)\*/g, "$1");
+          doc.setFont("helvetica", "normal");
+          const textLines = doc.splitTextToSize(cleaned, contentWidth);
+          for (const tl of textLines) {
+            checkNewPage(5);
+            doc.text(tl, marginLeft, y);
+            y += 4.5;
+          }
+        }
+        y += 2;
+        break;
+      }
+      case "boldText": {
+        checkNewPage(6);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(20, 20, 20);
+        const btLines = doc.splitTextToSize(section.text || "", contentWidth);
+        for (const btl of btLines) {
           checkNewPage(5);
-          doc.text(textLines[i], marginLeft, y);
+          doc.text(btl, marginLeft, y);
           y += 4.5;
         }
         y += 2;
         break;
       }
       case "bulletList": {
-        doc.setFontSize(9.5);
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(10);
+        doc.setTextColor(35, 35, 35);
         for (const item of section.items || []) {
-          const bulletLines = doc.splitTextToSize(`  \u2022  ${item}`, contentWidth - 4);
-          for (let i = 0; i < bulletLines.length; i++) {
+          const cleanItem = item.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1");
+          const bulletLines = doc.splitTextToSize(cleanItem, contentWidth - 8);
+          for (let bi = 0; bi < bulletLines.length; bi++) {
             checkNewPage(5);
-            doc.text(bulletLines[i], marginLeft + 2, y);
+            if (bi === 0) {
+              doc.setFont("helvetica", "normal");
+              doc.text("\u2022", marginLeft + 2, y);
+              doc.text(bulletLines[bi], marginLeft + 7, y);
+            } else {
+              doc.text(bulletLines[bi], marginLeft + 7, y);
+            }
+            y += 4.5;
+          }
+        }
+        y += 2;
+        break;
+      }
+      case "numberedList": {
+        doc.setFontSize(10);
+        doc.setTextColor(35, 35, 35);
+        const items = section.items || [];
+        for (let ni = 0; ni < items.length; ni++) {
+          const cleanItem = items[ni].replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1");
+          const numPrefix = `${ni + 1}. `;
+          const numLines = doc.splitTextToSize(cleanItem, contentWidth - 10);
+          for (let nli = 0; nli < numLines.length; nli++) {
+            checkNewPage(5);
+            if (nli === 0) {
+              doc.setFont("helvetica", "bold");
+              doc.text(numPrefix, marginLeft + 2, y);
+              doc.setFont("helvetica", "normal");
+              doc.text(numLines[nli], marginLeft + 2 + doc.getTextWidth(numPrefix), y);
+            } else {
+              doc.text(numLines[nli], marginLeft + 10, y);
+            }
             y += 4.5;
           }
         }
@@ -166,13 +391,13 @@ export async function generatePDF(options: PDFOptions): Promise<void> {
         checkNewPage(8);
         doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
-        doc.setTextColor(80, 80, 80);
+        doc.setTextColor(50, 50, 50);
         doc.text(section.label || "", marginLeft, y);
         doc.setFont("helvetica", "bold");
         if (section.color === "green") doc.setTextColor(22, 163, 74);
         else if (section.color === "amber") doc.setTextColor(217, 119, 6);
         else if (section.color === "red") doc.setTextColor(220, 38, 38);
-        else doc.setTextColor(33, 33, 33);
+        else doc.setTextColor(20, 20, 20);
         doc.text(section.value || "", pageWidth - marginRight, y, { align: "right" });
         y += 6;
         break;
@@ -188,7 +413,8 @@ export async function generatePDF(options: PDFOptions): Promise<void> {
       }
       case "divider": {
         checkNewPage(6);
-        doc.setDrawColor(220, 220, 220);
+        y += 1;
+        doc.setDrawColor(200, 200, 200);
         doc.line(marginLeft, y, pageWidth - marginRight, y);
         y += 4;
         break;
@@ -203,6 +429,10 @@ export async function generatePDF(options: PDFOptions): Promise<void> {
   doc.save(options.fileName);
 }
 
+export function chatMessageToPDFSections(content: string): PDFSection[] {
+  return parseMarkdownToSections(content);
+}
+
 export function chatToPDFSections(messages: Array<{ role: string; content: string }>): PDFSection[] {
   const sections: PDFSection[] = [];
   for (const msg of messages) {
@@ -210,7 +440,8 @@ export function chatToPDFSections(messages: Array<{ role: string; content: strin
       type: "subheading",
       text: msg.role === "user" ? "You" : "Learnpro Assistant",
     });
-    sections.push({ type: "text", text: msg.content });
+    const parsed = parseMarkdownToSections(msg.content);
+    sections.push(...parsed);
     sections.push({ type: "divider" });
   }
   return sections;
@@ -230,9 +461,10 @@ export function currentAffairsToPDFSections(
     for (const topic of catTopics) {
       sections.push({ type: "subheading", text: topic.title });
       sections.push({ type: "badge", text: `[${topic.gsCategory}]` });
-      sections.push({ type: "text", text: topic.summary });
+      const parsed = parseMarkdownToSections(topic.summary);
+      sections.push(...parsed);
       if (topic.relevance) {
-        sections.push({ type: "text", text: `Relevance: ${topic.relevance}` });
+        sections.push({ type: "boldText", text: `Relevance: ${topic.relevance}` });
       }
       sections.push({ type: "divider" });
     }
@@ -271,6 +503,7 @@ export function evaluationToPDFSections(data: EvalData): PDFSection[] {
     ? (data.totalScore / data.maxScore) >= 0.7 ? "green" : (data.totalScore / data.maxScore) >= 0.5 ? "amber" : "red"
     : undefined;
 
+  sections.push({ type: "spacer" });
   sections.push({
     type: "scoreLine",
     label: "Overall Score",
@@ -288,12 +521,14 @@ export function evaluationToPDFSections(data: EvalData): PDFSection[] {
 
   if (data.overallFeedback) {
     sections.push({ type: "heading", text: "Overall Feedback" });
-    sections.push({ type: "text", text: data.overallFeedback });
+    const feedbackSections = parseMarkdownToSections(data.overallFeedback);
+    sections.push(...feedbackSections);
     sections.push({ type: "divider" });
   }
 
   if (data.competencyFeedback && data.competencyFeedback.length > 0) {
     sections.push({ type: "heading", text: "Parameter-wise Analysis" });
+    sections.push({ type: "spacer" });
     for (const comp of data.competencyFeedback) {
       const cColor = comp.score !== undefined
         ? comp.score >= 7 ? "green" : comp.score >= 5 ? "amber" : "red"
@@ -305,11 +540,11 @@ export function evaluationToPDFSections(data: EvalData): PDFSection[] {
         color: cColor,
       });
       if (comp.strengths.length > 0) {
-        sections.push({ type: "subheading", text: "Strengths" });
+        sections.push({ type: "boldText", text: "Strengths:" });
         sections.push({ type: "bulletList", items: comp.strengths });
       }
       if (comp.improvements.length > 0) {
-        sections.push({ type: "subheading", text: "Areas for Improvement" });
+        sections.push({ type: "boldText", text: "Areas for Improvement:" });
         sections.push({ type: "bulletList", items: comp.improvements });
       }
       sections.push({ type: "spacer" });
@@ -319,6 +554,7 @@ export function evaluationToPDFSections(data: EvalData): PDFSection[] {
 
   if (data.questions.length > 0) {
     sections.push({ type: "heading", text: "Question-wise Evaluation" });
+    sections.push({ type: "spacer" });
     for (const q of data.questions) {
       const qColor = (q.score / q.maxScore) >= 0.7 ? "green" : (q.score / q.maxScore) >= 0.5 ? "amber" : "red";
       sections.push({
@@ -328,27 +564,31 @@ export function evaluationToPDFSections(data: EvalData): PDFSection[] {
         color: qColor,
       });
       if (q.detailedFeedback) {
-        sections.push({ type: "text", text: q.detailedFeedback });
+        const detailSections = parseMarkdownToSections(q.detailedFeedback);
+        sections.push(...detailSections);
       }
       if (q.strengths.length > 0) {
-        sections.push({ type: "subheading", text: "Strengths" });
+        sections.push({ type: "boldText", text: "Strengths:" });
         sections.push({ type: "bulletList", items: q.strengths });
       }
       if (q.improvements.length > 0) {
-        sections.push({ type: "subheading", text: "Areas for Improvement" });
+        sections.push({ type: "boldText", text: "Areas for Improvement:" });
         sections.push({ type: "bulletList", items: q.improvements });
       }
       if (q.introductionFeedback) {
         sections.push({ type: "subheading", text: "Introduction" });
-        sections.push({ type: "text", text: q.introductionFeedback });
+        const introSections = parseMarkdownToSections(q.introductionFeedback);
+        sections.push(...introSections);
       }
       if (q.bodyFeedback) {
         sections.push({ type: "subheading", text: "Body" });
-        sections.push({ type: "text", text: q.bodyFeedback });
+        const bodySections = parseMarkdownToSections(q.bodyFeedback);
+        sections.push(...bodySections);
       }
       if (q.conclusionFeedback) {
         sections.push({ type: "subheading", text: "Conclusion" });
-        sections.push({ type: "text", text: q.conclusionFeedback });
+        const concSections = parseMarkdownToSections(q.conclusionFeedback);
+        sections.push(...concSections);
       }
       sections.push({ type: "divider" });
     }
@@ -365,6 +605,7 @@ export function noteToPDFSections(note: { title: string; content: string; gsCate
   if (note.tags && note.tags.length > 0) {
     sections.push({ type: "badge", text: `Tags: ${note.tags.join(", ")}` });
   }
-  sections.push({ type: "text", text: note.content });
+  const parsed = parseMarkdownToSections(note.content);
+  sections.push(...parsed);
   return sections;
 }

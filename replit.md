@@ -110,3 +110,6 @@ shared/
 - 2026-02-08: Added optional Question Paper upload to Answer Sheet Evaluation - students can either upload a question paper (AI extracts details) OR fill in manual fields (totalMarks, totalQuestions, questionsAttempted). Uploading question paper hides manual fields. Backend sends question paper as additional context to AI.
 - 2026-02-08: Added PDF Export with Learnpro branding (logo header on every page, watermark, footer text) for Chat, Current Affairs, and Evaluation reports
 - 2026-02-08: Added My Notes feature - save AI chat responses as notes with GS category, tags, folder organization, markdown editor, search/filter, PDF/markdown export, and spaced repetition review reminders
+- 2026-02-08: Enhanced chat UX - action bar at end of each AI message (Save, Copy, Download as PDF with labels and icons), chat suggestions panel ("You can also ask" with contextual prompts like Create Prelims MCQs, Write Mains Answer, How to Write Answers, etc.)
+- 2026-02-08: Improved markdown rendering - better heading hierarchy (h1-h6), darker/bolder text colors, stronger bold text, table support, improved list formatting
+- 2026-02-08: Overhauled PDF generator - proper markdown parsing (headings, bold, numbered lists, bullet lists), darker text colors, blue accent under headings, structured evaluation reports with labeled sections

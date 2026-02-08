@@ -15,8 +15,21 @@ import {
   Lightbulb,
   Scale,
   Download,
+  Sparkles,
+  ArrowRight,
+  PenLine,
+  ListChecks,
+  HelpCircle,
 } from "lucide-react";
 import { generatePDF, chatToPDFSections } from "@/lib/pdf-generator";
+
+const CHAT_SUGGESTIONS = [
+  { text: "Create 5 Prelims MCQs on this topic", icon: ListChecks },
+  { text: "Write a Mains answer on this topic", icon: PenLine },
+  { text: "How to write good answers for this topic?", icon: HelpCircle },
+  { text: "Explain the key concepts in simple terms", icon: Lightbulb },
+  { text: "What are the important facts to remember?", icon: BookOpen },
+];
 
 export default function ChatPage() {
   const params = useParams<{ id: string }>();
@@ -56,6 +69,10 @@ export default function ChatPage() {
       }
     }
   }, [conversationId, prefillSent, isChatLoading, conversationData]);
+
+  const hasMessages = conversationData?.messages && conversationData.messages.length > 0;
+  const lastMessage = hasMessages ? conversationData.messages[conversationData.messages.length - 1] : null;
+  const showSuggestions = hasMessages && lastMessage?.role === "assistant" && !isStreaming;
 
   if (isAuthLoading) {
     return (
@@ -109,7 +126,7 @@ export default function ChatPage() {
             </div>
           ) : (
             <div className="max-w-3xl mx-auto w-full pb-32 pt-4 sm:pt-6">
-              {conversationData?.messages && conversationData.messages.length > 0 && (
+              {hasMessages && (
                 <div className="flex justify-end px-3 sm:px-6 mb-2">
                   <Button
                     variant="ghost"
@@ -133,7 +150,7 @@ export default function ChatPage() {
                     }}
                   >
                     <Download className="h-4 w-4 mr-1.5" />
-                    Download PDF
+                    Download Full Chat PDF
                   </Button>
                 </div>
               )}
@@ -152,6 +169,33 @@ export default function ChatPage() {
                   message={{ role: "assistant", content: streamedContent }} 
                   isStreaming={true}
                 />
+              )}
+
+              {showSuggestions && (
+                <div className="px-3 sm:px-6 py-4" data-testid="chat-suggestions">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-semibold text-muted-foreground">You can also ask</span>
+                  </div>
+                  <div className="space-y-2">
+                    {CHAT_SUGGESTIONS.map((suggestion, i) => (
+                      <Button
+                        key={i}
+                        variant="outline"
+                        data-testid={`button-suggestion-${i}`}
+                        onClick={() => conversationId && sendMessage(suggestion.text)}
+                        disabled={isStreaming || !conversationId}
+                        className="w-full justify-between gap-3 text-left bg-primary/5 border-primary/10"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <suggestion.icon className="h-4 w-4 text-primary flex-shrink-0" />
+                          <span className="text-sm font-medium">{suggestion.text}</span>
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      </Button>
+                    ))}
+                  </div>
+                </div>
               )}
               
               <div ref={messagesEndRef} className="h-4" />

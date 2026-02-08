@@ -2,13 +2,14 @@ import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
 import { Message } from "@/hooks/use-chat";
 import { Logo } from "@/components/ui/logo";
-import { User, Copy, Check, FileText, Image as ImageIcon, File, BookmarkPlus, FolderPlus } from "lucide-react";
+import { User, Copy, Check, FileText, Image as ImageIcon, File, BookmarkPlus, FolderPlus, Download } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { generatePDF, chatMessageToPDFSections } from "@/lib/pdf-generator";
 import {
   Dialog,
   DialogContent,
@@ -106,6 +107,24 @@ export function MessageBubble({ message, isStreaming, conversationId }: MessageB
     }
   };
 
+  const handleDownloadPDF = async () => {
+    if (!message.content) return;
+    try {
+      const firstLine = message.content.split("\n")[0].replace(/[#*_]/g, "").trim().slice(0, 60);
+      const title = firstLine || "AI Response";
+      const sections = chatMessageToPDFSections(message.content);
+      await generatePDF({
+        title,
+        subtitle: `Learnpro AI - ${new Date().toLocaleDateString("en-IN")}`,
+        sections,
+        fileName: `learnpro-response-${Date.now()}.pdf`,
+      });
+      toast({ title: "PDF downloaded successfully" });
+    } catch {
+      toast({ title: "Failed to generate PDF", variant: "destructive" });
+    }
+  };
+
   const handleSaveNote = () => {
     const firstLine = (message.content || "").split("\n")[0].slice(0, 100);
     const title = noteTitle.trim() || firstLine || "Untitled Note";
@@ -158,30 +177,10 @@ export function MessageBubble({ message, isStreaming, conversationId }: MessageB
         </div>
 
         <div className="flex-1 overflow-hidden min-w-0">
-          <div className="flex items-center justify-between gap-1 mb-1">
+          <div className="flex items-center gap-1 mb-1">
             <span className="text-sm font-semibold text-foreground/80">
               {isUser ? "You" : "Learnpro Assistant"}
             </span>
-            {!isUser && !isStreaming && message.content && (
-              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={openSaveDialog}
-                  data-testid="button-save-note"
-                >
-                  <BookmarkPlus className="h-3.5 w-3.5 text-muted-foreground" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleCopy}
-                  data-testid="button-copy-message"
-                >
-                  {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
-                </Button>
-              </div>
-            )}
           </div>
 
           {attachments.length > 0 && (
@@ -237,6 +236,41 @@ export function MessageBubble({ message, isStreaming, conversationId }: MessageB
               <span className="inline-block w-1.5 h-4 ml-1 bg-primary animate-pulse" />
             )}
           </div>
+
+          {!isUser && !isStreaming && message.content && (
+            <div className="flex items-center gap-1 mt-3 pt-3 border-t border-border/50" data-testid="message-action-bar">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={openSaveDialog}
+                data-testid="button-save-note"
+                className="text-muted-foreground"
+              >
+                <BookmarkPlus className="h-4 w-4 mr-1.5" />
+                Save
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCopy}
+                data-testid="button-copy-message"
+                className="text-muted-foreground"
+              >
+                {copied ? <Check className="h-4 w-4 mr-1.5 text-green-500" /> : <Copy className="h-4 w-4 mr-1.5" />}
+                {copied ? "Copied" : "Copy"}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDownloadPDF}
+                data-testid="button-download-message-pdf"
+                className="text-muted-foreground"
+              >
+                <Download className="h-4 w-4 mr-1.5" />
+                Download as PDF
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
