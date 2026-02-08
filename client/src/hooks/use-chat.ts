@@ -91,12 +91,14 @@ export function useChatStream(conversationId: number) {
   const { toast } = useToast();
   const [streamedContent, setStreamedContent] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const sendMessage = async (content: string, attachments?: MessageAttachment[]) => {
     try {
       setIsStreaming(true);
       setStreamedContent("");
+      setPendingUserMessage(content);
       abortControllerRef.current = new AbortController();
 
       const response = await fetch(`/api/conversations/${conversationId}/messages`, {
@@ -153,6 +155,7 @@ export function useChatStream(conversationId: number) {
     } finally {
       setIsStreaming(false);
       setStreamedContent("");
+      setPendingUserMessage(null);
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
     }
@@ -165,5 +168,5 @@ export function useChatStream(conversationId: number) {
     }
   };
 
-  return { sendMessage, streamedContent, isStreaming, stopStream };
+  return { sendMessage, streamedContent, isStreaming, stopStream, pendingUserMessage };
 }

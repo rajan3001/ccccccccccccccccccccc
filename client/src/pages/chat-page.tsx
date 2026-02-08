@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useLocation, Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { useConversation, useChatStream } from "@/hooks/use-chat";
+import { useConversation, useChatStream, useCreateConversation } from "@/hooks/use-chat";
 import { Sidebar } from "@/components/layout/sidebar";
 import { MessageBubble } from "@/components/chat/message-bubble";
 import { ChatInput } from "@/components/chat/chat-input";
@@ -64,10 +64,19 @@ export default function ChatPage() {
   const [, setLocation] = useLocation();
   
   const { data: conversationData, isLoading: isChatLoading } = useConversation(conversationId);
-  const { sendMessage, streamedContent, isStreaming, stopStream } = useChatStream(conversationId || 0);
+  const { sendMessage, streamedContent, isStreaming, stopStream, pendingUserMessage } = useChatStream(conversationId || 0);
+  const createMutation = useCreateConversation();
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [prefillSent, setPrefillSent] = useState(false);
+
+  const handleHomeSend = async (message: string) => {
+    createMutation.mutate("New Chat", {
+      onSuccess: (newChat) => {
+        setLocation(`/chat/${newChat.id}?prefill=${encodeURIComponent(message)}`);
+      },
+    });
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -100,7 +109,7 @@ export default function ChatPage() {
       <main className="flex-1 flex flex-col min-h-0 relative">
         <div className="flex-1 overflow-y-auto scroll-smooth">
           {!conversationId ? (
-            <div className="flex flex-col items-center animate-in fade-in duration-500">
+            <div className="flex flex-col items-center animate-in fade-in duration-500 pb-28 sm:pb-32">
               <div className="hidden sm:flex flex-col items-center pt-8 pb-4">
                 <Logo size="xl" className="mb-6" />
               </div>
@@ -121,7 +130,9 @@ export default function ChatPage() {
                   <button
                     key={i}
                     data-testid={`button-prompt-${i}`}
-                    className="flex items-center gap-2 p-2.5 sm:p-4 text-left rounded-lg sm:rounded-xl bg-secondary/50 hover-elevate border border-transparent hover:border-primary/20 transition-all"
+                    onClick={() => handleHomeSend(prompt.text)}
+                    disabled={createMutation.isPending}
+                    className="flex items-center gap-2 p-2.5 sm:p-4 text-left rounded-lg sm:rounded-xl bg-secondary/50 hover-elevate border border-transparent hover:border-primary/20 transition-all cursor-pointer"
                   >
                     <prompt.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
                     <span className="text-[11px] sm:text-sm font-medium leading-tight">{prompt.text}</span>
@@ -209,6 +220,12 @@ export default function ChatPage() {
                 <MessageBubble key={msg.id} message={msg} />
               ))}
               
+              {isStreaming && pendingUserMessage && !conversationData?.messages.some(m => m.content === pendingUserMessage && m.role === "user") && (
+                <MessageBubble 
+                  message={{ role: "user", content: pendingUserMessage }} 
+                />
+              )}
+
               {isStreaming && (
                 <MessageBubble 
                   message={{ role: "assistant", content: streamedContent }} 
@@ -221,15 +238,13 @@ export default function ChatPage() {
           )}
         </div>
 
-        {conversationId && (
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background to-transparent pt-6 sm:pt-10 pb-4 sm:pb-6 px-2 sm:px-4">
-            <ChatInput 
-              onSend={sendMessage} 
-              isStreaming={isStreaming} 
-              onStop={stopStream}
-            />
-          </div>
-        )}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background to-transparent pt-6 sm:pt-10 pb-4 sm:pb-6 px-2 sm:px-4">
+          <ChatInput 
+            onSend={conversationId ? sendMessage : handleHomeSend} 
+            isStreaming={isStreaming} 
+            onStop={stopStream}
+          />
+        </div>
       </main>
     </div>
   );
