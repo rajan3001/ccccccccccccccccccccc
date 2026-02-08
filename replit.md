@@ -73,7 +73,7 @@ shared/
 - **evaluation_questions** - Per-question evaluation with score, maxScore, strengths, improvements, detailedFeedback, introductionFeedback, bodyFeedback, conclusionFeedback
 - **notes** - User study notes with title, content (markdown), gsCategory, tags (jsonb), folder, sourceMessageId, sourceConversationId, reviewCount, lastReviewedAt, nextReviewAt (spaced repetition)
 - **timetable_slots** - Weekly study timetable (userId, dayOfWeek, startTime, endTime, gsPaper, subject, notes)
-- **syllabus_topics** - UPSC GS Paper I-IV official syllabus topics (gsPaper, parentTopic, topic, orderIndex) - seeded automatically on first run
+- **syllabus_topics** - Exam-specific syllabus topics (examType, gsPaper, parentTopic, topic, orderIndex) - seeded automatically for all 16 exams (UPSC + 15 State PSCs)
 - **user_syllabus_progress** - Per-user topic completion tracking (userId, topicId, completed, completedAt)
 - **daily_study_goals** - Daily study goals (userId, goalDate, title, completed)
 
@@ -130,4 +130,4 @@ shared/
 - 2026-02-08: Enhanced chat UX - action bar at end of each AI message (Save, Copy, Download as PDF with labels and icons), chat suggestions panel ("You can also ask" with contextual prompts like Create Prelims MCQs, Write Mains Answer, How to Write Answers, etc.)
 - 2026-02-08: Improved markdown rendering - better heading hierarchy (h1-h6), darker/bolder text colors, stronger bold text, table support, improved list formatting
 - 2026-02-08: Overhauled PDF generator - proper markdown parsing (headings, bold, numbered lists, bullet lists), darker text colors, blue accent under headings, structured evaluation reports with labeled sections
-- 2026-02-08: Added Study Planner with weekly timetable builder, UPSC syllabus tracker (GS Paper I-IV with 134 topics), daily study goals, and preparation dashboard with weak areas analysis from quiz performance
+- 2026-02-08: Added Study Planner with weekly timetable builder, syllabus tracker for all 16 exams (UPSC + 15 State PSCs with exam-specific papers and state special topics), daily study goals, and preparation dashboard with weak areas analysis from quiz performance. Syllabus tab shows exam-specific content based on user's selected target exams with an exam selector dropdown.

@@ -18,6 +18,7 @@ export const timetableSlots = pgTable("timetable_slots", {
 
 export const syllabusTopics = pgTable("syllabus_topics", {
   id: serial("id").primaryKey(),
+  examType: text("exam_type").notNull().default("UPSC"),
   gsPaper: text("gs_paper").notNull(),
   parentTopic: text("parent_topic"),
   topic: text("topic").notNull(),

@@ -34,13 +34,18 @@ export function useDeleteSlot() {
   });
 }
 
-export function useSyllabus() {
+export function useSyllabus(examType: string) {
   return useQuery<any[]>({
-    queryKey: ["/api/study-planner/syllabus"],
+    queryKey: ["/api/study-planner/syllabus", examType],
+    queryFn: async () => {
+      const res = await fetch(`/api/study-planner/syllabus?examType=${encodeURIComponent(examType)}`);
+      if (!res.ok) throw new Error("Failed to fetch syllabus");
+      return res.json();
+    },
   });
 }
 
-export function useToggleSyllabusTopic() {
+export function useToggleSyllabusTopic(examType: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ topicId, completed }: { topicId: number; completed: boolean }) => {
@@ -53,8 +58,8 @@ export function useToggleSyllabusTopic() {
       return res.json();
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["/api/study-planner/syllabus"] });
-      qc.invalidateQueries({ queryKey: ["/api/study-planner/dashboard"] });
+      qc.invalidateQueries({ queryKey: ["/api/study-planner/syllabus", examType] });
+      qc.invalidateQueries({ predicate: (q) => q.queryKey[0] === "/api/study-planner/dashboard" });
     },
   });
 }
@@ -84,7 +89,7 @@ export function useCreateGoal() {
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["/api/study-planner/daily-goals", vars.goalDate] });
-      qc.invalidateQueries({ queryKey: ["/api/study-planner/dashboard"] });
+      qc.invalidateQueries({ predicate: (q) => q.queryKey[0] === "/api/study-planner/dashboard" });
     },
   });
 }
@@ -103,7 +108,7 @@ export function useToggleGoal() {
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["/api/study-planner/daily-goals", vars.goalDate] });
-      qc.invalidateQueries({ queryKey: ["/api/study-planner/dashboard"] });
+      qc.invalidateQueries({ predicate: (q) => q.queryKey[0] === "/api/study-planner/dashboard" });
     },
   });
 }
@@ -118,12 +123,12 @@ export function useDeleteGoal() {
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["/api/study-planner/daily-goals", vars.goalDate] });
-      qc.invalidateQueries({ queryKey: ["/api/study-planner/dashboard"] });
+      qc.invalidateQueries({ predicate: (q) => q.queryKey[0] === "/api/study-planner/dashboard" });
     },
   });
 }
 
-export function usePlannerDashboard() {
+export function usePlannerDashboard(examType: string) {
   return useQuery<{
     overallProgress: number;
     paperProgress: { paper: string; total: number; completed: number; percentage: number }[];
@@ -131,6 +136,11 @@ export function usePlannerDashboard() {
     recommendedTopics: { topic: string; gsPaper: string; parentTopic: string | null }[];
     todayGoals: { total: number; completed: number };
   }>({
-    queryKey: ["/api/study-planner/dashboard"],
+    queryKey: ["/api/study-planner/dashboard", examType],
+    queryFn: async () => {
+      const res = await fetch(`/api/study-planner/dashboard?examType=${encodeURIComponent(examType)}`);
+      if (!res.ok) throw new Error("Failed to fetch dashboard");
+      return res.json();
+    },
   });
 }

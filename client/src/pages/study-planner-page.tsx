@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import {
   Select,
   SelectContent,
@@ -58,22 +59,82 @@ import {
 } from "@/hooks/use-study-planner";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const SHORT_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const GS_PAPERS = ["GS Paper I", "GS Paper II", "GS Paper III", "GS Paper IV"];
 
-const PAPER_COLORS: Record<string, string> = {
-  "GS Paper I": "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20",
-  "GS Paper II": "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20",
-  "GS Paper III": "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20",
-  "GS Paper IV": "bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20",
+const EXAM_LABELS: Record<string, string> = {
+  UPSC: "UPSC",
+  JPSC: "JPSC (Jharkhand)",
+  BPSC: "BPSC (Bihar)",
+  JKPSC: "JKPSC (J&K)",
+  UPPSC: "UPPSC (Uttar Pradesh)",
+  MPPSC: "MPPSC (Madhya Pradesh)",
+  RPSC: "RPSC (Rajasthan)",
+  OPSC: "OPSC (Odisha)",
+  HPSC: "HPSC (Haryana)",
+  UKPSC: "UKPSC (Uttarakhand)",
+  HPPSC: "HPPSC (Himachal Pradesh)",
+  APSC_Assam: "APSC (Assam)",
+  MeghalayaPSC: "Meghalaya PSC",
+  SikkimPSC: "Sikkim PSC",
+  TripuraPSC: "Tripura PSC",
+  ArunachalPSC: "Arunachal PSC",
 };
 
-const PAPER_BAR_COLORS: Record<string, string> = {
-  "GS Paper I": "bg-blue-500",
-  "GS Paper II": "bg-emerald-500",
-  "GS Paper III": "bg-amber-500",
-  "GS Paper IV": "bg-purple-500",
-};
+const PAPER_COLORS_LIST = [
+  "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20",
+  "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20",
+  "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20",
+  "bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20",
+  "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20",
+  "bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border-cyan-500/20",
+  "bg-orange-500/10 text-orange-700 dark:text-orange-300 border-orange-500/20",
+  "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20",
+];
+
+const BAR_COLORS_LIST = [
+  "bg-blue-500",
+  "bg-emerald-500",
+  "bg-amber-500",
+  "bg-purple-500",
+  "bg-rose-500",
+  "bg-cyan-500",
+  "bg-orange-500",
+  "bg-indigo-500",
+];
+
+function getPaperColor(index: number) {
+  return PAPER_COLORS_LIST[index % PAPER_COLORS_LIST.length];
+}
+
+function getBarColor(index: number) {
+  return BAR_COLORS_LIST[index % BAR_COLORS_LIST.length];
+}
+
+function ExamSelector({ selectedExam, onExamChange, userExams }: { selectedExam: string; onExamChange: (exam: string) => void; userExams: string[] }) {
+  const exams = userExams.length > 0 ? userExams : ["UPSC"];
+
+  if (exams.length === 1) {
+    return (
+      <Badge variant="outline" className="text-sm" data-testid="badge-current-exam">
+        {EXAM_LABELS[exams[0]] || exams[0]}
+      </Badge>
+    );
+  }
+
+  return (
+    <Select value={selectedExam} onValueChange={onExamChange}>
+      <SelectTrigger className="w-auto min-w-[180px]" data-testid="select-exam-type">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {exams.map((exam) => (
+          <SelectItem key={exam} value={exam} data-testid={`option-exam-${exam}`}>
+            {EXAM_LABELS[exam] || exam}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 function TimetableTab() {
   const { data: slots, isLoading } = useTimetable();
@@ -85,7 +146,7 @@ function TimetableTab() {
     dayOfWeek: 1,
     startTime: "09:00",
     endTime: "10:00",
-    gsPaper: "GS Paper I",
+    gsPaper: "General Studies",
     subject: "",
   });
 
@@ -97,7 +158,7 @@ function TimetableTab() {
     createSlot.mutate(form, {
       onSuccess: () => {
         setDialogOpen(false);
-        setForm({ dayOfWeek: 1, startTime: "09:00", endTime: "10:00", gsPaper: "GS Paper I", subject: "" });
+        setForm({ dayOfWeek: 1, startTime: "09:00", endTime: "10:00", gsPaper: "General Studies", subject: "" });
         toast({ title: "Time slot added" });
       },
     });
@@ -146,13 +207,8 @@ function TimetableTab() {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">GS Paper</label>
-                <Select value={form.gsPaper} onValueChange={(v) => setForm({ ...form, gsPaper: v })}>
-                  <SelectTrigger data-testid="select-gs-paper"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {GS_PAPERS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <label className="text-sm font-medium mb-1.5 block">Paper / Category</label>
+                <Input placeholder="e.g. GS Paper I, Bihar Special" value={form.gsPaper} onChange={(e) => setForm({ ...form, gsPaper: e.target.value })} data-testid="input-gs-paper" />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Subject / Topic</label>
@@ -179,7 +235,7 @@ function TimetableTab() {
                   <div key={slot.id} className="flex items-center gap-3 p-2.5 rounded-md bg-secondary/40" data-testid={`slot-${slot.id}`}>
                     <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     <span className="text-sm font-medium min-w-[100px]">{slot.startTime} - {slot.endTime}</span>
-                    <Badge variant="outline" className={cn("text-xs", PAPER_COLORS[slot.gsPaper])}>{slot.gsPaper}</Badge>
+                    <Badge variant="outline" className="text-xs">{slot.gsPaper}</Badge>
                     <span className="text-sm flex-1">{slot.subject}</span>
                     <Button size="icon" variant="ghost" onClick={() => deleteSlot.mutate(slot.id)} data-testid={`button-delete-slot-${slot.id}`}>
                       <Trash2 className="h-4 w-4 text-muted-foreground" />
@@ -201,15 +257,22 @@ function TimetableTab() {
   );
 }
 
-function SyllabusTab() {
-  const { data: topics, isLoading } = useSyllabus();
-  const toggleTopic = useToggleSyllabusTopic();
-  const [expandedPapers, setExpandedPapers] = useState<Record<string, boolean>>({ "GS Paper I": true });
+function SyllabusTab({ selectedExam, onExamChange, userExams }: { selectedExam: string; onExamChange: (e: string) => void; userExams: string[] }) {
+  const { data: topics, isLoading } = useSyllabus(selectedExam);
+  const toggleTopic = useToggleSyllabusTopic(selectedExam);
+  const [expandedPapers, setExpandedPapers] = useState<Record<string, boolean>>({});
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [lastExam, setLastExam] = useState(selectedExam);
+  const [initialized, setInitialized] = useState(false);
 
-  if (isLoading) {
-    return <div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
-  }
+  useEffect(() => {
+    if (selectedExam !== lastExam) {
+      setExpandedPapers({});
+      setExpandedSections({});
+      setLastExam(selectedExam);
+      setInitialized(false);
+    }
+  }, [selectedExam, lastExam]);
 
   const grouped: Record<string, any[]> = {};
   for (const t of topics || []) {
@@ -217,14 +280,33 @@ function SyllabusTab() {
     grouped[t.gsPaper].push(t);
   }
 
+  const paperNames = Object.keys(grouped);
+  const firstPaper = paperNames[0];
+
+  useEffect(() => {
+    if (firstPaper && !initialized) {
+      setExpandedPapers({ [firstPaper]: true });
+      setInitialized(true);
+    }
+  }, [firstPaper, initialized]);
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  }
+
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-semibold" data-testid="text-syllabus-heading">UPSC Syllabus Tracker</h3>
-        <p className="text-sm text-muted-foreground">Track your progress across all GS papers</p>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <h3 className="text-lg font-semibold" data-testid="text-syllabus-heading">
+            {EXAM_LABELS[selectedExam] || selectedExam} Syllabus Tracker
+          </h3>
+          <p className="text-sm text-muted-foreground">Track your progress across all papers</p>
+        </div>
+        <ExamSelector selectedExam={selectedExam} onExamChange={onExamChange} userExams={userExams} />
       </div>
 
-      {GS_PAPERS.map((paper) => {
+      {paperNames.map((paper, paperIdx) => {
         const paperTopics = grouped[paper] || [];
         const subTopics = paperTopics.filter((t: any) => t.parentTopic !== null);
         const completedCount = subTopics.filter((t: any) => t.completed).length;
@@ -252,11 +334,11 @@ function SyllabusTab() {
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-semibold">{paper}</span>
-                  <Badge variant="outline" className={cn("text-xs", PAPER_COLORS[paper])}>{completedCount}/{subTopics.length}</Badge>
+                  <Badge variant="outline" className={cn("text-xs", getPaperColor(paperIdx))}>{completedCount}/{subTopics.length}</Badge>
                 </div>
                 <div className="mt-1.5 flex items-center gap-3">
                   <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
-                    <div className={cn("h-full rounded-full transition-all", PAPER_BAR_COLORS[paper])} style={{ width: `${percentage}%` }} />
+                    <div className={cn("h-full rounded-full transition-all", getBarColor(paperIdx))} style={{ width: `${percentage}%` }} />
                   </div>
                   <span className="text-xs font-medium text-muted-foreground w-10 text-right">{percentage}%</span>
                 </div>
@@ -305,6 +387,13 @@ function SyllabusTab() {
           </Card>
         );
       })}
+
+      {paperNames.length === 0 && (
+        <Card className="p-8 text-center">
+          <BookOpen className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+          <p className="text-muted-foreground text-sm">No syllabus data found for this exam.</p>
+        </Card>
+      )}
     </div>
   );
 }
@@ -401,8 +490,8 @@ function DailyGoalsTab() {
   );
 }
 
-function DashboardTab() {
-  const { data: dashboard, isLoading } = usePlannerDashboard();
+function DashboardTab({ selectedExam, onExamChange, userExams }: { selectedExam: string; onExamChange: (e: string) => void; userExams: string[] }) {
+  const { data: dashboard, isLoading } = usePlannerDashboard(selectedExam);
 
   if (isLoading) {
     return <div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
@@ -412,9 +501,12 @@ function DashboardTab() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold" data-testid="text-dashboard-heading">Preparation Dashboard</h3>
-        <p className="text-sm text-muted-foreground">Overview of your UPSC preparation progress</p>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <h3 className="text-lg font-semibold" data-testid="text-dashboard-heading">Preparation Dashboard</h3>
+          <p className="text-sm text-muted-foreground">Overview of your {EXAM_LABELS[selectedExam] || selectedExam} preparation progress</p>
+        </div>
+        <ExamSelector selectedExam={selectedExam} onExamChange={onExamChange} userExams={userExams} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -459,19 +551,19 @@ function DashboardTab() {
       </div>
 
       <Card className="p-4">
-        <h4 className="font-semibold text-sm mb-4">Progress by GS Paper</h4>
+        <h4 className="font-semibold text-sm mb-4">Progress by Paper</h4>
         <div className="space-y-4">
-          {dashboard.paperProgress.map((pp) => (
+          {dashboard.paperProgress.map((pp, idx) => (
             <div key={pp.paper}>
               <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className={cn("text-xs", PAPER_COLORS[pp.paper])}>{pp.paper}</Badge>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="outline" className={cn("text-xs", getPaperColor(idx))}>{pp.paper}</Badge>
                   <span className="text-xs text-muted-foreground">{pp.completed}/{pp.total} topics</span>
                 </div>
                 <span className="text-sm font-semibold">{pp.percentage}%</span>
               </div>
               <div className="h-2.5 bg-secondary rounded-full overflow-hidden">
-                <div className={cn("h-full rounded-full transition-all", PAPER_BAR_COLORS[pp.paper])} style={{ width: `${pp.percentage}%` }} />
+                <div className={cn("h-full rounded-full transition-all", getBarColor(idx))} style={{ width: `${pp.percentage}%` }} />
               </div>
             </div>
           ))}
@@ -527,6 +619,12 @@ function DashboardTab() {
 }
 
 export default function StudyPlannerPage() {
+  const { user } = useAuth();
+  const userExams: string[] = (user as any)?.targetExams || ["UPSC"];
+  const [selectedExam, setSelectedExam] = useState(userExams[0] || "UPSC");
+
+  const examLabel = EXAM_LABELS[selectedExam] || selectedExam;
+
   return (
     <div className="flex flex-col md:flex-row h-[100dvh] bg-background overflow-hidden">
       <Sidebar />
@@ -534,7 +632,7 @@ export default function StudyPlannerPage() {
         <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-20">
           <div className="mb-6">
             <h1 className="text-2xl font-display font-bold" data-testid="text-study-planner-title">Study Planner</h1>
-            <p className="text-sm text-muted-foreground mt-1">Organize your UPSC preparation effectively</p>
+            <p className="text-sm text-muted-foreground mt-1">Organize your {examLabel} preparation effectively</p>
           </div>
 
           <Tabs defaultValue="dashboard">
@@ -557,10 +655,18 @@ export default function StudyPlannerPage() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="dashboard"><DashboardTab /></TabsContent>
-            <TabsContent value="timetable"><TimetableTab /></TabsContent>
-            <TabsContent value="syllabus"><SyllabusTab /></TabsContent>
-            <TabsContent value="goals"><DailyGoalsTab /></TabsContent>
+            <TabsContent value="dashboard">
+              <DashboardTab selectedExam={selectedExam} onExamChange={setSelectedExam} userExams={userExams} />
+            </TabsContent>
+            <TabsContent value="timetable">
+              <TimetableTab />
+            </TabsContent>
+            <TabsContent value="syllabus">
+              <SyllabusTab selectedExam={selectedExam} onExamChange={setSelectedExam} userExams={userExams} />
+            </TabsContent>
+            <TabsContent value="goals">
+              <DailyGoalsTab />
+            </TabsContent>
           </Tabs>
         </div>
       </main>
