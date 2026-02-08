@@ -21,7 +21,7 @@ import {
   Sparkles,
   Check,
   BookOpen,
-  MessageSquare,
+  BookOpenCheck,
   ChevronLeft,
   ChevronRight,
   BarChart3,
@@ -36,6 +36,7 @@ import {
   Trophy,
   MapPin,
   Download,
+  Newspaper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { generatePDF, currentAffairsToPDFSections } from "@/lib/pdf-generator";
@@ -122,12 +123,12 @@ export default function CurrentAffairsPage() {
     toggleRevision.mutate({ topicId, revised: !currentState });
   };
 
-  const handleAskAI = (topicTitle: string, topicSummary: string) => {
+  const handleReadInDetail = (topicTitle: string, topicSummary: string, topicSource?: string | null) => {
+    const sourceInfo = topicSource ? ` (Source: ${topicSource})` : "";
+    const prefillMessage = `I want to read in detail about this current affairs topic for UPSC/State PSC preparation:\n\n**${topicTitle}**${sourceInfo}\n\n${topicSummary}\n\nPlease provide a comprehensive analysis covering:\n1. Complete background and context of this news\n2. Key facts, data points, and important details\n3. Constitutional/legal/policy framework involved\n4. UPSC Mains relevance - which GS paper and specific topics it connects to\n5. Prelims angle - potential MCQ areas from this topic\n6. Connected static topics from NCERT/standard books\n7. Multiple dimensions and perspectives on this issue\n8. 2-3 possible UPSC Mains questions that could be framed from this topic`;
     createChat.mutate(`Current Affairs: ${topicTitle}`, {
       onSuccess: (newChat) => {
-        setLocation(`/chat/${newChat.id}?prefill=${encodeURIComponent(
-          `I want to learn more about this current affairs topic for UPSC preparation:\n\n**${topicTitle}**\n\n${topicSummary}\n\nPlease explain:\n1. Key facts and context\n2. UPSC exam relevance\n3. Connected static topics\n4. Possible exam questions`
-        )}`);
+        setLocation(`/chat/${newChat.id}?prefill=${encodeURIComponent(prefillMessage)}`);
       },
     });
   };
@@ -169,7 +170,7 @@ export default function CurrentAffairsPage() {
                   Daily Current Affairs
                 </h1>
                 <p className="text-muted-foreground text-xs sm:text-sm mt-0.5 sm:mt-1">
-                  AI-curated UPSC-relevant topics for daily revision
+                  Curated from The Hindu, Indian Express &amp; leading state newspapers
                 </p>
               </div>
 
@@ -309,7 +310,7 @@ export default function CurrentAffairsPage() {
                 No digest for {formatDisplayDate(dateStr)}
               </h3>
               <p className="text-muted-foreground text-sm mb-4 max-w-md">
-                Generate an AI-curated daily digest of important current affairs topics relevant to UPSC and State PSC exams.
+                Generate a daily digest of important news from The Hindu, Indian Express and leading state newspapers, curated for UPSC and State PSC exam preparation.
               </p>
 
               <div className="w-full max-w-xs mb-6">
@@ -389,33 +390,42 @@ export default function CurrentAffairsPage() {
                             </p>
                           )}
 
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Button
-                              variant={topic.revised ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => handleToggleRevised(topic.id, topic.revised)}
-                              disabled={toggleRevision.isPending}
-                              className={cn(
-                                "gap-1",
-                                topic.revised && "bg-green-600 border-green-600 text-white"
-                              )}
-                              data-testid={`button-revise-${topic.id}`}
-                            >
-                              <Check className="h-3.5 w-3.5" />
-                              {topic.revised ? "Revised" : "Mark Revised"}
-                            </Button>
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Button
+                                variant={topic.revised ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handleToggleRevised(topic.id, topic.revised)}
+                                disabled={toggleRevision.isPending}
+                                className={cn(
+                                  "gap-1",
+                                  topic.revised && "bg-green-600 border-green-600 text-white"
+                                )}
+                                data-testid={`button-revise-${topic.id}`}
+                              >
+                                <Check className="h-3.5 w-3.5" />
+                                {topic.revised ? "Revised" : "Mark Revised"}
+                              </Button>
 
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleAskAI(topic.title, topic.summary)}
-                              disabled={createChat.isPending}
-                              className="gap-1"
-                              data-testid={`button-ask-ai-${topic.id}`}
-                            >
-                              <MessageSquare className="h-3.5 w-3.5" />
-                              Ask AI
-                            </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleReadInDetail(topic.title, topic.summary, topic.source)}
+                                disabled={createChat.isPending}
+                                className="gap-1"
+                                data-testid={`button-read-detail-${topic.id}`}
+                              >
+                                <BookOpenCheck className="h-3.5 w-3.5" />
+                                Read in Detail
+                              </Button>
+                            </div>
+
+                            {topic.source && (
+                              <span className="text-xs text-muted-foreground flex items-center gap-1" data-testid={`text-source-${topic.id}`}>
+                                <Newspaper className="h-3 w-3" />
+                                {topic.source}
+                              </span>
+                            )}
                           </div>
                         </CardContent>
                       </Card>

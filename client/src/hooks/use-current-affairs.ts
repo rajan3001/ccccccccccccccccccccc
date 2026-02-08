@@ -14,6 +14,7 @@ export interface DailyTopic {
   category: string;
   gsCategory: string;
   relevance: string | null;
+  source: string | null;
   revised: boolean;
   createdAt: string;
 }

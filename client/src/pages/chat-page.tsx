@@ -76,7 +76,13 @@ export default function ChatPage() {
       const prefill = params.get("prefill");
       if (prefill && conversationData.messages.length === 0) {
         setPrefillSent(true);
-        sendMessage(decodeURIComponent(prefill));
+        let decodedMessage = prefill;
+        try {
+          decodedMessage = decodeURIComponent(prefill);
+        } catch {
+          decodedMessage = prefill;
+        }
+        sendMessage(decodedMessage);
         window.history.replaceState({}, "", `/chat/${conversationId}`);
       }
     }
