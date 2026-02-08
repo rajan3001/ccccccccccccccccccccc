@@ -11,9 +11,10 @@ export const evaluationSessions = pgTable("evaluation_sessions", {
   paperType: text("paper_type").notNull().default("GS-I"),
   fileName: text("file_name").notNull(),
   fileObjectPath: text("file_object_path").notNull(),
-  totalMarks: integer("total_marks").notNull().default(250),
-  totalQuestions: integer("total_questions").notNull().default(20),
-  questionsAttempted: integer("questions_attempted").notNull().default(20),
+  totalMarks: integer("total_marks"),
+  totalQuestions: integer("total_questions"),
+  questionsAttempted: integer("questions_attempted"),
+  questionPaperObjectPath: text("question_paper_object_path"),
   status: text("status").notNull().default("processing"),
   totalScore: real("total_score"),
   maxScore: real("max_score"),
@@ -49,10 +50,14 @@ export const createEvaluationSchema = z.object({
   paperType: z.string().min(1),
   fileName: z.string().min(1),
   fileObjectPath: z.string().min(1),
-  totalMarks: z.number().int().min(1).max(2000),
-  totalQuestions: z.number().int().min(1).max(200),
-  questionsAttempted: z.number().int().min(1).max(200),
-});
+  totalMarks: z.number().int().min(1).max(2000).nullable().optional(),
+  totalQuestions: z.number().int().min(1).max(200).nullable().optional(),
+  questionsAttempted: z.number().int().min(1).max(200).nullable().optional(),
+  questionPaperObjectPath: z.string().nullable().optional(),
+}).refine(
+  (data) => data.questionPaperObjectPath || (data.totalMarks && data.totalQuestions && data.questionsAttempted),
+  { message: "Either upload a question paper or fill in total marks, total questions, and questions attempted" }
+);
 
 export const insertEvaluationSessionSchema = createInsertSchema(evaluationSessions).omit({
   id: true,

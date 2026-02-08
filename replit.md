@@ -60,7 +60,7 @@ shared/
 - **daily_topics** - Topics per digest with title, summary, category, gsCategory, relevance, revised flag
 - **quiz_attempts** - Quiz attempts with userId, examType, gsCategory, difficulty, totalQuestions, score, completedAt
 - **quiz_questions** - Questions per attempt with question, options (text[]), correctIndex, explanation, userAnswer, isCorrect
-- **evaluation_sessions** - Answer sheet evaluation sessions with userId, examType, paperType, fileName, fileObjectPath, totalMarks, totalQuestions, questionsAttempted, status, totalScore, maxScore, overallFeedback, competencyFeedback (jsonb with 7 parameters: Contextual Understanding, Introduction Proficiency, Language, Word Limit Adherence, Conclusion, Value Addition, Presentation - each with score/10, strengths, improvements)
+- **evaluation_sessions** - Answer sheet evaluation sessions with userId, examType, paperType, fileName, fileObjectPath, totalMarks (nullable), totalQuestions (nullable), questionsAttempted (nullable), questionPaperObjectPath (nullable), status, totalScore, maxScore, overallFeedback, competencyFeedback (jsonb with 7 parameters: Contextual Understanding, Introduction Proficiency, Language, Word Limit Adherence, Conclusion, Value Addition, Presentation - each with score/10, strengths, improvements)
 - **evaluation_questions** - Per-question evaluation with score, maxScore, strengths, improvements, detailedFeedback, introductionFeedback, bodyFeedback, conclusionFeedback
 
 ## API Routes
@@ -79,7 +79,7 @@ shared/
 - `GET /api/quizzes/analytics` - Performance analytics by GS paper
 - `GET /api/quizzes/:id` - Get quiz attempt with questions
 - `POST /api/quizzes/:id/submit` - Submit quiz answers
-- `POST /api/evaluations` - Create answer sheet evaluation (body: examType, paperType, fileName, fileObjectPath, totalMarks, totalQuestions, questionsAttempted)
+- `POST /api/evaluations` - Create answer sheet evaluation (body: examType, paperType, fileName, fileObjectPath, totalMarks?, totalQuestions?, questionsAttempted?, questionPaperObjectPath?) - either question paper OR manual fields required
 - `GET /api/evaluations` - List user's evaluations
 - `GET /api/evaluations/:id` - Get evaluation result with per-question feedback
 
@@ -91,3 +91,4 @@ shared/
 - 2026-02-08: Added Daily Current Affairs with AI generation, calendar view, GS categorization, revision tracking
 - 2026-02-08: Updated homepage with toolkit features section matching design mockup
 - 2026-02-08: Enhanced Answer Sheet Evaluation with manual input fields (totalMarks, totalQuestions, questionsAttempted), instructions dialog, 7 evaluation parameters (Contextual Understanding, Introduction Proficiency, Language, Word Limit Adherence, Conclusion, Value Addition, Presentation), pointwise overall feedback, parameter scores out of 10, dynamic exam-specific paper types
+- 2026-02-08: Added optional Question Paper upload to Answer Sheet Evaluation - students can either upload a question paper (AI extracts details) OR fill in manual fields (totalMarks, totalQuestions, questionsAttempted). Uploading question paper hides manual fields. Backend sends question paper as additional context to AI.

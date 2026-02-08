@@ -17,16 +17,36 @@ const ai = new GoogleGenAI({
 
 const objectStorage = new ObjectStorageService();
 
-function buildEvaluationPrompt(examType: string, paperType: string, totalMarks: number, totalQuestions: number, questionsAttempted: number): string {
-  return `You are an expert ${examType} Mains answer evaluator with decades of experience. Evaluate the uploaded answer sheet strictly as per ${examType} ${paperType} evaluation norms.
+function buildEvaluationPrompt(
+  examType: string,
+  paperType: string,
+  totalMarks: number | null | undefined,
+  totalQuestions: number | null | undefined,
+  questionsAttempted: number | null | undefined,
+  hasQuestionPaper: boolean
+): string {
+  let paperDetailsSection: string;
 
-PAPER DETAILS PROVIDED BY STUDENT:
+  if (hasQuestionPaper) {
+    paperDetailsSection = `PAPER DETAILS:
+- Exam: ${examType} - ${paperType}
+- A QUESTION PAPER has been uploaded along with the answer sheet. The second file/image is the QUESTION PAPER.
+- Extract the total marks, total questions, and number of questions attempted by analyzing BOTH the question paper and the answer sheet.
+- Use the question paper to understand what each question asks, its marks allocation, and evaluate the answers accordingly.
+- If the question paper specifies marks per question, use those. Otherwise, infer from the total marks visible on the question paper.`;
+  } else {
+    paperDetailsSection = `PAPER DETAILS PROVIDED BY STUDENT:
 - Exam: ${examType} - ${paperType}
 - Total Marks of Paper: ${totalMarks}
 - Total Questions in Paper: ${totalQuestions}
 - Questions Attempted by Student: ${questionsAttempted}
 
-Use these details to understand the marking scheme. The student should have written question numbers and individual marks on their answer sheet. If marks per question are not visible, distribute ${totalMarks} marks proportionally across ${questionsAttempted} attempted questions.
+Use these details to understand the marking scheme. The student should have written question numbers and individual marks on their answer sheet. If marks per question are not visible, distribute ${totalMarks} marks proportionally across ${questionsAttempted} attempted questions.`;
+  }
+
+  return `You are an expert ${examType} Mains answer evaluator with decades of experience. Evaluate the uploaded answer sheet strictly as per ${examType} ${paperType} evaluation norms.
+
+${paperDetailsSection}
 
 EVALUATE EACH ANSWER ON THESE 7 PARAMETERS:
 1. **Contextual Understanding** - Did the student understand what the question is actually asking? Did they address the directive word (Discuss/Analyze/Examine/Critically Evaluate/Comment) correctly? Did they cover all dimensions of the question?
@@ -46,7 +66,7 @@ OVERALL FEEDBACK RULES:
 You MUST respond with ONLY valid JSON in this exact format (no markdown, no code blocks, just raw JSON):
 {
   "totalScore": <number - total marks scored across all questions>,
-  "maxScore": ${totalMarks},
+  "maxScore": ${hasQuestionPaper ? "<total marks extracted from question paper>" : totalMarks},
   "overallFeedback": "- Point 1: Specific observation about overall performance\\n- Point 2: Another specific observation\\n- Point 3: Key strength across answers\\n- Point 4: Most critical area needing improvement\\n- Point 5: Specific strategy to improve scores\\n- Point 6: Final actionable recommendation",
   "competencyFeedback": [
     {
@@ -128,7 +148,7 @@ export function registerEvaluationRoutes(app: Express): void {
         return res.status(400).json({ error: parsed.error.errors[0].message });
       }
 
-      const { examType, paperType, fileName, fileObjectPath, totalMarks, totalQuestions, questionsAttempted } = parsed.data;
+      const { examType, paperType, fileName, fileObjectPath, totalMarks, totalQuestions, questionsAttempted, questionPaperObjectPath } = parsed.data;
 
       const [session] = await db.insert(evaluationSessions).values({
         userId,
@@ -136,15 +156,16 @@ export function registerEvaluationRoutes(app: Express): void {
         paperType,
         fileName,
         fileObjectPath,
-        totalMarks,
-        totalQuestions,
-        questionsAttempted,
+        totalMarks: totalMarks ?? null,
+        totalQuestions: totalQuestions ?? null,
+        questionsAttempted: questionsAttempted ?? null,
+        questionPaperObjectPath: questionPaperObjectPath ?? null,
         status: "processing",
       }).returning();
 
       res.json({ sessionId: session.id, status: "processing" });
 
-      processEvaluation(session.id, fileObjectPath, fileName, examType, paperType, totalMarks, totalQuestions, questionsAttempted).catch(err => {
+      processEvaluation(session.id, fileObjectPath, fileName, examType, paperType, totalMarks, totalQuestions, questionsAttempted, questionPaperObjectPath).catch(err => {
         console.error("Evaluation processing failed:", err);
         db.update(evaluationSessions)
           .set({ status: "failed", overallFeedback: "Evaluation failed. Please try again." })
@@ -203,16 +224,18 @@ async function processEvaluation(
   fileName: string,
   examType: string,
   paperType: string,
-  totalMarks: number,
-  totalQuestions: number,
-  questionsAttempted: number
+  totalMarks: number | null | undefined,
+  totalQuestions: number | null | undefined,
+  questionsAttempted: number | null | undefined,
+  questionPaperObjectPath?: string | null
 ): Promise<void> {
   const file = await objectStorage.getObjectEntityFile(fileObjectPath);
   const [fileData] = await file.download();
   const [metadata] = await file.getMetadata();
 
   const contentType = metadata.contentType || guessContentType(fileName);
-  const prompt = buildEvaluationPrompt(examType, paperType, totalMarks, totalQuestions, questionsAttempted);
+  const hasQuestionPaper = !!questionPaperObjectPath;
+  const prompt = buildEvaluationPrompt(examType, paperType, totalMarks, totalQuestions, questionsAttempted, hasQuestionPaper);
 
   const parts: any[] = [{ text: prompt }];
 
@@ -233,6 +256,34 @@ async function processEvaluation(
   } else {
     const textContent = fileData.toString("utf-8").substring(0, 50000);
     parts.push({ text: `\n\n--- Answer Sheet Content ---\n${textContent}\n--- End ---` });
+  }
+
+  if (questionPaperObjectPath) {
+    const qpFile = await objectStorage.getObjectEntityFile(questionPaperObjectPath);
+    const [qpData] = await qpFile.download();
+    const [qpMetadata] = await qpFile.getMetadata();
+    const qpContentType = qpMetadata.contentType || "application/pdf";
+
+    parts.push({ text: "\n\n--- QUESTION PAPER (uploaded by student) ---" });
+
+    if (qpContentType.startsWith("image/")) {
+      parts.push({
+        inlineData: {
+          mimeType: qpContentType,
+          data: qpData.toString("base64"),
+        },
+      });
+    } else if (qpContentType === "application/pdf") {
+      parts.push({
+        inlineData: {
+          mimeType: "application/pdf",
+          data: qpData.toString("base64"),
+        },
+      });
+    } else {
+      const textContent = qpData.toString("utf-8").substring(0, 50000);
+      parts.push({ text: textContent });
+    }
   }
 
   const result = await ai.models.generateContent({

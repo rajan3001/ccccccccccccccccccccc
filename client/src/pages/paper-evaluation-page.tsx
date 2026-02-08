@@ -238,9 +238,10 @@ interface EvaluationSession {
   examType: string;
   paperType: string;
   fileName: string;
-  totalMarks: number;
-  totalQuestions: number;
-  questionsAttempted: number;
+  totalMarks: number | null;
+  totalQuestions: number | null;
+  questionsAttempted: number | null;
+  questionPaperObjectPath: string | null;
   status: string;
   totalScore: number | null;
   maxScore: number | null;
@@ -257,6 +258,7 @@ export default function PaperEvaluationPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [questionPaperFile, setQuestionPaperFile] = useState<File | null>(null);
   const [examType, setExamType] = useState("UPSC");
   const [paperType, setPaperType] = useState("GS-I");
   const [totalMarks, setTotalMarks] = useState("");
@@ -264,6 +266,7 @@ export default function PaperEvaluationPage() {
   const [questionsAttempted, setQuestionsAttempted] = useState("");
   const [showInstructions, setShowInstructions] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
+  const questionPaperInputRef = useRef<HTMLInputElement>(null);
 
   const paperTypes = EXAM_PAPER_TYPES[examType] || EXAM_PAPER_TYPES.UPSC;
 
@@ -300,7 +303,7 @@ export default function PaperEvaluationPage() {
   });
 
   const submitMutation = useMutation({
-    mutationFn: async (data: { examType: string; paperType: string; fileName: string; fileObjectPath: string; totalMarks: number; totalQuestions: number; questionsAttempted: number }) => {
+    mutationFn: async (data: { examType: string; paperType: string; fileName: string; fileObjectPath: string; totalMarks?: number | null; totalQuestions?: number | null; questionsAttempted?: number | null; questionPaperObjectPath?: string | null }) => {
       const res = await apiRequest("POST", "/api/evaluations", data);
       return res.json();
     },
@@ -314,69 +317,89 @@ export default function PaperEvaluationPage() {
     },
   });
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const validateFile = (file: File): boolean => {
     if (!ALLOWED_TYPES.includes(file.type)) {
       toast({
         title: "Unsupported file type",
         description: "Please upload a PDF, JPG, PNG, or WebP file.",
         variant: "destructive",
       });
-      return;
+      return false;
     }
-
     if (file.size > MAX_SIZE) {
       toast({
         title: "File too large",
         description: "Maximum file size is 20MB.",
         variant: "destructive",
       });
-      return;
+      return false;
     }
-
-    setSelectedFile(file);
+    return true;
   };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (validateFile(file)) setSelectedFile(file);
+  };
+
+  const handleQuestionPaperSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (validateFile(file)) {
+      setQuestionPaperFile(file);
+      setTotalMarks("");
+      setTotalQuestions("");
+      setQuestionsAttempted("");
+    }
+  };
+
+  const hasQuestionPaper = !!questionPaperFile;
+  const hasManualFields = !!(totalMarks && totalQuestions && questionsAttempted);
 
   const handleSubmit = async () => {
     if (!selectedFile) return;
 
-    const marks = parseInt(totalMarks);
-    const questions = parseInt(totalQuestions);
-    const attempted = parseInt(questionsAttempted);
-
-    if (!marks || marks <= 0) {
-      toast({ title: "Enter total marks", description: "Please enter the total marks for the paper.", variant: "destructive" });
-      return;
-    }
-    if (!questions || questions <= 0) {
-      toast({ title: "Enter total questions", description: "Please enter the total number of questions.", variant: "destructive" });
-      return;
-    }
-    if (!attempted || attempted <= 0) {
-      toast({ title: "Enter questions attempted", description: "Please enter how many questions you attempted.", variant: "destructive" });
-      return;
-    }
-    if (attempted > questions) {
-      toast({ title: "Invalid input", description: "Questions attempted cannot exceed total questions.", variant: "destructive" });
+    if (!hasQuestionPaper && !hasManualFields) {
+      toast({ title: "Missing paper details", description: "Either upload a question paper or fill in total marks, total questions, and questions attempted.", variant: "destructive" });
       return;
     }
 
-    const result = await uploadFile(selectedFile);
-    if (!result) {
+    if (hasManualFields && !hasQuestionPaper) {
+      const marks = parseInt(totalMarks);
+      const questions = parseInt(totalQuestions);
+      const attempted = parseInt(questionsAttempted);
+      if (attempted > questions) {
+        toast({ title: "Invalid input", description: "Questions attempted cannot exceed total questions.", variant: "destructive" });
+        return;
+      }
+    }
+
+    const answerResult = await uploadFile(selectedFile);
+    if (!answerResult) {
       toast({ title: "Upload failed", description: "Please try again.", variant: "destructive" });
       return;
+    }
+
+    let questionPaperObjectPath: string | null = null;
+    if (questionPaperFile) {
+      const qpResult = await uploadFile(questionPaperFile);
+      if (!qpResult) {
+        toast({ title: "Question paper upload failed", description: "Please try again.", variant: "destructive" });
+        return;
+      }
+      questionPaperObjectPath = qpResult.objectPath;
     }
 
     submitMutation.mutate({
       examType,
       paperType,
       fileName: selectedFile.name,
-      fileObjectPath: result.objectPath,
-      totalMarks: marks,
-      totalQuestions: questions,
-      questionsAttempted: attempted,
+      fileObjectPath: answerResult.objectPath,
+      totalMarks: hasManualFields ? parseInt(totalMarks) : null,
+      totalQuestions: hasManualFields ? parseInt(totalQuestions) : null,
+      questionsAttempted: hasManualFields ? parseInt(questionsAttempted) : null,
+      questionPaperObjectPath,
     });
   };
 
@@ -449,44 +472,105 @@ export default function PaperEvaluationPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Total Marks</label>
-              <Input
-                type="number"
-                placeholder="e.g. 250"
-                value={totalMarks}
-                onChange={(e) => setTotalMarks(e.target.value)}
-                min={1}
-                data-testid="input-total-marks"
+          <div>
+            <label className="text-sm font-medium mb-1.5 block">Upload Question Paper (Optional)</label>
+            <div
+              className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+                questionPaperFile ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/30"
+              }`}
+              onClick={() => questionPaperInputRef.current?.click()}
+              data-testid="dropzone-question-paper"
+            >
+              <input
+                ref={questionPaperInputRef}
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.webp"
+                onChange={handleQuestionPaperSelect}
+                className="hidden"
+                data-testid="input-question-paper"
               />
-              <span className="text-xs text-muted-foreground mt-1 block">Full marks of the paper</span>
+              {questionPaperFile ? (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 text-primary flex-shrink-0" />
+                    <div className="text-left">
+                      <span className="font-medium text-sm block" data-testid="text-question-paper-name">{questionPaperFile.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {(questionPaperFile.size / (1024 * 1024)).toFixed(1)} MB
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => { e.stopPropagation(); setQuestionPaperFile(null); }}
+                    data-testid="button-remove-question-paper"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-1.5 py-1">
+                  <BookOpen className="h-6 w-6 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Upload question paper to auto-extract details</span>
+                  <span className="text-xs text-muted-foreground">PDF, JPG, PNG or WebP</span>
+                </div>
+              )}
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Total Questions</label>
-              <Input
-                type="number"
-                placeholder="e.g. 20"
-                value={totalQuestions}
-                onChange={(e) => setTotalQuestions(e.target.value)}
-                min={1}
-                data-testid="input-total-questions"
-              />
-              <span className="text-xs text-muted-foreground mt-1 block">Questions in the paper</span>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Questions Attempted</label>
-              <Input
-                type="number"
-                placeholder="e.g. 18"
-                value={questionsAttempted}
-                onChange={(e) => setQuestionsAttempted(e.target.value)}
-                min={1}
-                data-testid="input-questions-attempted"
-              />
-              <span className="text-xs text-muted-foreground mt-1 block">How many you answered</span>
-            </div>
+            <span className="text-xs text-muted-foreground mt-1.5 block">
+              {hasQuestionPaper
+                ? "AI will extract marks, questions, and other details from the question paper"
+                : "If you don't have the question paper, fill in the details below instead"}
+            </span>
           </div>
+
+          {!hasQuestionPaper && (
+            <>
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-xs text-muted-foreground font-medium">OR fill in paper details manually</span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Total Marks</label>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 250"
+                    value={totalMarks}
+                    onChange={(e) => setTotalMarks(e.target.value)}
+                    min={1}
+                    data-testid="input-total-marks"
+                  />
+                  <span className="text-xs text-muted-foreground mt-1 block">Full marks of the paper</span>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Total Questions</label>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 20"
+                    value={totalQuestions}
+                    onChange={(e) => setTotalQuestions(e.target.value)}
+                    min={1}
+                    data-testid="input-total-questions"
+                  />
+                  <span className="text-xs text-muted-foreground mt-1 block">Questions in the paper</span>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Questions Attempted</label>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 18"
+                    value={questionsAttempted}
+                    onChange={(e) => setQuestionsAttempted(e.target.value)}
+                    min={1}
+                    data-testid="input-questions-attempted"
+                  />
+                  <span className="text-xs text-muted-foreground mt-1 block">How many you answered</span>
+                </div>
+              </div>
+            </>
+          )}
 
           <Button
             variant="link"
@@ -551,7 +635,7 @@ export default function PaperEvaluationPage() {
             className="w-full"
             size="lg"
             onClick={handleSubmit}
-            disabled={!selectedFile || isProcessing || !totalMarks || !totalQuestions || !questionsAttempted}
+            disabled={!selectedFile || isProcessing || (!hasQuestionPaper && !hasManualFields)}
             data-testid="button-evaluate"
           >
             {isProcessing ? (
@@ -704,14 +788,24 @@ export default function PaperEvaluationPage() {
                 <span className="text-muted-foreground">File</span>
                 <span className="font-medium truncate max-w-[200px]">{activeResult.fileName}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Total Marks</span>
-                <span className="font-medium">{activeResult.totalMarks}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Questions</span>
-                <span className="font-medium">{activeResult.questionsAttempted} / {activeResult.totalQuestions} attempted</span>
-              </div>
+              {activeResult.totalMarks != null && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Total Marks</span>
+                  <span className="font-medium">{activeResult.totalMarks}</span>
+                </div>
+              )}
+              {activeResult.totalQuestions != null && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Questions</span>
+                  <span className="font-medium">{activeResult.questionsAttempted ?? "?"} / {activeResult.totalQuestions} attempted</span>
+                </div>
+              )}
+              {activeResult.questionPaperObjectPath && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Question Paper</span>
+                  <Badge variant="secondary">Uploaded</Badge>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Date</span>
                 <span className="font-medium">{new Date(activeResult.createdAt).toLocaleDateString()}</span>
