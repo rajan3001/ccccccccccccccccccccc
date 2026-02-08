@@ -116,7 +116,7 @@ export function registerCurrentAffairsRoutes(app: Express): void {
             summary: article.summary,
             category: article.category,
             gsCategory: article.gsCategory,
-            relevance: `Important for UPSC ${article.gsCategory} preparation. Sourced from NextIAS daily current affairs.`,
+            relevance: `Important for UPSC ${article.gsCategory} preparation.`,
             source: article.source,
             pageNumber: article.pageNumber,
           });
@@ -160,7 +160,7 @@ Return ONLY a valid JSON array. No markdown.`;
         if (diffDays <= 1) {
           return res.status(404).json({
             error: "not_available_yet",
-            message: "Today's current affairs are not available yet. NextIAS typically publishes daily analysis later in the day. Please try again in a few hours."
+            message: "Today's current affairs are not available yet. Our team curates content from leading newspapers and it's typically available by afternoon. Please try again in a few hours."
           });
         }
 
