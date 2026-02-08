@@ -8,6 +8,7 @@ import ChatPage from "@/pages/chat-page";
 import DashboardPage from "@/pages/dashboard-page";
 import OnboardingPage from "@/pages/onboarding-page";
 import CurrentAffairsPage from "@/pages/current-affairs-page";
+import CurrentAffairsTopicPage from "@/pages/current-affairs-topic-page";
 import PracticeQuizPage from "@/pages/practice-quiz-page";
 import SubscriptionPage from "@/pages/subscription-page";
 import PaperEvaluationPage from "@/pages/paper-evaluation-page";
@@ -33,6 +34,7 @@ function Router() {
       <Route path="/chat/new">{isAuthenticated ? <ChatPage /> : <Redirect to="/" />}</Route>
       <Route path="/chat/:id" component={isAuthenticated ? ChatPage : LandingPage} />
       <Route path="/current-affairs" component={isAuthenticated ? CurrentAffairsPage : LandingPage} />
+      <Route path="/current-affairs/topic/:id" component={isAuthenticated ? CurrentAffairsTopicPage : LandingPage} />
       <Route path="/practice-quiz" component={isAuthenticated ? PracticeQuizPage : LandingPage} />
       <Route path="/paper-evaluation" component={isAuthenticated ? PaperEvaluationPage : LandingPage} />
       <Route path="/notes" component={isAuthenticated ? NotesPage : LandingPage} />

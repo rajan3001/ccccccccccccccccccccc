@@ -257,6 +257,21 @@ Keep the analysis exam-focused, analytical, and factual. Use markdown formatting
     }
   });
 
+  app.get("/api/current-affairs/topic/:id", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const topicId = parseInt(req.params.id as string);
+      const [topic] = await db.select().from(dailyTopics).where(eq(dailyTopics.id, topicId));
+      if (!topic) {
+        return res.status(404).json({ error: "Topic not found" });
+      }
+      const [digest] = await db.select().from(dailyDigests).where(eq(dailyDigests.id, topic.digestId));
+      res.json({ topic, date: digest?.date || null });
+    } catch (error) {
+      console.error("Error fetching topic:", error);
+      res.status(500).json({ error: "Failed to fetch topic" });
+    }
+  });
+
   app.get("/api/current-affairs/stats/revision", isAuthenticated, async (_req: Request, res: Response) => {
     try {
       const result = await db

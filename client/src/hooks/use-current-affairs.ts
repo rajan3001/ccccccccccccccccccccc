@@ -81,8 +81,21 @@ export function useToggleRevision() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/current-affairs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/current-affairs/topic"] });
       queryClient.invalidateQueries({ queryKey: ["/api/current-affairs/stats/revision"] });
     },
+  });
+}
+
+export function useTopicById(topicId: number) {
+  return useQuery<{ topic: DailyTopic; date: string }>({
+    queryKey: ["/api/current-affairs/topic", topicId],
+    queryFn: async () => {
+      const res = await fetch(`/api/current-affairs/topic/${topicId}`);
+      if (!res.ok) throw new Error("Failed to fetch topic");
+      return res.json();
+    },
+    enabled: topicId > 0,
   });
 }
 

@@ -82,7 +82,7 @@ export function Sidebar() {
 
         <Link href="/current-affairs" onClick={() => setIsMobileOpen(false)}>
           <Button
-            variant={location === "/current-affairs" ? "default" : "ghost"}
+            variant={location.startsWith("/current-affairs") ? "default" : "ghost"}
             className="w-full mt-2 justify-start gap-2"
             data-testid="link-current-affairs"
           >
