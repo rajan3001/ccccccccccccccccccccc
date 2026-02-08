@@ -13,6 +13,7 @@ import {
   Menu,
   Newspaper,
   Brain,
+  FileCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
@@ -102,6 +103,17 @@ export function Sidebar() {
           >
             <Brain className="h-5 w-5" />
             Practice Quiz
+          </Button>
+        </Link>
+
+        <Link href="/paper-evaluation" onClick={() => setIsMobileOpen(false)}>
+          <Button
+            variant={location === "/paper-evaluation" ? "default" : "ghost"}
+            className="w-full mt-2 justify-start gap-2"
+            data-testid="link-paper-evaluation"
+          >
+            <FileCheck className="h-5 w-5" />
+            Answer Evaluation
           </Button>
         </Link>
       </div>

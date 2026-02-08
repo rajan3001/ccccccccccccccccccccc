@@ -13,6 +13,7 @@ import {
   Flame,
   BookOpen,
   Loader2,
+  FileCheck,
 } from "lucide-react";
 
 const EXAM_LABELS: Record<string, string> = {
@@ -64,6 +65,14 @@ const quickActions = [
     href: "/practice-quiz",
     color: "text-emerald-600 dark:text-emerald-400",
     bgColor: "bg-emerald-500/10",
+  },
+  {
+    title: "Answer Evaluation",
+    description: "Get your answer sheets evaluated by AI",
+    icon: FileCheck,
+    href: "/paper-evaluation",
+    color: "text-purple-600 dark:text-purple-400",
+    bgColor: "bg-purple-500/10",
   },
 ];
 
@@ -163,7 +172,7 @@ export default function DashboardPage() {
           <h2 className="text-base font-semibold mb-3 sm:mb-4" data-testid="text-quick-actions-heading">
             Start Learning
           </h2>
-          <div className="grid sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
             {quickActions.map((action) => (
               <Link key={action.href} href={action.href} data-testid={`link-action-${action.title.toLowerCase().replace(/\s/g, "-")}`}>
                 <Card className="p-4 sm:p-5 h-full hover-elevate cursor-pointer" data-testid={`card-action-${action.title.toLowerCase().replace(/\s/g, "-")}`}>

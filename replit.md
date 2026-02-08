@@ -18,12 +18,13 @@ Learnpro AI is an AI-powered learning platform for UPSC and State PSC exam prepa
 4. **File Upload** - Upload images/PDFs/text files, stored in Object Storage, passed as context to AI
 5. **Daily Current Affairs** - AI-generated daily digests with GS paper categorization, revision tracking, calendar view
 6. **Practice Quiz** - AI-generated MCQs for UPSC + 15 State PSC exams with exam-specific prompts, score tracking, review mode, and performance analytics
-7. **Subscription System** - Free/Pro plan tracking
+7. **Answer Sheet Evaluation** - Upload answer sheets (PDF/JPG/PNG), AI evaluates per UPSC/State PSC norms, returns detailed scores, competency analysis, per-question feedback
+8. **Subscription System** - Free/Pro plan tracking
 
 ## Project Structure
 ```
 client/src/
-  pages/          - onboarding-page, dashboard-page, chat-page, current-affairs-page, practice-quiz-page, landing-page, subscription-page
+  pages/          - onboarding-page, dashboard-page, chat-page, current-affairs-page, practice-quiz-page, paper-evaluation-page, landing-page, subscription-page
   components/
     chat/         - chat-input (with file upload), message-bubble (with attachment previews)
     layout/       - sidebar (with Current Affairs + Practice Quiz nav links)
@@ -35,6 +36,7 @@ server/
   storage.ts      - Subscription storage
   current-affairs-routes.ts - Current affairs API
   quiz-routes.ts  - Practice quiz API (generate, submit, history, analytics)
+  evaluation-routes.ts - Paper evaluation API (create, history, results)
   replit_integrations/
     auth/          - Replit Auth
     chat/          - Chat routes with Gemini streaming + attachment context
@@ -58,6 +60,8 @@ shared/
 - **daily_topics** - Topics per digest with title, summary, category, gsCategory, relevance, revised flag
 - **quiz_attempts** - Quiz attempts with userId, examType, gsCategory, difficulty, totalQuestions, score, completedAt
 - **quiz_questions** - Questions per attempt with question, options (text[]), correctIndex, explanation, userAnswer, isCorrect
+- **evaluation_sessions** - Answer sheet evaluation sessions with userId, examType, paperType, fileName, fileObjectPath, status, totalScore, maxScore, overallFeedback, competencyFeedback (jsonb)
+- **evaluation_questions** - Per-question evaluation with score, maxScore, strengths, improvements, detailedFeedback, introductionFeedback, bodyFeedback, conclusionFeedback
 
 ## API Routes
 - `POST /api/onboarding` - Submit onboarding data (displayName, userType, targetExams[])
@@ -75,6 +79,9 @@ shared/
 - `GET /api/quizzes/analytics` - Performance analytics by GS paper
 - `GET /api/quizzes/:id` - Get quiz attempt with questions
 - `POST /api/quizzes/:id/submit` - Submit quiz answers
+- `POST /api/evaluations` - Create answer sheet evaluation (body: examType, paperType, fileName, fileObjectPath)
+- `GET /api/evaluations` - List user's evaluations
+- `GET /api/evaluations/:id` - Get evaluation result with per-question feedback
 
 ## Recent Changes
 - 2026-02-08: Added multi-step onboarding flow (name, user type, target exam) and personalized dashboard with greeting, quick actions, daily tips, suggested topics
