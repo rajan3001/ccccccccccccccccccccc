@@ -20,7 +20,18 @@ export const chatStorage: IChatStorage = {
   },
 
   async getAllConversations() {
-    return db.select().from(conversations).orderBy(desc(conversations.createdAt));
+    const allConvos = await db.select().from(conversations).orderBy(desc(conversations.createdAt));
+    const nonEmpty = [];
+    for (const convo of allConvos) {
+      const [msgCount] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(messages)
+        .where(eq(messages.conversationId, convo.id));
+      if (msgCount?.count > 0) {
+        nonEmpty.push(convo);
+      }
+    }
+    return nonEmpty;
   },
 
   async createConversation(title: string) {

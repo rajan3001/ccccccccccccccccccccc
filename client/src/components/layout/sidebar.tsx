@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { useConversations, useCreateConversation, useDeleteConversation } from "@/hooks/use-chat";
+import { useConversations, useDeleteConversation } from "@/hooks/use-chat";
 import { useSubscription } from "@/hooks/use-subscription";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -36,7 +36,6 @@ export function Sidebar() {
   const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
   const { data: conversations, isLoading } = useConversations();
-  const createMutation = useCreateConversation();
   const deleteMutation = useDeleteConversation();
   const { data: subData } = useSubscription();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -47,12 +46,8 @@ export function Sidebar() {
     : null;
 
   const handleNewChat = () => {
-    createMutation.mutate("New Chat", {
-      onSuccess: (newChat) => {
-        setLocation(`/chat/${newChat.id}`);
-        setIsMobileOpen(false);
-      }
-    });
+    setLocation("/chat/new");
+    setIsMobileOpen(false);
   };
 
   const handleDelete = (e: React.MouseEvent, id: number) => {
@@ -76,7 +71,6 @@ export function Sidebar() {
         </Link>
         <Button 
           onClick={handleNewChat}
-          disabled={createMutation.isPending}
           className="w-full mt-6 justify-start gap-2 h-12 text-base font-medium shadow-sm hover:shadow-md transition-all bg-background hover:bg-background border-2 border-primary/20 text-foreground hover:border-primary/50"
           variant="outline"
           data-testid="button-new-chat"
