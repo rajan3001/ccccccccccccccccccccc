@@ -7,6 +7,7 @@ import { users } from "./auth";
 export const quizAttempts = pgTable("quiz_attempts", {
   id: serial("id").primaryKey(),
   userId: text("user_id").notNull().references(() => users.id),
+  examType: text("exam_type").notNull().default("UPSC"),
   gsCategory: text("gs_category").notNull(),
   difficulty: text("difficulty").notNull(),
   totalQuestions: integer("total_questions").notNull(),
