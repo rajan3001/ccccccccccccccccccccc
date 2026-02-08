@@ -5,6 +5,7 @@ import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integra
 import { registerChatRoutes } from "./replit_integrations/chat";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { registerCurrentAffairsRoutes } from "./current-affairs-routes";
+import { registerQuizRoutes } from "./quiz-routes";
 import { api } from "@shared/routes";
 
 export async function registerRoutes(
@@ -17,6 +18,7 @@ export async function registerRoutes(
   registerObjectStorageRoutes(app);
   registerChatRoutes(app);
   registerCurrentAffairsRoutes(app);
+  registerQuizRoutes(app);
 
   // Subscription Routes
   app.get(api.subscription.get.path, isAuthenticated, async (req: any, res) => {

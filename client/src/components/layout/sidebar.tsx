@@ -12,6 +12,7 @@ import {
   Crown,
   Menu,
   Newspaper,
+  Brain,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
@@ -90,6 +91,17 @@ export function Sidebar() {
           >
             <Newspaper className="h-5 w-5" />
             Current Affairs
+          </Button>
+        </Link>
+
+        <Link href="/practice-quiz" onClick={() => setIsMobileOpen(false)}>
+          <Button
+            variant={location === "/practice-quiz" ? "default" : "ghost"}
+            className="w-full mt-2 justify-start gap-2"
+            data-testid="link-practice-quiz"
+          >
+            <Brain className="h-5 w-5" />
+            Practice Quiz
           </Button>
         </Link>
       </div>

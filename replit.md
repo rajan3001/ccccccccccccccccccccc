@@ -15,22 +15,24 @@ Learnpro AI is an AI-powered learning platform for UPSC and State PSC exam prepa
 1. **AI Chat** - Streaming chat with Gemini, conversation history, file attachments
 2. **File Upload** - Upload images/PDFs/text files, stored in Object Storage, passed as context to AI
 3. **Daily Current Affairs** - AI-generated daily digests with GS paper categorization, revision tracking, calendar view
-4. **Subscription System** - Free/Pro plan tracking
+4. **Practice Quiz** - AI-generated UPSC-style MCQs with score tracking, review mode, and performance analytics
+5. **Subscription System** - Free/Pro plan tracking
 
 ## Project Structure
 ```
 client/src/
-  pages/          - chat-page, current-affairs-page, landing-page, subscription-page
+  pages/          - chat-page, current-affairs-page, practice-quiz-page, landing-page, subscription-page
   components/
     chat/         - chat-input (with file upload), message-bubble (with attachment previews)
-    layout/       - sidebar (with Current Affairs nav link)
+    layout/       - sidebar (with Current Affairs + Practice Quiz nav links)
     ui/           - shadcn components
-  hooks/          - use-auth, use-chat, use-current-affairs, use-subscription
+  hooks/          - use-auth, use-chat, use-current-affairs, use-quiz, use-subscription
 
 server/
   routes.ts       - Main route registration
   storage.ts      - Subscription storage
   current-affairs-routes.ts - Current affairs API
+  quiz-routes.ts  - Practice quiz API (generate, submit, history, analytics)
   replit_integrations/
     auth/          - Replit Auth
     chat/          - Chat routes with Gemini streaming + attachment context
@@ -42,6 +44,7 @@ shared/
     auth.ts        - Users table
     chat.ts        - Conversations, messages (with attachments jsonb)
     current-affairs.ts - Daily digests, daily topics
+    quiz.ts        - Quiz attempts, quiz questions
 ```
 
 ## Database Schema
@@ -51,6 +54,8 @@ shared/
 - **subscriptions** - User subscription plans
 - **daily_digests** - One per date, stores digest generation timestamp
 - **daily_topics** - Topics per digest with title, summary, category, gsCategory, relevance, revised flag
+- **quiz_attempts** - Quiz attempts with userId, gsCategory, difficulty, totalQuestions, score, completedAt
+- **quiz_questions** - Questions per attempt with question, options (text[]), correctIndex, explanation, userAnswer, isCorrect
 
 ## API Routes
 - `GET/POST/DELETE /api/conversations` - Chat CRUD
@@ -62,8 +67,14 @@ shared/
 - `PATCH /api/current-affairs/topics/:id/revise` - Toggle revision
 - `GET /api/current-affairs/stats/revision` - Revision statistics
 - `GET /api/current-affairs-dates` - List dates with digests
+- `POST /api/quizzes/generate` - Generate AI quiz (body: gsCategory, difficulty, numQuestions)
+- `GET /api/quizzes/history` - List user's quiz attempts
+- `GET /api/quizzes/analytics` - Performance analytics by GS paper
+- `GET /api/quizzes/:id` - Get quiz attempt with questions
+- `POST /api/quizzes/:id/submit` - Submit quiz answers
 
 ## Recent Changes
+- 2026-02-08: Added Practice Quiz feature with AI-generated MCQs, score tracking, review mode, performance analytics
 - 2026-02-08: Added file upload support with Object Storage, attachment previews in messages, file context for AI
 - 2026-02-08: Added Daily Current Affairs with AI generation, calendar view, GS categorization, revision tracking
 - 2026-02-08: Updated homepage with toolkit features section matching design mockup

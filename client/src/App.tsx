@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import LandingPage from "@/pages/landing-page";
 import ChatPage from "@/pages/chat-page";
 import CurrentAffairsPage from "@/pages/current-affairs-page";
+import PracticeQuizPage from "@/pages/practice-quiz-page";
 import SubscriptionPage from "@/pages/subscription-page";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/use-auth";
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/" component={isAuthenticated ? ChatPage : LandingPage} />
       <Route path="/chat/:id" component={isAuthenticated ? ChatPage : LandingPage} />
       <Route path="/current-affairs" component={isAuthenticated ? CurrentAffairsPage : LandingPage} />
+      <Route path="/practice-quiz" component={isAuthenticated ? PracticeQuizPage : LandingPage} />
       <Route path="/subscription" component={SubscriptionPage} />
       <Route component={NotFound} />
     </Switch>
