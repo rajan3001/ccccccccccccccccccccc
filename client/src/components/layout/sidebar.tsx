@@ -14,6 +14,7 @@ import {
   Newspaper,
   Brain,
   FileCheck,
+  StickyNote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
@@ -114,6 +115,17 @@ export function Sidebar() {
           >
             <FileCheck className="h-5 w-5" />
             Answer Evaluation
+          </Button>
+        </Link>
+
+        <Link href="/notes" onClick={() => setIsMobileOpen(false)}>
+          <Button
+            variant={location === "/notes" ? "default" : "ghost"}
+            className="w-full mt-2 justify-start gap-2"
+            data-testid="link-my-notes"
+          >
+            <StickyNote className="h-5 w-5" />
+            My Notes
           </Button>
         </Link>
       </div>

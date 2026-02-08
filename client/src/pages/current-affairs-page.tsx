@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import {
   Loader2,
   Sparkles,
@@ -34,8 +35,10 @@ import {
   Users,
   Trophy,
   MapPin,
+  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { generatePDF, currentAffairsToPDFSections } from "@/lib/pdf-generator";
 
 const GS_COLORS: Record<string, string> = {
   "GS-I": "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
@@ -95,6 +98,7 @@ export default function CurrentAffairsPage() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [stateFilter, setStateFilter] = useState("none");
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
 
   const dateStr = formatDate(selectedDate);
   const { data, isLoading } = useCurrentAffairs(dateStr);
@@ -267,6 +271,28 @@ export default function CurrentAffairsPage() {
                 value={totalCount > 0 ? (revisedCount / totalCount) * 100 : 0}
                 className="h-2 flex-1 max-w-[200px]"
               />
+              <Button
+                variant="ghost"
+                size="sm"
+                data-testid="button-download-ca-pdf"
+                onClick={async () => {
+                  try {
+                    const sections = currentAffairsToPDFSections(topics);
+                    await generatePDF({
+                      title: `Daily Current Affairs - ${formatDisplayDate(dateStr)}`,
+                      subtitle: "AI-curated UPSC-relevant topics by Learnpro AI",
+                      sections,
+                      fileName: `learnpro-current-affairs-${dateStr}.pdf`,
+                    });
+                    toast({ title: "PDF downloaded successfully" });
+                  } catch {
+                    toast({ title: "Failed to generate PDF", variant: "destructive" });
+                  }
+                }}
+              >
+                <Download className="h-4 w-4 mr-1.5" />
+                Download PDF
+              </Button>
             </div>
           )}
 

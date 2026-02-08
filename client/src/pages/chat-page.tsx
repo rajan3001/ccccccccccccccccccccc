@@ -6,13 +6,17 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { MessageBubble } from "@/components/chat/message-bubble";
 import { ChatInput } from "@/components/chat/chat-input";
 import { Logo } from "@/components/ui/logo";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import {
   Loader2,
   BookOpen,
   Newspaper,
   Lightbulb,
   Scale,
+  Download,
 } from "lucide-react";
+import { generatePDF, chatToPDFSections } from "@/lib/pdf-generator";
 
 export default function ChatPage() {
   const params = useParams<{ id: string }>();
@@ -20,6 +24,7 @@ export default function ChatPage() {
   const conversationId = !isNaN(parsedId) ? parsedId : null;
   const { user, isLoading: isAuthLoading } = useAuth();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
   
   const { data: conversationData, isLoading: isChatLoading } = useConversation(conversationId);
   const { sendMessage, streamedContent, isStreaming, stopStream, pendingUserMessage } = useChatStream(conversationId || 0);
@@ -104,8 +109,36 @@ export default function ChatPage() {
             </div>
           ) : (
             <div className="max-w-3xl mx-auto w-full pb-32 pt-4 sm:pt-6">
+              {conversationData?.messages && conversationData.messages.length > 0 && (
+                <div className="flex justify-end px-3 sm:px-6 mb-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    data-testid="button-download-chat-pdf"
+                    onClick={async () => {
+                      try {
+                        const sections = chatToPDFSections(
+                          conversationData.messages.map((m) => ({ role: m.role, content: m.content }))
+                        );
+                        await generatePDF({
+                          title: conversationData.title || "Chat Conversation",
+                          subtitle: `Learnpro AI Chat - ${new Date().toLocaleDateString("en-IN")}`,
+                          sections,
+                          fileName: `learnpro-chat-${conversationId}.pdf`,
+                        });
+                        toast({ title: "PDF downloaded successfully" });
+                      } catch {
+                        toast({ title: "Failed to generate PDF", variant: "destructive" });
+                      }
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-1.5" />
+                    Download PDF
+                  </Button>
+                </div>
+              )}
               {conversationData?.messages.map((msg) => (
-                <MessageBubble key={msg.id} message={msg} />
+                <MessageBubble key={msg.id} message={msg} conversationId={conversationId || undefined} />
               ))}
               
               {isStreaming && pendingUserMessage && !conversationData?.messages.some(m => m.content === pendingUserMessage && m.role === "user") && (

@@ -20,16 +20,20 @@ Learnpro AI is an AI-powered learning platform for UPSC and State PSC exam prepa
 6. **Practice Quiz** - AI-generated MCQs for UPSC + 15 State PSC exams with exam-specific prompts, score tracking, review mode, and performance analytics
 7. **Answer Sheet Evaluation** - Upload answer sheets (PDF/JPG/PNG), AI evaluates per UPSC/State PSC norms, returns detailed scores, competency analysis, per-question feedback
 8. **Subscription System** - Free/Pro plan tracking
+9. **PDF Export** - Client-side PDF generation with Learnpro branding (logo header, watermark, footer) for Chat, Current Affairs, and Evaluation reports
+10. **My Notes** - Save AI chat responses as notes with GS category, tags, folder organization, markdown editor, search/filter, PDF/markdown export, and spaced repetition review reminders
 
 ## Project Structure
 ```
 client/src/
-  pages/          - onboarding-page, dashboard-page, chat-page, current-affairs-page, practice-quiz-page, paper-evaluation-page, landing-page, subscription-page
+  pages/          - onboarding-page, dashboard-page, chat-page, current-affairs-page, practice-quiz-page, paper-evaluation-page, notes-page, landing-page, subscription-page
   components/
-    chat/         - chat-input (with file upload), message-bubble (with attachment previews)
-    layout/       - sidebar (with Current Affairs + Practice Quiz nav links)
+    chat/         - chat-input (with file upload), message-bubble (with attachment previews, save as note)
+    layout/       - sidebar (with Current Affairs, Practice Quiz, Answer Evaluation, My Notes nav links)
     ui/           - shadcn components
-  hooks/          - use-auth, use-chat, use-current-affairs, use-quiz, use-subscription
+  hooks/          - use-auth, use-chat, use-current-affairs, use-quiz, use-subscription, use-notes
+  lib/
+    pdf-generator.ts - Client-side PDF generation with Learnpro branding
 
 server/
   routes.ts       - Main route registration
@@ -37,6 +41,7 @@ server/
   current-affairs-routes.ts - Current affairs API
   quiz-routes.ts  - Practice quiz API (generate, submit, history, analytics)
   evaluation-routes.ts - Paper evaluation API (create, history, results)
+  notes-routes.ts - Notes CRUD, search/filter, spaced repetition API
   replit_integrations/
     auth/          - Replit Auth
     chat/          - Chat routes with Gemini streaming + attachment context
@@ -49,6 +54,7 @@ shared/
     chat.ts        - Conversations, messages (with attachments jsonb)
     current-affairs.ts - Daily digests, daily topics
     quiz.ts        - Quiz attempts, quiz questions
+    notes.ts       - Notes with spaced repetition (title, content, gsCategory, tags, folder, reviewCount, nextReviewAt)
 ```
 
 ## Database Schema
@@ -62,6 +68,7 @@ shared/
 - **quiz_questions** - Questions per attempt with question, options (text[]), correctIndex, explanation, userAnswer, isCorrect
 - **evaluation_sessions** - Answer sheet evaluation sessions with userId, examType, paperType, fileName, fileObjectPath, totalMarks (nullable), totalQuestions (nullable), questionsAttempted (nullable), questionPaperObjectPath (nullable), status, totalScore, maxScore, overallFeedback, competencyFeedback (jsonb with 7 parameters: Contextual Understanding, Introduction Proficiency, Language, Word Limit Adherence, Conclusion, Value Addition, Presentation - each with score/10, strengths, improvements)
 - **evaluation_questions** - Per-question evaluation with score, maxScore, strengths, improvements, detailedFeedback, introductionFeedback, bodyFeedback, conclusionFeedback
+- **notes** - User study notes with title, content (markdown), gsCategory, tags (jsonb), folder, sourceMessageId, sourceConversationId, reviewCount, lastReviewedAt, nextReviewAt (spaced repetition)
 
 ## API Routes
 - `POST /api/onboarding` - Submit onboarding data (displayName, userType, targetExams[])
@@ -82,6 +89,15 @@ shared/
 - `POST /api/evaluations` - Create answer sheet evaluation (body: examType, paperType, fileName, fileObjectPath, totalMarks?, totalQuestions?, questionsAttempted?, questionPaperObjectPath?) - either question paper OR manual fields required
 - `GET /api/evaluations` - List user's evaluations
 - `GET /api/evaluations/:id` - Get evaluation result with per-question feedback
+- `GET /api/notes` - List user's notes (query: search, gsCategory, folder, tag, dueForReview)
+- `POST /api/notes` - Create note (body: title, content, gsCategory?, tags?, folder?, sourceMessageId?, sourceConversationId?)
+- `GET /api/notes/folders` - List unique folders
+- `GET /api/notes/tags` - List unique tags
+- `GET /api/notes/due-count` - Count notes due for review
+- `GET /api/notes/:id` - Get single note
+- `PATCH /api/notes/:id` - Update note
+- `DELETE /api/notes/:id` - Delete note
+- `POST /api/notes/:id/review` - Mark note as reviewed (updates spaced repetition schedule)
 
 ## Recent Changes
 - 2026-02-08: Added multi-step onboarding flow (name, user type, target exam) and personalized dashboard with greeting, quick actions, daily tips, suggested topics
@@ -92,3 +108,5 @@ shared/
 - 2026-02-08: Updated homepage with toolkit features section matching design mockup
 - 2026-02-08: Enhanced Answer Sheet Evaluation with manual input fields (totalMarks, totalQuestions, questionsAttempted), instructions dialog, 7 evaluation parameters (Contextual Understanding, Introduction Proficiency, Language, Word Limit Adherence, Conclusion, Value Addition, Presentation), pointwise overall feedback, parameter scores out of 10, dynamic exam-specific paper types
 - 2026-02-08: Added optional Question Paper upload to Answer Sheet Evaluation - students can either upload a question paper (AI extracts details) OR fill in manual fields (totalMarks, totalQuestions, questionsAttempted). Uploading question paper hides manual fields. Backend sends question paper as additional context to AI.
+- 2026-02-08: Added PDF Export with Learnpro branding (logo header on every page, watermark, footer text) for Chat, Current Affairs, and Evaluation reports
+- 2026-02-08: Added My Notes feature - save AI chat responses as notes with GS category, tags, folder organization, markdown editor, search/filter, PDF/markdown export, and spaced repetition review reminders

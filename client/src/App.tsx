@@ -11,6 +11,7 @@ import CurrentAffairsPage from "@/pages/current-affairs-page";
 import PracticeQuizPage from "@/pages/practice-quiz-page";
 import SubscriptionPage from "@/pages/subscription-page";
 import PaperEvaluationPage from "@/pages/paper-evaluation-page";
+import NotesPage from "@/pages/notes-page";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -33,6 +34,7 @@ function Router() {
       <Route path="/current-affairs" component={isAuthenticated ? CurrentAffairsPage : LandingPage} />
       <Route path="/practice-quiz" component={isAuthenticated ? PracticeQuizPage : LandingPage} />
       <Route path="/paper-evaluation" component={isAuthenticated ? PaperEvaluationPage : LandingPage} />
+      <Route path="/notes" component={isAuthenticated ? NotesPage : LandingPage} />
       <Route path="/subscription" component={SubscriptionPage} />
       <Route component={NotFound} />
     </Switch>

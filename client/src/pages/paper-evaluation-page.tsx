@@ -43,6 +43,7 @@ import {
   Ruler,
   Award,
   Presentation,
+  Download,
 } from "lucide-react";
 import {
   Select,
@@ -52,6 +53,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import ReactMarkdown from "react-markdown";
+import { generatePDF, evaluationToPDFSections } from "@/lib/pdf-generator";
 
 const EXAM_OPTIONS = [
   { value: "UPSC", label: "UPSC" },
@@ -752,14 +754,50 @@ export default function PaperEvaluationPage() {
 
     return (
       <div className="max-w-4xl mx-auto">
-        <button
-          onClick={() => { setView("upload"); setActiveSessionId(null); }}
-          className="flex items-center gap-1 text-sm text-muted-foreground mb-4 hover-elevate rounded-md p-1 -ml-1"
-          data-testid="button-back-to-upload"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </button>
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={() => { setView("upload"); setActiveSessionId(null); }}
+            className="flex items-center gap-1 text-sm text-muted-foreground hover-elevate rounded-md p-1 -ml-1"
+            data-testid="button-back-to-upload"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </button>
+          <Button
+            variant="ghost"
+            size="sm"
+            data-testid="button-download-eval-pdf"
+            onClick={async () => {
+              try {
+                const sections = evaluationToPDFSections({
+                  examType: activeResult.examType,
+                  paperType: activeResult.paperType,
+                  fileName: activeResult.fileName,
+                  totalScore: activeResult.totalScore,
+                  maxScore: activeResult.maxScore,
+                  totalMarks: activeResult.totalMarks,
+                  totalQuestions: activeResult.totalQuestions,
+                  questionsAttempted: activeResult.questionsAttempted,
+                  overallFeedback: activeResult.overallFeedback,
+                  competencyFeedback: activeResult.competencyFeedback,
+                  questions: questions,
+                });
+                await generatePDF({
+                  title: `Answer Evaluation Report - ${activeResult.examType} ${activeResult.paperType}`,
+                  subtitle: `${activeResult.fileName} - ${new Date(activeResult.createdAt).toLocaleDateString("en-IN")}`,
+                  sections,
+                  fileName: `learnpro-evaluation-${activeResult.id}.pdf`,
+                });
+                toast({ title: "PDF downloaded successfully" });
+              } catch {
+                toast({ title: "Failed to generate PDF", variant: "destructive" });
+              }
+            }}
+          >
+            <Download className="h-4 w-4 mr-1.5" />
+            Download PDF
+          </Button>
+        </div>
 
         <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6">
           <Card className={`flex-1 p-5 ${getScoreBgColor(activeResult.totalScore || 0, activeResult.maxScore || 250)}`} data-testid="card-overall-score">
