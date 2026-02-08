@@ -108,6 +108,10 @@ export function useChatStream(conversationId: number) {
         signal: abortControllerRef.current.signal,
       });
 
+      if (response.status === 429) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Daily query limit reached. Upgrade to Pro for unlimited queries.");
+      }
       if (!response.ok) throw new Error("Failed to send message");
 
       const reader = response.body?.getReader();
@@ -158,6 +162,7 @@ export function useChatStream(conversationId: number) {
       setPendingUserMessage(null);
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat/query-status"] });
     }
   };
 

@@ -102,6 +102,18 @@ export function registerChatRoutes(app: Express): void {
     }
   });
 
+  const FREE_DAILY_LIMIT = 2;
+
+  app.get("/api/chat/query-status", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const used = await chatStorage.getTodayUserMessageCount();
+      res.json({ used, limit: FREE_DAILY_LIMIT, remaining: Math.max(0, FREE_DAILY_LIMIT - used) });
+    } catch (error) {
+      console.error("Error fetching query status:", error);
+      res.status(500).json({ error: "Failed to fetch query status" });
+    }
+  });
+
   app.delete("/api/conversations/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
@@ -117,6 +129,11 @@ export function registerChatRoutes(app: Express): void {
     try {
       const conversationId = parseInt(req.params.id);
       const { content, attachments } = req.body;
+
+      const todayCount = await chatStorage.getTodayUserMessageCount();
+      if (todayCount >= FREE_DAILY_LIMIT) {
+        return res.status(429).json({ error: "Daily query limit reached. Upgrade to Pro for unlimited queries." });
+      }
 
       await chatStorage.createMessage(conversationId, "user", content, attachments);
 

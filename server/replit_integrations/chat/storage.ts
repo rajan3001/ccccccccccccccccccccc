@@ -1,6 +1,6 @@
 import { db } from "../../db";
 import { conversations, messages } from "@shared/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql, and, gte } from "drizzle-orm";
 
 export interface IChatStorage {
   getConversation(id: number): Promise<typeof conversations.$inferSelect | undefined>;
@@ -10,6 +10,7 @@ export interface IChatStorage {
   deleteConversation(id: number): Promise<void>;
   getMessagesByConversation(conversationId: number): Promise<(typeof messages.$inferSelect)[]>;
   createMessage(conversationId: number, role: string, content: string, attachments?: any[]): Promise<typeof messages.$inferSelect>;
+  getTodayUserMessageCount(): Promise<number>;
 }
 
 export const chatStorage: IChatStorage = {
@@ -48,6 +49,16 @@ export const chatStorage: IChatStorage = {
       attachments: attachmentsList || []
     }).returning();
     return message;
+  },
+
+  async getTodayUserMessageCount() {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const [result] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(messages)
+      .where(and(eq(messages.role, "user"), gte(messages.createdAt, todayStart)));
+    return result?.count || 0;
   },
 };
 

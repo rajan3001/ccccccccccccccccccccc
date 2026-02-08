@@ -5,9 +5,9 @@ import { useConversation, useChatStream, useCreateConversation } from "@/hooks/u
 import { Sidebar } from "@/components/layout/sidebar";
 import { MessageBubble } from "@/components/chat/message-bubble";
 import { ChatInput } from "@/components/chat/chat-input";
-import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import {
   Loader2,
   BookOpen,
@@ -20,6 +20,7 @@ import {
   PenLine,
   ListChecks,
   HelpCircle,
+  MessageCircle,
 } from "lucide-react";
 import { generatePDF, chatToPDFSections } from "@/lib/pdf-generator";
 
@@ -45,6 +46,11 @@ export default function ChatPage() {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [prefillSent, setPrefillSent] = useState(false);
+
+  const { data: queryStatus } = useQuery<{ used: number; limit: number; remaining: number }>({
+    queryKey: ["/api/chat/query-status"],
+    refetchInterval: 30000,
+  });
 
   const handleHomeSend = async (message: string) => {
     if (conversationId) {
@@ -94,33 +100,42 @@ export default function ChatPage() {
         <div className="flex-1 overflow-y-auto scroll-smooth">
           {!conversationId || (!isChatLoading && !hasMessages && !isStreaming) ? (
             <div className="flex flex-col items-center justify-center h-full animate-in fade-in duration-500">
-              <div className="hidden sm:flex flex-col items-center pb-4">
-                <Logo size="xl" className="mb-6" />
-              </div>
-              <h2 className="text-lg sm:text-3xl font-display font-bold mt-3 sm:mt-0 mb-0.5 sm:mb-4 text-center px-4" data-testid="text-welcome-heading">
-                Welcome back, {user?.firstName || "Aspirant"}
+              {queryStatus && (
+                <div className="mb-6" data-testid="query-status-badge">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+                    <MessageCircle className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium text-foreground">
+                      {queryStatus.remaining} / {queryStatus.limit} queries left today
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <h2 className="text-lg sm:text-2xl font-display font-semibold mb-1 text-center px-4" data-testid="text-welcome-heading">
+                Let's begin learning, {user?.firstName || "Aspirant"}
               </h2>
-              <p className="text-xs sm:text-lg text-muted-foreground max-w-lg mb-4 sm:mb-8 text-center px-4">
-                Your AI tutor for UPSC & State PSC exams
+              <p className="text-xs sm:text-sm text-muted-foreground max-w-md mb-6 sm:mb-8 text-center px-4">
+                Ask me anything about UPSC & State PSC preparation
               </p>
 
-              <div className="grid grid-cols-2 gap-2 sm:gap-4 max-w-2xl w-full px-3 sm:px-4">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 max-w-xl w-full px-3 sm:px-4">
                 {[
                   { text: "Doctrine of Lapse", icon: BookOpen },
                   { text: "Article 21", icon: Scale },
                   { text: "G20 Summit", icon: Newspaper },
                   { text: "Deccan Plateau", icon: Lightbulb },
                 ].map((prompt, i) => (
-                  <button
+                  <Button
                     key={i}
+                    variant="outline"
                     data-testid={`button-prompt-${i}`}
                     onClick={() => handleHomeSend(prompt.text)}
-                    disabled={createMutation.isPending}
-                    className="flex items-center gap-2 p-2.5 sm:p-4 text-left rounded-lg sm:rounded-xl bg-secondary/50 hover-elevate border border-transparent hover:border-primary/20 transition-all cursor-pointer"
+                    disabled={createMutation.isPending || (queryStatus?.remaining === 0)}
+                    className="justify-start gap-2 bg-secondary/50 border-primary/10"
                   >
-                    <prompt.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
-                    <span className="text-[11px] sm:text-sm font-medium leading-tight">{prompt.text}</span>
-                  </button>
+                    <prompt.icon className="h-4 w-4 text-primary flex-shrink-0" />
+                    <span className="text-sm font-medium">{prompt.text}</span>
+                  </Button>
                 ))}
               </div>
             </div>
