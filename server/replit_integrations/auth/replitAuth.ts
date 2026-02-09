@@ -3,9 +3,10 @@ import type { Express, RequestHandler } from "express";
 import connectPg from "connect-pg-simple";
 import { db } from "../../db";
 import { users, otpVerifications } from "@shared/models/auth";
-import { eq, and, gt, desc } from "drizzle-orm";
+import { eq, and, gt, desc, or } from "drizzle-orm";
 import { z } from "zod";
 import { sql } from "drizzle-orm";
+import * as oidc from "openid-client";
 
 const SESSION_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
 
@@ -93,9 +94,44 @@ async function sendOtpViaSms(phone: string, otp: string): Promise<boolean> {
   }
 }
 
+let googleOidcConfig: oidc.Configuration | null = null;
+
+async function getGoogleOidcConfig(): Promise<oidc.Configuration | null> {
+  if (googleOidcConfig) return googleOidcConfig;
+
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    console.log("[GOOGLE AUTH] Google OAuth not configured - GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET required");
+    return null;
+  }
+
+  try {
+    googleOidcConfig = await oidc.discovery(
+      new URL("https://accounts.google.com"),
+      clientId,
+      clientSecret
+    );
+    console.log("[GOOGLE AUTH] Google OIDC discovery successful");
+    return googleOidcConfig;
+  } catch (error) {
+    console.error("[GOOGLE AUTH] Google OIDC discovery failed:", error);
+    return null;
+  }
+}
+
+function getCallbackUrl(req: any): string {
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol || "https";
+  const host = req.headers["x-forwarded-host"] || req.headers.host;
+  return `${protocol}://${host}/api/auth/google/callback`;
+}
+
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
   app.use(getSession());
+
+  getGoogleOidcConfig().catch(() => {});
 
   app.post("/api/auth/send-otp", async (req, res) => {
     try {
@@ -199,6 +235,135 @@ export async function setupAuth(app: Express) {
       console.error("Verify OTP error:", error);
       res.status(500).json({ message: "Something went wrong" });
     }
+  });
+
+  app.get("/api/auth/google", async (req, res) => {
+    try {
+      const config = await getGoogleOidcConfig();
+      if (!config) {
+        return res.status(503).json({ message: "Google login is not configured" });
+      }
+
+      const callbackUrl = getCallbackUrl(req);
+      const codeVerifier = oidc.randomPKCECodeVerifier();
+      const codeChallenge = await oidc.calculatePKCECodeChallenge(codeVerifier);
+      const state = oidc.randomState();
+      const nonce = oidc.randomNonce();
+
+      (req.session as any).googleAuth = {
+        codeVerifier,
+        state,
+        nonce,
+        callbackUrl,
+      };
+
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
+      const authUrl = oidc.buildAuthorizationUrl(config, {
+        redirect_uri: callbackUrl,
+        scope: "openid email profile",
+        code_challenge: codeChallenge,
+        code_challenge_method: "S256",
+        state,
+        nonce,
+        prompt: "select_account",
+      });
+
+      res.redirect(authUrl.href);
+    } catch (error) {
+      console.error("[GOOGLE AUTH] Error initiating Google login:", error);
+      res.redirect("/login?error=google_init_failed");
+    }
+  });
+
+  app.get("/api/auth/google/callback", async (req, res) => {
+    try {
+      const config = await getGoogleOidcConfig();
+      if (!config) {
+        return res.redirect("/login?error=google_not_configured");
+      }
+
+      const googleAuth = (req.session as any).googleAuth;
+      if (!googleAuth) {
+        return res.redirect("/login?error=session_expired");
+      }
+
+      const { codeVerifier, state, nonce, callbackUrl } = googleAuth;
+
+      const callbackBase = new URL(callbackUrl);
+      const currentUrl = new URL(req.originalUrl, callbackBase.origin);
+
+      const tokens = await oidc.authorizationCodeGrant(config, currentUrl, {
+        pkceCodeVerifier: codeVerifier,
+        expectedState: state,
+        expectedNonce: nonce,
+        idTokenExpected: true,
+      });
+
+      const claims = tokens.claims();
+      if (!claims) {
+        return res.redirect("/login?error=no_claims");
+      }
+
+      const email = claims.email as string | undefined;
+      const emailVerified = claims.email_verified as boolean | undefined;
+
+      if (!email || !emailVerified) {
+        console.error("[GOOGLE AUTH] Email missing or not verified:", { email, emailVerified });
+        return res.redirect("/login?error=google_auth_failed");
+      }
+
+      const firstName = (claims.given_name as string) || null;
+      const lastName = (claims.family_name as string) || null;
+      const displayName = (claims.name as string) || [firstName, lastName].filter(Boolean).join(" ") || null;
+      const profileImageUrl = (claims.picture as string) || null;
+
+      let [user] = await db.select().from(users).where(eq(users.email, email));
+
+      if (user) {
+        [user] = await db.update(users).set({
+          firstName: firstName || user.firstName,
+          lastName: lastName || user.lastName,
+          displayName: displayName || user.displayName,
+          profileImageUrl: profileImageUrl || user.profileImageUrl,
+          updatedAt: new Date(),
+        }).where(eq(users.id, user.id)).returning();
+      } else {
+        [user] = await db.insert(users).values({
+          email,
+          firstName,
+          lastName,
+          displayName,
+          profileImageUrl,
+          onboardingCompleted: false,
+        }).returning();
+      }
+
+      delete (req.session as any).googleAuth;
+      (req.session as any).userId = user.id;
+
+      req.session.save((err) => {
+        if (err) {
+          console.error("[GOOGLE AUTH] Session save error:", err);
+          return res.redirect("/login?error=session_failed");
+        }
+        res.redirect("/");
+      });
+    } catch (error: any) {
+      console.error("[GOOGLE AUTH] Callback error:", error);
+      res.redirect("/login?error=google_auth_failed");
+    }
+  });
+
+  app.get("/api/auth/google/status", (_req, res) => {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    res.json({ available: !!(clientId && clientSecret) });
   });
 
   app.get("/api/login", (_req, res) => {

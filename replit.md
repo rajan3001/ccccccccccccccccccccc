@@ -32,6 +32,7 @@ The Learnpro AI platform is built with a modern web stack. The frontend is devel
 - **Gemini 2.5 Flash**: Via Replit AI Integrations for all AI functionalities.
 - **PostgreSQL (Neon)**: Database for all application data.
 - **SMSGatewayHub**: For Phone OTP authentication via Indian SMS gateway (requires API Key, Sender ID, Entity ID, DLT Template ID).
+- **Google OAuth**: Direct Google login via OIDC (requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET). Button only shows when credentials are configured.
 - **Replit Object Storage (Google Cloud Storage)**: For file uploads and storage.
 - **Recharts**: For interactive data visualizations on the dashboard (e.g., weekly goals chart).
 - **NextIAS Scraper**: For sourcing current affairs topics (primary source).
