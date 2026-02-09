@@ -39,7 +39,7 @@ export function registerCurrentAffairsRoutes(app: Express): void {
         .select({ date: dailyDigests.date, id: dailyDigests.id })
         .from(dailyDigests)
         .orderBy(desc(dailyDigests.date))
-        .limit(60);
+        .limit(400);
 
       res.json(digests);
     } catch (error) {

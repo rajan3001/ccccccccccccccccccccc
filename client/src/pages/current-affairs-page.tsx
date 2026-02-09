@@ -124,14 +124,11 @@ function getGsBadgeLabel(gs: string, category: string): string {
 function getDateRange(): string[] {
   const dates: string[] = [];
   const today = new Date();
-  for (let i = 13; i >= 0; i--) {
+  for (let i = 364; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(d.getDate() - i);
     dates.push(formatDate(d));
   }
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  dates.push(formatDate(tomorrow));
   return dates;
 }
 
@@ -233,68 +230,98 @@ export default function CurrentAffairsPage() {
           </div>
 
           <div className="border-b mb-5">
-            <div
-              ref={dateStripRef}
-              className="flex items-center gap-1 overflow-x-auto pb-3 scrollbar-hide"
-              data-testid="date-strip"
-            >
-              {dateRange.map((d) => {
-                const available = isDateAvailable(d);
-                const clickable = isDateClickable(d);
-                const isSelected = d === dateStr;
-                const isToday = d === todayStr;
-                const futureNoContent = isFutureOrToday(d) && !available;
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="flex-shrink-0"
+                onClick={() => {
+                  if (dateStripRef.current) {
+                    dateStripRef.current.scrollBy({ left: -400, behavior: "smooth" });
+                  }
+                }}
+                data-testid="button-date-scroll-left"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
 
-                return (
-                  <button
-                    key={d}
-                    data-active={isSelected ? "true" : "false"}
-                    data-testid={`date-item-${d}`}
-                    disabled={!clickable && futureNoContent}
-                    onClick={() => {
-                      if (clickable || available) {
-                        setSelectedDate(d);
-                        setGsFilter("All");
-                      }
-                    }}
-                    className={cn(
-                      "flex flex-col items-center min-w-[52px] px-2 py-2 rounded-lg transition-all flex-shrink-0",
-                      isSelected
-                        ? "bg-primary text-primary-foreground"
-                        : available
-                          ? "hover-elevate cursor-pointer"
-                          : futureNoContent
-                            ? "opacity-40 cursor-not-allowed"
-                            : "hover-elevate cursor-pointer opacity-70"
-                    )}
-                  >
-                    <span className={cn(
-                      "text-[10px] font-medium uppercase",
-                      isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
-                    )}>
-                      {getDayName(d)}
-                    </span>
-                    <span className={cn(
-                      "text-lg font-bold leading-tight",
-                      isSelected ? "text-primary-foreground" : "text-foreground"
-                    )}>
-                      {getDayNumber(d)}
-                    </span>
-                    <span className={cn(
-                      "text-[10px] font-medium",
-                      isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
-                    )}>
-                      {getMonthName(d)}
-                    </span>
-                    {available && !isSelected && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-0.5" />
-                    )}
-                    {isToday && !isSelected && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-0.5" />
-                    )}
-                  </button>
-                );
-              })}
+              <div
+                ref={dateStripRef}
+                className="flex items-center gap-1 overflow-x-auto pb-3 pt-1 scrollbar-hide flex-1"
+                data-testid="date-strip"
+              >
+                {dateRange.map((d) => {
+                  const available = isDateAvailable(d);
+                  const clickable = isDateClickable(d);
+                  const isSelected = d === dateStr;
+                  const isDayToday = d === todayStr;
+                  const futureNoContent = isFutureOrToday(d) && !available;
+
+                  return (
+                    <button
+                      key={d}
+                      data-active={isSelected ? "true" : "false"}
+                      data-testid={`date-item-${d}`}
+                      disabled={!clickable && futureNoContent}
+                      onClick={() => {
+                        if (clickable || available) {
+                          setSelectedDate(d);
+                          setGsFilter("All");
+                        }
+                      }}
+                      className={cn(
+                        "flex flex-col items-center min-w-[52px] px-2 py-2 rounded-lg transition-all flex-shrink-0",
+                        isSelected
+                          ? "bg-primary text-primary-foreground"
+                          : available
+                            ? "hover-elevate cursor-pointer"
+                            : futureNoContent
+                              ? "opacity-40 cursor-not-allowed"
+                              : "hover-elevate cursor-pointer opacity-70"
+                      )}
+                    >
+                      <span className={cn(
+                        "text-[10px] font-medium uppercase",
+                        isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                      )}>
+                        {getDayName(d)}
+                      </span>
+                      <span className={cn(
+                        "text-lg font-bold leading-tight",
+                        isSelected ? "text-primary-foreground" : "text-foreground"
+                      )}>
+                        {getDayNumber(d)}
+                      </span>
+                      <span className={cn(
+                        "text-[10px] font-medium",
+                        isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                      )}>
+                        {getMonthName(d)}
+                      </span>
+                      {available && !isSelected && (
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-0.5" />
+                      )}
+                      {isDayToday && !isSelected && (
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-0.5" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="flex-shrink-0"
+                onClick={() => {
+                  if (dateStripRef.current) {
+                    dateStripRef.current.scrollBy({ left: 400, behavior: "smooth" });
+                  }
+                }}
+                data-testid="button-date-scroll-right"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
 
