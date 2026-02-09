@@ -556,58 +556,160 @@ const SUPPORTED_EXAMS = [
     title: "UPSC CSE",
     subtitle: "IAS / IPS / IFS",
     icon: GraduationCap,
-    color: "from-primary/20 to-primary/5",
-    iconBg: "bg-primary/15 text-primary",
+    stat: "1",
+    statLabel: "National Exam",
+    gradient: "from-amber-500 to-orange-600",
+    glowColor: "shadow-amber-500/20",
+    ringColor: "border-amber-500/30",
+    dotColor: "bg-amber-400",
+    features: ["Prelims & Mains", "GS Paper I-IV", "Essay & Optional"],
   },
   {
     id: "state-psc",
     title: "State PCS",
-    subtitle: "UPPSC, MPPSC, BPSC...",
+    subtitle: "UPPSC, MPPSC, BPSC & more",
     icon: BookOpen,
-    color: "from-blue-500/15 to-blue-500/5 dark:from-blue-400/15 dark:to-blue-400/5",
-    iconBg: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+    stat: "10",
+    statLabel: "States Covered",
+    gradient: "from-blue-500 to-indigo-600",
+    glowColor: "shadow-blue-500/20",
+    ringColor: "border-blue-500/30",
+    dotColor: "bg-blue-400",
+    features: ["State-specific syllabus", "Previous Year Papers", "Exam patterns"],
   },
   {
     id: "ne-psc",
     title: "NE State PCS",
-    subtitle: "APSC, Meghalaya, Sikkim...",
+    subtitle: "APSC, Meghalaya, Sikkim & more",
     icon: Target,
-    color: "from-emerald-500/15 to-emerald-500/5 dark:from-emerald-400/15 dark:to-emerald-400/5",
-    iconBg: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+    stat: "5",
+    statLabel: "NE States",
+    gradient: "from-emerald-500 to-teal-600",
+    glowColor: "shadow-emerald-500/20",
+    ringColor: "border-emerald-500/30",
+    dotColor: "bg-emerald-400",
+    features: ["Regional focus", "Dedicated support", "Tailored content"],
   },
 ];
 
+function ExamStatCounter({ value, delay }: { value: string; delay: number }) {
+  return (
+    <motion.span
+      className="text-4xl sm:text-5xl font-display font-black text-white"
+      initial={{ opacity: 0, scale: 0.5 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ delay, duration: 0.5, type: "spring", stiffness: 200 }}
+    >
+      {value}
+    </motion.span>
+  );
+}
+
+function ExamCardParticle({ color, index }: { color: string; index: number }) {
+  const size = 3 + (index % 3) * 2;
+  const x = 10 + (index * 23) % 80;
+  const yStart = 20 + (index * 17) % 60;
+  return (
+    <motion.div
+      className={`absolute rounded-full ${color} opacity-40`}
+      style={{ width: size, height: size, left: `${x}%`, top: `${yStart}%` }}
+      animate={{
+        y: [0, -15 - index * 3, 0],
+        opacity: [0.2, 0.6, 0.2],
+      }}
+      transition={{
+        duration: 3 + index * 0.5,
+        repeat: Infinity,
+        delay: index * 0.4,
+        ease: "easeInOut",
+      }}
+    />
+  );
+}
+
 function PrepareForExamsSection() {
   return (
-    <div className="grid sm:grid-cols-3 gap-4 sm:gap-6" data-testid="exams-grid">
+    <div className="grid sm:grid-cols-3 gap-5 sm:gap-6" data-testid="exams-grid">
       {SUPPORTED_EXAMS.map((exam, i) => (
         <motion.div
           key={exam.id}
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 40, scale: 0.95 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
           viewport={{ once: true }}
-          transition={{ delay: i * 0.12, duration: 0.5, ease: "easeOut" }}
+          transition={{ delay: i * 0.15, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
           <Card
-            className="relative overflow-visible group cursor-default p-5 sm:p-6 text-center h-full"
+            className={`relative overflow-hidden group cursor-default h-full border-0 ${exam.glowColor} shadow-lg`}
             data-testid={`exam-card-${exam.id}`}
           >
-            <div className={`absolute inset-0 bg-gradient-to-br ${exam.color} rounded-[inherit] opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-            <div className="relative z-10 flex flex-col items-center gap-3">
+            <div className={`absolute inset-0 bg-gradient-to-br ${exam.gradient} opacity-90`} />
+
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/10 blur-xl" />
+              <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-white/5 blur-lg" />
+              {[0, 1, 2, 3].map(j => (
+                <ExamCardParticle key={j} color="bg-white" index={j + i * 4} />
+              ))}
+            </div>
+
+            <div className="absolute top-3 right-3 flex gap-1.5">
+              {[0, 1, 2].map(j => (
+                <motion.div
+                  key={j}
+                  className="w-1.5 h-1.5 rounded-full bg-white/40"
+                  animate={{ opacity: [0.3, 0.8, 0.3] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: j * 0.3 }}
+                />
+              ))}
+            </div>
+
+            <div className="relative z-10 p-5 sm:p-6 flex flex-col items-center text-center gap-4">
               <motion.div
-                className={`h-12 w-12 sm:h-14 sm:w-14 rounded-xl ${exam.iconBg} flex items-center justify-center`}
-                whileHover={{ scale: 1.08, rotate: 3 }}
-                transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                className={`relative h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center border ${exam.ringColor}`}
+                whileHover={{ scale: 1.08, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 300, damping: 12 }}
               >
-                <exam.icon className="h-6 w-6 sm:h-7 sm:w-7" />
+                <motion.div
+                  className="absolute inset-0 rounded-2xl border-2 border-white/20"
+                  animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0, 0.5] }}
+                  transition={{ duration: 2.5, repeat: Infinity, delay: i * 0.3 }}
+                />
+                <exam.icon className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
               </motion.div>
+
               <div>
-                <h3 className="font-display font-bold text-base sm:text-lg text-foreground">
+                <ExamStatCounter value={exam.stat} delay={i * 0.15 + 0.3} />
+                <p className="text-white/70 text-xs font-medium mt-0.5 tracking-wide uppercase">
+                  {exam.statLabel}
+                </p>
+              </div>
+
+              <div className="w-12 h-px bg-white/20" />
+
+              <div>
+                <h3 className="font-display font-bold text-lg sm:text-xl text-white">
                   {exam.title}
                 </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                <p className="text-white/60 text-xs sm:text-sm mt-0.5">
                   {exam.subtitle}
                 </p>
+              </div>
+
+              <div className="flex flex-col gap-1.5 w-full">
+                {exam.features.map((feat, fi) => (
+                  <motion.div
+                    key={fi}
+                    className="flex items-center gap-2 text-white/80 text-xs"
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.15 + 0.5 + fi * 0.1 }}
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5 text-white/60 flex-shrink-0" />
+                    <span>{feat}</span>
+                  </motion.div>
+                ))}
               </div>
             </div>
           </Card>
@@ -895,19 +997,38 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="exams" className="py-14 sm:py-20 bg-secondary/30">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section id="exams" className="py-14 sm:py-20 bg-secondary/30 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]">
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="exam-dots" width="20" height="20" patternUnits="userSpaceOnUse">
+                  <circle cx="2" cy="2" r="1" fill="currentColor" />
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#exam-dots)" />
+            </svg>
+          </div>
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="text-center mb-8 sm:mb-12"
             >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4 border border-primary/20"
+              >
+                <Sparkles className="h-3 w-3" />
+                16 Exams Supported
+              </motion.div>
               <h2 className="text-2xl sm:text-4xl font-display font-bold" data-testid="text-exams-heading">
                 Prepare for Top Exams
               </h2>
-              <p className="text-muted-foreground mt-2 sm:mt-3 text-sm sm:text-base">
-                Comprehensive preparation support for India's most competitive examinations
+              <p className="text-muted-foreground mt-2 sm:mt-3 text-sm sm:text-base max-w-lg mx-auto">
+                Comprehensive preparation support for India's most competitive civil services examinations
               </p>
             </motion.div>
 
