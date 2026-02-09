@@ -1010,64 +1010,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="py-14 sm:py-20 bg-background">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-8 sm:mb-12"
-            >
-              <h2 className="text-2xl sm:text-4xl font-display font-bold" data-testid="text-impact-heading">
-                Real impact, real numbers
-              </h2>
-              <p className="text-muted-foreground mt-2 sm:mt-3 text-sm sm:text-base">
-                Here's what Learnpro brings to your daily preparation
-              </p>
-            </motion.div>
-
-            <div className="grid sm:grid-cols-3 gap-4 sm:gap-6">
-              {[
-                {
-                  icon: Zap,
-                  stat: "3x",
-                  label: "More Practice Done",
-                  desc: "Aspirants using Learnpro practice 3x more questions than with traditional methods",
-                },
-                {
-                  icon: Clock,
-                  stat: "60s",
-                  label: "Instant AI Responses",
-                  desc: "Get clear, structured answers in under a minute -- whenever you need them",
-                },
-                {
-                  icon: Shield,
-                  stat: "16",
-                  label: "Exams Supported",
-                  desc: "UPSC + 15 State PSCs with exam-specific question patterns and syllabus",
-                },
-              ].map((item, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                >
-                  <Card className="p-5 sm:p-6 text-center h-full" data-testid={`impact-card-${i}`}>
-                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                      <item.icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                    </div>
-                    <span className="text-3xl sm:text-4xl font-display font-bold text-primary">{item.stat}</span>
-                    <p className="font-semibold text-foreground text-sm sm:text-base mt-1">{item.label}</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground mt-2 leading-relaxed">{item.desc}</p>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         <section className="py-14 sm:py-20 bg-secondary/30">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
