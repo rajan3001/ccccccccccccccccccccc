@@ -311,28 +311,25 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
             }}
           >
             <Card
-              className={`relative p-3 border ${item.borderColor} bg-gradient-to-br ${item.gradient} overflow-visible aspect-square flex flex-col justify-between`}
+              className={`relative p-3 border ${item.borderColor} bg-gradient-to-br ${item.gradient} overflow-visible`}
               data-testid={`card-achievement-${idx}`}
             >
-              <PulseRing color={item.accentColor} delay={idx * 0.5} />
-              <FloatingParticle color={item.accentColor} size={4} x={80} y={15} delay={idx * 0.3} seed={idx * 2} />
-              <FloatingParticle color={item.accentColor} size={3} x={20} y={75} delay={idx * 0.5 + 1} seed={idx * 2 + 1} />
+              <FloatingParticle color={item.accentColor} size={3} x={85} y={30} delay={idx * 0.3} seed={idx * 2} />
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 mb-2">
                 <div
-                  className={`h-7 w-7 rounded-md ${item.iconBg} flex items-center justify-center flex-shrink-0`}
-                  style={{ animation: `dashboard-icon-glow 3s ease-in-out ${idx * 0.5}s infinite` }}
+                  className={`h-6 w-6 rounded-md ${item.iconBg} flex items-center justify-center flex-shrink-0`}
                 >
-                  <item.icon className={`h-3.5 w-3.5 ${item.color}`} />
+                  <item.icon className={`h-3 w-3 ${item.color}`} />
                 </div>
                 <span className="text-[10px] font-medium text-muted-foreground leading-tight">{item.label}</span>
               </div>
 
-              <div>
-                <div className="text-2xl sm:text-3xl font-bold text-foreground" data-testid={`text-achievement-value-${idx}`}>
+              <div className="flex items-end justify-between gap-1">
+                <div className="text-2xl font-bold text-foreground leading-none" data-testid={`text-achievement-value-${idx}`}>
                   <AnimatedCounter target={item.value} />
                 </div>
-                <div className="text-[10px] text-muted-foreground mt-0.5">
+                <div className="text-[10px] text-muted-foreground pb-0.5">
                   {(item as any).allTimeLabel || "All time"}: <span className="font-medium text-foreground/70">{item.allTime}</span>
                 </div>
               </div>
