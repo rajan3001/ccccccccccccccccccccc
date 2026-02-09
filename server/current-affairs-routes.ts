@@ -278,46 +278,41 @@ No markdown, no explanations, just the JSON array.`;
       res.setHeader("Connection", "keep-alive");
 
       const sourceInfo = topic.source ? ` (Source: ${topic.source})` : "";
-      const prompt = `You are an expert UPSC/State PSC exam mentor. A student wants to read in detail about this current affairs topic:
+      const prompt = `You are an expert UPSC/State PSC current affairs analyst. Write a concise, exam-focused analysis of this topic:
 
 **${topic.title}**${sourceInfo}
 
 ${topic.summary}
 
-Provide a comprehensive analysis covering:
+STRICT RULES:
+- TOTAL output must be between 800-1200 words MAXIMUM. Do NOT exceed this.
+- Be crisp and to-the-point like a professional current affairs digest.
+- Use bullet points extensively for easy scanning.
+- No filler text, no verbose explanations, no repetition.
+- Never mention any coaching institute names.
 
-## Background & Context
-Explain the complete background - what led to this news, historical context, and why it matters now.
+FORMAT (follow this exact structure):
 
-## Key Facts & Details
-List all important facts, data points, statistics, dates, and specific details that an exam aspirant must know.
+### In Summary
+Write 3-4 concise bullet points capturing the essence of the news (2-3 lines each max).
 
-## Constitutional/Legal/Policy Framework
-Explain any relevant constitutional provisions, laws, acts, government policies, or institutional mechanisms involved.
+### Key Highlights
+Use bullet points with **bold sub-headings** to cover the main aspects of the news. Group related points under logical sub-headings. Each bullet should be 1-2 lines max. Cover:
+- What happened and key decisions/outcomes
+- Important facts, figures, dates, names
+- Any agreements, policies, or frameworks involved
+- Strategic/economic/social significance
 
-## UPSC Mains Relevance
-- Which GS Paper(s) this connects to
-- Specific syllabus topics it links to
-- How it can be used in essay/ethics/case study papers
+### Background
+2-3 short bullet points on relevant context (keep under 100 words total).
 
-## Prelims Angle
-- Potential MCQ areas from this topic
-- Important terms, organizations, or facts to remember
-- Previous year question connections if any
+### UPSC Relevance
+A brief box/table format:
+- **GS Paper**: Which paper(s) this maps to
+- **Syllabus Topic**: Specific syllabus connection
+- **Key Terms**: Important terms for prelims (comma separated)
 
-## Connected Topics
-- Related static topics from NCERT or standard reference books
-- How this connects to other current affairs themes
-
-## Multiple Perspectives
-- Different viewpoints and dimensions on this issue
-- Government's position vs. critics' arguments
-- International comparisons if relevant
-
-## Possible UPSC Questions
-Write 2-3 possible Mains-style questions that could be framed from this topic. For each question, provide a brief outline of how to approach the answer.
-
-Keep the analysis exam-focused, analytical, and factual. Use markdown formatting for readability.`;
+Write in a professional, analytical tone. Prioritize facts over opinions. Use markdown formatting.`;
 
       let clientClosed = false;
       req.on("close", () => {
