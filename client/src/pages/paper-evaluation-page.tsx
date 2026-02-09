@@ -52,7 +52,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import ReactMarkdown from "react-markdown";
+import { StyledMarkdown } from "@/components/ui/styled-markdown";
 import { generatePDF, evaluationToPDFSections } from "@/lib/pdf-generator";
 
 const EXAM_OPTIONS = [
@@ -855,8 +855,8 @@ export default function PaperEvaluationPage() {
         {activeResult.overallFeedback && (
           <Card className="p-5 mb-6" data-testid="card-overall-feedback">
             <h2 className="text-base font-semibold mb-3">Overall Feedback</h2>
-            <div className="prose prose-sm dark:prose-invert max-w-none">
-              <ReactMarkdown>{activeResult.overallFeedback}</ReactMarkdown>
+            <div>
+              <StyledMarkdown>{activeResult.overallFeedback}</StyledMarkdown>
             </div>
           </Card>
         )}
@@ -969,8 +969,8 @@ export default function PaperEvaluationPage() {
                   {q.detailedFeedback && (
                     <div className="mb-4">
                       <h4 className="text-sm font-semibold mb-2">Detailed Analysis</h4>
-                      <div className="prose prose-sm dark:prose-invert max-w-none">
-                        <ReactMarkdown>{q.detailedFeedback}</ReactMarkdown>
+                      <div>
+                        <StyledMarkdown>{q.detailedFeedback}</StyledMarkdown>
                       </div>
                     </div>
                   )}

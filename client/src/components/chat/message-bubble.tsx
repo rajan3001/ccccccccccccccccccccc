@@ -1,7 +1,7 @@
-import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
 import { Message } from "@/hooks/use-chat";
 import { Logo } from "@/components/ui/logo";
+import { StyledMarkdown } from "@/components/ui/styled-markdown";
 import { User, Copy, Check, FileText, Image as ImageIcon, File, BookmarkPlus, FolderPlus, Download } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -229,11 +229,9 @@ export function MessageBubble({ message, isStreaming, conversationId, userQuery 
             </div>
           )}
 
-          <div className="prose prose-stone dark:prose-invert max-w-none text-base">
+          <div className="max-w-none text-sm sm:text-base">
             {message.content ? (
-              <ReactMarkdown>
-                {message.content}
-              </ReactMarkdown>
+              <StyledMarkdown>{message.content}</StyledMarkdown>
             ) : (
                isStreaming && <span className="animate-pulse inline-block w-2 h-4 bg-primary rounded-sm align-middle" />
             )}

@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useNotes, useNoteFolders, useNoteTags, useUpdateNote, useDeleteNote, useReviewNote, useDueNotesCount } from "@/hooks/use-notes";
 import { generatePDF, noteToPDFSections } from "@/lib/pdf-generator";
-import ReactMarkdown from "react-markdown";
+import { StyledMarkdown } from "@/components/ui/styled-markdown";
 import {
   Select,
   SelectContent,
@@ -492,8 +492,8 @@ export default function NotesPage() {
             )}
           </div>
 
-          <div className="prose prose-stone dark:prose-invert max-w-none" data-testid="text-note-content">
-            <ReactMarkdown>{selectedNote.content}</ReactMarkdown>
+          <div data-testid="text-note-content">
+            <StyledMarkdown>{selectedNote.content}</StyledMarkdown>
           </div>
         </Card>
       </div>
@@ -616,8 +616,8 @@ export default function NotesPage() {
             <div>
               <label className="text-sm font-medium mb-1.5 block">Preview</label>
               <Card className="p-4">
-                <div className="prose prose-stone dark:prose-invert max-w-none prose-sm">
-                  <ReactMarkdown>{editContent}</ReactMarkdown>
+                <div>
+                  <StyledMarkdown>{editContent}</StyledMarkdown>
                 </div>
               </Card>
             </div>
