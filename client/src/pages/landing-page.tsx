@@ -1059,36 +1059,49 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="py-16 sm:py-24 bg-gradient-to-b from-primary/5 to-background relative overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent opacity-50" />
-          <div className="max-w-3xl mx-auto px-4 text-center relative z-10">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4 sm:mb-6">
-                <GraduationCap className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
-              </div>
-              <h2 className="text-2xl sm:text-4xl font-display font-bold mb-3 sm:mb-4" data-testid="text-cta-heading">
-                Your preparation deserves a better companion
-              </h2>
-              <p className="text-muted-foreground text-sm sm:text-base mb-8 sm:mb-10 max-w-xl mx-auto">
-                Join thousands of aspirants who chose a smarter, kinder way to prepare. Learnpro AI is here to walk with you -- every single day.
-              </p>
-              <Button
-                size="lg"
-                onClick={openLogin}
-                className="rounded-full shadow-xl shadow-primary/30"
-                data-testid="button-bottom-cta"
+        <section className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-primary/[0.03] to-background" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(35_90%_45%/0.08),transparent_60%)]" />
+
+          <div className="py-16 sm:py-24 relative z-10">
+            <div className="max-w-3xl mx-auto px-4 text-center">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
               >
-                Start Your Journey
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </motion.div>
+                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                  <GraduationCap className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+                </div>
+                <h2 className="text-2xl sm:text-4xl font-display font-bold mb-3 sm:mb-4" data-testid="text-cta-heading">
+                  Your preparation deserves a better companion
+                </h2>
+                <p className="text-muted-foreground text-sm sm:text-base mb-8 sm:mb-10 max-w-xl mx-auto">
+                  Join thousands of aspirants who chose a smarter, kinder way to prepare. Learnpro AI is here to walk with you -- every single day.
+                </p>
+                <Button
+                  size="lg"
+                  onClick={openLogin}
+                  className="rounded-full shadow-xl shadow-primary/30"
+                  data-testid="button-bottom-cta"
+                >
+                  Start Your Journey
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </motion.div>
+            </div>
           </div>
+
+          <div className="w-full flex justify-center py-4 sm:py-6 relative z-10">
+            <div className="flex items-center gap-2 text-muted-foreground/60">
+              <div className="h-px w-8 sm:w-16 bg-gradient-to-r from-transparent to-border" />
+              <Sparkles className="h-3.5 w-3.5 text-primary/40" />
+              <div className="h-px w-8 sm:w-16 bg-gradient-to-l from-transparent to-border" />
+            </div>
+          </div>
+
+          <MobileAppSection embedded />
         </section>
-        <MobileAppSection />
       </main>
 
       <LandingFooter />

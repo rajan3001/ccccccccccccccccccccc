@@ -211,22 +211,8 @@ function PhoneMockup() {
   );
 }
 
-export function MobileAppSection() {
-  return (
-    <section className="py-16 sm:py-24 relative overflow-hidden" data-testid="mobile-app-section">
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/5 to-background" />
-
-      <motion.div
-        className="absolute top-20 left-10 h-32 w-32 rounded-full bg-primary/5 blur-2xl"
-        animate={{ x: [0, 20, 0], y: [0, -10, 0] }}
-        transition={{ duration: 8, repeat: Infinity }}
-      />
-      <motion.div
-        className="absolute bottom-20 right-10 h-40 w-40 rounded-full bg-primary/5 blur-2xl"
-        animate={{ x: [0, -15, 0], y: [0, 15, 0] }}
-        transition={{ duration: 10, repeat: Infinity, delay: 2 }}
-      />
-
+export function MobileAppSection({ embedded = false }: { embedded?: boolean }) {
+  const content = (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           <motion.div
@@ -294,6 +280,30 @@ export function MobileAppSection() {
           </div>
         </div>
       </div>
+  );
+
+  if (embedded) {
+    return (
+      <div className="pb-16 sm:pb-24 pt-6 sm:pt-10 relative" data-testid="mobile-app-section">
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <section className="py-16 sm:py-24 relative overflow-hidden" data-testid="mobile-app-section">
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/5 to-background" />
+      <motion.div
+        className="absolute top-20 left-10 h-32 w-32 rounded-full bg-primary/5 blur-2xl"
+        animate={{ x: [0, 20, 0], y: [0, -10, 0] }}
+        transition={{ duration: 8, repeat: Infinity }}
+      />
+      <motion.div
+        className="absolute bottom-20 right-10 h-40 w-40 rounded-full bg-primary/5 blur-2xl"
+        animate={{ x: [0, -15, 0], y: [0, 15, 0] }}
+        transition={{ duration: 10, repeat: Infinity, delay: 2 }}
+      />
+      {content}
     </section>
   );
 }
