@@ -696,7 +696,7 @@ export default function LandingPage() {
       <footer className="bg-foreground py-10 sm:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 flex-wrap">
-            <Logo size="sm" className="grayscale brightness-200" />
+            <Logo size="sm" variant="light" />
             <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm text-primary-foreground/60">
               <a href="#features" data-testid="footer-link-features">Features</a>
               <a href="#comparison" data-testid="footer-link-compare">Compare</a>

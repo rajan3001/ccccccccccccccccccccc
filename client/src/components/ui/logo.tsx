@@ -4,9 +4,10 @@ interface LogoProps {
   className?: string;
   size?: "sm" | "md" | "lg" | "xl";
   withText?: boolean;
+  variant?: "default" | "light";
 }
 
-export function Logo({ className = "", size = "md", withText = true }: LogoProps) {
+export function Logo({ className = "", size = "md", withText = true, variant = "default" }: LogoProps) {
   const sizeClasses = {
     sm: "h-6 w-6",
     md: "h-8 w-8",
@@ -21,6 +22,9 @@ export function Logo({ className = "", size = "md", withText = true }: LogoProps
     xl: "text-5xl",
   };
 
+  const textColorClass = variant === "light" ? "text-white" : "text-foreground";
+  const aiColorClass = variant === "light" ? "text-blue-200" : "text-primary";
+
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       <div className="relative">
@@ -32,8 +36,8 @@ export function Logo({ className = "", size = "md", withText = true }: LogoProps
         />
       </div>
       {withText && (
-        <span className={`font-display font-bold tracking-tight text-foreground ${textSizeClasses[size]}`}>
-          Learnpro <span className="text-primary">AI</span>
+        <span className={`font-display font-bold tracking-tight ${textColorClass} ${textSizeClasses[size]}`}>
+          Learnpro <span className={aiColorClass}>AI</span>
         </span>
       )}
     </div>
