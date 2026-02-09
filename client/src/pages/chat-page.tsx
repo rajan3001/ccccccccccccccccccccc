@@ -22,6 +22,7 @@ import {
   ListChecks,
   HelpCircle,
   MessageCircle,
+  ArrowDown,
 } from "lucide-react";
 import { generatePDF, chatToPDFSections } from "@/lib/pdf-generator";
 
@@ -54,9 +55,11 @@ export default function ChatPage() {
   const createMutation = useCreateConversation();
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [prefillSent, setPrefillSent] = useState(false);
   const [quizContent, setQuizContent] = useState<string | null>(null);
   const [quizOpen, setQuizOpen] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
   const { data: queryStatus } = useQuery<{ used: number; limit: number; remaining: number }>({
     queryKey: ["/api/chat/query-status"],
@@ -82,8 +85,19 @@ export default function ChatPage() {
     setQuizOpen(true);
   };
 
-  useEffect(() => {
+  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleScroll = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    setShowScrollButton(distanceFromBottom > 200);
+  };
+
+  useEffect(() => {
+    scrollToBottom();
   }, [conversationData?.messages, streamedContent]);
 
   useEffect(() => {
@@ -122,7 +136,7 @@ export default function ChatPage() {
       <Sidebar />
       
       <main className="flex-1 flex flex-col min-h-0 relative">
-        <div className="flex-1 overflow-y-auto scroll-smooth">
+        <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto scroll-smooth">
           {!conversationId || (!isChatLoading && !hasMessages && !isStreaming) ? (
             <div className="flex flex-col items-center justify-center h-full animate-in fade-in duration-500">
               {queryStatus && !(queryStatus as any).isAdmin && (
@@ -238,7 +252,19 @@ export default function ChatPage() {
           )}
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background to-transparent pt-6 sm:pt-10 pb-4 sm:pb-6 px-2 sm:px-4">
+        {showScrollButton && hasMessages && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={scrollToBottom}
+            className="absolute bottom-24 left-1/2 -translate-x-1/2 z-30 rounded-full shadow-md bg-background/90 backdrop-blur-sm"
+            data-testid="button-scroll-to-bottom"
+          >
+            <ArrowDown className="h-4 w-4" />
+          </Button>
+        )}
+
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background to-transparent pt-4 pb-2 sm:pb-3 px-2 sm:px-4">
           {queryLimitReached ? (
             <div className="max-w-3xl mx-auto text-center py-3 px-4 rounded-lg bg-destructive/10 border border-destructive/20">
               <p className="text-sm text-destructive font-medium" data-testid="text-query-limit">

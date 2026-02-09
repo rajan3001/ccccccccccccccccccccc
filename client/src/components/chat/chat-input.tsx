@@ -268,11 +268,6 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
           </div>
         </div>
       </div>
-      <div className="text-center mt-3">
-        <p className="text-xs text-muted-foreground">
-          Learnpro AI can make mistakes. Consider checking important information.
-        </p>
-      </div>
     </div>
   );
 }
