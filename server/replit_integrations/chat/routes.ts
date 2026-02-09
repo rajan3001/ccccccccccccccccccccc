@@ -105,11 +105,8 @@ export function registerChatRoutes(app: Express): void {
   });
 
   const FREE_DAILY_LIMIT = 5;
-  const ADMIN_EMAILS = ["rajan.kumar3001@gmail.com"];
-
   function isAdmin(req: any): boolean {
-    const email = req.user?.dbUser?.email;
-    return ADMIN_EMAILS.includes(email);
+    return req.user?.dbUser?.isAdmin === true;
   }
 
   function getUserId(req: any): string | undefined {

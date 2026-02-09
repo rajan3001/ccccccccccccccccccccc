@@ -29,9 +29,10 @@ export async function registerRoutes(
   // Subscription Routes
   app.get(api.subscription.get.path, isAuthenticated, async (req: any, res) => {
     const userId = req.user.claims.sub;
+    const isAdmin = req.user?.dbUser?.isAdmin === true;
     const sub = await storage.getSubscription(userId);
-    const isPro = sub?.status === 'active';
-    res.json({ isPro, subscription: sub || null });
+    const isPro = isAdmin || sub?.status === 'active';
+    res.json({ isPro, isAdmin, subscription: sub || null });
   });
 
   app.post(api.subscription.create.path, isAuthenticated, async (req: any, res) => {
