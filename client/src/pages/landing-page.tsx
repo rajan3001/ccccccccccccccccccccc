@@ -873,24 +873,24 @@ export default function LandingPage() {
               className="mt-7 sm:mt-9 flex justify-center"
             >
               <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-card/80 backdrop-blur-sm border border-border/50">
-                <div className="w-[120px] overflow-hidden relative" style={{ maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)' }}>
-                  <div className="flex -space-x-1.5 animate-aspirant-scroll w-max">
+                <div className="w-[100px] sm:w-[120px] overflow-hidden relative" style={{ maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)' }}>
+                  <div className="flex gap-1.5 animate-aspirant-scroll w-max">
                     {[...Array(2)].map((_, setIdx) => (
                       [
-                        "/images/aspirant-1_1.jpg",
-                        "/images/aspirant-4_1.jpg",
-                        "/images/aspirant-1_2.jpg",
-                        "/images/aspirant-7_1.jpg",
-                        "/images/aspirant-4_2.jpg",
-                        "/images/aspirant-1_3.jpg",
-                        "/images/aspirant-7_2.jpg",
-                        "/images/aspirant-4_3.jpg",
+                        "/images/face-1_1.jpg",
+                        "/images/face-5_1.jpg",
+                        "/images/face-1_2.jpg",
+                        "/images/face-5_2.jpg",
+                        "/images/face-1_3.jpg",
+                        "/images/face-5_3.jpg",
+                        "/images/face-1_4.jpg",
+                        "/images/face-5_4.jpg",
                       ].map((src, j) => (
                         <img
                           key={`${setIdx}-${j}`}
                           src={src}
                           alt=""
-                          className="w-7 h-7 rounded-full object-cover border-2 border-card flex-shrink-0"
+                          className="w-7 h-7 rounded-full object-cover border-[1.5px] border-primary/30 flex-shrink-0 brightness-105"
                         />
                       ))
                     ))}
