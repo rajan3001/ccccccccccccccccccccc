@@ -93,7 +93,12 @@ function parseMCQContent(content: string): ParsedQuestion[] {
 }
 
 function renderExplanationWithBold(text: string) {
-  const cleaned = text.replace(/\s{2,}/g, "\n").trim();
+  let cleaned = text
+    .replace(/\s{2,}/g, "\n")
+    .replace(/\n\s*\*\s+/g, "\n\u2022 ")
+    .replace(/^\s*\*\s+/g, "\u2022 ")
+    .trim();
+
   const parts = cleaned.split(/(\*\*[^*]+\*\*)/g);
   return parts.map((part, i) => {
     const boldMatch = part.match(/^\*\*(.+)\*\*$/);
