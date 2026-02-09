@@ -1,0 +1,293 @@
+import { useState, useRef, useEffect } from "react";
+import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
+import { Logo } from "@/components/ui/logo";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, Phone, ArrowLeft, Shield, CheckCircle2 } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+export default function LoginPage() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+
+  const [step, setStep] = useState<"phone" | "otp">("phone");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [error, setError] = useState("");
+  const [countdown, setCountdown] = useState(0);
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      setLocation("/");
+    }
+  }, [isAuthenticated, isLoading, setLocation]);
+
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
+
+  const sendOtpMutation = useMutation({
+    mutationFn: async (phone: string) => {
+      const res = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: `+91${phone}` }),
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to send OTP");
+      return data;
+    },
+    onSuccess: () => {
+      setStep("otp");
+      setError("");
+      setCountdown(30);
+      setTimeout(() => otpRefs.current[0]?.focus(), 100);
+    },
+    onError: (err: Error) => {
+      setError(err.message);
+    },
+  });
+
+  const verifyOtpMutation = useMutation({
+    mutationFn: async ({ phone, otpCode }: { phone: string; otpCode: string }) => {
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: `+91${phone}`, otp: otpCode }),
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Verification failed");
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setLocation("/");
+    },
+    onError: (err: Error) => {
+      setError(err.message);
+    },
+  });
+
+  const handlePhoneSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (phoneNumber.length !== 10) {
+      setError("Please enter a valid 10-digit mobile number");
+      return;
+    }
+    sendOtpMutation.mutate(phoneNumber);
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value.slice(-1);
+    setOtp(newOtp);
+    setError("");
+
+    if (value && index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
+
+    if (newOtp.every((d) => d !== "") && value) {
+      const otpCode = newOtp.join("");
+      verifyOtpMutation.mutate({ phone: phoneNumber, otpCode });
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (pasted.length === 6) {
+      const newOtp = pasted.split("");
+      setOtp(newOtp);
+      verifyOtpMutation.mutate({ phone: phoneNumber, otpCode: pasted });
+    }
+  };
+
+  const handleResendOtp = () => {
+    if (countdown > 0) return;
+    setOtp(["", "", "", "", "", ""]);
+    setError("");
+    sendOtpMutation.mutate(phoneNumber);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      <div className="absolute top-6 left-6">
+        <Logo size="md" />
+      </div>
+
+      <Card className="w-full max-w-sm p-6 sm:p-8">
+        {step === "phone" ? (
+          <>
+            <div className="text-center mb-6">
+              <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Phone className="h-6 w-6 text-primary" />
+              </div>
+              <h1 className="text-xl font-bold text-foreground" data-testid="text-login-heading">
+                Welcome to Learnpro AI
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Enter your mobile number to continue
+              </p>
+            </div>
+
+            <form onSubmit={handlePhoneSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="phone" className="text-sm font-medium">
+                  Mobile Number
+                </Label>
+                <div className="flex gap-2 mt-1.5">
+                  <div className="flex items-center justify-center px-3 rounded-md bg-secondary border border-border text-sm font-medium text-foreground min-w-[52px]">
+                    +91
+                  </div>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="Enter 10-digit number"
+                    value={phoneNumber}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                      setPhoneNumber(val);
+                      setError("");
+                    }}
+                    maxLength={10}
+                    autoFocus
+                    data-testid="input-phone"
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <p className="text-xs text-destructive font-medium" data-testid="text-error">
+                  {error}
+                </p>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={phoneNumber.length !== 10 || sendOtpMutation.isPending}
+                data-testid="button-send-otp"
+              >
+                {sendOtpMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Sending OTP...
+                  </>
+                ) : (
+                  "Get OTP"
+                )}
+              </Button>
+
+              <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center mt-3">
+                <Shield className="h-3.5 w-3.5" />
+                <span>Your number is safe and secure with us</span>
+              </div>
+            </form>
+          </>
+        ) : (
+          <>
+            <div className="text-center mb-6">
+              <div className="h-14 w-14 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <h1 className="text-xl font-bold text-foreground" data-testid="text-otp-heading">
+                Verify OTP
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Enter the 6-digit code sent to{" "}
+                <span className="font-medium text-foreground">+91 {phoneNumber}</span>
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
+                {otp.map((digit, i) => (
+                  <Input
+                    key={i}
+                    ref={(el) => { otpRefs.current[i] = el; }}
+                    type="text"
+                    inputMode="numeric"
+                    value={digit}
+                    onChange={(e) => handleOtpChange(i, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                    className="w-11 h-12 text-center text-lg font-bold"
+                    maxLength={1}
+                    data-testid={`input-otp-${i}`}
+                  />
+                ))}
+              </div>
+
+              {error && (
+                <p className="text-xs text-destructive font-medium text-center" data-testid="text-otp-error">
+                  {error}
+                </p>
+              )}
+
+              {verifyOtpMutation.isPending && (
+                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Verifying...
+                </div>
+              )}
+
+              <div className="text-center">
+                <button
+                  onClick={handleResendOtp}
+                  disabled={countdown > 0 || sendOtpMutation.isPending}
+                  className="text-sm text-primary font-medium disabled:text-muted-foreground disabled:cursor-not-allowed"
+                  data-testid="button-resend-otp"
+                >
+                  {countdown > 0 ? `Resend OTP in ${countdown}s` : "Resend OTP"}
+                </button>
+              </div>
+
+              <button
+                onClick={() => {
+                  setStep("phone");
+                  setOtp(["", "", "", "", "", ""]);
+                  setError("");
+                }}
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mx-auto"
+                data-testid="button-change-number"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Change number
+              </button>
+            </div>
+          </>
+        )}
+      </Card>
+
+      <p className="text-xs text-muted-foreground mt-6 text-center max-w-sm">
+        By continuing, you agree to Learnpro AI's Terms of Service and Privacy Policy
+      </p>
+    </div>
+  );
+}

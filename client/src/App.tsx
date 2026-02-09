@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import LandingPage from "@/pages/landing-page";
+import LoginPage from "@/pages/login-page";
 import ChatPage from "@/pages/chat-page";
 import DashboardPage from "@/pages/dashboard-page";
 import OnboardingPage from "@/pages/onboarding-page";
@@ -14,6 +15,7 @@ import SubscriptionPage from "@/pages/subscription-page";
 import PaperEvaluationPage from "@/pages/paper-evaluation-page";
 import NotesPage from "@/pages/notes-page";
 import StudyPlannerPage from "@/pages/study-planner-page";
+import SettingsPage from "@/pages/settings-page";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -31,14 +33,16 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={isAuthenticated ? DashboardPage : LandingPage} />
-      <Route path="/chat/new">{isAuthenticated ? <ChatPage /> : <Redirect to="/" />}</Route>
-      <Route path="/chat/:id" component={isAuthenticated ? ChatPage : LandingPage} />
-      <Route path="/current-affairs" component={isAuthenticated ? CurrentAffairsPage : LandingPage} />
-      <Route path="/current-affairs/topic/:id" component={isAuthenticated ? CurrentAffairsTopicPage : LandingPage} />
-      <Route path="/practice-quiz" component={isAuthenticated ? PracticeQuizPage : LandingPage} />
-      <Route path="/paper-evaluation" component={isAuthenticated ? PaperEvaluationPage : LandingPage} />
-      <Route path="/notes" component={isAuthenticated ? NotesPage : LandingPage} />
-      <Route path="/study-planner" component={isAuthenticated ? StudyPlannerPage : LandingPage} />
+      <Route path="/login" component={LoginPage} />
+      <Route path="/chat/new">{isAuthenticated ? <ChatPage /> : <Redirect to="/login" />}</Route>
+      <Route path="/chat/:id" component={isAuthenticated ? ChatPage : LoginPage} />
+      <Route path="/current-affairs" component={isAuthenticated ? CurrentAffairsPage : LoginPage} />
+      <Route path="/current-affairs/topic/:id" component={isAuthenticated ? CurrentAffairsTopicPage : LoginPage} />
+      <Route path="/practice-quiz" component={isAuthenticated ? PracticeQuizPage : LoginPage} />
+      <Route path="/paper-evaluation" component={isAuthenticated ? PaperEvaluationPage : LoginPage} />
+      <Route path="/notes" component={isAuthenticated ? NotesPage : LoginPage} />
+      <Route path="/study-planner" component={isAuthenticated ? StudyPlannerPage : LoginPage} />
+      <Route path="/settings" component={isAuthenticated ? SettingsPage : LoginPage} />
       <Route path="/subscription" component={SubscriptionPage} />
       <Route component={NotFound} />
     </Switch>

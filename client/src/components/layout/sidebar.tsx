@@ -4,6 +4,7 @@ import { useConversations, useDeleteConversation } from "@/hooks/use-chat";
 import { useSubscription } from "@/hooks/use-subscription";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { 
   Plus, 
   MessageSquare, 
@@ -16,6 +17,10 @@ import {
   FileCheck,
   StickyNote,
   CalendarCheck,
+  Settings,
+  User,
+  Phone,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
@@ -32,16 +37,21 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export function Sidebar() {
   const [location, setLocation] = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout, isLoggingOut } = useAuth();
   const { data: conversations, isLoading } = useConversations();
   const deleteMutation = useDeleteConversation();
   const { data: subData } = useSubscription();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
-  // Extract ID from path /chat/:id
   const currentId = location.startsWith("/chat/") 
     ? parseInt(location.split("/")[2]) 
     : null;
@@ -52,7 +62,7 @@ export function Sidebar() {
   };
 
   const handleDelete = (e: React.MouseEvent, id: number) => {
-    e.stopPropagation(); // Prevent navigation
+    e.stopPropagation();
     deleteMutation.mutate(id, {
       onSuccess: () => {
         if (currentId === id) {
@@ -61,6 +71,11 @@ export function Sidebar() {
       }
     });
   };
+
+  const isPro = subData?.isPro;
+  const displayName = user?.displayName || user?.firstName || "User";
+  const phoneDisplay = user?.phone ? user.phone.replace("+91", "") : "";
+  const initials = displayName.charAt(0).toUpperCase();
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-secondary/30 border-r border-border">
@@ -191,7 +206,7 @@ export function Sidebar() {
                         <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
                         <AlertDialogAction 
                           onClick={(e) => handleDelete(e, chat.id)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          className="bg-destructive text-destructive-foreground"
                         >
                           Delete
                         </AlertDialogAction>
@@ -207,47 +222,123 @@ export function Sidebar() {
 
       <div className="p-4 border-t border-border/50 bg-background/50">
         <div className="space-y-2">
-          {subData?.isPro ? (
+          {isPro ? (
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 text-primary text-sm font-semibold border border-primary/20">
               <Crown className="h-4 w-4" />
               <span>Pro Plan Active</span>
             </div>
           ) : (
             <Link href="/subscription" className="block" onClick={() => setIsMobileOpen(false)}>
-              <div className="group flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-100 to-amber-50 border border-amber-200 text-amber-900 text-sm font-semibold cursor-pointer hover:shadow-md transition-all">
+              <div className="group flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 border border-amber-200 dark:border-amber-700/50 text-amber-900 dark:text-amber-300 text-sm font-semibold cursor-pointer hover:shadow-md transition-all">
                 <Crown className="h-4 w-4 group-hover:scale-110 transition-transform" />
                 <span>Upgrade to Pro</span>
               </div>
             </Link>
           )}
 
-          <div className="pt-2 flex items-center justify-between px-2">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground font-bold border border-border">
-                {user?.firstName?.[0] || user?.email?.[0] || "U"}
+          <Popover>
+            <PopoverTrigger asChild>
+              <div className="pt-2 flex items-center justify-between px-2 cursor-pointer rounded-md hover-elevate py-2" data-testid="button-profile-menu">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <div className="relative">
+                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold border border-primary/20">
+                      {initials}
+                    </div>
+                    <Badge
+                      variant="secondary"
+                      className="absolute -bottom-1 -right-1 text-[8px] px-1 py-0 leading-tight font-bold no-default-hover-elevate no-default-active-elevate"
+                    >
+                      {isPro ? "PRO" : "FREE"}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-foreground leading-none truncate">{displayName}</span>
+                    {phoneDisplay && (
+                      <span className="text-xs text-muted-foreground leading-none mt-1">{phoneDisplay}</span>
+                    )}
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </div>
-              <div className="flex flex-col">
-                <span className="text-foreground leading-none">{user?.firstName || "User"}</span>
-                <span className="text-xs text-muted-foreground leading-none mt-1">Free Plan</span>
+            </PopoverTrigger>
+            <PopoverContent side="top" align="start" className="w-64 p-0" sideOffset={8}>
+              <div className="p-4 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary text-lg font-bold border border-primary/20">
+                      {initials}
+                    </div>
+                    <Badge
+                      variant="secondary"
+                      className="absolute -bottom-1 -right-1 text-[8px] px-1 py-0 leading-tight font-bold no-default-hover-elevate no-default-active-elevate"
+                    >
+                      {isPro ? "PRO" : "FREE"}
+                    </Badge>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm text-foreground truncate" data-testid="text-profile-name">{displayName}</p>
+                    {phoneDisplay && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1" data-testid="text-profile-phone">
+                        {phoneDisplay}
+                      </p>
+                    )}
+                    {user?.email && (
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-            <Button variant="ghost" size="icon" onClick={() => logout()}>
-              <LogOut className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-            </Button>
-          </div>
+              <div className="p-1.5">
+                <Link href="/settings" onClick={() => setIsMobileOpen(false)}>
+                  <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-foreground hover-elevate" data-testid="link-settings">
+                    <Settings className="h-4 w-4 text-muted-foreground" />
+                    Settings
+                  </button>
+                </Link>
+                <button
+                  onClick={() => setShowLogoutDialog(true)}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-destructive hover-elevate"
+                  data-testid="button-logout-trigger"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
+
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Logout?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to logout from Learnpro AI? You'll need to verify your phone number again to log back in.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-logout">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => logout()}
+              className="bg-destructive text-destructive-foreground"
+              disabled={isLoggingOut}
+              data-testid="button-confirm-logout"
+            >
+              {isLoggingOut ? "Logging out..." : "Yes, Logout"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 
   return (
     <>
-      {/* Desktop Sidebar */}
       <div className="hidden md:block w-72 h-screen flex-shrink-0">
         <SidebarContent />
       </div>
 
-      {/* Mobile Header & Sidebar */}
       <div className="md:hidden flex items-center justify-between px-3 py-2.5 border-b bg-background sticky top-0 z-50 flex-shrink-0">
         <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
           <SheetTrigger asChild>
@@ -260,7 +351,7 @@ export function Sidebar() {
           </SheetContent>
         </Sheet>
         <Logo size="sm" />
-        <div className="w-10" /> {/* Spacer for centering */}
+        <div className="w-10" />
       </div>
     </>
   );

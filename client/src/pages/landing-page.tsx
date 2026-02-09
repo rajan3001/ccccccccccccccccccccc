@@ -284,7 +284,7 @@ export default function LandingPage() {
               </Button>
             </a>
             <Button
-              onClick={() => window.location.href = "/api/login"}
+              onClick={() => window.location.href = "/login"}
               data-testid="button-login-nav"
             >
               Login
@@ -321,7 +321,7 @@ export default function LandingPage() {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                   <Button
                     size="lg"
-                    onClick={() => window.location.href = "/api/login"}
+                    onClick={() => window.location.href = "/login"}
                     className="w-full sm:w-auto rounded-full shadow-xl shadow-primary/30"
                     data-testid="button-get-started"
                   >
@@ -412,7 +412,7 @@ export default function LandingPage() {
                         <Button
                           size="sm"
                           className="gap-1.5"
-                          onClick={() => window.location.href = "/api/login"}
+                          onClick={() => window.location.href = "/login"}
                           data-testid={`button-feature-${feature.id}`}
                         >
                           {feature.cta}
@@ -597,7 +597,7 @@ export default function LandingPage() {
               </p>
               <Button
                 size="lg"
-                onClick={() => window.location.href = "/api/login"}
+                onClick={() => window.location.href = "/login"}
                 className="rounded-full shadow-xl shadow-primary/30"
                 data-testid="button-bottom-cta"
               >
