@@ -298,7 +298,7 @@ export default function LandingPage() {
       </nav>
 
       <main className="flex-1">
-        <section className="relative overflow-hidden pt-8 sm:pt-10 lg:pt-14 pb-12 sm:pb-16 lg:pb-20">
+        <section className="relative overflow-hidden pt-6 sm:pt-8 lg:pt-10 pb-12 sm:pb-16 lg:pb-20">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-background to-background opacity-70" />
           <div className="absolute top-10 right-0 w-72 h-72 sm:w-96 sm:h-96 bg-primary/5 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
