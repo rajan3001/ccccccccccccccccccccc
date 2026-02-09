@@ -872,15 +872,31 @@ export default function LandingPage() {
               transition={{ delay: 0.5 }}
               className="mt-7 sm:mt-9 flex justify-center"
             >
-              <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-card/80 backdrop-blur-sm border border-border/50">
-                <div className="flex -space-x-1.5">
-                  {[0, 1, 2, 3].map((j) => (
-                    <div key={j} className="w-6 h-6 rounded-full bg-gradient-to-br from-primary/80 to-primary border-2 border-card flex items-center justify-center">
-                      <span className="text-[8px] font-bold text-primary-foreground">{["A", "S", "R", "P"][j]}</span>
-                    </div>
-                  ))}
+              <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-card/80 backdrop-blur-sm border border-border/50">
+                <div className="w-[120px] overflow-hidden relative" style={{ maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)' }}>
+                  <div className="flex -space-x-1.5 animate-aspirant-scroll w-max">
+                    {[...Array(2)].map((_, setIdx) => (
+                      [
+                        "/images/aspirant-1_1.jpg",
+                        "/images/aspirant-4_1.jpg",
+                        "/images/aspirant-1_2.jpg",
+                        "/images/aspirant-7_1.jpg",
+                        "/images/aspirant-4_2.jpg",
+                        "/images/aspirant-1_3.jpg",
+                        "/images/aspirant-7_2.jpg",
+                        "/images/aspirant-4_3.jpg",
+                      ].map((src, j) => (
+                        <img
+                          key={`${setIdx}-${j}`}
+                          src={src}
+                          alt=""
+                          className="w-7 h-7 rounded-full object-cover border-2 border-card flex-shrink-0"
+                        />
+                      ))
+                    ))}
+                  </div>
                 </div>
-                <span className="text-xs text-muted-foreground">Join thousands preparing smarter with AI</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">Join thousands preparing smarter with AI</span>
               </div>
             </motion.div>
           </div>
