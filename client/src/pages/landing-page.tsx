@@ -787,29 +787,45 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="py-10 sm:py-14 border-y border-border bg-card">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center">
+        <section className="py-10 sm:py-14 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 dark:from-primary/10 dark:via-primary/15 dark:to-primary/10 border-y border-primary/10 relative overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none">
+            <motion.div
+              className="absolute -top-20 -left-20 w-60 h-60 rounded-full bg-primary/5 blur-3xl"
+              animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute -bottom-20 -right-20 w-60 h-60 rounded-full bg-primary/5 blur-3xl"
+              animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
+              transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </div>
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
               {[
-                { value: 10000, label: "Aspirants Trust Us", icon: Users, suffix: "+" },
-                { value: 50000, label: "Questions Practiced", icon: Target, suffix: "+" },
-                { value: 15000, label: "Answers Evaluated", icon: FileText, suffix: "+" },
-                { value: 16, label: "Exams Covered", icon: BarChart3, suffix: "" },
+                { value: 10000, label: "Aspirants Trust Us", icon: Users, suffix: "+", accent: "from-amber-500 to-orange-500" },
+                { value: 50000, label: "Questions Practiced", icon: Target, suffix: "+", accent: "from-blue-500 to-indigo-500" },
+                { value: 15000, label: "Answers Evaluated", icon: FileText, suffix: "+", accent: "from-emerald-500 to-teal-500" },
+                { value: 60, label: "Exams Covered", icon: BarChart3, suffix: "+", accent: "from-purple-500 to-pink-500" },
               ].map((stat, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="flex flex-col items-center"
+                  transition={{ delay: i * 0.1, duration: 0.5 }}
+                  className="relative group"
                   data-testid={`stat-${i}`}
                 >
-                  <stat.icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary mb-2" />
-                  <span className="text-2xl sm:text-4xl font-display font-bold text-foreground">
-                    <AnimatedCounter target={stat.value} suffix={stat.suffix} />
-                  </span>
-                  <span className="text-xs sm:text-sm text-muted-foreground mt-1">{stat.label}</span>
+                  <div className="flex flex-col items-center py-5 px-3 rounded-2xl bg-card/60 dark:bg-card/40 backdrop-blur-sm border border-border/50">
+                    <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${stat.accent} flex items-center justify-center mb-3 shadow-lg`}>
+                      <stat.icon className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="text-2xl sm:text-4xl font-display font-bold text-foreground tracking-tight">
+                      <AnimatedCounter target={stat.value} suffix={stat.suffix} />
+                    </span>
+                    <span className="text-[11px] sm:text-xs text-muted-foreground mt-1.5 font-medium tracking-wide uppercase">{stat.label}</span>
+                  </div>
                 </motion.div>
               ))}
             </div>
