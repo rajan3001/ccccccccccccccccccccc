@@ -1,20 +1,13 @@
-import { useEffect, useRef, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Redirect } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 import { Card } from "@/components/ui/card";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
   ArrowRight,
   BookOpen,
   Target,
-  Flame,
   PenTool,
   Newspaper,
   MessageSquare,
@@ -116,6 +109,424 @@ const featureItems = [
   },
 ];
 
+const FEATURE_CYCLE_MS = 5000;
+
+function FeatureVisualAIChat() {
+  return (
+    <div className="relative w-full h-full flex flex-col justify-center p-6 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-2xl" />
+      <div className="relative space-y-3">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1, duration: 0.4 }}
+          className="flex justify-start"
+        >
+          <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-2.5 max-w-[80%]">
+            <p className="text-xs text-foreground">Explain Article 370 and its abrogation in 2019 for UPSC Mains.</p>
+          </div>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
+          className="flex justify-end"
+        >
+          <div className="bg-primary/10 dark:bg-primary/20 rounded-2xl rounded-tr-sm px-4 py-2.5 max-w-[85%]">
+            <p className="text-xs text-foreground/90 font-medium mb-1">Article 370 - Key Points:</p>
+            <div className="space-y-1">
+              {["Granted special autonomy to J&K", "Separate Constitution & flag", "Abrogated on 5th Aug 2019", "J&K reorganized into 2 UTs"].map((line, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1 + i * 0.3, duration: 0.3 }}
+                  className="flex items-start gap-1.5"
+                >
+                  <CheckCircle2 className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-[11px] text-foreground/80">{line}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2.5, duration: 0.5 }}
+          className="flex justify-start"
+        >
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <motion.div
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ repeat: Infinity, duration: 1.5 }}
+              className="flex gap-0.5"
+            >
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{ repeat: Infinity, duration: 1, delay: i * 0.2 }}
+                  className="w-1 h-1 rounded-full bg-primary"
+                />
+              ))}
+            </motion.div>
+            <span className="text-[10px]">AI is thinking...</span>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+function FeatureVisualSyllabus() {
+  const subjects = [
+    { name: "GS Paper I", progress: 72, color: "bg-blue-500" },
+    { name: "GS Paper II", progress: 45, color: "bg-emerald-500" },
+    { name: "GS Paper III", progress: 58, color: "bg-purple-500" },
+    { name: "GS Paper IV", progress: 83, color: "bg-amber-500" },
+    { name: "CSAT", progress: 35, color: "bg-rose-500" },
+  ];
+  return (
+    <div className="relative w-full h-full flex flex-col justify-center p-6 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-500/10 dark:to-purple-500/10 rounded-2xl" />
+      <div className="relative space-y-3">
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-xs font-semibold text-foreground/80 mb-2"
+        >
+          Syllabus Progress
+        </motion.p>
+        {subjects.map((s, i) => (
+          <motion.div
+            key={s.name}
+            initial={{ opacity: 0, x: -15 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.15 * i, duration: 0.4 }}
+            className="space-y-1"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium text-foreground/80">{s.name}</span>
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.15 * i + 0.5 }}
+                className="text-[10px] font-bold text-foreground/60"
+              >{s.progress}%</motion.span>
+            </div>
+            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${s.progress}%` }}
+                transition={{ delay: 0.15 * i + 0.3, duration: 0.8, ease: "easeOut" }}
+                className={`h-full rounded-full ${s.color}`}
+              />
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FeatureVisualAnswerWriting() {
+  const scores = [
+    { label: "Content", score: 8, max: 10 },
+    { label: "Structure", score: 7, max: 10 },
+    { label: "Analysis", score: 9, max: 10 },
+    { label: "Language", score: 6, max: 10 },
+  ];
+  return (
+    <div className="relative w-full h-full flex flex-col justify-center p-6 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 dark:from-emerald-500/10 dark:to-teal-500/10 rounded-2xl" />
+      <div className="relative">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex items-center justify-center mb-4"
+        >
+          <div className="relative">
+            <svg width="100" height="100" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" className="text-muted" strokeWidth="6" />
+              <motion.circle
+                cx="50" cy="50" r="42" fill="none" stroke="currentColor"
+                className="text-emerald-500"
+                strokeWidth="6" strokeLinecap="round"
+                strokeDasharray={264}
+                initial={{ strokeDashoffset: 264 }}
+                animate={{ strokeDashoffset: 264 * (1 - 0.75) }}
+                transition={{ delay: 0.3, duration: 1.2, ease: "easeOut" }}
+                transform="rotate(-90 50 50)"
+              />
+            </svg>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="absolute inset-0 flex flex-col items-center justify-center"
+            >
+              <span className="text-xl font-bold text-foreground">7.5</span>
+              <span className="text-[9px] text-muted-foreground">/10</span>
+            </motion.div>
+          </div>
+        </motion.div>
+        <div className="grid grid-cols-2 gap-2">
+          {scores.map((s, i) => (
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 + i * 0.15 }}
+              className="flex items-center gap-2"
+            >
+              <div className="h-1 flex-1 rounded-full bg-muted overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(s.score / s.max) * 100}%` }}
+                  transition={{ delay: 0.7 + i * 0.15, duration: 0.6 }}
+                  className="h-full rounded-full bg-emerald-500"
+                />
+              </div>
+              <span className="text-[10px] text-foreground/70 w-14 text-right">{s.label}</span>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FeatureVisualCurrentAffairs() {
+  const topics = [
+    { cat: "Economy", title: "RBI Monetary Policy Update", tag: "GS III" },
+    { cat: "Polity", title: "Supreme Court on Article 142", tag: "GS II" },
+    { cat: "Intl. Relations", title: "India-ASEAN Summit 2026", tag: "GS II" },
+    { cat: "Science", title: "ISRO's Gaganyaan Progress", tag: "GS III" },
+  ];
+  return (
+    <div className="relative w-full h-full flex flex-col justify-center p-6 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 dark:from-amber-500/10 dark:to-orange-500/10 rounded-2xl" />
+      <div className="relative space-y-2">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center gap-2 mb-1"
+        >
+          <Newspaper className="h-3.5 w-3.5 text-primary" />
+          <span className="text-xs font-semibold text-foreground/80">Today's Digest</span>
+          <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium ml-auto">4 topics</span>
+        </motion.div>
+        {topics.map((t, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 + i * 0.25 }}
+            className="flex items-center gap-2 rounded-lg bg-card/80 border border-border/40 px-3 py-2"
+          >
+            <div className={`w-1 h-6 rounded-full flex-shrink-0 ${
+              i === 0 ? "bg-emerald-500" : i === 1 ? "bg-blue-500" : i === 2 ? "bg-purple-500" : "bg-amber-500"
+            }`} />
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-medium text-foreground/90 truncate">{t.title}</p>
+              <p className="text-[9px] text-muted-foreground">{t.cat}</p>
+            </div>
+            <span className="text-[9px] font-medium bg-muted px-1.5 py-0.5 rounded text-foreground/60 flex-shrink-0">{t.tag}</span>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FeatureVisualPracticeMCQ() {
+  return (
+    <div className="relative w-full h-full flex flex-col justify-center p-6 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 to-pink-500/5 dark:from-rose-500/10 dark:to-pink-500/10 rounded-2xl" />
+      <div className="relative">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-xs font-semibold text-foreground/80 mb-3"
+        >
+          Q. Which Article deals with Right to Education?
+        </motion.div>
+        {[
+          { label: "A", text: "Article 19", correct: false },
+          { label: "B", text: "Article 21A", correct: true },
+          { label: "C", text: "Article 25", correct: false },
+          { label: "D", text: "Article 32", correct: false },
+        ].map((opt, i) => (
+          <motion.div
+            key={opt.label}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 + i * 0.15 }}
+            className={`flex items-center gap-2 rounded-lg px-3 py-2 mb-1.5 border transition-all ${
+              opt.correct
+                ? "border-emerald-500/50 bg-emerald-500/10 dark:bg-emerald-500/20"
+                : "border-border/40 bg-card/50"
+            }`}
+          >
+            <span className={`text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
+              opt.correct ? "bg-emerald-500 text-white" : "bg-muted text-foreground/60"
+            }`}>{opt.label}</span>
+            <span className={`text-[11px] ${opt.correct ? "font-semibold text-foreground" : "text-foreground/70"}`}>{opt.text}</span>
+            {opt.correct && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 1.5, type: "spring" }}
+                className="ml-auto"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+              </motion.div>
+            )}
+          </motion.div>
+        ))}
+        <motion.div
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 2 }}
+          className="mt-2 rounded-lg bg-emerald-500/5 dark:bg-emerald-500/10 px-3 py-2 border border-emerald-500/20"
+        >
+          <p className="text-[10px] text-foreground/70">
+            <span className="font-semibold text-emerald-600 dark:text-emerald-400">Correct!</span> Article 21A was inserted by the 86th Amendment Act, 2002.
+          </p>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+const featureVisuals: Record<string, () => JSX.Element> = {
+  "ai-chat": FeatureVisualAIChat,
+  "syllabus": FeatureVisualSyllabus,
+  "answer-writing": FeatureVisualAnswerWriting,
+  "current-affairs": FeatureVisualCurrentAffairs,
+  "practice-mcqs": FeatureVisualPracticeMCQ,
+};
+
+function AutoCyclingFeatures({ openLogin }: { openLogin: () => void }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (isPaused) return;
+    const tick = 50;
+    intervalRef.current = setInterval(() => {
+      setProgress((p) => {
+        if (p >= 100) {
+          setActiveIndex((i) => (i + 1) % featureItems.length);
+          return 0;
+        }
+        return p + (tick / FEATURE_CYCLE_MS) * 100;
+      });
+    }, tick);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isPaused, activeIndex]);
+
+  const selectFeature = (index: number) => {
+    setActiveIndex(index);
+    setProgress(0);
+  };
+
+  const active = featureItems[activeIndex];
+  const VisualComponent = featureVisuals[active.id];
+
+  return (
+    <div
+      className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-stretch"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      data-testid="feature-tabs-container"
+    >
+      <div className="flex-1 min-w-0 space-y-1">
+        {featureItems.map((feature, index) => {
+          const isActive = index === activeIndex;
+          return (
+            <motion.div
+              key={feature.id}
+              onClick={() => selectFeature(index)}
+              className={`w-full text-left rounded-xl px-4 py-3 transition-colors cursor-pointer relative ${
+                isActive ? "bg-primary/5 dark:bg-primary/10" : "bg-transparent"
+              }`}
+              data-testid={`feature-tab-${feature.id}`}
+              layout
+            >
+              {isActive && (
+                <div className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full bg-primary" />
+              )}
+              <div className="flex items-center gap-3">
+                <div className={`h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
+                  isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                }`}>
+                  <feature.icon className="h-4 w-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className={`text-sm font-semibold block ${isActive ? "text-foreground" : "text-foreground/70"}`}>
+                    {feature.title}
+                  </span>
+                  {isActive && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                        {feature.description}
+                      </p>
+                      <Button
+                        size="sm"
+                        className="mt-2 gap-1.5"
+                        onClick={(e) => { e.stopPropagation(); openLogin(); }}
+                        data-testid={`button-feature-${feature.id}`}
+                      >
+                        {feature.cta}
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </Button>
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+              {isActive && (
+                <div className="mt-2 ml-12 h-0.5 rounded-full bg-muted overflow-hidden">
+                  <motion.div
+                    className="h-full bg-primary rounded-full"
+                    style={{ width: `${progress}%` }}
+                    transition={{ duration: 0 }}
+                  />
+                </div>
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+
+      <div className="lg:w-[340px] xl:w-[380px] flex-shrink-0">
+        <div className="rounded-2xl border bg-card shadow-sm h-full min-h-[320px] overflow-hidden relative">
+          <motion.div
+            key={active.id}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.4 }}
+            className="w-full h-full"
+          >
+            <VisualComponent />
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const testimonials = [
   {
     name: "Aarav Sharma",
@@ -139,82 +550,6 @@ const testimonials = [
   },
 ];
 
-function StudyStreakCard() {
-  const today = new Date();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
-  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const dayNames = ["M", "T", "W", "Th", "F", "S", "Su"];
-
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
-  const startDay = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
-
-  const streakDays = useMemo(() => {
-    const days = new Set<number>();
-    const todayDate = today.getDate();
-    for (let i = Math.max(1, todayDate - 6); i <= todayDate; i++) {
-      days.add(i);
-    }
-    if (todayDate > 10) {
-      days.add(todayDate - 9);
-      days.add(todayDate - 10);
-    }
-    return days;
-  }, []);
-
-  const streakCount = streakDays.size;
-
-  const calendarCells = [];
-  for (let i = 0; i < startDay; i++) {
-    calendarCells.push(<div key={`empty-${i}`} className="h-7 w-7 sm:h-8 sm:w-8" />);
-  }
-  for (let day = 1; day <= daysInMonth; day++) {
-    const isStreak = streakDays.has(day);
-    const isToday = day === today.getDate();
-    calendarCells.push(
-      <div
-        key={day}
-        className={`h-7 w-7 sm:h-8 sm:w-8 rounded-md flex items-center justify-center text-xs font-medium relative
-          ${isToday ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : ""}
-          ${isStreak ? "bg-primary/10 dark:bg-primary/20" : ""}`}
-      >
-        {isStreak ? (
-          <Flame className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-        ) : (
-          <span className="text-muted-foreground">{day}</span>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className="relative" data-testid="streak-card">
-      <div className="rounded-2xl border bg-card p-4 sm:p-6 shadow-sm max-w-[280px] sm:max-w-xs mx-auto">
-        <div className="flex flex-col items-center mb-4">
-          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-            <Flame className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-          </div>
-          <span className="text-xl sm:text-2xl font-display font-bold">{streakCount}-day streak</span>
-          <span className="text-xs text-muted-foreground">{monthNames[currentMonth]} {currentYear}</span>
-        </div>
-
-        <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
-          {dayNames.map((d) => (
-            <div key={d} className="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center text-[10px] sm:text-xs font-semibold text-muted-foreground">
-              {d}
-            </div>
-          ))}
-          {calendarCells}
-        </div>
-      </div>
-
-      <div className="absolute -bottom-6 -right-4 sm:-bottom-8 sm:-right-6 opacity-20 dark:opacity-10">
-        <GraduationCap className="h-20 w-20 sm:h-28 sm:w-28 text-primary" />
-      </div>
-    </div>
-  );
-}
 
 function ComparisonTable() {
   const features = [
@@ -486,58 +821,12 @@ export default function LandingPage() {
               </p>
             </motion.div>
 
-            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                className="flex-1 w-full min-w-0"
-              >
-                <Accordion type="single" collapsible defaultValue="ai-chat" className="w-full">
-                  {featureItems.map((feature) => (
-                    <AccordionItem key={feature.id} value={feature.id} className="border-border/60" data-testid={`accordion-${feature.id}`}>
-                      <AccordionTrigger className="hover:no-underline gap-3 py-3 sm:py-4" data-testid={`trigger-${feature.id}`}>
-                        <div className="flex items-center flex-wrap gap-3">
-                          <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-md bg-primary/10 dark:bg-primary/20 flex items-center justify-center flex-shrink-0">
-                            <feature.icon className="h-4 w-4 sm:h-[18px] sm:w-[18px] text-primary" />
-                          </div>
-                          <span className="text-sm sm:text-base font-semibold text-left">{feature.title}</span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="pl-11 sm:pl-12">
-                        <p className="text-muted-foreground text-xs sm:text-sm mb-3 leading-relaxed">{feature.description}</p>
-                        <Button
-                          size="sm"
-                          className="gap-1.5"
-                          onClick={openLogin}
-                          data-testid={`button-feature-${feature.id}`}
-                        >
-                          {feature.cta}
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </Button>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                className="hidden lg:flex flex-shrink-0 items-center justify-center pt-4"
-              >
-                <StudyStreakCard />
-              </motion.div>
-            </div>
-
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="flex lg:hidden justify-center mt-8"
             >
-              <StudyStreakCard />
+              <AutoCyclingFeatures openLogin={openLogin} />
             </motion.div>
           </div>
         </section>
