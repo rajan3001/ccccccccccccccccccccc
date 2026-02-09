@@ -28,8 +28,13 @@ import {
   Clock,
   Zap,
   Shield,
+  Sparkles,
+  Brain,
+  Heart,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import aiDashboardHero from "@assets/ai-dashboard-hero.png";
+import aiBrainAbstract from "@assets/ai-brain-abstract.png";
 
 function AnimatedCounter({ target, suffix = "+" }: { target: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -75,59 +80,59 @@ const featureItems = [
   {
     id: "ai-chat",
     icon: MessageSquare,
-    title: "AI-Powered Doubt Resolution",
-    description: "24/7 AI mentor trained on UPSC & State PSC syllabus. Get instant, structured answers with PYQ references and concept clarity.",
-    cta: "Start Learning",
+    title: "Ask Anything, Anytime",
+    description: "Your AI study buddy is always here. Get clear, structured answers to any UPSC or State PSC doubt, with PYQ references and real concept clarity -- day or night.",
+    cta: "Start a Conversation",
   },
   {
     id: "syllabus",
     icon: BookOpen,
-    title: "Complete GS Syllabus",
-    description: "Based on NCERTs + standard books. GS Paper I-IV, CSAT, and Optional Subjects with structured learning paths.",
-    cta: "Explore Syllabus",
+    title: "Your Syllabus, Organized",
+    description: "No more guessing what to study next. GS Paper I-IV, CSAT, and Optionals -- all mapped out with structured learning paths based on NCERTs and standard books.",
+    cta: "See Your Syllabus",
   },
   {
     id: "answer-writing",
     icon: PenTool,
-    title: "Mains Answer Writing",
-    description: "For GS, Ethics, and Essay. Get structured feedback on Introduction, Body, and Conclusion with model answers.",
-    cta: "Practice Writing",
+    title: "Practice Writing, Get Better",
+    description: "Write answers for GS, Ethics, and Essay. Get thoughtful, structured feedback on your Introduction, Body, and Conclusion -- just like a mentor would give.",
+    cta: "Try Answer Practice",
   },
   {
     id: "current-affairs",
     icon: Newspaper,
-    title: "Daily Current Affairs",
-    description: "Cover news from The Hindu & Indian Express. AI-generated digests mapped to GS papers with state-specific filtering for 15 State PSCs.",
-    cta: "Read News Analysis",
+    title: "Stay Updated, Stay Ahead",
+    description: "Daily digests from top newspapers, mapped to GS papers. State-specific filtering for 15 State PSCs. Never miss what matters for your exam.",
+    cta: "Read Today's Digest",
   },
   {
     id: "practice-mcqs",
     icon: Target,
-    title: "Practice MCQs",
-    description: "Subject and topic-wise MCQs for UPSC + 15 State PSCs. AI-generated questions with detailed explanations and performance analytics.",
-    cta: "Practice Now",
+    title: "Build Confidence with Practice",
+    description: "Topic-wise MCQs for UPSC + 15 State PSCs. AI-crafted questions with detailed explanations so you understand why, not just what.",
+    cta: "Start Practicing",
   },
 ];
 
 const testimonials = [
   {
     name: "Aarav Sharma",
-    text: "The AI doubt resolution is incredible. I get answers with proper UPSC framing within seconds. It's like having a personal mentor available 24/7.",
+    text: "It feels like having a patient mentor who never gets tired of my questions. The AI understands exactly how UPSC wants you to frame answers.",
     rating: 5,
   },
   {
     name: "Priya Verma",
-    text: "Daily current affairs mapped to GS papers saves me hours of manual sorting. The state-specific filtering for JPSC is exactly what I needed.",
+    text: "The daily current affairs mapped to GS papers saved me hours every morning. The state-specific filtering for JPSC is something I couldn't find anywhere else.",
     rating: 5,
   },
   {
     name: "Rohit Kumar",
-    text: "Practice MCQs with detailed explanations helped me improve my prelims accuracy significantly. The analytics show exactly where I need to focus.",
+    text: "I used to feel overwhelmed by the syllabus. Learnpro made it manageable. The practice MCQs with explanations genuinely helped me improve my accuracy.",
     rating: 5,
   },
   {
     name: "Sneha Patel",
-    text: "Best platform for UPSC preparation. The mains answer writing feedback is structured and actually useful unlike generic AI tools.",
+    text: "What I love most is that it doesn't just give answers -- it teaches you how to think. The answer writing feedback is structured and genuinely useful.",
     rating: 5,
   },
 ];
@@ -270,9 +275,9 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans">
       <nav className="border-b border-border/40 backdrop-blur-md sticky top-0 z-[999] bg-background/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
           <Logo size="md" />
-          <div className="flex items-center gap-4">
+          <div className="flex items-center flex-wrap gap-4">
             <a href="#features">
               <Button variant="ghost" className="hidden sm:inline-flex text-muted-foreground" data-testid="link-features">
                 Features
@@ -294,61 +299,118 @@ export default function LandingPage() {
       </nav>
 
       <main className="flex-1">
-        {/* Hero */}
-        <section className="relative overflow-hidden py-16 sm:py-24 lg:py-32">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-background to-background opacity-70"></div>
+        <section className="relative overflow-hidden py-16 sm:py-20 lg:py-28">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-background to-background opacity-70" />
+          <div className="absolute top-10 right-0 w-72 h-72 sm:w-96 sm:h-96 bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="text-center max-w-4xl mx-auto">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <span className="inline-block py-1.5 px-4 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-semibold mb-6 sm:mb-8 border border-primary/20" data-testid="badge-hero">
-                  Loved by 10,000+ aspirants
-                </span>
-                <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-foreground mb-5 sm:mb-8 leading-[1.1]" data-testid="text-hero-heading">
-                  Everything you need for{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-amber-600">
-                    UPSC Preparation
+            <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+              <div className="flex-1 text-center lg:text-left max-w-2xl">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <span className="inline-flex items-center gap-1.5 py-1.5 px-4 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-semibold mb-6 sm:mb-8 border border-primary/20" data-testid="badge-hero">
+                    <Heart className="h-3.5 w-3.5" />
+                    Trusted by 10,000+ aspirants
                   </span>
-                </h1>
-                <p className="text-base sm:text-xl text-muted-foreground mb-8 sm:mb-12 leading-relaxed max-w-2xl mx-auto" data-testid="text-hero-subtitle">
-                  Your Personal AI Mentor that teaches, instantly evaluates answers & builds daily discipline for UPSC and State PSC exams.
-                </p>
+                  <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-bold text-foreground mb-5 sm:mb-6 leading-[1.1]" data-testid="text-hero-heading">
+                    Your AI companion for{" "}
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-amber-600">
+                      UPSC & State PSC
+                    </span>{" "}
+                    preparation
+                  </h1>
+                  <p className="text-base sm:text-lg text-muted-foreground mb-8 sm:mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0" data-testid="text-hero-subtitle">
+                    Preparing for civil services is a long journey -- you don't have to walk it alone. Learnpro AI is the patient, intelligent study partner that's always by your side.
+                  </p>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Button
-                    size="lg"
-                    onClick={() => window.location.href = "/login"}
-                    className="w-full sm:w-auto rounded-full shadow-xl shadow-primary/30"
-                    data-testid="button-get-started"
-                  >
-                    Start Now
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="w-full sm:w-auto rounded-full"
-                    data-testid="button-view-demo"
-                  >
-                    View Demo
-                  </Button>
+                  <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start flex-wrap gap-4">
+                    <Button
+                      size="lg"
+                      onClick={() => window.location.href = "/login"}
+                      className="w-full sm:w-auto rounded-full shadow-xl shadow-primary/30"
+                      data-testid="button-get-started"
+                    >
+                      Begin Your Journey
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="w-full sm:w-auto rounded-full"
+                      data-testid="button-view-demo"
+                    >
+                      See How It Works
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center justify-center lg:justify-start flex-wrap gap-6 mt-8 sm:mt-10">
+                    {[
+                      { icon: Brain, label: "AI-Powered" },
+                      { icon: Shield, label: "Always Free" },
+                      { icon: Sparkles, label: "Personalized" },
+                    ].map((item) => (
+                      <div key={item.label} className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground">
+                        <item.icon className="h-4 w-4 text-primary" />
+                        <span>{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              </div>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="flex-shrink-0 w-full max-w-md lg:max-w-lg xl:max-w-xl"
+              >
+                <div className="relative">
+                  <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-primary/5 to-primary/20 rounded-3xl blur-2xl opacity-60" />
+                  <div className="relative rounded-2xl overflow-hidden border border-border/50 shadow-2xl shadow-primary/10">
+                    <img
+                      src={aiDashboardHero}
+                      alt="Learnpro AI Dashboard"
+                      className="w-full h-auto"
+                      data-testid="img-hero-dashboard"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent" />
+                  </div>
+
+                  <div className="absolute -bottom-4 -left-4 sm:-bottom-6 sm:-left-6 bg-card border border-border rounded-xl p-3 sm:p-4 shadow-lg flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                      <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">AI Answer Ready</p>
+                      <p className="text-[10px] text-muted-foreground">Explained in UPSC format</p>
+                    </div>
+                  </div>
+
+                  <div className="absolute -top-3 -right-3 sm:-top-5 sm:-right-5 bg-card border border-border rounded-xl p-3 sm:p-4 shadow-lg flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Flame className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">7-Day Streak</p>
+                      <p className="text-[10px] text-muted-foreground">Keep it going!</p>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             </div>
           </div>
         </section>
 
-        {/* Stats Counter */}
         <section className="py-10 sm:py-14 border-y border-border bg-card">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center">
               {[
-                { value: 10000, label: "Aspirants", icon: Users, suffix: "+" },
-                { value: 50000, label: "MCQs Practiced", icon: Target, suffix: "+" },
+                { value: 10000, label: "Aspirants Trust Us", icon: Users, suffix: "+" },
+                { value: 50000, label: "Questions Practiced", icon: Target, suffix: "+" },
                 { value: 15000, label: "Answers Evaluated", icon: FileText, suffix: "+" },
                 { value: 16, label: "Exams Covered", icon: BarChart3, suffix: "" },
               ].map((stat, i) => (
@@ -372,7 +434,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Features Accordion + Visual */}
         <section id="features" className="py-14 sm:py-20 bg-secondary/30">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
@@ -382,11 +443,14 @@ export default function LandingPage() {
               className="text-center mb-8 sm:mb-12"
             >
               <span className="text-xs sm:text-sm font-semibold text-primary tracking-wide uppercase" data-testid="text-features-subtitle">
-                Cover 100% Prelims & Mains Syllabus
+                Built for Serious Aspirants
               </span>
               <h2 className="text-2xl sm:text-4xl font-display font-bold mt-2 sm:mt-3" data-testid="text-features-heading">
-                Add magic in your preparation
+                Everything you need, in one place
               </h2>
+              <p className="text-muted-foreground mt-2 text-sm sm:text-base max-w-xl mx-auto">
+                No more juggling between apps and tabs. Your entire preparation ecosystem, powered by AI.
+              </p>
             </motion.div>
 
             <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
@@ -399,8 +463,8 @@ export default function LandingPage() {
                 <Accordion type="single" collapsible defaultValue="ai-chat" className="w-full">
                   {featureItems.map((feature) => (
                     <AccordionItem key={feature.id} value={feature.id} className="border-border/60" data-testid={`accordion-${feature.id}`}>
-                      <AccordionTrigger className="hover:no-underline gap-3 py-3 sm:py-4">
-                        <div className="flex items-center gap-3">
+                      <AccordionTrigger className="hover:no-underline gap-3 py-3 sm:py-4" data-testid={`trigger-${feature.id}`}>
+                        <div className="flex items-center flex-wrap gap-3">
                           <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-md bg-primary/10 dark:bg-primary/20 flex items-center justify-center flex-shrink-0">
                             <feature.icon className="h-4 w-4 sm:h-[18px] sm:w-[18px] text-primary" />
                           </div>
@@ -445,8 +509,65 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Comparison Table */}
-        <section id="comparison" className="py-14 sm:py-20 bg-background">
+        <section className="py-14 sm:py-20 bg-background overflow-hidden">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="flex-shrink-0"
+              >
+                <div className="relative w-48 h-48 sm:w-64 sm:h-64 lg:w-72 lg:h-72">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-2xl" />
+                  <img
+                    src={aiBrainAbstract}
+                    alt="AI-Powered Intelligence"
+                    className="relative w-full h-full object-contain drop-shadow-lg"
+                    data-testid="img-ai-brain"
+                  />
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="flex-1 text-center lg:text-left"
+              >
+                <span className="text-xs sm:text-sm font-semibold text-primary tracking-wide uppercase">
+                  Why Learnpro AI?
+                </span>
+                <h2 className="text-2xl sm:text-4xl font-display font-bold mt-2 sm:mt-3 mb-4 sm:mb-6" data-testid="text-why-heading">
+                  More than a tool. A study partner who understands you.
+                </h2>
+                <p className="text-muted-foreground text-sm sm:text-base leading-relaxed mb-6 sm:mb-8 max-w-lg mx-auto lg:mx-0">
+                  UPSC preparation is demanding. You need consistency, clarity, and confidence. Learnpro AI is designed to give you all three -- with the patience of a mentor and the precision of technology.
+                </p>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {[
+                    { icon: Brain, title: "Thinks Like a Mentor", desc: "Understands UPSC patterns and gives exam-relevant responses" },
+                    { icon: Heart, title: "Patient & Supportive", desc: "Ask the same question 100 times -- no judgment, ever" },
+                    { icon: Sparkles, title: "Learns About You", desc: "Adapts to your strengths, weaknesses, and study pace" },
+                    { icon: Shield, title: "Always Available", desc: "24/7 access. Your preparation never has to wait" },
+                  ].map((item) => (
+                    <div key={item.title} className="flex gap-3 text-left" data-testid={`why-item-${item.title.toLowerCase().replace(/\s+/g, "-")}`}>
+                      <div className="h-9 w-9 rounded-md bg-primary/10 dark:bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <item.icon className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        <section id="comparison" className="py-14 sm:py-20 bg-secondary/30">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -455,10 +576,10 @@ export default function LandingPage() {
               className="text-center mb-8 sm:mb-12"
             >
               <h2 className="text-2xl sm:text-4xl font-display font-bold" data-testid="text-comparison-heading">
-                Learnpro builds accountability
+                See how Learnpro compares
               </h2>
               <p className="text-muted-foreground mt-2 sm:mt-3 text-sm sm:text-base">
-                unlike ChatGPT or Coaching Institutes
+                Built specifically for UPSC, not adapted from a general chatbot
               </p>
             </motion.div>
 
@@ -474,8 +595,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Impact Stats */}
-        <section className="py-14 sm:py-20 bg-secondary/30">
+        <section className="py-14 sm:py-20 bg-background">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -484,8 +604,11 @@ export default function LandingPage() {
               className="text-center mb-8 sm:mb-12"
             >
               <h2 className="text-2xl sm:text-4xl font-display font-bold" data-testid="text-impact-heading">
-                Your best UPSC attempt starts here
+                Real impact, real numbers
               </h2>
+              <p className="text-muted-foreground mt-2 sm:mt-3 text-sm sm:text-base">
+                Here's what Learnpro brings to your daily preparation
+              </p>
             </motion.div>
 
             <div className="grid sm:grid-cols-3 gap-4 sm:gap-6">
@@ -493,20 +616,20 @@ export default function LandingPage() {
                 {
                   icon: Zap,
                   stat: "3x",
-                  label: "More Practice Questions",
-                  desc: "Aspirants using Learnpro practice 3x more MCQs than traditional methods",
+                  label: "More Practice Done",
+                  desc: "Aspirants using Learnpro practice 3x more questions than with traditional methods",
                 },
                 {
                   icon: Clock,
                   stat: "60s",
                   label: "Instant AI Responses",
-                  desc: "Get structured, syllabus-aligned answers in under a minute",
+                  desc: "Get clear, structured answers in under a minute -- whenever you need them",
                 },
                 {
                   icon: Shield,
                   stat: "16",
                   label: "Exams Supported",
-                  desc: "UPSC + 15 State PSCs with exam-specific question patterns",
+                  desc: "UPSC + 15 State PSCs with exam-specific question patterns and syllabus",
                 },
               ].map((item, i) => (
                 <motion.div
@@ -530,8 +653,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Testimonials */}
-        <section className="py-14 sm:py-20 bg-background">
+        <section className="py-14 sm:py-20 bg-secondary/30">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -540,10 +662,10 @@ export default function LandingPage() {
               className="text-center mb-8 sm:mb-12"
             >
               <h2 className="text-2xl sm:text-4xl font-display font-bold" data-testid="text-testimonials-heading">
-                What aspirants say
+                From aspirants who've been where you are
               </h2>
               <p className="text-muted-foreground mt-2 sm:mt-3 text-sm sm:text-base">
-                Join thousands preparing smarter with Learnpro AI
+                Real stories from real learners
               </p>
             </motion.div>
 
@@ -556,17 +678,17 @@ export default function LandingPage() {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
                 >
-                  <Card className="p-5 sm:p-6 h-full" data-testid={`testimonial-card-${i}`}>
-                    <div className="flex gap-0.5 mb-3">
+                  <Card className="p-5 sm:p-6 h-full" data-testid={`testimonial-${i}`}>
+                    <div className="flex flex-wrap gap-0.5 mb-3">
                       {Array.from({ length: testimonial.rating }).map((_, j) => (
-                        <Star key={j} className="h-4 w-4 text-primary fill-primary" />
+                        <Star key={j} className="h-4 w-4 fill-primary text-primary" />
                       ))}
                     </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-4 italic">
                       "{testimonial.text}"
                     </p>
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <div className="flex items-center flex-wrap gap-3">
+                      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
                         <span className="text-sm font-bold text-primary">
                           {testimonial.name.split(" ").map(n => n[0]).join("")}
                         </span>
@@ -580,20 +702,22 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Final CTA */}
-        <section className="py-16 sm:py-24 bg-gradient-to-b from-primary/5 to-background">
-          <div className="max-w-3xl mx-auto px-4 text-center">
+        <section className="py-16 sm:py-24 bg-gradient-to-b from-primary/5 to-background relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent opacity-50" />
+          <div className="max-w-3xl mx-auto px-4 text-center relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <GraduationCap className="h-12 w-12 sm:h-16 sm:w-16 text-primary mx-auto mb-4 sm:mb-6" />
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                <GraduationCap className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+              </div>
               <h2 className="text-2xl sm:text-4xl font-display font-bold mb-3 sm:mb-4" data-testid="text-cta-heading">
-                Your best UPSC attempt starts here!
+                Your preparation deserves a better companion
               </h2>
               <p className="text-muted-foreground text-sm sm:text-base mb-8 sm:mb-10 max-w-xl mx-auto">
-                Join thousands of aspirants who are preparing smarter with AI-powered learning, daily discipline, and exam-specific practice.
+                Join thousands of aspirants who chose a smarter, kinder way to prepare. Learnpro AI is here to walk with you -- every single day.
               </p>
               <Button
                 size="lg"
@@ -601,7 +725,7 @@ export default function LandingPage() {
                 className="rounded-full shadow-xl shadow-primary/30"
                 data-testid="button-bottom-cta"
               >
-                Start Preparing Now
+                Start Your Journey
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </motion.div>
@@ -609,10 +733,9 @@ export default function LandingPage() {
         </section>
       </main>
 
-      {/* Footer */}
       <footer className="bg-foreground py-10 sm:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6 flex-wrap">
             <Logo size="sm" className="grayscale brightness-200" />
             <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm text-primary-foreground/60">
               <a href="#features" data-testid="footer-link-features">Features</a>
