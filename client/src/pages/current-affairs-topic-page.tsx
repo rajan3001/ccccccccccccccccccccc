@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Clock,
   BookOpen,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { generatePDF } from "@/lib/pdf-generator";
@@ -61,6 +62,7 @@ export default function CurrentAffairsTopicPage() {
   const [detailContent, setDetailContent] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamStarted, setStreamStarted] = useState(false);
+  const [generatingQuiz, setGeneratingQuiz] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const { toast } = useToast();
   const toggleRevision = useToggleRevision();
@@ -73,6 +75,16 @@ export default function CurrentAffairsTopicPage() {
   const nextTopic = topicData?.nextTopic;
   const topicIndex = topicData?.topicIndex || 0;
   const totalTopics = topicData?.totalTopics || 0;
+
+  useEffect(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setDetailContent("");
+    setIsStreaming(false);
+    setStreamStarted(false);
+  }, [topicId]);
 
   const startStreaming = useCallback(() => {
     if (streamStarted || isStreaming) return;
@@ -335,11 +347,41 @@ export default function CurrentAffairsTopicPage() {
                     <h3 className="font-bold text-white text-base" data-testid="text-attempt-mcqs">Practice MCQs on this Topic</h3>
                     <p className="text-xs text-blue-100 mt-0.5">Test your understanding with practice questions</p>
                   </div>
-                  <Link href="/practice-quiz">
-                    <Button variant="secondary" className="gap-2 font-semibold" data-testid="button-topic-practice">
-                      Start Practice
-                    </Button>
-                  </Link>
+                  <Button
+                    variant="secondary"
+                    className="gap-2 font-semibold"
+                    data-testid="button-topic-practice"
+                    disabled={generatingQuiz}
+                    onClick={async () => {
+                      setGeneratingQuiz(true);
+                      try {
+                        const resp = await fetch(`/api/quizzes/generate-topic/${topicId}`, {
+                          method: "POST",
+                          credentials: "include",
+                          headers: { "Content-Type": "application/json" },
+                        });
+                        if (!resp.ok) throw new Error("Failed to generate quiz");
+                        const data = await resp.json();
+                        setLocation(`/practice-quiz?attemptId=${data.attempt.id}`);
+                      } catch {
+                        toast({ title: "Failed to generate quiz", description: "Please try again.", variant: "destructive" });
+                      } finally {
+                        setGeneratingQuiz(false);
+                      }
+                    }}
+                  >
+                    {generatingQuiz ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4" />
+                        Start Practice
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
             </Card>

@@ -20,6 +20,7 @@ export const dailyTopics = pgTable("daily_topics", {
   source: text("source"),
   pageNumber: integer("page_number"),
   revised: boolean("revised").default(false).notNull(),
+  detailContent: text("detail_content"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 

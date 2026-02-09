@@ -295,6 +295,17 @@ No markdown, no explanations, just the JSON array.`;
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
 
+      if (topic.detailContent) {
+        const chunkSize = 80;
+        for (let i = 0; i < topic.detailContent.length; i += chunkSize) {
+          const text = topic.detailContent.slice(i, i + chunkSize);
+          res.write(`data: ${JSON.stringify({ text })}\n\n`);
+        }
+        res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+        res.end();
+        return;
+      }
+
       const sourceInfo = topic.source ? ` (Source: ${topic.source})` : "";
       const prompt = `You are an expert UPSC/State PSC current affairs analyst. Write a concise, exam-focused analysis of this topic:
 
@@ -337,6 +348,8 @@ Write in a professional, analytical tone. Prioritize facts over opinions. Use ma
         clientClosed = true;
       });
 
+      let fullContent = "";
+
       const stream = await ai.models.generateContentStream({
         model: "gemini-2.5-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -346,7 +359,18 @@ Write in a professional, analytical tone. Prioritize facts over opinions. Use ma
         if (clientClosed) break;
         const text = chunk.text || "";
         if (text) {
+          fullContent += text;
           res.write(`data: ${JSON.stringify({ text })}\n\n`);
+        }
+      }
+
+      if (fullContent && !clientClosed) {
+        try {
+          await db.update(dailyTopics)
+            .set({ detailContent: fullContent })
+            .where(eq(dailyTopics.id, topicId));
+        } catch (saveErr) {
+          console.error("Error saving detail content:", saveErr);
         }
       }
 

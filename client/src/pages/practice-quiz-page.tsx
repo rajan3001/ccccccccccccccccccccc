@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
+import { useSearch } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -219,6 +220,7 @@ const QUESTION_COUNTS = [
 type ViewMode = "create" | "quiz" | "results" | "history" | "analytics";
 
 export default function PracticeQuizPage() {
+  const searchString = useSearch();
   const [view, setView] = useState<ViewMode>("create");
   const [examType, setExamType] = useState("UPSC");
   const [gsCategory, setGsCategory] = useState("");
@@ -229,6 +231,20 @@ export default function PracticeQuizPage() {
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
 
   const { toast } = useToast();
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchString);
+    const attemptId = params.get("attemptId");
+    if (attemptId) {
+      const id = parseInt(attemptId);
+      if (!isNaN(id) && id > 0) {
+        setActiveQuizId(id);
+        setCurrentQuestionIndex(0);
+        setSelectedAnswers({});
+        setView("quiz");
+      }
+    }
+  }, [searchString]);
   const generateMutation = useGenerateQuiz();
   const submitMutation = useSubmitQuiz();
   const { data: quizData, isLoading: quizLoading } = useQuiz(activeQuizId);

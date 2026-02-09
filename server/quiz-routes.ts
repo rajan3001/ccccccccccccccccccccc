@@ -27,6 +27,95 @@ const submitQuizSchema = z.object({
 });
 
 export function registerQuizRoutes(app: Express): void {
+  app.post("/api/quizzes/generate-topic/:topicId", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const topicId = parseInt(req.params.topicId as string);
+      if (isNaN(topicId) || topicId <= 0) {
+        return res.status(400).json({ error: "Invalid topic ID" });
+      }
+      const userId = (req as any).user.claims.sub;
+
+      const [topic] = await db.select().from(dailyTopics).where(eq(dailyTopics.id, topicId));
+      if (!topic) {
+        return res.status(404).json({ error: "Topic not found" });
+      }
+
+      const numQuestions = 5;
+      const prompt = `Generate exactly ${numQuestions} multiple choice questions based SPECIFICALLY on this current affairs topic:
+
+**${topic.title}**
+${topic.summary}
+${topic.detailContent ? `\nDetailed context:\n${topic.detailContent.substring(0, 2000)}` : ""}
+
+Requirements:
+- Each question must have exactly 4 options (A, B, C, D)
+- Questions should test understanding of THIS specific topic only
+- Include factual, analytical, and application-based questions
+- Questions should be at UPSC Prelims/Mains standard
+- Include a detailed explanation for the correct answer (2-3 sentences)
+
+Return ONLY a valid JSON array of objects with these exact keys:
+- "question": the question text
+- "options": array of exactly 4 option strings
+- "correctIndex": index of correct option (0-3)
+- "explanation": detailed explanation of why the correct answer is right
+
+No markdown, no explanations outside the JSON, just the JSON array.`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+      });
+
+      let responseText = response.text || "";
+      responseText = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+
+      let questionsData: any[];
+      try {
+        questionsData = JSON.parse(responseText);
+      } catch {
+        console.error("Failed to parse topic quiz AI response:", responseText.substring(0, 500));
+        return res.status(500).json({ error: "Failed to generate quiz questions" });
+      }
+
+      if (!Array.isArray(questionsData) || questionsData.length === 0) {
+        return res.status(500).json({ error: "AI returned invalid question format" });
+      }
+
+      const [attempt] = await db.insert(quizAttempts).values({
+        userId,
+        examType: "UPSC",
+        gsCategory: topic.gsCategory,
+        difficulty: "medium",
+        totalQuestions: questionsData.length,
+      }).returning();
+
+      const insertedQuestions = [];
+      for (const q of questionsData) {
+        const options = Array.isArray(q.options) ? q.options.slice(0, 4) : ["A", "B", "C", "D"];
+        while (options.length < 4) options.push(`Option ${options.length + 1}`);
+
+        const [inserted] = await db.insert(quizQuestions).values({
+          attemptId: attempt.id,
+          question: q.question || "Question",
+          options,
+          correctIndex: typeof q.correctIndex === "number" ? Math.min(Math.max(q.correctIndex, 0), 3) : 0,
+          explanation: q.explanation || "No explanation provided.",
+        }).returning();
+        insertedQuestions.push(inserted);
+      }
+
+      res.json({ attempt, questions: insertedQuestions.map(q => ({
+        ...q,
+        correctIndex: undefined,
+        explanation: undefined,
+      })) });
+    } catch (error) {
+      console.error("Error generating topic quiz:", error);
+      res.status(500).json({ error: "Failed to generate quiz for this topic" });
+    }
+  });
+
   app.post("/api/quizzes/generate", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const parsed = generateQuizSchema.safeParse(req.body);
