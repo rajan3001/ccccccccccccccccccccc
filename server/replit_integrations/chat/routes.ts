@@ -108,12 +108,12 @@ export function registerChatRoutes(app: Express): void {
   const ADMIN_EMAILS = ["rajan.kumar3001@gmail.com"];
 
   function isAdmin(req: any): boolean {
-    const email = req.user?.claims?.email;
+    const email = req.user?.dbUser?.email;
     return ADMIN_EMAILS.includes(email);
   }
 
   function getUserId(req: any): string | undefined {
-    return req.user?.claims?.sub;
+    return req.user?.dbUser?.id || req.user?.claims?.sub;
   }
 
   app.get("/api/chat/query-status", isAuthenticated, async (req: Request, res: Response) => {
