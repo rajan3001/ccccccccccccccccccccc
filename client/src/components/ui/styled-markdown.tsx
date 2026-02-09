@@ -82,14 +82,31 @@ const markdownComponents: Components = {
 };
 
 function preprocessMarkdown(text: string): string {
-  return text.split('\n').map(line => {
-    const optionPattern = /[A-D]\)\s+\S/g;
-    const matches = line.match(optionPattern);
-    if (matches && matches.length >= 2) {
-      return line.replace(/\s*([B-D]\))\s+/g, '  \n$1 ');
+  const lines = text.split('\n');
+  const result: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+
+    const mcqPattern = /[A-D]\)\s+\S/g;
+    const mcqMatches = line.match(mcqPattern);
+    if (mcqMatches && mcqMatches.length >= 2) {
+      line = line.replace(/\s*([B-D]\))\s+/g, '  \n$1 ');
     }
-    return line;
-  }).join('\n');
+
+    const mixedNumMatch = line.match(/^(\s*)[*\-+]\s+(\d+)\.\s+/);
+    if (mixedNumMatch) {
+      line = line.replace(/^(\s*)[*\-+]\s+(\d+\.\s+)/, '$1$2');
+    }
+
+    if (!mixedNumMatch && line.match(/^(\s*)[*\-+]\s+[a-d]\.\s+/)) {
+      line = line.replace(/^(\s*)[*\-+]\s+([a-d]\.\s+)/, '$1$2');
+    }
+
+    result.push(line);
+  }
+
+  return result.join('\n');
 }
 
 interface StyledMarkdownProps {
