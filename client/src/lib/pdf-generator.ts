@@ -23,7 +23,7 @@ async function getLogoDataUrl(): Promise<string> {
   });
 }
 
-interface PDFSection {
+export interface PDFSection {
   type: "heading" | "subheading" | "text" | "boldText" | "bulletList" | "numberedList" | "scoreLine" | "divider" | "badge" | "spacer";
   text?: string;
   items?: string[];

@@ -2,7 +2,8 @@ import { cn } from "@/lib/utils";
 import { Message } from "@/hooks/use-chat";
 import { Logo } from "@/components/ui/logo";
 import { StyledMarkdown } from "@/components/ui/styled-markdown";
-import { User, Copy, Check, FileText, Image as ImageIcon, File, BookmarkPlus, FolderPlus, Download } from "lucide-react";
+import { detectMCQContent } from "@/components/chat/chat-quiz-panel";
+import { User, Copy, Check, FileText, Image as ImageIcon, File, BookmarkPlus, FolderPlus, Download, Play } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ interface MessageBubbleProps {
   isStreaming?: boolean;
   conversationId?: number;
   userQuery?: string;
+  onStartQuiz?: (content: string) => void;
 }
 
 const SUBJECT_OPTIONS = [
@@ -61,7 +63,7 @@ const SUBJECT_OPTIONS = [
   { value: "Other", label: "Other" },
 ];
 
-export function MessageBubble({ message, isStreaming, conversationId, userQuery }: MessageBubbleProps) {
+export function MessageBubble({ message, isStreaming, conversationId, userQuery, onStartQuiz }: MessageBubbleProps) {
   const isUser = message.role === "user";
   const [copied, setCopied] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -241,7 +243,19 @@ export function MessageBubble({ message, isStreaming, conversationId, userQuery 
           </div>
 
           {!isUser && !isStreaming && message.content && (
-            <div className="flex items-center gap-1 mt-3 pt-3 border-t border-border/50" data-testid="message-action-bar">
+            <div className="flex items-center gap-1 mt-3 pt-3 border-t border-border/50 flex-wrap" data-testid="message-action-bar">
+              {onStartQuiz && detectMCQContent(message.content) && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => onStartQuiz(message.content!)}
+                  data-testid="button-start-quiz"
+                  className="gap-1.5 mr-1"
+                >
+                  <Play className="h-3.5 w-3.5" />
+                  Start Quiz
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="sm"

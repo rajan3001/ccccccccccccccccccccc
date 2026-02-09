@@ -5,6 +5,7 @@ import { useConversation, useChatStream, useCreateConversation } from "@/hooks/u
 import { Sidebar } from "@/components/layout/sidebar";
 import { MessageBubble } from "@/components/chat/message-bubble";
 import { ChatInput } from "@/components/chat/chat-input";
+import { ChatQuizPanel } from "@/components/chat/chat-quiz-panel";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -54,6 +55,8 @@ export default function ChatPage() {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [prefillSent, setPrefillSent] = useState(false);
+  const [quizContent, setQuizContent] = useState<string | null>(null);
+  const [quizOpen, setQuizOpen] = useState(false);
 
   const { data: queryStatus } = useQuery<{ used: number; limit: number; remaining: number }>({
     queryKey: ["/api/chat/query-status"],
@@ -73,6 +76,11 @@ export default function ChatPage() {
   };
 
   const queryLimitReached = queryStatus?.remaining === 0;
+
+  const handleStartQuiz = (content: string) => {
+    setQuizContent(content);
+    setQuizOpen(true);
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -181,7 +189,7 @@ export default function ChatPage() {
                   }
                 }
                 return (
-                  <MessageBubble key={msg.id} message={msg} conversationId={conversationId || undefined} userQuery={prevUserQuery} />
+                  <MessageBubble key={msg.id} message={msg} conversationId={conversationId || undefined} userQuery={prevUserQuery} onStartQuiz={handleStartQuiz} />
                 );
               })}
               
@@ -245,6 +253,22 @@ export default function ChatPage() {
             />
           )}
         </div>
+
+        {quizOpen && (
+          <div
+            className="fixed inset-0 bg-black/30 z-40 transition-opacity duration-300"
+            onClick={() => setQuizOpen(false)}
+            data-testid="quiz-backdrop"
+          />
+        )}
+
+        {quizContent && quizOpen && (
+          <ChatQuizPanel
+            content={quizContent}
+            isOpen={quizOpen}
+            onClose={() => setQuizOpen(false)}
+          />
+        )}
       </main>
     </div>
   );
