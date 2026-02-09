@@ -31,7 +31,7 @@ The Learnpro AI platform is built with a modern web stack. The frontend is devel
 ### External Dependencies
 - **Gemini 2.5 Flash**: Via Replit AI Integrations for all AI functionalities.
 - **PostgreSQL (Neon)**: Database for all application data.
-- **Twilio SMS**: For Phone OTP authentication (production mode).
+- **SMSGatewayHub**: For Phone OTP authentication via Indian SMS gateway (requires API Key, Sender ID, Entity ID, DLT Template ID).
 - **Replit Object Storage (Google Cloud Storage)**: For file uploads and storage.
 - **Recharts**: For interactive data visualizations on the dashboard (e.g., weekly goals chart).
 - **NextIAS Scraper**: For sourcing current affairs topics (primary source).

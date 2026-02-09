@@ -35,39 +35,60 @@ function generateOtp(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-async function sendOtpViaTwilio(phone: string, otp: string): Promise<boolean> {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+async function sendOtpViaSms(phone: string, otp: string): Promise<boolean> {
+  const apiKey = process.env.SMSGATEWAYHUB_API_KEY;
+  const senderId = process.env.SMSGATEWAYHUB_SENDER_ID;
+  const entityId = process.env.SMSGATEWAYHUB_ENTITY_ID;
+  const templateId = process.env.SMSGATEWAYHUB_TEMPLATE_ID;
 
-  if (!accountSid || !authToken || !fromNumber) {
+  if (!apiKey || !senderId || !entityId || !templateId) {
     console.log(`[DEV MODE] OTP for ${phone}: ${otp}`);
     return true;
   }
 
   try {
-    const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Authorization": "Basic " + Buffer.from(`${accountSid}:${authToken}`).toString("base64"),
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        To: phone,
-        From: fromNumber,
-        Body: `Your Learnpro AI verification code is: ${otp}. Valid for 5 minutes. Do not share this code.`,
-      }),
+    const mobileNumber = phone.replace("+", "");
+    const message = `Your Learnpro AI verification code is: ${otp}. Valid for 5 minutes. Do not share this code.`;
+
+    const params = new URLSearchParams({
+      APIKey: apiKey,
+      senderid: senderId,
+      channel: "OTP",
+      DCS: "0",
+      flashsms: "0",
+      number: mobileNumber,
+      text: message,
+      route: "0",
+      EntityId: entityId,
+      dlttemplateid: templateId,
     });
 
+    const url = `https://www.smsgatewayhub.com/api/mt/SendSMS?${params.toString()}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "cache-control": "no-cache" },
+    });
+
+    const responseText = await response.text();
+    console.log("SMSGatewayHub response:", responseText);
+
     if (!response.ok) {
-      const errText = await response.text();
-      console.error("Twilio error:", errText);
+      console.error("SMSGatewayHub error:", responseText);
       return false;
     }
-    return true;
+
+    try {
+      const result = JSON.parse(responseText);
+      if (result.ErrorCode === "000" || result.ErrorMessage === "Success") {
+        return true;
+      }
+      console.error("SMSGatewayHub error code:", result.ErrorCode, result.ErrorMessage);
+      return false;
+    } catch {
+      return response.ok;
+    }
   } catch (error) {
-    console.error("Failed to send OTP via Twilio:", error);
+    console.error("Failed to send OTP via SMSGatewayHub:", error);
     return false;
   }
 }
@@ -100,7 +121,7 @@ export async function setupAuth(app: Express) {
 
       await db.insert(otpVerifications).values({ phone, otp, expiresAt });
 
-      const sent = await sendOtpViaTwilio(phone, otp);
+      const sent = await sendOtpViaSms(phone, otp);
       if (!sent) {
         return res.status(500).json({ message: "Failed to send OTP. Please try again." });
       }
