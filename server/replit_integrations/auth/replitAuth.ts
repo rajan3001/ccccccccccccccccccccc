@@ -279,7 +279,7 @@ export async function setupAuth(app: Express) {
       res.redirect(authUrl.href);
     } catch (error) {
       console.error("[GOOGLE AUTH] Error initiating Google login:", error);
-      res.redirect("/login?error=google_init_failed");
+      res.redirect("/?error=google_init_failed");
     }
   });
 
@@ -287,12 +287,12 @@ export async function setupAuth(app: Express) {
     try {
       const config = await getGoogleOidcConfig();
       if (!config) {
-        return res.redirect("/login?error=google_not_configured");
+        return res.redirect("/?error=google_not_configured");
       }
 
       const googleAuth = (req.session as any).googleAuth;
       if (!googleAuth) {
-        return res.redirect("/login?error=session_expired");
+        return res.redirect("/?error=session_expired");
       }
 
       const { codeVerifier, state, nonce, callbackUrl } = googleAuth;
@@ -309,7 +309,7 @@ export async function setupAuth(app: Express) {
 
       const claims = tokens.claims();
       if (!claims) {
-        return res.redirect("/login?error=no_claims");
+        return res.redirect("/?error=no_claims");
       }
 
       const email = claims.email as string | undefined;
@@ -317,7 +317,7 @@ export async function setupAuth(app: Express) {
 
       if (!email || !emailVerified) {
         console.error("[GOOGLE AUTH] Email missing or not verified:", { email, emailVerified });
-        return res.redirect("/login?error=google_auth_failed");
+        return res.redirect("/?error=google_auth_failed");
       }
 
       const firstName = (claims.given_name as string) || null;
@@ -352,13 +352,13 @@ export async function setupAuth(app: Express) {
       req.session.save((err) => {
         if (err) {
           console.error("[GOOGLE AUTH] Session save error:", err);
-          return res.redirect("/login?error=session_failed");
+          return res.redirect("/?error=session_failed");
         }
         res.redirect("/");
       });
     } catch (error: any) {
       console.error("[GOOGLE AUTH] Callback error:", error);
-      res.redirect("/login?error=google_auth_failed");
+      res.redirect("/?error=google_auth_failed");
     }
   });
 

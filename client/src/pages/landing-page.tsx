@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { HeroDashboardAnimation, NeuralNetworkAnimation } from "@/components/landing/hero-animation";
+import { LoginSlideOver } from "@/components/login-slide-over";
 
 function AnimatedCounter({ target, suffix = "+" }: { target: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -267,12 +268,24 @@ function ComparisonTable() {
 
 export default function LandingPage() {
   const { isAuthenticated, isLoading } = useAuth();
+  const [loginOpen, setLoginOpen] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("login") === "true" || params.get("error")) {
+      setLoginOpen(true);
+    }
+  }, []);
 
   if (isLoading) return null;
   if (isAuthenticated) return <Redirect to="/" />;
 
+  const openLogin = () => setLoginOpen(true);
+
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans">
+      <LoginSlideOver open={loginOpen} onClose={() => setLoginOpen(false)} />
+
       <nav className="border-b border-border/40 backdrop-blur-md sticky top-0 z-[999] bg-background/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
           <Logo size="md" />
@@ -288,7 +301,7 @@ export default function LandingPage() {
               </Button>
             </a>
             <Button
-              onClick={() => window.location.href = "/login"}
+              onClick={openLogin}
               data-testid="button-login-nav"
             >
               Login
@@ -379,7 +392,7 @@ export default function LandingPage() {
                   <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start flex-wrap gap-4">
                     <Button
                       size="lg"
-                      onClick={() => window.location.href = "/login"}
+                      onClick={openLogin}
                       className="w-full sm:w-auto rounded-full shadow-xl shadow-primary/30"
                       data-testid="button-get-started"
                     >
@@ -494,7 +507,7 @@ export default function LandingPage() {
                         <Button
                           size="sm"
                           className="gap-1.5"
-                          onClick={() => window.location.href = "/login"}
+                          onClick={openLogin}
                           data-testid={`button-feature-${feature.id}`}
                         >
                           {feature.cta}
@@ -731,7 +744,7 @@ export default function LandingPage() {
               </p>
               <Button
                 size="lg"
-                onClick={() => window.location.href = "/login"}
+                onClick={openLogin}
                 className="rounded-full shadow-xl shadow-primary/30"
                 data-testid="button-bottom-cta"
               >
