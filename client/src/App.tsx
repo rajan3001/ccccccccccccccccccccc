@@ -16,6 +16,8 @@ import PaperEvaluationPage from "@/pages/paper-evaluation-page";
 import NotesPage from "@/pages/notes-page";
 import StudyPlannerPage from "@/pages/study-planner-page";
 import SettingsPage from "@/pages/settings-page";
+import PrivacyPolicyPage from "@/pages/privacy-policy-page";
+import TermsOfServicePage from "@/pages/terms-of-service-page";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -44,6 +46,8 @@ function Router() {
       <Route path="/study-planner" component={isAuthenticated ? StudyPlannerPage : LoginPage} />
       <Route path="/settings" component={isAuthenticated ? SettingsPage : LoginPage} />
       <Route path="/subscription" component={SubscriptionPage} />
+      <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+      <Route path="/terms-of-service" component={TermsOfServicePage} />
       <Route component={NotFound} />
     </Switch>
   );

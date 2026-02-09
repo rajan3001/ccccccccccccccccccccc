@@ -35,6 +35,7 @@ import {
 import { motion } from "framer-motion";
 import { HeroDashboardAnimation, NeuralNetworkAnimation } from "@/components/landing/hero-animation";
 import { LoginSlideOver } from "@/components/login-slide-over";
+import { LandingFooter } from "@/components/landing/footer";
 
 function AnimatedCounter({ target, suffix = "+" }: { target: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -756,20 +757,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="bg-foreground py-10 sm:py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6 flex-wrap">
-            <Logo size="sm" variant="light" />
-            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm text-primary-foreground/60">
-              <a href="#features" data-testid="footer-link-features">Features</a>
-              <a href="#comparison" data-testid="footer-link-compare">Compare</a>
-            </div>
-            <div className="text-sm text-primary-foreground/60">
-              &copy; 2025 Learnpro AI
-            </div>
-          </div>
-        </div>
-      </footer>
+      <LandingFooter />
     </div>
   );
 }
