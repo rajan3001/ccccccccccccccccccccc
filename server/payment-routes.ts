@@ -42,7 +42,7 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
       const order = await razorpay.orders.create({
         amount: amountInPaise,
         currency: plan.currency,
-        receipt: `learnpro_${userId}_${Date.now()}`,
+        receipt: `lp_${userId.slice(0, 8)}_${Date.now()}`,
         notes: {
           userId,
           planCode,
