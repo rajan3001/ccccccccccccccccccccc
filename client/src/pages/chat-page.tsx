@@ -24,13 +24,21 @@ import {
 } from "lucide-react";
 import { generatePDF, chatToPDFSections } from "@/lib/pdf-generator";
 
-const CHAT_SUGGESTIONS = [
+const TOPIC_SUGGESTIONS = [
   { text: "Create 5 Prelims MCQs on this topic", icon: ListChecks },
   { text: "Write a Mains answer on this topic", icon: PenLine },
   { text: "How to write good answers for this topic?", icon: HelpCircle },
   { text: "Explain the key concepts in simple terms", icon: Lightbulb },
   { text: "What are the important facts to remember?", icon: BookOpen },
 ];
+
+const CASUAL_GREETINGS = /^\s*(hi|hello|hey|hii+|helo|good\s*(morning|afternoon|evening|night)|namaste|namaskar|howdy|sup|what'?s\s*up|yo)\b.*$/i;
+
+function isSubstantiveConversation(messages: Array<{role: string; content: string}>): boolean {
+  const userMessages = messages.filter(m => m.role === "user");
+  if (userMessages.length === 0) return false;
+  return userMessages.some(m => !CASUAL_GREETINGS.test(m.content.trim()));
+}
 
 export default function ChatPage() {
   const params = useParams<{ id: string }>();
@@ -90,7 +98,8 @@ export default function ChatPage() {
 
   const hasMessages = conversationData?.messages && conversationData.messages.length > 0;
   const lastMessage = hasMessages ? conversationData.messages[conversationData.messages.length - 1] : null;
-  const showSuggestions = hasMessages && lastMessage?.role === "assistant" && !isStreaming;
+  const hasTopic = hasMessages && isSubstantiveConversation(conversationData.messages);
+  const showSuggestions = hasMessages && lastMessage?.role === "assistant" && !isStreaming && hasTopic;
 
   if (isAuthLoading) {
     return (
@@ -196,7 +205,7 @@ export default function ChatPage() {
                     <span className="text-sm font-semibold text-muted-foreground">You can also ask</span>
                   </div>
                   <div className="space-y-2">
-                    {CHAT_SUGGESTIONS.map((suggestion, i) => (
+                    {TOPIC_SUGGESTIONS.map((suggestion, i) => (
                       <Button
                         key={i}
                         variant="outline"
