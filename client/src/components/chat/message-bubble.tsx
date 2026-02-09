@@ -167,11 +167,11 @@ export function MessageBubble({ message, isStreaming, conversationId, userQuery,
 
   const mcqIntroText = hasMCQ
     ? (() => {
-        const firstQIndex = message.content!.search(/\*\*(?:Question|Q)\s*1/i);
-        if (firstQIndex > 0) {
-          return message.content!.substring(0, firstQIndex).trim();
+        const firstQMatch = message.content!.search(/\*\*(?:Question|Q)\s*\d+/i);
+        if (firstQMatch > 0) {
+          return message.content!.substring(0, firstQMatch).trim();
         }
-        return "";
+        return `Here are ${mcqCount} practice MCQs for you.`;
       })()
     : "";
 
@@ -278,7 +278,7 @@ export function MessageBubble({ message, isStreaming, conversationId, userQuery,
             ) : (
                isStreaming && <span className="animate-pulse inline-block w-2 h-4 bg-primary rounded-sm align-middle" />
             )}
-            {isStreaming && message.content && !hasMCQ && (
+            {isStreaming && message.content && (
               <span className="inline-block w-1.5 h-4 ml-1 bg-primary animate-pulse" />
             )}
           </div>

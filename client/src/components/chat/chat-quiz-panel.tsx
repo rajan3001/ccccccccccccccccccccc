@@ -63,7 +63,7 @@ function parseMCQContent(content: string): ParsedQuestion[] {
     const firstOptionIndex = afterHeader.indexOf(optionMatches[0][0]);
     let questionText = afterHeader.substring(0, firstOptionIndex).replace(/\n+$/, "").trim();
     questionText = questionText
-      .replace(/(\d+)\.\s+/g, '\n$1. ')
+      .replace(/(?:^|\n)\s*(\d+)\.\s+/g, '\n$1. ')
       .replace(/^\n/, '')
       .trim();
 
