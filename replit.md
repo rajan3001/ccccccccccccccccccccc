@@ -20,7 +20,7 @@ The Learnpro AI platform is built with a modern web stack. The frontend is devel
 - **UI/UX**: Features a multi-step onboarding wizard, a personalized dashboard, and a consistent design language using shadcn/ui. Client-side PDF generation with Learnpro branding is implemented for various reports.
 - **Core Modules**:
     - **AI Chat**: Streaming responses, conversation history, and file attachment support for contextual AI interactions.
-    - **Daily Current Affairs**: AI-generated digests with GS paper categorization, revision tracking, sourced from NextIAS (with fallback to AI generation). Supports state-specific current affairs.
+    - **Daily Current Affairs**: AI-generated digests with GS paper categorization, revision tracking, sourced from NextIAS (with fallback to AI generation). Supports state-specific current affairs. Features horizontal date strip navigation (14 days), auto-selection of latest available date, GS category filters, topics grouped by category, and prev/next topic navigation on detail pages.
     - **Practice Quiz**: AI-generated MCQs tailored for UPSC and 15 State PSC exams, including score tracking and performance analytics.
     - **Answer Sheet Evaluation**: AI-powered evaluation of uploaded answer sheets against UPSC/State PSC norms, providing detailed scores, competency analysis across 7 parameters, and per-question feedback. Supports optional question paper uploads for context.
     - **My Notes**: Allows saving AI chat responses as structured notes with markdown support, categorization, tags, folders, and spaced repetition for review.

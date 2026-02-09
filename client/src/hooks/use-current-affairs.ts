@@ -94,8 +94,20 @@ export function useToggleRevision() {
   });
 }
 
+export interface TopicNavItem {
+  id: number;
+  title: string;
+}
+
 export function useTopicById(topicId: number) {
-  return useQuery<{ topic: DailyTopic; date: string }>({
+  return useQuery<{
+    topic: DailyTopic;
+    date: string;
+    prevTopic: TopicNavItem | null;
+    nextTopic: TopicNavItem | null;
+    topicIndex: number;
+    totalTopics: number;
+  }>({
     queryKey: ["/api/current-affairs/topic", topicId],
     queryFn: async () => {
       const res = await fetch(`/api/current-affairs/topic/${topicId}`);
@@ -103,6 +115,17 @@ export function useTopicById(topicId: number) {
       return res.json();
     },
     enabled: topicId > 0,
+  });
+}
+
+export function useLatestAvailableDate() {
+  return useQuery<{ date: string | null }>({
+    queryKey: ["/api/current-affairs/latest"],
+    queryFn: async () => {
+      const res = await fetch("/api/current-affairs/latest");
+      if (!res.ok) throw new Error("Failed to fetch latest date");
+      return res.json();
+    },
   });
 }
 

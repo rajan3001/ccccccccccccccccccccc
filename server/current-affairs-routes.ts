@@ -15,6 +15,39 @@ const ai = new GoogleGenAI({
 });
 
 export function registerCurrentAffairsRoutes(app: Express): void {
+  app.get("/api/current-affairs/latest", isAuthenticated, async (_req: Request, res: Response) => {
+    try {
+      const [latest] = await db
+        .select({ date: dailyDigests.date, id: dailyDigests.id })
+        .from(dailyDigests)
+        .orderBy(desc(dailyDigests.date))
+        .limit(1);
+
+      if (!latest) {
+        return res.json({ date: null });
+      }
+      res.json({ date: latest.date });
+    } catch (error) {
+      console.error("Error fetching latest date:", error);
+      res.status(500).json({ error: "Failed to fetch latest date" });
+    }
+  });
+
+  app.get("/api/current-affairs-dates", isAuthenticated, async (_req: Request, res: Response) => {
+    try {
+      const digests = await db
+        .select({ date: dailyDigests.date, id: dailyDigests.id })
+        .from(dailyDigests)
+        .orderBy(desc(dailyDigests.date))
+        .limit(60);
+
+      res.json(digests);
+    } catch (error) {
+      console.error("Error fetching dates:", error);
+      res.status(500).json({ error: "Failed to fetch dates" });
+    }
+  });
+
   app.get("/api/current-affairs/:date", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const dateStr = req.params.date;
@@ -34,21 +67,6 @@ export function registerCurrentAffairsRoutes(app: Express): void {
     } catch (error) {
       console.error("Error fetching current affairs:", error);
       res.status(500).json({ error: "Failed to fetch current affairs" });
-    }
-  });
-
-  app.get("/api/current-affairs-dates", isAuthenticated, async (_req: Request, res: Response) => {
-    try {
-      const digests = await db
-        .select({ date: dailyDigests.date, id: dailyDigests.id })
-        .from(dailyDigests)
-        .orderBy(desc(dailyDigests.date))
-        .limit(60);
-
-      res.json(digests);
-    } catch (error) {
-      console.error("Error fetching dates:", error);
-      res.status(500).json({ error: "Failed to fetch dates" });
     }
   });
 
@@ -353,7 +371,25 @@ Write in a professional, analytical tone. Prioritize facts over opinions. Use ma
         return res.status(404).json({ error: "Topic not found" });
       }
       const [digest] = await db.select().from(dailyDigests).where(eq(dailyDigests.id, topic.digestId));
-      res.json({ topic, date: digest?.date || null });
+
+      const siblingTopics = await db
+        .select({ id: dailyTopics.id, title: dailyTopics.title })
+        .from(dailyTopics)
+        .where(eq(dailyTopics.digestId, topic.digestId))
+        .orderBy(dailyTopics.gsCategory, dailyTopics.id);
+
+      const currentIndex = siblingTopics.findIndex(t => t.id === topicId);
+      const prevTopic = currentIndex > 0 ? siblingTopics[currentIndex - 1] : null;
+      const nextTopic = currentIndex < siblingTopics.length - 1 ? siblingTopics[currentIndex + 1] : null;
+
+      res.json({
+        topic,
+        date: digest?.date || null,
+        prevTopic,
+        nextTopic,
+        topicIndex: currentIndex + 1,
+        totalTopics: siblingTopics.length,
+      });
     } catch (error) {
       console.error("Error fetching topic:", error);
       res.status(500).json({ error: "Failed to fetch topic" });

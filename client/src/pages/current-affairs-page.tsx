@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import {
   useCurrentAffairs,
   useGenerateCurrentAffairs,
   useToggleRevision,
   useCurrentAffairsDates,
+  useLatestAvailableDate,
 } from "@/hooks/use-current-affairs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -18,16 +18,20 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
-  ChevronRight as ArrowRight,
   Download,
   Share2,
   MapPin,
   Newspaper,
   Check,
   BookOpen,
+  Clock,
+  FileText,
+  ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { generatePDF, currentAffairsToPDFSections } from "@/lib/pdf-generator";
+
+const GS_CATEGORIES = ["All", "GS-I", "GS-II", "GS-III", "GS-IV", "Prelims"] as const;
 
 const GS_BADGE_COLORS: Record<string, string> = {
   "GS-I": "border-amber-400 text-amber-600 dark:border-amber-500 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30",
@@ -49,11 +53,6 @@ const CATEGORY_BADGE_COLORS: Record<string, string> = {
   "National": "border-sky-400 text-sky-600 dark:border-sky-500 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30",
   "Sports & Culture": "border-orange-400 text-orange-600 dark:border-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30",
   "State": "border-indigo-400 text-indigo-600 dark:border-indigo-500 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30",
-};
-
-const SOURCE_ICONS: Record<string, string> = {
-  "The Hindu": "\u0B24",
-  "The Indian Express": "IE",
 };
 
 const STATE_FILTERS = [
@@ -82,6 +81,15 @@ function formatDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+function formatDisplayDate(dateStr: string): string {
+  const date = new Date(dateStr + "T00:00:00");
+  return date.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
 function formatShortDate(dateStr: string): string {
   const date = new Date(dateStr + "T00:00:00");
   return date.toLocaleDateString("en-IN", {
@@ -90,50 +98,97 @@ function formatShortDate(dateStr: string): string {
   });
 }
 
+function getDayName(dateStr: string): string {
+  const date = new Date(dateStr + "T00:00:00");
+  return date.toLocaleDateString("en-IN", { weekday: "short" });
+}
+
+function getDayNumber(dateStr: string): string {
+  const date = new Date(dateStr + "T00:00:00");
+  return String(date.getDate());
+}
+
+function getMonthName(dateStr: string): string {
+  const date = new Date(dateStr + "T00:00:00");
+  return date.toLocaleDateString("en-IN", { month: "short" });
+}
+
 function getGsBadgeLabel(gs: string, category: string): string {
   const gsNum = gs.replace("GS-", "");
   const romanMap: Record<string, string> = { "I": "1", "II": "2", "III": "3", "IV": "4" };
   const num = romanMap[gsNum] || gsNum;
   if (gs === "Prelims") return "Prelims";
-  return `GS ${num} : ${category}`;
+  return `GS ${num}`;
 }
 
-function getTopicIconColor(index: number): string {
-  const colors = [
-    "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400",
-    "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400",
-    "bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400",
-    "bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-400",
-    "bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-400",
-    "bg-teal-100 text-teal-600 dark:bg-teal-900/40 dark:text-teal-400",
-    "bg-pink-100 text-pink-600 dark:bg-pink-900/40 dark:text-pink-400",
-    "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-400",
-  ];
-  return colors[index % colors.length];
+function getDateRange(): string[] {
+  const dates: string[] = [];
+  const today = new Date();
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    dates.push(formatDate(d));
+  }
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  dates.push(formatDate(tomorrow));
+  return dates;
 }
 
 export default function CurrentAffairsPage() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [gsFilter, setGsFilter] = useState<string>("All");
   const [stateFilter, setStateFilter] = useState("none");
+  const [showGeneratePanel, setShowGeneratePanel] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const dateStripRef = useRef<HTMLDivElement>(null);
 
-  const dateStr = formatDate(selectedDate);
-  const { data, isLoading } = useCurrentAffairs(dateStr);
-  const generateMutation = useGenerateCurrentAffairs();
-  const toggleRevision = useToggleRevision();
+  const { data: latestDate, isLoading: latestLoading } = useLatestAvailableDate();
   const { data: availableDates } = useCurrentAffairsDates();
+  const generateMutation = useGenerateCurrentAffairs();
+
+  const availableDateSet = new Set(availableDates?.map((d) => d.date) || []);
+  const todayStr = formatDate(new Date());
+
+  useEffect(() => {
+    if (!selectedDate && latestDate?.date) {
+      setSelectedDate(latestDate.date);
+    } else if (!selectedDate && !latestLoading && !latestDate?.date) {
+      setSelectedDate(todayStr);
+    }
+  }, [latestDate, latestLoading, selectedDate, todayStr]);
+
+  const dateStr = selectedDate || todayStr;
+  const { data, isLoading } = useCurrentAffairs(selectedDate ? dateStr : "");
+  const dateReady = !!selectedDate;
+  const toggleRevision = useToggleRevision();
 
   const topics = data?.topics || [];
   const hasDigest = !!data?.digest;
+  const filteredTopics = gsFilter === "All" ? topics : topics.filter(t => t.gsCategory === gsFilter);
 
   const revisedCount = topics.filter((t) => t.revised).length;
   const totalCount = topics.length;
+
+  const dateRange = getDateRange();
+
+  useEffect(() => {
+    if (dateStripRef.current && selectedDate) {
+      const activeEl = dateStripRef.current.querySelector('[data-active="true"]');
+      if (activeEl) {
+        activeEl.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      }
+    }
+  }, [selectedDate]);
 
   const handleGenerate = () => {
     generateMutation.mutate(
       { date: dateStr, stateFilter: stateFilter === "none" ? null : stateFilter },
       {
+        onSuccess: () => {
+          setShowGeneratePanel(false);
+        },
         onError: (error: Error) => {
           toast({
             title: "Not Available",
@@ -145,36 +200,16 @@ export default function CurrentAffairsPage() {
     );
   };
 
-  const goToPreviousDay = () => {
-    const prev = new Date(selectedDate);
-    prev.setDate(prev.getDate() - 1);
-    setSelectedDate(prev);
-  };
-
-  const goToNextDay = () => {
-    const next = new Date(selectedDate);
-    next.setDate(next.getDate() + 1);
-    const today = new Date();
-    if (next <= today) {
-      setSelectedDate(next);
-    }
-  };
-
-  const availableDateSet = new Set(availableDates?.map((d) => d.date) || []);
-  const isToday = formatDate(new Date()) === dateStr;
-
-  const groupedBySource = topics.reduce((acc, topic) => {
-    const source = topic.source || "Other";
-    if (!acc[source]) acc[source] = [];
-    acc[source].push(topic);
+  const groupedByCategory = filteredTopics.reduce((acc, topic) => {
+    const cat = topic.category || "Other";
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(topic);
     return acc;
   }, {} as Record<string, typeof topics>);
 
-  const sourceOrder = ["The Hindu", "The Indian Express"];
-  const orderedSources = [
-    ...sourceOrder.filter((s) => groupedBySource[s]),
-    ...Object.keys(groupedBySource).filter((s) => !sourceOrder.includes(s)),
-  ];
+  const isFutureOrToday = (d: string) => d >= todayStr;
+  const isDateAvailable = (d: string) => availableDateSet.has(d);
+  const isDateClickable = (d: string) => isDateAvailable(d) || (!isFutureOrToday(d));
 
   return (
     <div className="flex flex-col md:flex-row h-[100dvh] bg-background overflow-hidden">
@@ -182,54 +217,98 @@ export default function CurrentAffairsPage() {
 
       <main className="flex-1 overflow-y-auto min-h-0">
         <div className="max-w-6xl mx-auto px-4 py-4 sm:px-6 sm:py-5 pb-20">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-xl font-bold text-foreground" data-testid="text-page-title">Daily News Analysis</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">UPSC & State PSC Current Affairs</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href="/practice-quiz">
+                <Button variant="outline" size="sm" className="gap-1.5" data-testid="button-practice-tab">
+                  <FileText className="h-3.5 w-3.5" />
+                  Practice MCQs
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          <div className="border-b mb-5">
+            <div
+              ref={dateStripRef}
+              className="flex items-center gap-1 overflow-x-auto pb-3 scrollbar-hide"
+              data-testid="date-strip"
+            >
+              {dateRange.map((d) => {
+                const available = isDateAvailable(d);
+                const clickable = isDateClickable(d);
+                const isSelected = d === dateStr;
+                const isToday = d === todayStr;
+                const futureNoContent = isFutureOrToday(d) && !available;
+
+                return (
+                  <button
+                    key={d}
+                    data-active={isSelected ? "true" : "false"}
+                    data-testid={`date-item-${d}`}
+                    disabled={!clickable && futureNoContent}
+                    onClick={() => {
+                      if (clickable || available) {
+                        setSelectedDate(d);
+                        setGsFilter("All");
+                      }
+                    }}
+                    className={cn(
+                      "flex flex-col items-center min-w-[52px] px-2 py-2 rounded-lg transition-all flex-shrink-0",
+                      isSelected
+                        ? "bg-primary text-primary-foreground"
+                        : available
+                          ? "hover-elevate cursor-pointer"
+                          : futureNoContent
+                            ? "opacity-40 cursor-not-allowed"
+                            : "hover-elevate cursor-pointer opacity-70"
+                    )}
+                  >
+                    <span className={cn(
+                      "text-[10px] font-medium uppercase",
+                      isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                    )}>
+                      {getDayName(d)}
+                    </span>
+                    <span className={cn(
+                      "text-lg font-bold leading-tight",
+                      isSelected ? "text-primary-foreground" : "text-foreground"
+                    )}>
+                      {getDayNumber(d)}
+                    </span>
+                    <span className={cn(
+                      "text-[10px] font-medium",
+                      isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                    )}>
+                      {getMonthName(d)}
+                    </span>
+                    {available && !isSelected && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-0.5" />
+                    )}
+                    {isToday && !isSelected && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-0.5" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1 min-w-0">
-              <div className="border-b mb-4 pb-2">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-semibold text-primary border-b-2 border-primary pb-2 cursor-default" data-testid="tab-daily-news">
-                    Daily News Analysis
-                  </span>
-                  <Link href="/practice-quiz">
-                    <span className="text-sm font-medium text-muted-foreground pb-2 cursor-pointer hover:text-foreground transition-colors" data-testid="tab-practice">
-                      Practice
-                    </span>
-                  </Link>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={goToPreviousDay}
-                    data-testid="button-prev-day"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <h2 className="text-lg font-semibold" data-testid="text-todays-news">
-                    {isToday ? "Today's News" : formatShortDate(dateStr)}
+                  <h2 className="text-lg font-semibold text-foreground" data-testid="text-selected-date">
+                    {formatDisplayDate(dateStr)}
                   </h2>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={goToNextDay}
-                    disabled={isToday}
-                    data-testid="button-next-day"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-
-                  {!isToday && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedDate(new Date())}
-                      className="text-xs"
-                      data-testid="button-go-today"
-                    >
-                      Today
-                    </Button>
+                  {hasDigest && (
+                    <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                      {totalCount} topics
+                    </span>
                   )}
                 </div>
 
@@ -277,223 +356,254 @@ export default function CurrentAffairsPage() {
                       }}
                     >
                       <Download className="h-3.5 w-3.5" />
-                      Download
+                      PDF
                     </Button>
                   </div>
                 )}
               </div>
 
-              {totalCount > 0 && (
-                <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
-                  <BookOpen className="h-4 w-4" />
-                  <span>{revisedCount}/{totalCount} revised</span>
-                </div>
+              {hasDigest && (
+                <>
+                  <div className="flex flex-wrap items-center gap-3 mb-5">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mr-auto">
+                      <BookOpen className="h-4 w-4" />
+                      <span data-testid="text-revision-progress">{revisedCount}/{totalCount} revised</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {GS_CATEGORIES.map((gs) => {
+                        const count = gs === "All" ? topics.length : topics.filter(t => t.gsCategory === gs).length;
+                        if (gs !== "All" && count === 0) return null;
+                        return (
+                          <button
+                            key={gs}
+                            onClick={() => setGsFilter(gs)}
+                            data-testid={`filter-${gs}`}
+                            className={cn(
+                              "text-xs px-2.5 py-1 rounded-full border font-medium transition-all",
+                              gsFilter === gs
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "border-border text-muted-foreground hover-elevate"
+                            )}
+                          >
+                            {gs === "All" ? "All" : getGsBadgeLabel(gs, "")} {count > 0 && `(${count})`}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    {Object.entries(groupedByCategory).map(([category, categoryTopics]) => (
+                      <div key={category}>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className={cn(
+                            "w-1 h-5 rounded-full",
+                            category === "International Relations" ? "bg-blue-500" :
+                            category === "Economy" ? "bg-emerald-500" :
+                            category === "Science & Technology" || category === "Science & Tech" ? "bg-purple-500" :
+                            category === "Environment" ? "bg-green-500" :
+                            category === "Polity & Governance" ? "bg-teal-500" :
+                            category === "Social Justice" || category === "Social Issues" ? "bg-rose-500" :
+                            category === "Sports & Culture" ? "bg-orange-500" :
+                            category === "State" ? "bg-indigo-500" :
+                            "bg-sky-500"
+                          )} />
+                          <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80" data-testid={`text-category-${category}`}>
+                            {category}
+                          </h3>
+                          <span className="text-xs text-muted-foreground">({categoryTopics.length})</span>
+                        </div>
+
+                        <div className="space-y-2.5">
+                          {categoryTopics.map((topic) => (
+                            <div
+                              key={topic.id}
+                              className={cn(
+                                "group flex items-start gap-3 p-3.5 rounded-lg border bg-card cursor-pointer transition-all hover-elevate",
+                                topic.revised && "border-green-200 dark:border-green-800/50"
+                              )}
+                              onClick={() => setLocation(`/current-affairs/topic/${topic.id}`)}
+                              data-testid={`card-topic-${topic.id}`}
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                                  <span className={cn(
+                                    "text-[11px] px-2 py-0.5 rounded-full border font-medium",
+                                    GS_BADGE_COLORS[topic.gsCategory] || GS_BADGE_COLORS["Prelims"]
+                                  )} data-testid={`badge-gs-${topic.id}`}>
+                                    {getGsBadgeLabel(topic.gsCategory, topic.category)}
+                                  </span>
+                                  {topic.source && (
+                                    <span className="text-[11px] text-muted-foreground font-medium" data-testid={`text-source-${topic.id}`}>
+                                      {topic.source}
+                                    </span>
+                                  )}
+                                  {topic.revised && (
+                                    <span className="flex items-center gap-0.5 text-[11px] text-green-600 dark:text-green-400 font-medium">
+                                      <Check className="h-3 w-3" />
+                                      Revised
+                                    </span>
+                                  )}
+                                </div>
+
+                                <h4 className="font-semibold text-[15px] text-foreground leading-snug mb-1" data-testid={`text-title-${topic.id}`}>
+                                  {topic.title}
+                                </h4>
+
+                                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2" data-testid={`text-summary-${topic.id}`}>
+                                  {topic.summary}
+                                </p>
+                              </div>
+
+                              <div className="flex-shrink-0 mt-3">
+                                <ArrowRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
 
-              {isLoading ? (
+              {!dateReady || isLoading || latestLoading ? (
                 <div className="flex items-center justify-center py-20">
                   <Loader2 className="h-8 w-8 text-primary animate-spin" />
                 </div>
               ) : !hasDigest ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <Sparkles className="h-8 w-8 text-primary" />
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center mb-4">
+                    <Clock className="h-7 w-7 text-muted-foreground" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">
-                    No digest for {formatShortDate(dateStr)}
+                  <h3 className="text-lg font-semibold mb-2" data-testid="text-no-digest">
+                    No digest available for {formatDisplayDate(dateStr)}
                   </h3>
-                  <p className="text-muted-foreground text-sm mb-4 max-w-md">
-                    Generate a daily digest of important news from The Hindu, Indian Express and leading state newspapers.
+                  <p className="text-muted-foreground text-sm mb-5 max-w-md">
+                    {isFutureOrToday(dateStr)
+                      ? "Today's current affairs will be available once our AI curates the latest news from leading newspapers. Check back later."
+                      : "This date's current affairs haven't been generated yet. You can generate them now."}
                   </p>
 
-                  <div className="w-full max-w-xs mb-6">
-                    <label className="text-sm font-medium flex items-center gap-2 mb-2 justify-center">
-                      <MapPin className="h-4 w-4" />
-                      Include State-Specific News
-                    </label>
-                    <Select value={stateFilter} onValueChange={setStateFilter}>
-                      <SelectTrigger data-testid="select-state-filter">
-                        <SelectValue placeholder="Select state focus" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {STATE_FILTERS.map((s) => (
-                          <SelectItem key={s.value} value={s.value} data-testid={`option-state-${s.value}`}>
-                            {s.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <Button
-                    onClick={handleGenerate}
-                    disabled={generateMutation.isPending}
-                    className="gap-2"
-                    data-testid="button-generate-digest"
-                  >
-                    {generateMutation.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
+                  {!isFutureOrToday(dateStr) && !showGeneratePanel && (
+                    <Button
+                      onClick={() => setShowGeneratePanel(true)}
+                      variant="outline"
+                      className="gap-2"
+                      data-testid="button-show-generate"
+                    >
                       <Sparkles className="h-4 w-4" />
-                    )}
-                    Generate Daily Digest{stateFilter !== "none" ? ` + ${stateFilter} News` : ""}
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-8">
-                  {orderedSources.map((source) => {
-                    const sourceTopics = groupedBySource[source];
-                    const iconText = SOURCE_ICONS[source] || source.charAt(0);
+                      Generate for this date
+                    </Button>
+                  )}
 
-                    return (
-                      <div key={source}>
-                        <div className="flex items-center gap-2.5 mb-4">
-                          <div className="h-6 w-6 rounded flex items-center justify-center bg-muted text-xs font-bold text-foreground" data-testid={`text-source-header-${source}`}>
-                            {iconText === "\u0B24" ? (
-                              <span className="text-sm font-serif font-bold">{iconText}</span>
-                            ) : (
-                              <span className="text-[10px] font-bold">{iconText}</span>
-                            )}
-                          </div>
-                          <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80" data-testid={`text-source-name-${source}`}>
-                            {source}
-                          </h3>
-                        </div>
-
-                        <div className="space-y-3">
-                          {sourceTopics.map((topic, idx) => {
-                            const iconColor = getTopicIconColor(idx);
-
-                            return (
-                              <div
-                                key={topic.id}
-                                className={cn(
-                                  "group flex items-start gap-4 p-4 rounded-lg border bg-card cursor-pointer transition-all hover-elevate",
-                                  topic.revised && "border-green-200 dark:border-green-800/50"
-                                )}
-                                onClick={() => setLocation(`/current-affairs/topic/${topic.id}`)}
-                                data-testid={`card-topic-${topic.id}`}
-                              >
-                                <div className={cn("h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 mt-1", iconColor)}>
-                                  <Newspaper className="h-5 w-5" />
-                                </div>
-
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex flex-wrap gap-1.5 mb-2">
-                                    {[topic.gsCategory, topic.category].map((tag, i) => {
-                                      const gsColor = i === 0
-                                        ? GS_BADGE_COLORS[tag] || GS_BADGE_COLORS["Prelims"]
-                                        : CATEGORY_BADGE_COLORS[tag] || CATEGORY_BADGE_COLORS["National"];
-                                      const label = i === 0
-                                        ? getGsBadgeLabel(tag, topic.category)
-                                        : tag;
-                                      if (i === 0 && tag === "Prelims") {
-                                        return (
-                                          <span key={i} className={cn("text-xs px-2 py-0.5 rounded-full border font-medium", gsColor)} data-testid={`badge-gs-${topic.id}`}>
-                                            Prelims
-                                          </span>
-                                        );
-                                      }
-                                      if (i === 1 && getGsBadgeLabel(topic.gsCategory, tag).includes(tag)) {
-                                        return null;
-                                      }
-                                      return (
-                                        <span key={i} className={cn("text-xs px-2 py-0.5 rounded-full border font-medium", gsColor)} data-testid={i === 0 ? `badge-gs-${topic.id}` : `badge-cat-${topic.id}`}>
-                                          {label}
-                                        </span>
-                                      );
-                                    })}
-                                  </div>
-
-                                  <div className="flex items-center gap-2 mb-1.5">
-                                    <h4 className="font-semibold text-[15px] text-foreground leading-snug" data-testid={`text-title-${topic.id}`}>
-                                      {topic.title}
-                                    </h4>
-                                    {topic.pageNumber && (
-                                      <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0" data-testid={`text-page-${topic.id}`}>
-                                        Pg {topic.pageNumber}
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2" data-testid={`text-summary-${topic.id}`}>
-                                    {topic.summary}
-                                  </p>
-
-                                  {topic.revised && (
-                                    <div className="flex items-center gap-1 mt-2">
-                                      <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-                                      <span className="text-xs text-green-600 dark:text-green-400 font-medium">Revised</span>
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div className="flex-shrink-0 mt-3">
-                                  <ChevronRight className="h-5 w-5 text-primary/60 group-hover:text-primary transition-colors" />
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
+                  {showGeneratePanel && (
+                    <div className="w-full max-w-sm space-y-4 mt-2">
+                      <div>
+                        <label className="text-sm font-medium flex items-center gap-2 mb-2">
+                          <MapPin className="h-4 w-4" />
+                          Include State-Specific News
+                        </label>
+                        <Select value={stateFilter} onValueChange={setStateFilter}>
+                          <SelectTrigger data-testid="select-state-filter">
+                            <SelectValue placeholder="Select state focus" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {STATE_FILTERS.map((s) => (
+                              <SelectItem key={s.value} value={s.value} data-testid={`option-state-${s.value}`}>
+                                {s.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                    );
-                  })}
+
+                      <Button
+                        onClick={handleGenerate}
+                        disabled={generateMutation.isPending}
+                        className="w-full gap-2"
+                        data-testid="button-generate-digest"
+                      >
+                        {generateMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-4 w-4" />
+                        )}
+                        {generateMutation.isPending ? "Generating..." : "Generate Daily Digest"}
+                      </Button>
+                    </div>
+                  )}
+
+                  {isFutureOrToday(dateStr) && latestDate?.date && (
+                    <Button
+                      variant="outline"
+                      className="gap-2 mt-3"
+                      onClick={() => {
+                        setSelectedDate(latestDate.date!);
+                        setGsFilter("All");
+                      }}
+                      data-testid="button-view-latest"
+                    >
+                      View latest available ({formatShortDate(latestDate.date)})
+                    </Button>
+                  )}
                 </div>
-              )}
+              ) : null}
             </div>
 
-            {hasDigest && (
-              <div className="hidden lg:block w-80 flex-shrink-0 space-y-5">
+            <div className="hidden lg:block w-72 flex-shrink-0 space-y-5">
+              {hasDigest && (
                 <Card className="overflow-hidden">
                   <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 text-white">
-                    <h3 className="font-bold text-base mb-1" data-testid="text-mcq-cta">Attempt Today's MCQs</h3>
-                    <p className="text-xs text-blue-100">Practice questions based on today's news</p>
+                    <h3 className="font-bold text-base mb-1" data-testid="text-mcq-cta">Practice MCQs</h3>
+                    <p className="text-xs text-blue-100">Test yourself on today's current affairs</p>
                   </div>
                   <CardContent className="p-4">
                     <Link href="/practice-quiz">
                       <Button className="w-full gap-2" data-testid="button-practice-now">
-                        Practice Now
+                        <FileText className="h-4 w-4" />
+                        Start Practice
                       </Button>
                     </Link>
                   </CardContent>
                 </Card>
+              )}
 
-                <Card>
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold text-sm mb-3" data-testid="text-daily-progress">Daily Progress</h3>
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={(date) => {
-                        if (date) setSelectedDate(date);
-                      }}
-                      disabled={(date) => date > new Date()}
-                      className="w-full"
-                      modifiers={{
-                        hasDigest: (date: Date) => availableDateSet.has(formatDate(date)),
-                      }}
-                      modifiersClassNames={{
-                        hasDigest: "bg-emerald-100 dark:bg-emerald-900/30 font-bold text-emerald-700 dark:text-emerald-400",
-                      }}
-                    />
-                    <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                        <span>Available</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-2.5 w-2.5 rounded-full bg-primary" />
-                        <span>Selected</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
-                        <span>Not started</span>
-                      </div>
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="font-semibold text-sm mb-3" data-testid="text-calendar-title">Calendar</h3>
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate ? new Date(dateStr + "T00:00:00") : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        const d = formatDate(date);
+                        setSelectedDate(d);
+                        setGsFilter("All");
+                      }
+                    }}
+                    disabled={(date) => date > new Date()}
+                    className="w-full"
+                    modifiers={{
+                      hasDigest: (date: Date) => availableDateSet.has(formatDate(date)),
+                    }}
+                    modifiersClassNames={{
+                      hasDigest: "bg-emerald-100 dark:bg-emerald-900/30 font-bold text-emerald-700 dark:text-emerald-400",
+                    }}
+                  />
+                  <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                      <span>Available</span>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-2.5 w-2.5 rounded-full bg-primary" />
+                      <span>Selected</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </main>
