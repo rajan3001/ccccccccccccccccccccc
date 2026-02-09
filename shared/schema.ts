@@ -11,11 +11,24 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { users } from "./models/auth";
 
+export const PLAN_CATALOG = {
+  monthly: { code: "monthly", label: "Monthly", amount: 299, currency: "INR", durationDays: 30 },
+  "6months": { code: "6months", label: "6 Months", amount: 1200, currency: "INR", durationDays: 180 },
+  yearly: { code: "yearly", label: "1 Year", amount: 2000, currency: "INR", durationDays: 365 },
+} as const;
+
+export type PlanCode = keyof typeof PLAN_CATALOG;
+
 export const subscriptions = pgTable("subscriptions", {
   id: serial("id").primaryKey(),
   userId: text("user_id").notNull().references(() => users.id),
-  status: text("status").notNull().default("active"), // active, past_due, canceled, unpaid
-  plan: text("plan").notNull().default("pro"),
+  status: text("status").notNull().default("pending"),
+  plan: text("plan").notNull().default("monthly"),
+  amount: integer("amount"),
+  currency: text("currency").default("INR"),
+  razorpayOrderId: text("razorpay_order_id"),
+  razorpayPaymentId: text("razorpay_payment_id"),
+  razorpaySignature: text("razorpay_signature"),
   currentPeriodEnd: timestamp("current_period_end"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

@@ -9,6 +9,7 @@ import { registerQuizRoutes } from "./quiz-routes";
 import { registerEvaluationRoutes } from "./evaluation-routes";
 import { registerNotesRoutes } from "./notes-routes";
 import { registerStudyPlannerRoutes } from "./study-planner-routes";
+import { registerPaymentRoutes } from "./payment-routes";
 import { api } from "@shared/routes";
 import { db } from "./db";
 import { quizAttempts, conversations, messages, dailyTopics, notes } from "@shared/schema";
@@ -28,30 +29,15 @@ export async function registerRoutes(
   registerEvaluationRoutes(app);
   registerNotesRoutes(app);
   registerStudyPlannerRoutes(app);
+  registerPaymentRoutes(app, isAuthenticated);
 
   // Subscription Routes
   app.get(api.subscription.get.path, isAuthenticated, async (req: any, res) => {
     const userId = req.user.claims.sub;
     const isAdmin = req.user?.dbUser?.isAdmin === true;
-    const sub = await storage.getSubscription(userId);
-    const isPro = isAdmin || sub?.status === 'active';
+    const sub = await storage.getActiveSubscription(userId);
+    const isPro = isAdmin || (sub?.status === 'active' && sub?.currentPeriodEnd && new Date(sub.currentPeriodEnd) > new Date());
     res.json({ isPro, isAdmin, subscription: sub || null });
-  });
-
-  app.post(api.subscription.create.path, isAuthenticated, async (req: any, res) => {
-    const userId = req.user.claims.sub;
-    // Mock upgrade logic
-    let sub = await storage.getSubscription(userId);
-    if (!sub) {
-      sub = await storage.createSubscription({
-        userId,
-        status: 'active',
-        plan: 'pro'
-      });
-    } else {
-      sub = await storage.updateSubscriptionStatus(userId, 'active');
-    }
-    res.status(201).json({ success: true });
   });
 
   app.get("/api/dashboard/stats", isAuthenticated, async (req: any, res) => {

@@ -27,15 +27,6 @@ export const api = {
         401: errorSchemas.notFound, // unauthorized treated as not found/no sub
       },
     },
-    create: { // Mock upgrade
-      method: 'POST' as const,
-      path: '/api/subscription' as const,
-      input: z.object({}),
-      responses: {
-        201: z.object({ success: z.boolean() }),
-        400: errorSchemas.validation,
-      },
-    }
   }
 };
 
