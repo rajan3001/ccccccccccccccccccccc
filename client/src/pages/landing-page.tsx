@@ -13,7 +13,6 @@ import {
   MessageSquare,
   GraduationCap,
   CheckCircle2,
-  X,
   Users,
   FileText,
   BarChart3,
@@ -551,54 +550,69 @@ const testimonials = [
 ];
 
 
-function ComparisonTable() {
-  const features = [
-    { name: "AI Doubt Resolution", learnpro: true, chatgpt: "limited", coaching: false },
-    { name: "UPSC Syllabus Coverage", learnpro: true, chatgpt: false, coaching: true },
-    { name: "Current Affairs (GS-mapped)", learnpro: true, chatgpt: false, coaching: "limited" },
-    { name: "Practice MCQs & PYQs", learnpro: true, chatgpt: false, coaching: true },
-    { name: "State PSC Support (15 states)", learnpro: true, chatgpt: false, coaching: false },
-    { name: "24/7 Availability", learnpro: true, chatgpt: true, coaching: false },
-    { name: "Pricing", learnpro: "Free", chatgpt: "Paid", coaching: "Expensive" },
-  ];
+const SUPPORTED_EXAMS = [
+  {
+    id: "upsc",
+    title: "UPSC CSE",
+    subtitle: "IAS / IPS / IFS",
+    icon: GraduationCap,
+    color: "from-primary/20 to-primary/5",
+    iconBg: "bg-primary/15 text-primary",
+  },
+  {
+    id: "state-psc",
+    title: "State PCS",
+    subtitle: "UPPSC, MPPSC, BPSC...",
+    icon: BookOpen,
+    color: "from-blue-500/15 to-blue-500/5 dark:from-blue-400/15 dark:to-blue-400/5",
+    iconBg: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+  },
+  {
+    id: "ne-psc",
+    title: "NE State PCS",
+    subtitle: "APSC, Meghalaya, Sikkim...",
+    icon: Target,
+    color: "from-emerald-500/15 to-emerald-500/5 dark:from-emerald-400/15 dark:to-emerald-400/5",
+    iconBg: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+  },
+];
 
-  const renderCell = (value: boolean | string) => {
-    if (value === true) return <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mx-auto" />;
-    if (value === false) return <X className="h-5 w-5 text-destructive/60 mx-auto" />;
-    if (value === "limited") return <span className="text-xs font-medium text-muted-foreground uppercase">Limited</span>;
-    return <span className="text-xs font-semibold text-foreground">{value}</span>;
-  };
-
+function PrepareForExamsSection() {
   return (
-    <div className="overflow-x-auto" data-testid="comparison-table">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-border">
-            <th className="text-left py-3 px-3 sm:px-4 font-semibold text-muted-foreground"></th>
-            <th className="py-3 px-3 sm:px-4 text-center">
-              <div className="flex flex-col items-center gap-1">
-                <span className="font-bold text-primary text-sm sm:text-base">Learnpro AI</span>
+    <div className="grid sm:grid-cols-3 gap-4 sm:gap-6" data-testid="exams-grid">
+      {SUPPORTED_EXAMS.map((exam, i) => (
+        <motion.div
+          key={exam.id}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: i * 0.12, duration: 0.5, ease: "easeOut" }}
+        >
+          <Card
+            className="relative overflow-visible group cursor-default p-5 sm:p-6 text-center h-full"
+            data-testid={`exam-card-${exam.id}`}
+          >
+            <div className={`absolute inset-0 bg-gradient-to-br ${exam.color} rounded-[inherit] opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+            <div className="relative z-10 flex flex-col items-center gap-3">
+              <motion.div
+                className={`h-12 w-12 sm:h-14 sm:w-14 rounded-xl ${exam.iconBg} flex items-center justify-center`}
+                whileHover={{ scale: 1.08, rotate: 3 }}
+                transition={{ type: "spring", stiffness: 300, damping: 15 }}
+              >
+                <exam.icon className="h-6 w-6 sm:h-7 sm:w-7" />
+              </motion.div>
+              <div>
+                <h3 className="font-display font-bold text-base sm:text-lg text-foreground">
+                  {exam.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  {exam.subtitle}
+                </p>
               </div>
-            </th>
-            <th className="py-3 px-3 sm:px-4 text-center">
-              <span className="font-semibold text-muted-foreground text-sm sm:text-base">ChatGPT</span>
-            </th>
-            <th className="py-3 px-3 sm:px-4 text-center">
-              <span className="font-semibold text-muted-foreground text-sm sm:text-base">Coaching</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {features.map((feature, i) => (
-            <tr key={i} className="border-b border-border/50">
-              <td className="py-3 px-3 sm:px-4 font-medium text-foreground text-xs sm:text-sm">{feature.name}</td>
-              <td className="py-3 px-3 sm:px-4 text-center bg-primary/5 dark:bg-primary/10">{renderCell(feature.learnpro)}</td>
-              <td className="py-3 px-3 sm:px-4 text-center">{renderCell(feature.chatgpt)}</td>
-              <td className="py-3 px-3 sm:px-4 text-center">{renderCell(feature.coaching)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            </div>
+          </Card>
+        </motion.div>
+      ))}
     </div>
   );
 }
@@ -632,9 +646,9 @@ export default function LandingPage() {
                 Features
               </Button>
             </a>
-            <a href="#comparison">
-              <Button variant="ghost" className="hidden sm:inline-flex text-muted-foreground" data-testid="link-pricing">
-                Compare
+            <a href="#exams">
+              <Button variant="ghost" className="hidden sm:inline-flex text-muted-foreground" data-testid="link-exams">
+                Exams
               </Button>
             </a>
             <Button
@@ -881,7 +895,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="comparison" className="py-14 sm:py-20 bg-secondary/30">
+        <section id="exams" className="py-14 sm:py-20 bg-secondary/30">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -889,23 +903,15 @@ export default function LandingPage() {
               viewport={{ once: true }}
               className="text-center mb-8 sm:mb-12"
             >
-              <h2 className="text-2xl sm:text-4xl font-display font-bold" data-testid="text-comparison-heading">
-                See how Learnpro compares
+              <h2 className="text-2xl sm:text-4xl font-display font-bold" data-testid="text-exams-heading">
+                Prepare for Top Exams
               </h2>
               <p className="text-muted-foreground mt-2 sm:mt-3 text-sm sm:text-base">
-                Built specifically for UPSC, not adapted from a general chatbot
+                Comprehensive preparation support for India's most competitive examinations
               </p>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <Card className="overflow-hidden">
-                <ComparisonTable />
-              </Card>
-            </motion.div>
+            <PrepareForExamsSection />
           </div>
         </section>
 
