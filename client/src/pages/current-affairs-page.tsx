@@ -168,7 +168,8 @@ export default function CurrentAffairsPage() {
   const revisedCount = topics.filter((t) => t.revised).length;
   const totalCount = topics.length;
 
-  const dateRange = getDateRange();
+  const allDates = getDateRange();
+  const dateRange = allDates.filter((d) => availableDateSet.has(d) || d === todayStr);
 
   useEffect(() => {
     if (dateStripRef.current && selectedDate) {
