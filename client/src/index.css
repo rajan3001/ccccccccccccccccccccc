@@ -157,3 +157,38 @@
 ::-webkit-scrollbar-thumb {
   @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-colors;
 }
+
+@keyframes dashboard-slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes dashboard-slide-right {
+  from { opacity: 0; transform: translateX(-15px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes dashboard-bounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-2px) rotate(-5deg); }
+  75% { transform: translateY(1px) rotate(3deg); }
+}
+@keyframes dashboard-float {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-8px); opacity: 0.7; }
+}
+@keyframes dashboard-pulse-ring {
+  0% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.03); opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
+}
+@keyframes dashboard-icon-glow {
+  0%, 100% { filter: brightness(1); transform: scale(1); }
+  50% { filter: brightness(1.2); transform: scale(1.05); }
+}
+@keyframes dashboard-scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes dashboard-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

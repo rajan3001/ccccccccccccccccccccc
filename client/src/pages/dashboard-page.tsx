@@ -24,6 +24,7 @@ import {
   Zap,
   NotebookPen,
   GraduationCap,
+  Sparkles,
 } from "lucide-react";
 import {
   BarChart,
@@ -154,7 +155,6 @@ function isToday(dateStr: string): boolean {
 
 function AnimatedCounter({ target, duration = 1200, suffix = "" }: { target: number; duration?: number; suffix?: string }) {
   const [current, setCurrent] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
   const hasAnimated = useRef(false);
 
   useEffect(() => {
@@ -172,7 +172,7 @@ function AnimatedCounter({ target, duration = 1200, suffix = "" }: { target: num
     requestAnimationFrame(animate);
   }, [target, duration]);
 
-  return <span ref={ref}>{current}{suffix}</span>;
+  return <span>{current}{suffix}</span>;
 }
 
 interface DashboardStats {
@@ -202,6 +202,39 @@ interface DashboardStats {
   }>;
 }
 
+function PulseRing({ color, delay = 0 }: { color: string; delay?: number }) {
+  return (
+    <span
+      className="absolute inset-0 rounded-md pointer-events-none"
+      style={{
+        border: `2px solid ${color}`,
+        animation: `dashboard-pulse-ring 2.5s ease-out ${delay}s infinite`,
+        opacity: 0,
+      }}
+    />
+  );
+}
+
+const PARTICLE_DURATIONS = [3.2, 3.8, 4.1, 3.5, 4.4, 3.9, 4.2, 3.6];
+
+function FloatingParticle({ color, size, x, y, delay, seed = 0 }: { color: string; size: number; x: number; y: number; delay: number; seed?: number }) {
+  const dur = PARTICLE_DURATIONS[seed % PARTICLE_DURATIONS.length];
+  return (
+    <span
+      className="absolute rounded-full pointer-events-none"
+      style={{
+        width: size,
+        height: size,
+        background: color,
+        left: `${x}%`,
+        top: `${y}%`,
+        animation: `dashboard-float ${dur}s ease-in-out ${delay}s infinite`,
+        opacity: 0.4,
+      }}
+    />
+  );
+}
+
 function TodayAchievements({ stats }: { stats: DashboardStats }) {
   const achievements = [
     {
@@ -209,27 +242,33 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
       value: stats.today.mcqsSolved,
       allTime: stats.allTime.mcqsSolved,
       icon: Brain,
+      gradient: "from-emerald-500/15 to-emerald-600/5",
+      iconBg: "bg-emerald-500/20",
       color: "text-emerald-600 dark:text-emerald-400",
-      bgColor: "bg-emerald-500/10",
-      borderColor: "border-emerald-500/20",
+      accentColor: "#10b981",
+      borderColor: "border-emerald-500/30",
     },
     {
       label: "AI Chat Sessions",
       value: stats.today.topicsStudied,
       allTime: stats.allTime.topicsStudied,
       icon: MessageSquare,
+      gradient: "from-blue-500/15 to-blue-600/5",
+      iconBg: "bg-blue-500/20",
       color: "text-blue-600 dark:text-blue-400",
-      bgColor: "bg-blue-500/10",
-      borderColor: "border-blue-500/20",
+      accentColor: "#3b82f6",
+      borderColor: "border-blue-500/30",
     },
     {
       label: "Articles Revised",
       value: stats.allTime.currentAffairsRevised,
       allTime: stats.allTime.currentAffairsTotal,
       icon: Newspaper,
+      gradient: "from-amber-500/15 to-amber-600/5",
+      iconBg: "bg-amber-500/20",
       color: "text-amber-600 dark:text-amber-400",
-      bgColor: "bg-amber-500/10",
-      borderColor: "border-amber-500/20",
+      accentColor: "#f59e0b",
+      borderColor: "border-amber-500/30",
       allTimeLabel: "Total articles",
     },
     {
@@ -237,9 +276,11 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
       value: stats.today.notesSaved,
       allTime: stats.allTime.notesSaved,
       icon: NotebookPen,
+      gradient: "from-purple-500/15 to-purple-600/5",
+      iconBg: "bg-purple-500/20",
       color: "text-purple-600 dark:text-purple-400",
-      bgColor: "bg-purple-500/10",
-      borderColor: "border-purple-500/20",
+      accentColor: "#a855f7",
+      borderColor: "border-purple-500/30",
     },
   ];
 
@@ -248,59 +289,57 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
     : 0;
 
   return (
-    <div className="mb-6 sm:mb-8" data-testid="section-today-achievements">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-          <Trophy className="h-4 w-4 text-primary" />
-        </div>
-        <div>
-          <h2 className="text-base font-semibold" data-testid="text-achievements-heading">Today's Achievements</h2>
-          <p className="text-xs text-muted-foreground">Your progress today</p>
-        </div>
+    <div className="mb-4" data-testid="section-today-achievements">
+      <div className="flex items-center gap-2 mb-3">
+        <Trophy className="h-4 w-4 text-primary" style={{ animation: "dashboard-bounce 2s ease-in-out infinite" }} />
+        <h2 className="text-sm font-semibold" data-testid="text-achievements-heading">Today's Achievements</h2>
+        {stats.today.mcqsSolved > 0 && (
+          <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-600 ml-auto text-[10px]">
+            <Zap className="h-3 w-3 mr-0.5" />
+            <AnimatedCounter target={accuracy} suffix="%" /> accuracy
+          </Badge>
+        )}
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
         {achievements.map((item, idx) => (
-          <Card
+          <div
             key={item.label}
-            className={`p-4 border ${item.borderColor} relative overflow-visible`}
-            data-testid={`card-achievement-${idx}`}
-            style={{ animationDelay: `${idx * 100}ms` }}
+            className="relative"
+            style={{
+              animation: `dashboard-slide-up 0.5s ease-out ${idx * 0.1}s both`,
+            }}
           >
-            <div className="flex items-center gap-2 mb-3">
-              <div className={`h-8 w-8 rounded-md ${item.bgColor} flex items-center justify-center flex-shrink-0`}>
-                <item.icon className={`h-4 w-4 ${item.color}`} />
+            <Card
+              className={`relative p-3 border ${item.borderColor} bg-gradient-to-br ${item.gradient} overflow-visible aspect-square flex flex-col justify-between`}
+              data-testid={`card-achievement-${idx}`}
+            >
+              <PulseRing color={item.accentColor} delay={idx * 0.5} />
+              <FloatingParticle color={item.accentColor} size={4} x={80} y={15} delay={idx * 0.3} seed={idx * 2} />
+              <FloatingParticle color={item.accentColor} size={3} x={20} y={75} delay={idx * 0.5 + 1} seed={idx * 2 + 1} />
+
+              <div className="flex items-center gap-1.5">
+                <div
+                  className={`h-7 w-7 rounded-md ${item.iconBg} flex items-center justify-center flex-shrink-0`}
+                  style={{ animation: `dashboard-icon-glow 3s ease-in-out ${idx * 0.5}s infinite` }}
+                >
+                  <item.icon className={`h-3.5 w-3.5 ${item.color}`} />
+                </div>
+                <span className="text-[10px] font-medium text-muted-foreground leading-tight">{item.label}</span>
               </div>
-              <span className="text-xs font-medium text-muted-foreground">{item.label}</span>
-            </div>
-            <div className="text-2xl font-bold text-foreground mb-1" data-testid={`text-achievement-value-${idx}`}>
-              <AnimatedCounter target={item.value} />
-            </div>
-            <div className="text-[11px] text-muted-foreground">
-              {(item as any).allTimeLabel || "All time"}: <span className="font-medium text-foreground/70">{item.allTime}</span>
-            </div>
-          </Card>
+
+              <div>
+                <div className="text-2xl sm:text-3xl font-bold text-foreground" data-testid={`text-achievement-value-${idx}`}>
+                  <AnimatedCounter target={item.value} />
+                </div>
+                <div className="text-[10px] text-muted-foreground mt-0.5">
+                  {(item as any).allTimeLabel || "All time"}: <span className="font-medium text-foreground/70">{item.allTime}</span>
+                </div>
+              </div>
+            </Card>
+          </div>
         ))}
       </div>
-
-      {stats.today.mcqsSolved > 0 && (
-        <Card className="mt-3 p-3 border-emerald-500/20 bg-emerald-500/5">
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-emerald-500" />
-              <span className="text-sm font-medium">Quiz Accuracy</span>
-            </div>
-            <div className="flex items-center gap-2 ml-auto">
-              <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400" data-testid="text-accuracy">
-                <AnimatedCounter target={accuracy} suffix="%" />
-              </span>
-              <span className="text-xs text-muted-foreground">
-                ({stats.today.mcqsCorrect}/{stats.today.mcqsSolved} correct)
-              </span>
-            </div>
-          </div>
-        </Card>
-      )}
     </div>
   );
 }
@@ -320,37 +359,39 @@ function ProgressTrendChart({ stats }: { stats: DashboardStats }) {
   const hasAnyData = chartData.some((d) => d.activity > 0 || d.mcqs > 0);
 
   return (
-    <Card className="p-4 sm:p-5 mb-6 sm:mb-8" data-testid="card-progress-trend">
-      <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+    <Card
+      className="p-3 sm:p-4"
+      data-testid="card-progress-trend"
+      style={{ animation: "dashboard-slide-up 0.5s ease-out 0.5s both" }}
+    >
+      <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <TrendingUp className="h-4 w-4 text-primary" />
+          <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <TrendingUp className="h-3.5 w-3.5 text-primary" />
           </div>
-          <div>
-            <h3 className="text-sm font-semibold text-foreground" data-testid="text-trend-title">7-Day Learning Trend</h3>
-            <p className="text-xs text-muted-foreground">Your daily activity over the past week</p>
-          </div>
+          <h3 className="text-xs font-semibold text-foreground" data-testid="text-trend-title">7-Day Learning Trend</h3>
         </div>
         {hasAnyData && (
-          <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-600">
-            <TrendingUp className="h-3 w-3 mr-1" />
+          <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-600 text-[10px]">
+            <TrendingUp className="h-3 w-3 mr-0.5" />
             Active
           </Badge>
         )}
       </div>
 
       {!hasAnyData ? (
-        <div className="flex flex-col items-center justify-center py-10 text-center">
-          <div className="h-14 w-14 rounded-full bg-muted/50 flex items-center justify-center mb-3">
-            <GraduationCap className="h-7 w-7 text-muted-foreground/40" />
-          </div>
-          <p className="text-sm font-medium text-muted-foreground mb-1">Start your learning journey</p>
-          <p className="text-xs text-muted-foreground/70 max-w-xs">Take quizzes, study topics, and save notes to see your progress chart come alive</p>
+        <div className="flex flex-col items-center justify-center py-6 text-center">
+          <GraduationCap
+            className="h-10 w-10 text-muted-foreground/30 mb-2"
+            style={{ animation: "dashboard-float 3s ease-in-out infinite" }}
+          />
+          <p className="text-xs font-medium text-muted-foreground">Start your learning journey</p>
+          <p className="text-[10px] text-muted-foreground/60 max-w-[200px]">Take quizzes and study topics to see your progress</p>
         </div>
       ) : (
-        <div className="w-full" style={{ height: 240 }}>
+        <div className="w-full" style={{ height: 180 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+            <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
               <defs>
                 <linearGradient id="mcqGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
@@ -364,18 +405,18 @@ function ProgressTrendChart({ stats }: { stats: DashboardStats }) {
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 allowDecimals={false}
-                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
               />
               <Tooltip content={<TrendTooltip />} cursor={{ stroke: "hsl(var(--primary) / 0.2)", strokeWidth: 1 }} />
-              <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} iconType="circle" iconSize={8} />
+              <Legend wrapperStyle={{ fontSize: 10, paddingTop: 4 }} iconType="circle" iconSize={6} />
               <Area
                 type="monotone"
                 dataKey="mcqs"
@@ -383,8 +424,8 @@ function ProgressTrendChart({ stats }: { stats: DashboardStats }) {
                 stroke="#10b981"
                 strokeWidth={2}
                 fill="url(#mcqGradient)"
-                dot={{ r: 3, fill: "#10b981" }}
-                activeDot={{ r: 5, fill: "#10b981" }}
+                dot={{ r: 2, fill: "#10b981" }}
+                activeDot={{ r: 4, fill: "#10b981" }}
               />
               <Area
                 type="monotone"
@@ -393,8 +434,8 @@ function ProgressTrendChart({ stats }: { stats: DashboardStats }) {
                 stroke="#3b82f6"
                 strokeWidth={2}
                 fill="url(#chatGradient)"
-                dot={{ r: 3, fill: "#3b82f6" }}
-                activeDot={{ r: 5, fill: "#3b82f6" }}
+                dot={{ r: 2, fill: "#3b82f6" }}
+                activeDot={{ r: 4, fill: "#3b82f6" }}
               />
               <Line
                 type="monotone"
@@ -402,8 +443,8 @@ function ProgressTrendChart({ stats }: { stats: DashboardStats }) {
                 name="Notes"
                 stroke="#a855f7"
                 strokeWidth={2}
-                dot={{ r: 3, fill: "#a855f7" }}
-                activeDot={{ r: 5, fill: "#a855f7" }}
+                dot={{ r: 2, fill: "#a855f7" }}
+                activeDot={{ r: 4, fill: "#a855f7" }}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -419,35 +460,35 @@ function TrendTooltip({ active, payload, label }: any) {
   if (!data) return null;
 
   return (
-    <div className="bg-card border border-border rounded-md shadow-lg p-3 min-w-[160px]">
-      <p className="text-xs font-semibold text-foreground mb-2">{label}</p>
-      <div className="space-y-1.5">
+    <div className="bg-card border border-border rounded-md shadow-lg p-2.5 min-w-[140px]">
+      <p className="text-[11px] font-semibold text-foreground mb-1.5">{label}</p>
+      <div className="space-y-1">
         {data.mcqs > 0 && (
           <div className="flex items-center gap-2">
-            <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-            <span className="text-xs text-muted-foreground">MCQs Solved:</span>
-            <span className="text-xs font-semibold text-foreground ml-auto">{data.mcqs}</span>
+            <div className="h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="text-[10px] text-muted-foreground">MCQs:</span>
+            <span className="text-[10px] font-semibold text-foreground ml-auto">{data.mcqs}</span>
           </div>
         )}
         {data.correct > 0 && (
           <div className="flex items-center gap-2">
-            <div className="h-2.5 w-2.5 rounded-full bg-emerald-300" />
-            <span className="text-xs text-muted-foreground">Correct:</span>
-            <span className="text-xs font-semibold text-foreground ml-auto">{data.correct}</span>
+            <div className="h-2 w-2 rounded-full bg-emerald-300" />
+            <span className="text-[10px] text-muted-foreground">Correct:</span>
+            <span className="text-[10px] font-semibold text-foreground ml-auto">{data.correct}</span>
           </div>
         )}
         {data.chats > 0 && (
           <div className="flex items-center gap-2">
-            <div className="h-2.5 w-2.5 rounded-full bg-blue-500" />
-            <span className="text-xs text-muted-foreground">Chat Sessions:</span>
-            <span className="text-xs font-semibold text-foreground ml-auto">{data.chats}</span>
+            <div className="h-2 w-2 rounded-full bg-blue-500" />
+            <span className="text-[10px] text-muted-foreground">Chats:</span>
+            <span className="text-[10px] font-semibold text-foreground ml-auto">{data.chats}</span>
           </div>
         )}
         {data.notes > 0 && (
           <div className="flex items-center gap-2">
-            <div className="h-2.5 w-2.5 rounded-full bg-purple-500" />
-            <span className="text-xs text-muted-foreground">Notes:</span>
-            <span className="text-xs font-semibold text-foreground ml-auto">{data.notes}</span>
+            <div className="h-2 w-2 rounded-full bg-purple-500" />
+            <span className="text-[10px] text-muted-foreground">Notes:</span>
+            <span className="text-[10px] font-semibold text-foreground ml-auto">{data.notes}</span>
           </div>
         )}
       </div>
@@ -463,22 +504,22 @@ function CustomGoalTooltip({ active, payload, label }: any) {
   const formattedDate = dateObj.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short" });
   const pending = data.total - data.completed;
   return (
-    <div className="bg-card border border-border rounded-md shadow-lg p-3 min-w-[160px]">
-      <p className="text-xs font-semibold text-foreground mb-2">{formattedDate}</p>
+    <div className="bg-card border border-border rounded-md shadow-lg p-2.5 min-w-[140px]">
+      <p className="text-[11px] font-semibold text-foreground mb-1.5">{formattedDate}</p>
       <div className="flex items-center gap-2 mb-1">
-        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-        <span className="text-xs text-muted-foreground">Completed:</span>
-        <span className="text-xs font-semibold text-foreground">{data.completed}</span>
+        <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+        <span className="text-[10px] text-muted-foreground">Done:</span>
+        <span className="text-[10px] font-semibold text-foreground">{data.completed}</span>
       </div>
       <div className="flex items-center gap-2 mb-1">
-        <Circle className="h-3.5 w-3.5 text-amber-400" />
-        <span className="text-xs text-muted-foreground">Pending:</span>
-        <span className="text-xs font-semibold text-foreground">{pending}</span>
+        <Circle className="h-3 w-3 text-amber-400" />
+        <span className="text-[10px] text-muted-foreground">Pending:</span>
+        <span className="text-[10px] font-semibold text-foreground">{pending}</span>
       </div>
       <div className="flex items-center gap-2">
-        <Target className="h-3.5 w-3.5 text-blue-500" />
-        <span className="text-xs text-muted-foreground">Total Goals:</span>
-        <span className="text-xs font-semibold text-foreground">{data.total}</span>
+        <Target className="h-3 w-3 text-blue-500" />
+        <span className="text-[10px] text-muted-foreground">Total:</span>
+        <span className="text-[10px] font-semibold text-foreground">{data.total}</span>
       </div>
     </div>
   );
@@ -502,77 +543,72 @@ function WeeklyGoalsChart() {
 
   if (isLoading) {
     return (
-      <Card className="p-4 sm:p-5 mb-6 sm:mb-8" data-testid="card-weekly-goals">
-        <div className="flex items-center justify-center h-[200px]">
-          <Loader2 className="h-6 w-6 text-primary animate-spin" />
+      <Card className="p-3 sm:p-4" data-testid="card-weekly-goals">
+        <div className="flex items-center justify-center h-[150px]">
+          <Loader2 className="h-5 w-5 text-primary animate-spin" />
         </div>
       </Card>
     );
   }
 
   return (
-    <Card className="p-4 sm:p-5 mb-6 sm:mb-8" data-testid="card-weekly-goals">
-      <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+    <Card
+      className="p-3 sm:p-4"
+      data-testid="card-weekly-goals"
+      style={{ animation: "dashboard-slide-up 0.5s ease-out 0.6s both" }}
+    >
+      <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <div className="h-9 w-9 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-            <CalendarDays className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <div className="h-7 w-7 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+            <CalendarDays className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
           </div>
-          <div>
-            <h3 className="text-sm font-semibold text-foreground" data-testid="text-weekly-goals-title">This Week's Goals</h3>
-            <p className="text-xs text-muted-foreground">Your daily study targets</p>
-          </div>
+          <h3 className="text-xs font-semibold text-foreground" data-testid="text-weekly-goals-title">This Week's Goals</h3>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <span className="text-lg font-bold text-foreground" data-testid="text-completion-rate">{completionRate}%</span>
-            <p className="text-[10px] text-muted-foreground leading-tight">Completion</p>
-          </div>
-          <div className="text-right">
-            <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400" data-testid="text-total-completed">{totalCompleted}</span>
-            <span className="text-lg text-muted-foreground">/{totalGoals}</span>
-            <p className="text-[10px] text-muted-foreground leading-tight">Goals Done</p>
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-bold text-foreground" data-testid="text-completion-rate">{completionRate}%</span>
+          <span className="text-[10px] text-muted-foreground">done</span>
+          <span className="text-xs text-muted-foreground">|</span>
+          <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400" data-testid="text-total-completed">{totalCompleted}</span>
+          <span className="text-xs text-muted-foreground">/{totalGoals}</span>
         </div>
       </div>
 
       {totalGoals === 0 ? (
-        <div className="flex flex-col items-center justify-center py-8 text-center">
-          <Target className="h-10 w-10 text-muted-foreground/40 mb-3" />
-          <p className="text-sm font-medium text-muted-foreground mb-1">No goals set this week</p>
-          <p className="text-xs text-muted-foreground/70 mb-3">Set daily study goals in the Study Planner to track your progress here</p>
+        <div className="flex flex-col items-center justify-center py-6 text-center">
+          <Target
+            className="h-8 w-8 text-muted-foreground/30 mb-2"
+            style={{ animation: "dashboard-float 3s ease-in-out 0.5s infinite" }}
+          />
+          <p className="text-xs font-medium text-muted-foreground">No goals set this week</p>
           <Link href="/study-planner" data-testid="link-go-to-planner">
-            <span className="text-xs font-medium text-primary hover:underline cursor-pointer flex items-center gap-1">
+            <span className="text-[10px] font-medium text-primary hover:underline cursor-pointer flex items-center gap-1 mt-1">
               Go to Study Planner <ArrowRight className="h-3 w-3" />
             </span>
           </Link>
         </div>
       ) : (
-        <div className="w-full" style={{ height: 220 }}>
+        <div className="w-full" style={{ height: 180 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
-              margin={{ top: 5, right: 5, left: -20, bottom: 5 }}
+              margin={{ top: 5, right: 5, left: -25, bottom: 0 }}
               barGap={2}
             >
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="day"
-                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 allowDecimals={false}
-                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
               />
               <Tooltip content={<CustomGoalTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.4)" }} />
-              <Legend
-                wrapperStyle={{ fontSize: 11, paddingTop: 4 }}
-                iconType="circle"
-                iconSize={8}
-              />
+              <Legend wrapperStyle={{ fontSize: 10, paddingTop: 4 }} iconType="circle" iconSize={6} />
               <Bar dataKey="completed" name="Completed" stackId="goals" radius={[0, 0, 0, 0]}>
                 {chartData.map((entry, idx) => (
                   <Cell key={idx} fill={entry.today ? "#059669" : "#10b981"} />
@@ -626,94 +662,101 @@ export default function DashboardPage() {
       <Sidebar />
 
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-          <div className="flex flex-col items-center text-center mb-8 sm:mb-10">
-            <h1 className="text-2xl sm:text-3xl font-display font-bold" data-testid="text-dashboard-greeting">
-              {getGreeting()}, {displayName}
-            </h1>
-            <p className="text-muted-foreground text-sm sm:text-base mt-1" data-testid="text-dashboard-subtitle">
-              {examLabels.length > 0 ? (
-                <>Preparing for <span className="font-semibold text-primary">{examLabels.join(", ")}</span></>
-              ) : (
-                "Your AI-powered preparation hub"
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+
+          <div
+            className="relative flex items-center justify-between gap-3 mb-4"
+            style={{ animation: "dashboard-slide-right 0.4s ease-out both" }}
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <h1 className="text-base sm:text-lg font-semibold truncate" data-testid="text-dashboard-greeting">
+                {getGreeting()}, <span className="text-primary">{displayName}</span>
+              </h1>
+              {examLabels.length > 0 && (
+                <Badge variant="outline" className="text-[10px] hidden sm:inline-flex flex-shrink-0">
+                  {examLabels[0]}
+                  {examLabels.length > 1 && ` +${examLabels.length - 1}`}
+                </Badge>
               )}
-              {userTypeLabel && (
-                <span className="text-muted-foreground"> &middot; {userTypeLabel}</span>
-              )}
-            </p>
+            </div>
+
+            <div
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-primary/5 dark:bg-primary/10 border border-primary/15 flex-shrink-0 max-w-[260px]"
+              style={{ animation: "dashboard-fade-in 0.6s ease-out 0.3s both" }}
+            >
+              <Sparkles className="h-3 w-3 text-primary flex-shrink-0" style={{ animation: "dashboard-bounce 2s ease-in-out infinite" }} />
+              <p className="text-[10px] text-muted-foreground leading-snug line-clamp-2" data-testid="text-daily-tip">
+                {getMotivationalTip(user?.userType || null)}
+              </p>
+            </div>
           </div>
 
-          <Card className="p-4 sm:p-5 mb-6 sm:mb-8 bg-primary/5 dark:bg-primary/10 border-primary/20">
-            <div className="flex items-start gap-3">
-              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Flame className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <span className="font-semibold text-sm text-foreground block" data-testid="text-daily-tip-label">Daily Tip</span>
-                <p className="text-sm text-muted-foreground mt-0.5" data-testid="text-daily-tip">
-                  {getMotivationalTip(user?.userType || null)}
-                </p>
-              </div>
-            </div>
-          </Card>
-
           {statsLoading ? (
-            <Card className="p-4 sm:p-5 mb-6 sm:mb-8">
-              <div className="flex items-center justify-center h-[120px]">
-                <Loader2 className="h-6 w-6 text-primary animate-spin" />
+            <Card className="p-4 mb-4">
+              <div className="flex items-center justify-center h-[100px]">
+                <Loader2 className="h-5 w-5 text-primary animate-spin" />
               </div>
             </Card>
           ) : dashboardStats ? (
-            <>
-              <TodayAchievements stats={dashboardStats} />
-              <ProgressTrendChart stats={dashboardStats} />
-            </>
+            <TodayAchievements stats={dashboardStats} />
           ) : null}
 
-          <WeeklyGoalsChart />
-
-          <h2 className="text-base font-semibold mb-3 sm:mb-4" data-testid="text-quick-actions-heading">
-            Start Learning
-          </h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
-            {quickActions.map((action) => (
-              <Link key={action.href} href={action.href} data-testid={`link-action-${action.title.toLowerCase().replace(/\s/g, "-")}`}>
-                <Card className="p-4 sm:p-5 h-full hover-elevate cursor-pointer" data-testid={`card-action-${action.title.toLowerCase().replace(/\s/g, "-")}`}>
-                  <div className={`h-10 w-10 rounded-md ${action.bgColor} flex items-center justify-center mb-3`}>
-                    <action.icon className={`h-5 w-5 ${action.color}`} />
-                  </div>
-                  <h3 className="font-semibold text-sm mb-1">{action.title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{action.description}</p>
-                  <div className="flex items-center gap-1 text-xs text-primary font-medium mt-3">
-                    Open
-                    <ArrowRight className="h-3 w-3" />
-                  </div>
-                </Card>
-              </Link>
-            ))}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
+            {dashboardStats && <ProgressTrendChart stats={dashboardStats} />}
+            <WeeklyGoalsChart />
           </div>
 
-          <h2 className="text-base font-semibold mb-3 sm:mb-4" data-testid="text-suggested-heading">
-            Suggested Topics
-          </h2>
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            {[
-              { text: "Indian Polity Basics", icon: BookOpen },
-              { text: "Economic Survey 2025", icon: Newspaper },
-              { text: "Geography of India", icon: Target },
-              { text: "Ethics Case Studies", icon: Brain },
-            ].map((topic, i) => (
-              <button
-                key={i}
-                onClick={() => handleTopicClick(topic.text)}
-                disabled={createMutation.isPending}
-                className="flex items-center gap-2 p-3 rounded-md bg-secondary/50 hover-elevate border border-border cursor-pointer text-left"
-                data-testid={`topic-${i}`}
-              >
-                <topic.icon className="h-4 w-4 text-primary flex-shrink-0" />
-                <span className="text-xs sm:text-sm font-medium">{topic.text}</span>
-              </button>
-            ))}
+          <div style={{ animation: "dashboard-slide-up 0.5s ease-out 0.7s both" }}>
+            <h2 className="text-sm font-semibold mb-2" data-testid="text-quick-actions-heading">
+              Start Learning
+            </h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
+              {quickActions.map((action, idx) => (
+                <Link key={action.href} href={action.href} data-testid={`link-action-${action.title.toLowerCase().replace(/\s/g, "-")}`}>
+                  <Card
+                    className="p-3 h-full hover-elevate cursor-pointer group"
+                    data-testid={`card-action-${action.title.toLowerCase().replace(/\s/g, "-")}`}
+                    style={{ animation: `dashboard-scale-in 0.4s ease-out ${0.8 + idx * 0.08}s both` }}
+                  >
+                    <div className={`h-8 w-8 rounded-md ${action.bgColor} flex items-center justify-center mb-2`}>
+                      <action.icon className={`h-4 w-4 ${action.color}`} />
+                    </div>
+                    <h3 className="font-semibold text-xs mb-0.5">{action.title}</h3>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2">{action.description}</p>
+                    <div className="flex items-center gap-0.5 text-[10px] text-primary font-medium mt-2 opacity-70 group-hover:opacity-100 transition-opacity">
+                      Open
+                      <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                    </div>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ animation: "dashboard-slide-up 0.5s ease-out 0.9s both" }}>
+            <h2 className="text-sm font-semibold mb-2" data-testid="text-suggested-heading">
+              Suggested Topics
+            </h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+              {[
+                { text: "Indian Polity Basics", icon: BookOpen },
+                { text: "Economic Survey 2025", icon: Newspaper },
+                { text: "Geography of India", icon: Target },
+                { text: "Ethics Case Studies", icon: Brain },
+              ].map((topic, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleTopicClick(topic.text)}
+                  disabled={createMutation.isPending}
+                  className="flex items-center gap-2 p-2.5 rounded-md bg-secondary/50 hover-elevate border border-border cursor-pointer text-left group"
+                  data-testid={`topic-${i}`}
+                  style={{ animation: `dashboard-scale-in 0.4s ease-out ${1.0 + i * 0.06}s both` }}
+                >
+                  <topic.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                  <span className="text-[11px] font-medium">{topic.text}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </main>
