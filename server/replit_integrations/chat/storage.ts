@@ -4,13 +4,13 @@ import { eq, desc, sql, and, gte } from "drizzle-orm";
 
 export interface IChatStorage {
   getConversation(id: number): Promise<typeof conversations.$inferSelect | undefined>;
-  getAllConversations(): Promise<(typeof conversations.$inferSelect)[]>;
-  createConversation(title: string): Promise<typeof conversations.$inferSelect>;
+  getAllConversations(userId?: string): Promise<(typeof conversations.$inferSelect)[]>;
+  createConversation(title: string, userId?: string): Promise<typeof conversations.$inferSelect>;
   updateConversationTitle(id: number, title: string): Promise<void>;
   deleteConversation(id: number): Promise<void>;
   getMessagesByConversation(conversationId: number): Promise<(typeof messages.$inferSelect)[]>;
   createMessage(conversationId: number, role: string, content: string, attachments?: any[]): Promise<typeof messages.$inferSelect>;
-  getTodayUserMessageCount(): Promise<number>;
+  getTodayUserMessageCount(userId?: string): Promise<number>;
 }
 
 export const chatStorage: IChatStorage = {
@@ -19,9 +19,10 @@ export const chatStorage: IChatStorage = {
     return conversation;
   },
 
-  async getAllConversations() {
+  async getAllConversations(userId?: string) {
     const MAX_HISTORY = 20;
-    const allConvos = await db.select().from(conversations).orderBy(desc(conversations.createdAt));
+    const conditions = userId ? eq(conversations.userId, userId) : undefined;
+    const allConvos = await db.select().from(conversations).where(conditions).orderBy(desc(conversations.createdAt));
     const nonEmpty = [];
     const toDelete = [];
     for (const convo of allConvos) {
@@ -49,8 +50,8 @@ export const chatStorage: IChatStorage = {
     return nonEmpty;
   },
 
-  async createConversation(title: string) {
-    const [conversation] = await db.insert(conversations).values({ title }).returning();
+  async createConversation(title: string, userId?: string) {
+    const [conversation] = await db.insert(conversations).values({ title, userId }).returning();
     return conversation;
   },
 
@@ -77,13 +78,25 @@ export const chatStorage: IChatStorage = {
     return message;
   },
 
-  async getTodayUserMessageCount() {
+  async getTodayUserMessageCount(userId?: string) {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
+    if (!userId) {
+      const [result] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(messages)
+        .where(and(eq(messages.role, "user"), gte(messages.createdAt, todayStart)));
+      return result?.count || 0;
+    }
     const [result] = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(messages)
-      .where(and(eq(messages.role, "user"), gte(messages.createdAt, todayStart)));
+      .innerJoin(conversations, eq(messages.conversationId, conversations.id))
+      .where(and(
+        eq(messages.role, "user"),
+        gte(messages.createdAt, todayStart),
+        eq(conversations.userId, userId)
+      ));
     return result?.count || 0;
   },
 };

@@ -68,7 +68,8 @@ async function generateTitle(conversationId: number, firstMessage: string): Prom
 export function registerChatRoutes(app: Express): void {
   app.get("/api/conversations", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const conversations = await chatStorage.getAllConversations();
+      const userId = getUserId(req);
+      const conversations = await chatStorage.getAllConversations(userId);
       res.json(conversations);
     } catch (error) {
       console.error("Error fetching conversations:", error);
@@ -94,7 +95,8 @@ export function registerChatRoutes(app: Express): void {
   app.post("/api/conversations", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { title } = req.body;
-      const conversation = await chatStorage.createConversation(title || "New Chat");
+      const userId = getUserId(req);
+      const conversation = await chatStorage.createConversation(title || "New Chat", userId);
       res.status(201).json(conversation);
     } catch (error) {
       console.error("Error creating conversation:", error);
@@ -110,12 +112,17 @@ export function registerChatRoutes(app: Express): void {
     return ADMIN_EMAILS.includes(email);
   }
 
+  function getUserId(req: any): string | undefined {
+    return req.user?.claims?.sub;
+  }
+
   app.get("/api/chat/query-status", isAuthenticated, async (req: Request, res: Response) => {
     try {
       if (isAdmin(req)) {
         return res.json({ used: 0, limit: 999, remaining: 999, isAdmin: true });
       }
-      const used = await chatStorage.getTodayUserMessageCount();
+      const userId = getUserId(req);
+      const used = await chatStorage.getTodayUserMessageCount(userId);
       res.json({ used, limit: FREE_DAILY_LIMIT, remaining: Math.max(0, FREE_DAILY_LIMIT - used) });
     } catch (error) {
       console.error("Error fetching query status:", error);
@@ -139,8 +146,10 @@ export function registerChatRoutes(app: Express): void {
       const conversationId = parseInt(req.params.id);
       const { content, attachments } = req.body;
 
+      const userId = getUserId(req);
+
       if (!isAdmin(req)) {
-        const todayCount = await chatStorage.getTodayUserMessageCount();
+        const todayCount = await chatStorage.getTodayUserMessageCount(userId);
         if (todayCount >= FREE_DAILY_LIMIT) {
           return res.status(429).json({ error: "Daily query limit reached. Upgrade to Pro for unlimited queries." });
         }
