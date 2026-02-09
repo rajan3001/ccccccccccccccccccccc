@@ -6,8 +6,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Crown, Clock, FileCheck, LayoutDashboard, ExternalLink } from "lucide-react";
+import { Loader2, Crown, Clock, FileCheck, LayoutDashboard, ArrowRight } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 
 type TabKey = "billing" | "notifications";
 
@@ -89,6 +90,7 @@ export default function SettingsPage() {
   }
 
   const isPro = subData?.isPro;
+  const [, navigate] = useLocation();
 
   return (
     <div className="flex flex-col md:flex-row h-[100dvh] bg-background overflow-hidden">
@@ -153,15 +155,15 @@ export default function SettingsPage() {
                     <div>
                       <h3 className="font-bold text-foreground flex items-center gap-2">
                         <Crown className="h-4 w-4 text-primary" />
-                        Upgrade to SUPER Plan at just Rs.15/day
+                        Upgrade Your Plan
                       </h3>
                       <p className="text-sm text-muted-foreground mt-1">
                         Continue your preparation with <span className="font-bold text-foreground">Unlimited Access</span> of Learnpro AI
                       </p>
                     </div>
-                    <Button className="gap-2 whitespace-nowrap" data-testid="button-upgrade-pro">
-                      Get Super Now
-                      <ExternalLink className="h-3.5 w-3.5" />
+                    <Button className="gap-2 whitespace-nowrap" data-testid="button-upgrade-pro" onClick={() => navigate("/subscription")}>
+                      View Plans
+                      <ArrowRight className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </Card>
