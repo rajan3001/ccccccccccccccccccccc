@@ -23,6 +23,7 @@ export const users = pgTable("users", {
   displayName: varchar("display_name"),
   userType: varchar("user_type"),
   targetExams: jsonb("target_exams").$type<string[]>().default([]),
+  isAdmin: boolean("is_admin").default(false),
   onboardingCompleted: boolean("onboarding_completed").default(false),
   notificationPrefs: jsonb("notification_prefs").$type<Record<string, boolean>>().default({}),
   createdAt: timestamp("created_at").defaultNow(),
