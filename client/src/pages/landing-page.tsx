@@ -33,8 +33,7 @@ import {
   Heart,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import aiDashboardHero from "@assets/ai-dashboard-hero.png";
-import aiBrainAbstract from "@assets/ai-brain-abstract.png";
+import { HeroDashboardAnimation, NeuralNetworkAnimation } from "@/components/landing/hero-animation";
 
 function AnimatedCounter({ target, suffix = "+" }: { target: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -368,38 +367,7 @@ export default function LandingPage() {
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="flex-shrink-0 w-full max-w-md lg:max-w-lg xl:max-w-xl"
               >
-                <div className="relative">
-                  <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-primary/5 to-primary/20 rounded-3xl blur-2xl opacity-60" />
-                  <div className="relative rounded-2xl overflow-hidden border border-border/50 shadow-2xl shadow-primary/10">
-                    <img
-                      src={aiDashboardHero}
-                      alt="Learnpro AI Dashboard"
-                      className="w-full h-auto"
-                      data-testid="img-hero-dashboard"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent" />
-                  </div>
-
-                  <div className="absolute -bottom-4 -left-4 sm:-bottom-6 sm:-left-6 bg-card border border-border rounded-xl p-3 sm:p-4 shadow-lg flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                      <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-foreground">AI Answer Ready</p>
-                      <p className="text-[10px] text-muted-foreground">Explained in UPSC format</p>
-                    </div>
-                  </div>
-
-                  <div className="absolute -top-3 -right-3 sm:-top-5 sm:-right-5 bg-card border border-border rounded-xl p-3 sm:p-4 shadow-lg flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Flame className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-foreground">7-Day Streak</p>
-                      <p className="text-[10px] text-muted-foreground">Keep it going!</p>
-                    </div>
-                  </div>
-                </div>
+                <HeroDashboardAnimation />
               </motion.div>
             </div>
           </div>
@@ -518,15 +486,7 @@ export default function LandingPage() {
                 viewport={{ once: true }}
                 className="flex-shrink-0"
               >
-                <div className="relative w-48 h-48 sm:w-64 sm:h-64 lg:w-72 lg:h-72">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-2xl" />
-                  <img
-                    src={aiBrainAbstract}
-                    alt="AI-Powered Intelligence"
-                    className="relative w-full h-full object-contain drop-shadow-lg"
-                    data-testid="img-ai-brain"
-                  />
-                </div>
+                <NeuralNetworkAnimation />
               </motion.div>
 
               <motion.div
