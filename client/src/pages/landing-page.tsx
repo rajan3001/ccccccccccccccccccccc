@@ -23,6 +23,18 @@ import {
   Sparkles,
   Brain,
   Heart,
+  Crown,
+  MapPin,
+  Landmark,
+  Award,
+  Scale,
+  Building2,
+  Compass,
+  Mountain,
+  TreePine,
+  Scroll,
+  Globe,
+  Flag,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { HeroDashboardAnimation, NeuralNetworkAnimation } from "@/components/landing/hero-animation";
@@ -538,46 +550,69 @@ const testimonials = [
 ];
 
 
-const EXAM_ICONS = [
-  { id: "upsc", label: "UPSC CSE", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-100 dark:bg-amber-900/30" },
-  { id: "uppsc", label: "UPPSC", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-100 dark:bg-blue-900/30" },
-  { id: "mppsc", label: "MPPSC", color: "text-indigo-600 dark:text-indigo-400", bg: "bg-indigo-100 dark:bg-indigo-900/30" },
-  { id: "bpsc", label: "BPSC", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-100 dark:bg-emerald-900/30" },
-  { id: "jpsc", label: "JPSC", color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-100 dark:bg-purple-900/30" },
-  { id: "rpsc", label: "RPSC", color: "text-rose-600 dark:text-rose-400", bg: "bg-rose-100 dark:bg-rose-900/30" },
-  { id: "wbpsc", label: "WBPSC", color: "text-sky-600 dark:text-sky-400", bg: "bg-sky-100 dark:bg-sky-900/30" },
-  { id: "opsc", label: "OPSC", color: "text-teal-600 dark:text-teal-400", bg: "bg-teal-100 dark:bg-teal-900/30" },
-  { id: "cgpsc", label: "CGPSC", color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-100 dark:bg-orange-900/30" },
-  { id: "ukpsc", label: "UKPSC", color: "text-cyan-600 dark:text-cyan-400", bg: "bg-cyan-100 dark:bg-cyan-900/30" },
-  { id: "hpsc", label: "HPSC", color: "text-lime-600 dark:text-lime-400", bg: "bg-lime-100 dark:bg-lime-900/30" },
-  { id: "kpsc", label: "KPSC", color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-100 dark:bg-violet-900/30" },
-  { id: "tnpsc", label: "TNPSC", color: "text-fuchsia-600 dark:text-fuchsia-400", bg: "bg-fuchsia-100 dark:bg-fuchsia-900/30" },
-  { id: "appsc", label: "APPSC", color: "text-pink-600 dark:text-pink-400", bg: "bg-pink-100 dark:bg-pink-900/30" },
-  { id: "gpsc", label: "GPSC", color: "text-red-600 dark:text-red-400", bg: "bg-red-100 dark:bg-red-900/30" },
-  { id: "nepsc", label: "NE States", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-100 dark:bg-emerald-900/30" },
+const STATE_PSC_EXAMS = [
+  { id: "uppsc", label: "UPPSC", icon: Landmark, abbr: "UP" },
+  { id: "mppsc", label: "MPPSC", icon: Building2, abbr: "MP" },
+  { id: "bpsc", label: "BPSC", icon: Scale, abbr: "BH" },
+  { id: "jpsc", label: "JPSC", icon: Mountain, abbr: "JH" },
+  { id: "rpsc", label: "RPSC", icon: Compass, abbr: "RJ" },
+  { id: "wbpsc", label: "WBPSC", icon: Globe, abbr: "WB" },
+  { id: "opsc", label: "OPSC", icon: TreePine, abbr: "OD" },
+  { id: "cgpsc", label: "CGPSC", icon: Flag, abbr: "CG" },
+  { id: "ukpsc", label: "UKPSC", icon: Mountain, abbr: "UK" },
+  { id: "hpsc", label: "HPSC", icon: Award, abbr: "HR" },
+  { id: "kpsc", label: "KPSC", icon: Scroll, abbr: "KA" },
+  { id: "tnpsc", label: "TNPSC", icon: Landmark, abbr: "TN" },
+  { id: "appsc", label: "APPSC", icon: MapPin, abbr: "AP" },
+  { id: "gpsc", label: "GPSC", icon: Building2, abbr: "GJ" },
+  { id: "nepsc", label: "NE States", icon: TreePine, abbr: "NE" },
 ];
 
 function PrepareForExamsSection() {
   return (
-    <div className="grid grid-cols-4 sm:grid-cols-8 gap-3 sm:gap-4 max-w-3xl mx-auto" data-testid="exams-grid">
-      {EXAM_ICONS.map((exam, i) => (
-        <motion.div
-          key={exam.id}
-          initial={{ opacity: 0, scale: 0.8 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: i * 0.03, duration: 0.3 }}
-          className="flex flex-col items-center gap-1.5"
-          data-testid={`exam-icon-${exam.id}`}
-        >
-          <div className={`h-10 w-10 sm:h-11 sm:w-11 rounded-xl ${exam.bg} flex items-center justify-center`}>
-            <GraduationCap className={`h-5 w-5 ${exam.color}`} />
+    <div className="space-y-8" data-testid="exams-grid">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="flex flex-col sm:flex-row items-center gap-5 sm:gap-8 justify-center"
+      >
+        <div className="flex items-center gap-4 px-5 py-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 dark:from-amber-500/20 dark:to-orange-500/20 dark:border-amber-400/20" data-testid="exam-upsc">
+          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
+            <Crown className="h-6 w-6 text-white" />
           </div>
-          <span className="text-[10px] sm:text-xs font-medium text-muted-foreground text-center leading-tight">
-            {exam.label}
-          </span>
-        </motion.div>
-      ))}
+          <div>
+            <h3 className="font-display font-bold text-base sm:text-lg">UPSC CSE</h3>
+            <p className="text-xs text-muted-foreground">IAS / IPS / IFS</p>
+          </div>
+        </div>
+        <div className="hidden sm:block h-8 w-px bg-border" />
+        <div className="text-center sm:text-left">
+          <p className="text-2xl sm:text-3xl font-display font-bold">
+            + 15 <span className="text-muted-foreground text-base font-normal">State PSCs</span>
+          </p>
+        </div>
+      </motion.div>
+
+      <div className="relative overflow-hidden" data-testid="exams-marquee">
+        <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-r from-secondary/80 to-transparent z-10 pointer-events-none dark:from-secondary/90" />
+        <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-l from-secondary/80 to-transparent z-10 pointer-events-none dark:from-secondary/90" />
+        <div className="flex animate-marquee gap-3">
+          {[...STATE_PSC_EXAMS, ...STATE_PSC_EXAMS].map((exam, i) => {
+            const Icon = exam.icon;
+            return (
+              <div
+                key={`${exam.id}-${i}`}
+                className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-card border border-border/50 whitespace-nowrap flex-shrink-0"
+                data-testid={`exam-icon-${exam.id}`}
+              >
+                <Icon className="h-4 w-4 text-primary/70" />
+                <span className="text-sm font-medium">{exam.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
@@ -860,7 +895,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="exams" className="py-14 sm:py-20 bg-secondary/30">
+        <section id="exams" className="py-14 sm:py-20 bg-secondary/30 overflow-hidden">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
