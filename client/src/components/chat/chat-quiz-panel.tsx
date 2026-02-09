@@ -61,7 +61,11 @@ function parseMCQContent(content: string): ParsedQuestion[] {
     if (optionMatches.length === 0) continue;
 
     const firstOptionIndex = afterHeader.indexOf(optionMatches[0][0]);
-    const questionText = afterHeader.substring(0, firstOptionIndex).replace(/\n+$/, "").trim();
+    let questionText = afterHeader.substring(0, firstOptionIndex).replace(/\n+$/, "").trim();
+    questionText = questionText
+      .replace(/(\d+)\.\s+/g, '\n$1. ')
+      .replace(/^\n/, '')
+      .trim();
 
     const options = optionMatches.map((m) => ({
       label: m[1].toLowerCase(),
@@ -255,7 +259,7 @@ export function ChatQuizPanel({ content, onClose, isOpen }: ChatQuizPanelProps) 
         </div>
 
         <div className="mb-5">
-          <p className="text-sm leading-relaxed font-medium" data-testid="text-question">
+          <p className="text-sm leading-relaxed font-medium whitespace-pre-line" data-testid="text-question">
             {currentQ.questionText}
           </p>
         </div>

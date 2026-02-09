@@ -3,7 +3,7 @@ import { Message } from "@/hooks/use-chat";
 import { Logo } from "@/components/ui/logo";
 import { StyledMarkdown } from "@/components/ui/styled-markdown";
 import { detectMCQContent } from "@/components/chat/chat-quiz-panel";
-import { User, Copy, Check, FileText, Image as ImageIcon, File, BookmarkPlus, FolderPlus, Download, Play } from "lucide-react";
+import { User, Copy, Check, FileText, Image as ImageIcon, File, BookmarkPlus, FolderPlus, Download, Play, Target } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -159,6 +159,22 @@ export function MessageBubble({ message, isStreaming, conversationId, userQuery,
 
   const attachments: AttachmentData[] = (message as any).attachments || [];
 
+  const hasMCQ = !isUser && !isStreaming && !!message.content && detectMCQContent(message.content);
+
+  const mcqCount = hasMCQ
+    ? (message.content!.match(/\*\*(?:Question|Q)\s*\d+/gi) || []).length
+    : 0;
+
+  const mcqIntroText = hasMCQ
+    ? (() => {
+        const firstQIndex = message.content!.search(/\*\*(?:Question|Q)\s*1/i);
+        if (firstQIndex > 0) {
+          return message.content!.substring(0, firstQIndex).trim();
+        }
+        return "";
+      })()
+    : "";
+
   const getFileIcon = (type: string) => {
     if (type.startsWith("image/")) return ImageIcon;
     if (type === "application/pdf") return FileText;
@@ -233,29 +249,42 @@ export function MessageBubble({ message, isStreaming, conversationId, userQuery,
 
           <div className="max-w-none text-sm sm:text-base">
             {message.content ? (
-              <StyledMarkdown>{message.content}</StyledMarkdown>
+              hasMCQ ? (
+                <div>
+                  <StyledMarkdown>{mcqIntroText}</StyledMarkdown>
+                  <div className="mt-4 p-4 rounded-md border-2 border-primary/20 bg-primary/5">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Target className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">{mcqCount} MCQs Ready</p>
+                        <p className="text-xs text-muted-foreground">Take the quiz to test your knowledge</p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => onStartQuiz?.(message.content!)}
+                      className="w-full gap-2"
+                      data-testid="button-start-quiz"
+                    >
+                      <Play className="h-4 w-4" />
+                      Start Quiz
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <StyledMarkdown>{message.content}</StyledMarkdown>
+              )
             ) : (
                isStreaming && <span className="animate-pulse inline-block w-2 h-4 bg-primary rounded-sm align-middle" />
             )}
-            {isStreaming && message.content && (
+            {isStreaming && message.content && !hasMCQ && (
               <span className="inline-block w-1.5 h-4 ml-1 bg-primary animate-pulse" />
             )}
           </div>
 
-          {!isUser && !isStreaming && message.content && (
+          {!isUser && !isStreaming && message.content && !hasMCQ && (
             <div className="flex items-center gap-1 mt-3 pt-3 border-t border-border/50 flex-wrap" data-testid="message-action-bar">
-              {onStartQuiz && detectMCQContent(message.content) && (
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => onStartQuiz(message.content!)}
-                  data-testid="button-start-quiz"
-                  className="gap-1.5 mr-1"
-                >
-                  <Play className="h-3.5 w-3.5" />
-                  Start Quiz
-                </Button>
-              )}
               <Button
                 variant="ghost"
                 size="sm"

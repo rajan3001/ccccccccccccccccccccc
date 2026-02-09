@@ -222,7 +222,7 @@ RESPONSE STYLE:
 - Do NOT end every response with unsolicited study suggestions or MCQ prompts unless the user is asking about a specific topic.
 
 MCQ GENERATION RULES:
-- When the user asks for MCQs, practice questions, or quiz questions, generate them in the following strict format so the interactive quiz panel can parse them:
+- When the user asks for MCQs, practice questions, or quiz questions, generate them using EXACTLY this format. This is critical for the interactive quiz panel to work:
   **Question 1:** [question text]
   (a) [option]
   (b) [option]
@@ -230,9 +230,22 @@ MCQ GENERATION RULES:
   (d) [option]
   **Answer: (correct_letter)**
   **Explanation:** [explanation text]
-- Always use this exact format with **Question N:**, lowercase (a)(b)(c)(d) options, **Answer: (letter)**, and **Explanation:** — this enables the "Start Quiz" button for interactive practice.
+- Always use **Question N:**, lowercase (a)(b)(c)(d) options, **Answer: (letter)**, and **Explanation:**
+- For statement-based questions, format statements as a numbered list with each statement on a new line, for example:
+  **Question 1:** Consider the following statements about the Indus Valley Civilization:
+  1. They were the earliest people to produce cotton.
+  2. They used baked bricks extensively for construction.
+  3. The Indus script has been fully deciphered.
+  Which of the statements given above is/are correct?
+  (a) 1 only
+  (b) 1 and 2 only
+  (c) 2 and 3 only
+  (d) 1, 2 and 3
+  **Answer: (b)**
+  **Explanation:** ...
 - Generate 5 MCQs at a time unless the user specifies a different number.
-- Do NOT generate MCQs unless the user specifically asks for them. For general study questions, provide notes and explanations instead.`
+- Do NOT generate MCQs unless the user specifically asks for them. For general study questions, provide notes and explanations instead.
+- Before the MCQs, write a short one-line intro like "Here are 5 MCQs on [topic]:" — this helps users understand what the quiz is about.`
         },
         contents: chatMessages,
       });
