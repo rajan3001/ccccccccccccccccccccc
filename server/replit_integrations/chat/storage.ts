@@ -23,15 +23,18 @@ export const chatStorage: IChatStorage = {
     const MAX_HISTORY = 20;
     const conditions = userId ? eq(conversations.userId, userId) : undefined;
     const allConvos = await db.select().from(conversations).where(conditions).orderBy(desc(conversations.createdAt));
-    const nonEmpty = [];
+    const kept = [];
     const toDelete = [];
+    const recentThreshold = new Date(Date.now() - 60000);
     for (const convo of allConvos) {
       const [msgCount] = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(messages)
         .where(eq(messages.conversationId, convo.id));
       if (msgCount?.count > 0) {
-        nonEmpty.push(convo);
+        kept.push(convo);
+      } else if (convo.createdAt && new Date(convo.createdAt) > recentThreshold) {
+        kept.push(convo);
       } else {
         toDelete.push(convo.id);
       }
@@ -39,15 +42,15 @@ export const chatStorage: IChatStorage = {
     for (const id of toDelete) {
       await db.delete(conversations).where(eq(conversations.id, id));
     }
-    if (nonEmpty.length > MAX_HISTORY) {
-      const overflow = nonEmpty.slice(MAX_HISTORY);
+    if (kept.length > MAX_HISTORY) {
+      const overflow = kept.slice(MAX_HISTORY);
       for (const convo of overflow) {
         await db.delete(messages).where(eq(messages.conversationId, convo.id));
         await db.delete(conversations).where(eq(conversations.id, convo.id));
       }
-      return nonEmpty.slice(0, MAX_HISTORY);
+      return kept.slice(0, MAX_HISTORY);
     }
-    return nonEmpty;
+    return kept;
   },
 
   async createConversation(title: string, userId?: string) {
