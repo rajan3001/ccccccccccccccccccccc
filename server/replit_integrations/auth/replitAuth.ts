@@ -18,14 +18,16 @@ export function getSession() {
     ttl: SESSION_TTL / 1000,
     tableName: "sessions",
   });
+  const isProxied = !!process.env.REPLIT_DEV_DOMAIN || process.env.NODE_ENV === "production";
   return session({
     secret: process.env.SESSION_SECRET!,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
+    proxy: isProxied,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isProxied,
       maxAge: SESSION_TTL,
       sameSite: "lax",
     },
