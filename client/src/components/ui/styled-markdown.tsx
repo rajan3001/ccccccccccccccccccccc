@@ -22,15 +22,13 @@ const markdownComponents: Components = {
     <strong className="font-semibold text-foreground">{children}</strong>
   ),
   ul: ({ children }) => (
-    <ul className="mb-3 ml-1 space-y-1.5 chat-list chat-ul">{children}</ul>
+    <ul className="mb-3 ml-5 space-y-1 list-disc marker:text-foreground/50">{children}</ul>
   ),
   ol: ({ children }) => (
-    <ol className="mb-3 ml-1 space-y-1.5 chat-list chat-ol">{children}</ol>
+    <ol className="mb-3 ml-5 space-y-1 list-decimal marker:text-foreground/60 marker:font-medium">{children}</ol>
   ),
   li: ({ children }) => (
-    <li className="chat-li text-foreground/90">
-      <span className="flex-1">{children}</span>
-    </li>
+    <li className="pl-1 text-foreground/90 leading-relaxed">{children}</li>
   ),
   blockquote: ({ children }) => (
     <blockquote className="my-3 pl-4 border-l-4 border-primary/40 bg-primary/5 rounded-r-md py-2 pr-3 text-foreground/80 italic">
@@ -82,16 +80,25 @@ const markdownComponents: Components = {
   ),
 };
 
+function preprocessMarkdown(text: string): string {
+  return text.replace(/^(.*)([A-D]\))\s+/gm, (line) => {
+    const hasMultipleOptions = /[A-D]\)\s+\S.*[A-D]\)\s+\S/.test(line);
+    if (!hasMultipleOptions) return line;
+    return line.replace(/\s+([A-D]\))\s+/g, '\n$1 ');
+  });
+}
+
 interface StyledMarkdownProps {
   children: string;
   className?: string;
 }
 
 export function StyledMarkdown({ children, className }: StyledMarkdownProps) {
+  const processed = preprocessMarkdown(children);
   return (
     <div className={cn("max-w-none text-sm sm:text-base", className)}>
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-        {children}
+        {processed}
       </ReactMarkdown>
     </div>
   );
