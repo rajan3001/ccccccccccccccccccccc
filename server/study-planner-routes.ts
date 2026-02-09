@@ -820,6 +820,39 @@ export function registerStudyPlannerRoutes(app: Express): void {
     }
   });
 
+  app.get("/api/study-planner/weekly-goals", isAuthenticated, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.claims.sub;
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      const monday = new Date(today);
+      monday.setDate(today.getDate() - ((dayOfWeek === 0 ? 7 : dayOfWeek) - 1));
+
+      const weekDates: string[] = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        weekDates.push(`${yyyy}-${mm}-${dd}`);
+      }
+
+      const result = [];
+      for (const dateStr of weekDates) {
+        const goals = await db.select().from(dailyStudyGoals)
+          .where(and(eq(dailyStudyGoals.userId, userId), eq(dailyStudyGoals.goalDate, dateStr)));
+        const total = goals.length;
+        const completed = goals.filter(g => g.completed).length;
+        result.push({ date: dateStr, total, completed });
+      }
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching weekly goals:", error);
+      res.status(500).json({ error: "Failed to fetch weekly goals" });
+    }
+  });
+
   app.get("/api/study-planner/dashboard", isAuthenticated, async (req: any, res: Response) => {
     try {
       const userId = req.user.claims.sub;

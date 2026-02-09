@@ -2,8 +2,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { Link, useLocation } from "wouter";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Card } from "@/components/ui/card";
-import { Logo } from "@/components/ui/logo";
 import { useCreateConversation } from "@/hooks/use-chat";
+import { useQuery } from "@tanstack/react-query";
 import {
   MessageSquare,
   Newspaper,
@@ -14,7 +14,21 @@ import {
   BookOpen,
   Loader2,
   FileCheck,
+  CalendarDays,
+  CheckCircle2,
+  Circle,
 } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  Legend,
+} from "recharts";
 
 const EXAM_LABELS: Record<string, string> = {
   UPSC: "UPSC",
@@ -106,6 +120,163 @@ function getMotivationalTip(userType: string | null) {
   return tipList[Math.floor(Math.random() * tipList.length)];
 }
 
+const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+interface WeeklyGoalData {
+  date: string;
+  total: number;
+  completed: number;
+}
+
+function formatDayLabel(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00");
+  return DAY_NAMES[d.getDay() === 0 ? 6 : d.getDay() - 1];
+}
+
+function isToday(dateStr: string): boolean {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  return dateStr === `${yyyy}-${mm}-${dd}`;
+}
+
+function CustomTooltip({ active, payload, label }: any) {
+  if (!active || !payload || !payload.length) return null;
+  const data = payload[0]?.payload;
+  if (!data) return null;
+  const dateObj = new Date(data.date + "T00:00:00");
+  const formattedDate = dateObj.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short" });
+  const pending = data.total - data.completed;
+  return (
+    <div className="bg-card border border-border rounded-md shadow-lg p-3 min-w-[160px]">
+      <p className="text-xs font-semibold text-foreground mb-2">{formattedDate}</p>
+      <div className="flex items-center gap-2 mb-1">
+        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+        <span className="text-xs text-muted-foreground">Completed:</span>
+        <span className="text-xs font-semibold text-foreground">{data.completed}</span>
+      </div>
+      <div className="flex items-center gap-2 mb-1">
+        <Circle className="h-3.5 w-3.5 text-amber-400" />
+        <span className="text-xs text-muted-foreground">Pending:</span>
+        <span className="text-xs font-semibold text-foreground">{pending}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <Target className="h-3.5 w-3.5 text-blue-500" />
+        <span className="text-xs text-muted-foreground">Total Goals:</span>
+        <span className="text-xs font-semibold text-foreground">{data.total}</span>
+      </div>
+    </div>
+  );
+}
+
+function WeeklyGoalsChart() {
+  const { data, isLoading } = useQuery<WeeklyGoalData[]>({
+    queryKey: ["/api/study-planner/weekly-goals"],
+  });
+
+  const chartData = (data || []).map((d) => ({
+    ...d,
+    day: formatDayLabel(d.date),
+    pending: d.total - d.completed,
+    today: isToday(d.date),
+  }));
+
+  const totalGoals = chartData.reduce((s, d) => s + d.total, 0);
+  const totalCompleted = chartData.reduce((s, d) => s + d.completed, 0);
+  const completionRate = totalGoals > 0 ? Math.round((totalCompleted / totalGoals) * 100) : 0;
+
+  if (isLoading) {
+    return (
+      <Card className="p-4 sm:p-5 mb-6 sm:mb-8" data-testid="card-weekly-goals">
+        <div className="flex items-center justify-center h-[200px]">
+          <Loader2 className="h-6 w-6 text-primary animate-spin" />
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="p-4 sm:p-5 mb-6 sm:mb-8" data-testid="card-weekly-goals">
+      <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+        <div className="flex items-center gap-2">
+          <div className="h-9 w-9 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+            <CalendarDays className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground" data-testid="text-weekly-goals-title">This Week's Goals</h3>
+            <p className="text-xs text-muted-foreground">Your daily study targets</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            <span className="text-lg font-bold text-foreground" data-testid="text-completion-rate">{completionRate}%</span>
+            <p className="text-[10px] text-muted-foreground leading-tight">Completion</p>
+          </div>
+          <div className="text-right">
+            <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400" data-testid="text-total-completed">{totalCompleted}</span>
+            <span className="text-lg text-muted-foreground">/{totalGoals}</span>
+            <p className="text-[10px] text-muted-foreground leading-tight">Goals Done</p>
+          </div>
+        </div>
+      </div>
+
+      {totalGoals === 0 ? (
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <Target className="h-10 w-10 text-muted-foreground/40 mb-3" />
+          <p className="text-sm font-medium text-muted-foreground mb-1">No goals set this week</p>
+          <p className="text-xs text-muted-foreground/70 mb-3">Set daily study goals in the Study Planner to track your progress here</p>
+          <Link href="/study-planner" data-testid="link-go-to-planner">
+            <span className="text-xs font-medium text-primary hover:underline cursor-pointer flex items-center gap-1">
+              Go to Study Planner <ArrowRight className="h-3 w-3" />
+            </span>
+          </Link>
+        </div>
+      ) : (
+        <div className="w-full" style={{ height: 220 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={chartData}
+              margin={{ top: 5, right: 5, left: -20, bottom: 5 }}
+              barGap={2}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="day"
+                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                allowDecimals={false}
+                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.4)" }} />
+              <Legend
+                wrapperStyle={{ fontSize: 11, paddingTop: 4 }}
+                iconType="circle"
+                iconSize={8}
+              />
+              <Bar dataKey="completed" name="Completed" stackId="goals" radius={[0, 0, 0, 0]}>
+                {chartData.map((entry, idx) => (
+                  <Cell key={idx} fill={entry.today ? "#059669" : "#10b981"} />
+                ))}
+              </Bar>
+              <Bar dataKey="pending" name="Pending" stackId="goals" radius={[3, 3, 0, 0]}>
+                {chartData.map((entry, idx) => (
+                  <Cell key={idx} fill={entry.today ? "#d97706" : "#fbbf24"} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 export default function DashboardPage() {
   const { user, isLoading } = useAuth();
   const [, setLocation] = useLocation();
@@ -139,7 +310,6 @@ export default function DashboardPage() {
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
           <div className="flex flex-col items-center text-center mb-8 sm:mb-10">
-            <Logo size="xl" className="mb-4 hidden sm:block" />
             <h1 className="text-2xl sm:text-3xl font-display font-bold" data-testid="text-dashboard-greeting">
               {getGreeting()}, {displayName}
             </h1>
@@ -168,6 +338,8 @@ export default function DashboardPage() {
               </div>
             </div>
           </Card>
+
+          <WeeklyGoalsChart />
 
           <h2 className="text-base font-semibold mb-3 sm:mb-4" data-testid="text-quick-actions-heading">
             Start Learning
