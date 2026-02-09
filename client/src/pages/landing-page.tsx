@@ -409,12 +409,10 @@ const featureVisuals: Record<string, () => JSX.Element> = {
 
 function AutoCyclingFeatures({ openLogin }: { openLogin: () => void }) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (isPaused) return;
     const tick = 50;
     intervalRef.current = setInterval(() => {
       setProgress((p) => {
@@ -428,7 +426,7 @@ function AutoCyclingFeatures({ openLogin }: { openLogin: () => void }) {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isPaused, activeIndex]);
+  }, [activeIndex]);
 
   const selectFeature = (index: number) => {
     setActiveIndex(index);
@@ -441,8 +439,6 @@ function AutoCyclingFeatures({ openLogin }: { openLogin: () => void }) {
   return (
     <div
       className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-stretch"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
       data-testid="feature-tabs-container"
     >
       <div className="flex-1 min-w-0 space-y-1">
