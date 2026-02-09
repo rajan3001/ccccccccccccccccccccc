@@ -124,14 +124,24 @@ async function getGoogleOidcConfig(): Promise<oidc.Configuration | null> {
 }
 
 function getCallbackUrl(req: any): string {
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol || "https";
+  const host = req.headers["x-forwarded-host"] || req.headers.host;
+  const detectedUrl = `${protocol}://${host}/api/auth/google/callback`;
+
   const customDomain = process.env.CUSTOM_DOMAIN;
   if (customDomain) {
     const domain = customDomain.replace(/^https?:\/\//, "");
-    return `https://${domain}/api/auth/google/callback`;
+    const customCallback = `https://${domain}/api/auth/google/callback`;
+    if (host && host.includes(domain)) {
+      return customCallback;
+    }
+    const devDomain = process.env.REPLIT_DEV_DOMAIN;
+    if (devDomain && host && host.includes(devDomain)) {
+      return detectedUrl;
+    }
+    return customCallback;
   }
-  const protocol = req.headers["x-forwarded-proto"] || req.protocol || "https";
-  const host = req.headers["x-forwarded-host"] || req.headers.host;
-  return `${protocol}://${host}/api/auth/google/callback`;
+  return detectedUrl;
 }
 
 export async function setupAuth(app: Express) {
