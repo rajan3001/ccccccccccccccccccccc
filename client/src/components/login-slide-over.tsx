@@ -36,6 +36,7 @@ export function LoginSlideOver({ open, onClose }: LoginSlideOverProps) {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState(0);
+  const [screenOtp, setScreenOtp] = useState("");
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const phoneInputRef = useRef<HTMLInputElement>(null);
 
@@ -101,10 +102,12 @@ export function LoginSlideOver({ open, onClose }: LoginSlideOverProps) {
       if (!res.ok) throw new Error(data.message || "Failed to send OTP");
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setStep("otp");
       setError("");
       setCountdown(30);
+      if (data.showOtp) setScreenOtp(data.showOtp);
+      else setScreenOtp("");
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
     },
     onError: (err: Error) => setError(err.message),
@@ -343,6 +346,13 @@ export function LoginSlideOver({ open, onClose }: LoginSlideOverProps) {
                           <span className="font-medium text-foreground">+91 {phoneNumber}</span>
                         </p>
                       </div>
+
+                      {screenOtp && (
+                        <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-md p-3 text-center" data-testid="screen-otp-display">
+                          <p className="text-xs text-amber-700 dark:text-amber-300 mb-1">Your OTP</p>
+                          <p className="text-2xl font-bold tracking-[0.3em] text-amber-900 dark:text-amber-100">{screenOtp}</p>
+                        </div>
+                      )}
 
                       <div className="space-y-5">
                         <div className="flex flex-wrap gap-2 justify-center" onPaste={handleOtpPaste}>
