@@ -36,6 +36,7 @@ import { motion } from "framer-motion";
 import { HeroDashboardAnimation, NeuralNetworkAnimation } from "@/components/landing/hero-animation";
 import { LoginSlideOver } from "@/components/login-slide-over";
 import { LandingFooter } from "@/components/landing/footer";
+import { MobileAppSection } from "@/components/landing/mobile-app-section";
 
 function AnimatedCounter({ target, suffix = "+" }: { target: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -755,6 +756,7 @@ export default function LandingPage() {
             </motion.div>
           </div>
         </section>
+        <MobileAppSection />
       </main>
 
       <LandingFooter />
