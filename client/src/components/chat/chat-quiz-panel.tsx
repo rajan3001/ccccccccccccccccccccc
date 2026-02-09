@@ -92,6 +92,18 @@ function parseMCQContent(content: string): ParsedQuestion[] {
   return questions;
 }
 
+function renderExplanationWithBold(text: string) {
+  const cleaned = text.replace(/\s{2,}/g, "\n").trim();
+  const parts = cleaned.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    const boldMatch = part.match(/^\*\*(.+)\*\*$/);
+    if (boldMatch) {
+      return <strong key={i} className="font-semibold text-foreground">{boldMatch[1]}</strong>;
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
 interface ChatQuizPanelProps {
   content: string;
   onClose: () => void;
@@ -315,9 +327,9 @@ export function ChatQuizPanel({ content, onClose, isOpen }: ChatQuizPanelProps) 
             </button>
             {showExplanation[currentIndex] && (
               <Card className="p-3.5 bg-muted/50 border-primary/10">
-                <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-line">
-                  {currentQ.explanation.replace(/\*+/g, "").replace(/\s{2,}/g, "\n").trim()}
-                </p>
+                <div className="text-sm leading-relaxed text-muted-foreground whitespace-pre-line">
+                  {renderExplanationWithBold(currentQ.explanation)}
+                </div>
               </Card>
             )}
           </div>
