@@ -298,10 +298,60 @@ export default function LandingPage() {
       </nav>
 
       <main className="flex-1">
-        <section className="relative overflow-hidden py-16 sm:py-20 lg:py-28">
+        <section className="relative overflow-hidden pt-8 sm:pt-10 lg:pt-14 pb-12 sm:pb-16 lg:pb-20">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-background to-background opacity-70" />
           <div className="absolute top-10 right-0 w-72 h-72 sm:w-96 sm:h-96 bg-primary/5 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+
+          <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.04] dark:opacity-[0.06]" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="hero-grid" width="60" height="60" patternUnits="userSpaceOnUse">
+                <path d="M 60 0 L 0 0 0 60" fill="none" stroke="currentColor" strokeWidth="0.5" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#hero-grid)" />
+          </svg>
+
+          <motion.div
+            className="absolute top-[15%] left-[8%] w-2 h-2 rounded-full bg-primary/15"
+            animate={{ y: [0, -20, 0], opacity: [0.15, 0.4, 0.15] }}
+            transition={{ duration: 4, repeat: Infinity }}
+          />
+          <motion.div
+            className="absolute top-[25%] right-[12%] w-3 h-3 rounded-full bg-primary/10"
+            animate={{ y: [0, -15, 0], opacity: [0.1, 0.3, 0.1] }}
+            transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+          />
+          <motion.div
+            className="absolute bottom-[20%] left-[15%] w-1.5 h-1.5 rounded-full bg-primary/20"
+            animate={{ y: [0, -12, 0], opacity: [0.2, 0.5, 0.2] }}
+            transition={{ duration: 3.5, repeat: Infinity, delay: 0.5 }}
+          />
+          <motion.div
+            className="absolute top-[60%] right-[5%] w-2.5 h-2.5 rounded-full bg-primary/10"
+            animate={{ y: [0, -18, 0], opacity: [0.1, 0.35, 0.1] }}
+            transition={{ duration: 4.5, repeat: Infinity, delay: 2 }}
+          />
+          <motion.div
+            className="absolute top-[40%] left-[3%] w-1 h-16 bg-gradient-to-b from-primary/10 to-transparent rounded-full"
+            animate={{ opacity: [0.1, 0.25, 0.1], scaleY: [1, 1.2, 1] }}
+            transition={{ duration: 5, repeat: Infinity }}
+          />
+          <motion.div
+            className="absolute top-[10%] right-[20%] w-1 h-12 bg-gradient-to-b from-primary/8 to-transparent rounded-full rotate-45"
+            animate={{ opacity: [0.08, 0.2, 0.08] }}
+            transition={{ duration: 6, repeat: Infinity, delay: 1.5 }}
+          />
+          <motion.div
+            className="absolute bottom-[30%] right-[25%] w-8 h-8 rounded-full border border-primary/8"
+            animate={{ scale: [1, 1.3, 1], opacity: [0.08, 0.18, 0.08] }}
+            transition={{ duration: 5, repeat: Infinity, delay: 0.8 }}
+          />
+          <motion.div
+            className="absolute top-[70%] left-[25%] w-5 h-5 rounded-full border border-primary/6"
+            animate={{ scale: [1, 1.4, 1], opacity: [0.06, 0.15, 0.06] }}
+            transition={{ duration: 4, repeat: Infinity, delay: 2.5 }}
+          />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
