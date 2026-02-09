@@ -552,23 +552,6 @@ export default function CurrentAffairsPage() {
             </div>
 
             <div className="hidden lg:block w-72 flex-shrink-0 space-y-5">
-              {hasDigest && (
-                <Card className="overflow-hidden">
-                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 text-white">
-                    <h3 className="font-bold text-base mb-1" data-testid="text-mcq-cta">Practice MCQs</h3>
-                    <p className="text-xs text-blue-100">Test yourself on today's current affairs</p>
-                  </div>
-                  <CardContent className="p-4">
-                    <Link href="/practice-quiz">
-                      <Button className="w-full gap-2" data-testid="button-practice-now">
-                        <FileText className="h-4 w-4" />
-                        Start Practice
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              )}
-
               <Card>
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-sm mb-3" data-testid="text-calendar-title">Calendar</h3>
