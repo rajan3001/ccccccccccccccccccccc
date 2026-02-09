@@ -213,70 +213,84 @@ function PhoneMockup() {
 
 export function MobileAppSection({ embedded = false }: { embedded?: boolean }) {
   const content = (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            <Badge variant="secondary" className="mb-4 no-default-hover-elevate no-default-active-elevate" data-testid="badge-coming-soon">
-              <Smartphone className="h-3 w-3 mr-1.5" />
-              Coming Soon
-            </Badge>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="relative rounded-2xl bg-card border border-border/60 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.04] via-transparent to-primary/[0.02] pointer-events-none" />
 
-            <h2 className="text-2xl sm:text-4xl font-display font-bold mb-4" data-testid="text-mobile-heading">
-              Your preparation,{" "}
-              <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                in your pocket
-              </span>
-            </h2>
+          <svg className="absolute inset-0 w-full h-full opacity-[0.03] pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="mobile-dots" width="24" height="24" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="0.8" fill="currentColor" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#mobile-dots)" className="text-foreground" />
+          </svg>
 
-            <p className="text-muted-foreground text-sm sm:text-base mb-8 max-w-md leading-relaxed">
-              Take your UPSC &amp; State PSC preparation everywhere. Access AI Chat, Current Affairs, Practice Quizzes, and your Study Planner on the go.
-            </p>
+          <div className="grid grid-cols-1 lg:grid-cols-5 items-center relative">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="lg:col-span-3 p-6 sm:p-8 lg:p-10"
+            >
+              <Badge variant="secondary" className="mb-4 no-default-hover-elevate no-default-active-elevate" data-testid="badge-coming-soon">
+                <Smartphone className="h-3 w-3 mr-1.5" />
+                Coming Soon
+              </Badge>
 
-            <div className="flex flex-col sm:flex-row flex-wrap gap-3 mb-8">
-              <div
-                className="inline-flex items-center flex-wrap gap-3 bg-foreground text-primary-foreground rounded-xl px-5 py-3 opacity-70 cursor-default select-none"
-                data-testid="button-app-store"
-              >
-                <SiApple className="h-7 w-7 shrink-0" />
-                <div>
-                  <p className="text-[10px] leading-none text-primary-foreground/60">Download on the</p>
-                  <p className="text-sm font-semibold leading-tight">App Store</p>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold mb-3" data-testid="text-mobile-heading">
+                Your preparation,{" "}
+                <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  in your pocket
+                </span>
+              </h2>
+
+              <p className="text-muted-foreground text-sm sm:text-base mb-6 max-w-md leading-relaxed">
+                Take your UPSC &amp; State PSC preparation everywhere. Access AI Chat, Current Affairs, Practice Quizzes, and your Study Planner on the go.
+              </p>
+
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3 mb-6">
+                <div
+                  className="inline-flex items-center flex-wrap gap-3 bg-foreground text-primary-foreground rounded-xl px-5 py-3 opacity-70 cursor-default select-none"
+                  data-testid="button-app-store"
+                >
+                  <SiApple className="h-7 w-7 shrink-0" />
+                  <div>
+                    <p className="text-[10px] leading-none text-primary-foreground/60">Download on the</p>
+                    <p className="text-sm font-semibold leading-tight">App Store</p>
+                  </div>
+                </div>
+
+                <div
+                  className="inline-flex items-center flex-wrap gap-3 bg-foreground text-primary-foreground rounded-xl px-5 py-3 opacity-70 cursor-default select-none"
+                  data-testid="button-google-play"
+                >
+                  <SiGoogleplay className="h-6 w-6 shrink-0" />
+                  <div>
+                    <p className="text-[10px] leading-none text-primary-foreground/60">Get it on</p>
+                    <p className="text-sm font-semibold leading-tight">Google Play</p>
+                  </div>
                 </div>
               </div>
 
-              <div
-                className="inline-flex items-center flex-wrap gap-3 bg-foreground text-primary-foreground rounded-xl px-5 py-3 opacity-70 cursor-default select-none"
-                data-testid="button-google-play"
-              >
-                <SiGoogleplay className="h-6 w-6 shrink-0" />
-                <div>
-                  <p className="text-[10px] leading-none text-primary-foreground/60">Get it on</p>
-                  <p className="text-sm font-semibold leading-tight">Google Play</p>
-                </div>
+              <div className="flex flex-wrap items-center gap-5 text-sm text-muted-foreground">
+                {[
+                  { label: "All Features", icon: CheckCircle2 },
+                  { label: "Offline Notes", icon: BookOpen },
+                  { label: "Push Notifications", icon: Target },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center flex-wrap gap-1.5">
+                    <item.icon className="h-4 w-4 text-primary shrink-0" />
+                    <span>{item.label}</span>
+                  </div>
+                ))}
               </div>
-            </div>
+            </motion.div>
 
-            <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
-              {[
-                { label: "All Features", icon: CheckCircle2 },
-                { label: "Offline Notes", icon: BookOpen },
-                { label: "Push Notifications", icon: Target },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center flex-wrap gap-1.5">
-                  <item.icon className="h-4 w-4 text-primary shrink-0" />
-                  <span>{item.label}</span>
-                </div>
-              ))}
+            <div className="lg:col-span-2 flex justify-center lg:justify-center py-6 lg:py-8">
+              <PhoneMockup />
             </div>
-          </motion.div>
-
-          <div className="flex justify-center lg:justify-end">
-            <PhoneMockup />
           </div>
         </div>
       </div>
