@@ -445,14 +445,13 @@ function AutoCyclingFeatures({ openLogin }: { openLogin: () => void }) {
         {featureItems.map((feature, index) => {
           const isActive = index === activeIndex;
           return (
-            <motion.div
+            <div
               key={feature.id}
               onClick={() => selectFeature(index)}
               className={`w-full text-left rounded-xl px-4 py-3 transition-colors cursor-pointer relative ${
                 isActive ? "bg-primary/5 dark:bg-primary/10" : "bg-transparent"
               }`}
               data-testid={`feature-tab-${feature.id}`}
-              layout
             >
               {isActive && (
                 <div className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full bg-primary" />
@@ -467,39 +466,31 @@ function AutoCyclingFeatures({ openLogin }: { openLogin: () => void }) {
                   <span className={`text-sm font-semibold block ${isActive ? "text-foreground" : "text-foreground/70"}`}>
                     {feature.title}
                   </span>
-                  {isActive && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
+                  <div className={`overflow-hidden transition-all duration-300 ${isActive ? "max-h-40 opacity-100 mt-1" : "max-h-0 opacity-0"}`}>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {feature.description}
+                    </p>
+                    <Button
+                      size="sm"
+                      className="mt-2 gap-1.5"
+                      onClick={(e) => { e.stopPropagation(); openLogin(); }}
+                      data-testid={`button-feature-${feature.id}`}
                     >
-                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                        {feature.description}
-                      </p>
-                      <Button
-                        size="sm"
-                        className="mt-2 gap-1.5"
-                        onClick={(e) => { e.stopPropagation(); openLogin(); }}
-                        data-testid={`button-feature-${feature.id}`}
-                      >
-                        {feature.cta}
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </Button>
-                    </motion.div>
-                  )}
+                      {feature.cta}
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
               </div>
               {isActive && (
                 <div className="mt-2 ml-12 h-0.5 rounded-full bg-muted overflow-hidden">
-                  <motion.div
-                    className="h-full bg-primary rounded-full"
+                  <div
+                    className="h-full bg-primary rounded-full transition-none"
                     style={{ width: `${progress}%` }}
-                    transition={{ duration: 0 }}
                   />
                 </div>
               )}
-            </motion.div>
+            </div>
           );
         })}
       </div>
@@ -546,121 +537,44 @@ const testimonials = [
 ];
 
 
-const SUPPORTED_EXAMS = [
-  {
-    id: "upsc",
-    title: "UPSC CSE",
-    subtitle: "IAS / IPS / IFS",
-    icon: GraduationCap,
-    gradient: "from-amber-500 to-orange-600",
-    features: ["Prelims & Mains", "GS I-IV", "Essay & Optional"],
-  },
-  {
-    id: "state-psc",
-    title: "State PCS",
-    subtitle: "UPPSC, MPPSC, BPSC, JPSC, RPSC & more",
-    icon: BookOpen,
-    gradient: "from-blue-500 to-indigo-600",
-    features: ["15 States covered", "State-specific syllabus", "PYQ patterns"],
-  },
+const EXAM_ICONS = [
+  { id: "upsc", label: "UPSC CSE", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-100 dark:bg-amber-900/30" },
+  { id: "uppsc", label: "UPPSC", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-100 dark:bg-blue-900/30" },
+  { id: "mppsc", label: "MPPSC", color: "text-indigo-600 dark:text-indigo-400", bg: "bg-indigo-100 dark:bg-indigo-900/30" },
+  { id: "bpsc", label: "BPSC", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-100 dark:bg-emerald-900/30" },
+  { id: "jpsc", label: "JPSC", color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-100 dark:bg-purple-900/30" },
+  { id: "rpsc", label: "RPSC", color: "text-rose-600 dark:text-rose-400", bg: "bg-rose-100 dark:bg-rose-900/30" },
+  { id: "wbpsc", label: "WBPSC", color: "text-sky-600 dark:text-sky-400", bg: "bg-sky-100 dark:bg-sky-900/30" },
+  { id: "opsc", label: "OPSC", color: "text-teal-600 dark:text-teal-400", bg: "bg-teal-100 dark:bg-teal-900/30" },
+  { id: "cgpsc", label: "CGPSC", color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-100 dark:bg-orange-900/30" },
+  { id: "ukpsc", label: "UKPSC", color: "text-cyan-600 dark:text-cyan-400", bg: "bg-cyan-100 dark:bg-cyan-900/30" },
+  { id: "hpsc", label: "HPSC", color: "text-lime-600 dark:text-lime-400", bg: "bg-lime-100 dark:bg-lime-900/30" },
+  { id: "kpsc", label: "KPSC", color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-100 dark:bg-violet-900/30" },
+  { id: "tnpsc", label: "TNPSC", color: "text-fuchsia-600 dark:text-fuchsia-400", bg: "bg-fuchsia-100 dark:bg-fuchsia-900/30" },
+  { id: "appsc", label: "APPSC", color: "text-pink-600 dark:text-pink-400", bg: "bg-pink-100 dark:bg-pink-900/30" },
+  { id: "gpsc", label: "GPSC", color: "text-red-600 dark:text-red-400", bg: "bg-red-100 dark:bg-red-900/30" },
+  { id: "nepsc", label: "NE States", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-100 dark:bg-emerald-900/30" },
 ];
-
-function WaveBackground() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <motion.div
-        className="absolute -bottom-4 left-0 right-0 h-40 opacity-[0.07] dark:opacity-[0.1]"
-        style={{ background: "linear-gradient(180deg, transparent 0%, hsl(var(--primary)) 100%)" }}
-        animate={{ y: [0, -8, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <svg className="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 120" preserveAspectRatio="none" style={{ height: 80 }}>
-        <motion.path
-          d="M0,80 C240,120 480,40 720,80 C960,120 1200,40 1440,80 L1440,120 L0,120 Z"
-          fill="currentColor"
-          className="text-primary/[0.04] dark:text-primary/[0.07]"
-          animate={{ d: [
-            "M0,80 C240,120 480,40 720,80 C960,120 1200,40 1440,80 L1440,120 L0,120 Z",
-            "M0,60 C240,40 480,100 720,60 C960,40 1200,100 1440,60 L1440,120 L0,120 Z",
-            "M0,80 C240,120 480,40 720,80 C960,120 1200,40 1440,80 L1440,120 L0,120 Z",
-          ] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </svg>
-      <svg className="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 120" preserveAspectRatio="none" style={{ height: 60 }}>
-        <motion.path
-          d="M0,90 C360,50 720,110 1080,70 C1260,50 1380,90 1440,85 L1440,120 L0,120 Z"
-          fill="currentColor"
-          className="text-primary/[0.03] dark:text-primary/[0.05]"
-          animate={{ d: [
-            "M0,90 C360,50 720,110 1080,70 C1260,50 1380,90 1440,85 L1440,120 L0,120 Z",
-            "M0,70 C360,110 720,50 1080,90 C1260,110 1380,70 1440,75 L1440,120 L0,120 Z",
-            "M0,90 C360,50 720,110 1080,70 C1260,50 1380,90 1440,85 L1440,120 L0,120 Z",
-          ] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        />
-      </svg>
-      <svg className="absolute top-0 left-0 w-full" viewBox="0 0 1440 120" preserveAspectRatio="none" style={{ height: 50 }}>
-        <motion.path
-          d="M0,40 C480,80 960,20 1440,50 L1440,0 L0,0 Z"
-          fill="currentColor"
-          className="text-primary/[0.02] dark:text-primary/[0.04]"
-          animate={{ d: [
-            "M0,40 C480,80 960,20 1440,50 L1440,0 L0,0 Z",
-            "M0,60 C480,20 960,80 1440,40 L1440,0 L0,0 Z",
-            "M0,40 C480,80 960,20 1440,50 L1440,0 L0,0 Z",
-          ] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        />
-      </svg>
-    </div>
-  );
-}
 
 function PrepareForExamsSection() {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:gap-5 max-w-2xl mx-auto" data-testid="exams-grid">
-      {SUPPORTED_EXAMS.map((exam, i) => (
+    <div className="grid grid-cols-4 sm:grid-cols-8 gap-3 sm:gap-4 max-w-3xl mx-auto" data-testid="exams-grid">
+      {EXAM_ICONS.map((exam, i) => (
         <motion.div
           key={exam.id}
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          transition={{ delay: i * 0.12, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ delay: i * 0.03, duration: 0.3 }}
+          className="flex flex-col items-center gap-1.5"
+          data-testid={`exam-icon-${exam.id}`}
         >
-          <Card
-            className="relative overflow-hidden group cursor-default h-full border-0 shadow-lg"
-            data-testid={`exam-card-${exam.id}`}
-          >
-            <div className={`absolute inset-0 bg-gradient-to-br ${exam.gradient} opacity-90`} />
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-white/10 blur-xl" />
-              <div className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full bg-white/5 blur-lg" />
-            </div>
-
-            <div className="relative z-10 p-4 sm:p-5 flex items-start gap-3">
-              <div className="h-9 w-9 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                <exam.icon className="h-4.5 w-4.5 text-white" style={{ width: 18, height: 18 }} />
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <h3 className="font-display font-bold text-sm sm:text-base text-white leading-tight">
-                  {exam.title}
-                </h3>
-                <p className="text-white/60 text-[11px] sm:text-xs mt-0.5 leading-snug">
-                  {exam.subtitle}
-                </p>
-                <div className="flex flex-wrap gap-x-2 gap-y-1 mt-2">
-                  {exam.features.map((feat, fi) => (
-                    <span key={fi} className="text-white/70 text-[10px] sm:text-[11px] flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3 text-white/50 flex-shrink-0" />
-                      {feat}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Card>
+          <div className={`h-10 w-10 sm:h-11 sm:w-11 rounded-xl ${exam.bg} flex items-center justify-center`}>
+            <GraduationCap className={`h-5 w-5 ${exam.color}`} />
+          </div>
+          <span className="text-[10px] sm:text-xs font-medium text-muted-foreground text-center leading-tight">
+            {exam.label}
+          </span>
         </motion.div>
       ))}
     </div>
@@ -945,9 +859,8 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="exams" className="py-14 sm:py-20 bg-secondary/30 relative overflow-hidden">
-          <WaveBackground />
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <section id="exams" className="py-14 sm:py-20 bg-secondary/30">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
