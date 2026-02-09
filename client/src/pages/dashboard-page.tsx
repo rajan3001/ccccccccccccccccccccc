@@ -2,8 +2,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { Link, useLocation } from "wouter";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useCreateConversation } from "@/hooks/use-chat";
 import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect, useRef } from "react";
 import {
   MessageSquare,
   Newspaper,
@@ -17,10 +19,17 @@ import {
   CalendarDays,
   CheckCircle2,
   Circle,
+  TrendingUp,
+  Trophy,
+  Zap,
+  NotebookPen,
+  GraduationCap,
 } from "lucide-react";
 import {
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -28,6 +37,8 @@ import {
   ResponsiveContainer,
   Cell,
   Legend,
+  Area,
+  AreaChart,
 } from "recharts";
 
 const EXAM_LABELS: Record<string, string> = {
@@ -141,7 +152,310 @@ function isToday(dateStr: string): boolean {
   return dateStr === `${yyyy}-${mm}-${dd}`;
 }
 
-function CustomTooltip({ active, payload, label }: any) {
+function AnimatedCounter({ target, duration = 1200, suffix = "" }: { target: number; duration?: number; suffix?: string }) {
+  const [current, setCurrent] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    if (hasAnimated.current) return;
+    hasAnimated.current = true;
+    if (target === 0) { setCurrent(0); return; }
+    const startTime = performance.now();
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCurrent(Math.round(eased * target));
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  }, [target, duration]);
+
+  return <span ref={ref}>{current}{suffix}</span>;
+}
+
+interface DashboardStats {
+  today: {
+    mcqsSolved: number;
+    mcqsCorrect: number;
+    quizAttempts: number;
+    topicsStudied: number;
+    notesSaved: number;
+    currentAffairsRead: number;
+  };
+  allTime: {
+    mcqsSolved: number;
+    mcqsCorrect: number;
+    quizAttempts: number;
+    topicsStudied: number;
+    notesSaved: number;
+    currentAffairsTotal: number;
+    currentAffairsRevised: number;
+  };
+  trend: Array<{
+    date: string;
+    mcqs: number;
+    correct: number;
+    chats: number;
+    notes: number;
+  }>;
+}
+
+function TodayAchievements({ stats }: { stats: DashboardStats }) {
+  const achievements = [
+    {
+      label: "MCQs Solved",
+      value: stats.today.mcqsSolved,
+      allTime: stats.allTime.mcqsSolved,
+      icon: Brain,
+      color: "text-emerald-600 dark:text-emerald-400",
+      bgColor: "bg-emerald-500/10",
+      borderColor: "border-emerald-500/20",
+    },
+    {
+      label: "AI Chat Sessions",
+      value: stats.today.topicsStudied,
+      allTime: stats.allTime.topicsStudied,
+      icon: MessageSquare,
+      color: "text-blue-600 dark:text-blue-400",
+      bgColor: "bg-blue-500/10",
+      borderColor: "border-blue-500/20",
+    },
+    {
+      label: "Articles Revised",
+      value: stats.allTime.currentAffairsRevised,
+      allTime: stats.allTime.currentAffairsTotal,
+      icon: Newspaper,
+      color: "text-amber-600 dark:text-amber-400",
+      bgColor: "bg-amber-500/10",
+      borderColor: "border-amber-500/20",
+      allTimeLabel: "Total articles",
+    },
+    {
+      label: "Notes Saved",
+      value: stats.today.notesSaved,
+      allTime: stats.allTime.notesSaved,
+      icon: NotebookPen,
+      color: "text-purple-600 dark:text-purple-400",
+      bgColor: "bg-purple-500/10",
+      borderColor: "border-purple-500/20",
+    },
+  ];
+
+  const accuracy = stats.today.mcqsSolved > 0
+    ? Math.round((stats.today.mcqsCorrect / stats.today.mcqsSolved) * 100)
+    : 0;
+
+  return (
+    <div className="mb-6 sm:mb-8" data-testid="section-today-achievements">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+          <Trophy className="h-4 w-4 text-primary" />
+        </div>
+        <div>
+          <h2 className="text-base font-semibold" data-testid="text-achievements-heading">Today's Achievements</h2>
+          <p className="text-xs text-muted-foreground">Your progress today</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {achievements.map((item, idx) => (
+          <Card
+            key={item.label}
+            className={`p-4 border ${item.borderColor} relative overflow-visible`}
+            data-testid={`card-achievement-${idx}`}
+            style={{ animationDelay: `${idx * 100}ms` }}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <div className={`h-8 w-8 rounded-md ${item.bgColor} flex items-center justify-center flex-shrink-0`}>
+                <item.icon className={`h-4 w-4 ${item.color}`} />
+              </div>
+              <span className="text-xs font-medium text-muted-foreground">{item.label}</span>
+            </div>
+            <div className="text-2xl font-bold text-foreground mb-1" data-testid={`text-achievement-value-${idx}`}>
+              <AnimatedCounter target={item.value} />
+            </div>
+            <div className="text-[11px] text-muted-foreground">
+              {(item as any).allTimeLabel || "All time"}: <span className="font-medium text-foreground/70">{item.allTime}</span>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {stats.today.mcqsSolved > 0 && (
+        <Card className="mt-3 p-3 border-emerald-500/20 bg-emerald-500/5">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-emerald-500" />
+              <span className="text-sm font-medium">Quiz Accuracy</span>
+            </div>
+            <div className="flex items-center gap-2 ml-auto">
+              <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400" data-testid="text-accuracy">
+                <AnimatedCounter target={accuracy} suffix="%" />
+              </span>
+              <span className="text-xs text-muted-foreground">
+                ({stats.today.mcqsCorrect}/{stats.today.mcqsSolved} correct)
+              </span>
+            </div>
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function ProgressTrendChart({ stats }: { stats: DashboardStats }) {
+  const chartData = stats.trend.map((d) => {
+    const dateObj = new Date(d.date + "T00:00:00");
+    const dayName = DAY_NAMES[dateObj.getDay() === 0 ? 6 : dateObj.getDay() - 1];
+    const dayNum = dateObj.getDate();
+    return {
+      ...d,
+      label: `${dayName} ${dayNum}`,
+      activity: d.mcqs + d.chats + d.notes,
+    };
+  });
+
+  const hasAnyData = chartData.some((d) => d.activity > 0 || d.mcqs > 0);
+
+  return (
+    <Card className="p-4 sm:p-5 mb-6 sm:mb-8" data-testid="card-progress-trend">
+      <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+        <div className="flex items-center gap-2">
+          <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <TrendingUp className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground" data-testid="text-trend-title">7-Day Learning Trend</h3>
+            <p className="text-xs text-muted-foreground">Your daily activity over the past week</p>
+          </div>
+        </div>
+        {hasAnyData && (
+          <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-600">
+            <TrendingUp className="h-3 w-3 mr-1" />
+            Active
+          </Badge>
+        )}
+      </div>
+
+      {!hasAnyData ? (
+        <div className="flex flex-col items-center justify-center py-10 text-center">
+          <div className="h-14 w-14 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+            <GraduationCap className="h-7 w-7 text-muted-foreground/40" />
+          </div>
+          <p className="text-sm font-medium text-muted-foreground mb-1">Start your learning journey</p>
+          <p className="text-xs text-muted-foreground/70 max-w-xs">Take quizzes, study topics, and save notes to see your progress chart come alive</p>
+        </div>
+      ) : (
+        <div className="w-full" style={{ height: 240 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+              <defs>
+                <linearGradient id="mcqGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="chatGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="label"
+                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                allowDecimals={false}
+                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip content={<TrendTooltip />} cursor={{ stroke: "hsl(var(--primary) / 0.2)", strokeWidth: 1 }} />
+              <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} iconType="circle" iconSize={8} />
+              <Area
+                type="monotone"
+                dataKey="mcqs"
+                name="MCQs"
+                stroke="#10b981"
+                strokeWidth={2}
+                fill="url(#mcqGradient)"
+                dot={{ r: 3, fill: "#10b981" }}
+                activeDot={{ r: 5, fill: "#10b981" }}
+              />
+              <Area
+                type="monotone"
+                dataKey="chats"
+                name="Chat Sessions"
+                stroke="#3b82f6"
+                strokeWidth={2}
+                fill="url(#chatGradient)"
+                dot={{ r: 3, fill: "#3b82f6" }}
+                activeDot={{ r: 5, fill: "#3b82f6" }}
+              />
+              <Line
+                type="monotone"
+                dataKey="notes"
+                name="Notes"
+                stroke="#a855f7"
+                strokeWidth={2}
+                dot={{ r: 3, fill: "#a855f7" }}
+                activeDot={{ r: 5, fill: "#a855f7" }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function TrendTooltip({ active, payload, label }: any) {
+  if (!active || !payload || !payload.length) return null;
+  const data = payload[0]?.payload;
+  if (!data) return null;
+
+  return (
+    <div className="bg-card border border-border rounded-md shadow-lg p-3 min-w-[160px]">
+      <p className="text-xs font-semibold text-foreground mb-2">{label}</p>
+      <div className="space-y-1.5">
+        {data.mcqs > 0 && (
+          <div className="flex items-center gap-2">
+            <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+            <span className="text-xs text-muted-foreground">MCQs Solved:</span>
+            <span className="text-xs font-semibold text-foreground ml-auto">{data.mcqs}</span>
+          </div>
+        )}
+        {data.correct > 0 && (
+          <div className="flex items-center gap-2">
+            <div className="h-2.5 w-2.5 rounded-full bg-emerald-300" />
+            <span className="text-xs text-muted-foreground">Correct:</span>
+            <span className="text-xs font-semibold text-foreground ml-auto">{data.correct}</span>
+          </div>
+        )}
+        {data.chats > 0 && (
+          <div className="flex items-center gap-2">
+            <div className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+            <span className="text-xs text-muted-foreground">Chat Sessions:</span>
+            <span className="text-xs font-semibold text-foreground ml-auto">{data.chats}</span>
+          </div>
+        )}
+        {data.notes > 0 && (
+          <div className="flex items-center gap-2">
+            <div className="h-2.5 w-2.5 rounded-full bg-purple-500" />
+            <span className="text-xs text-muted-foreground">Notes:</span>
+            <span className="text-xs font-semibold text-foreground ml-auto">{data.notes}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CustomGoalTooltip({ active, payload, label }: any) {
   if (!active || !payload || !payload.length) return null;
   const data = payload[0]?.payload;
   if (!data) return null;
@@ -253,7 +567,7 @@ function WeeklyGoalsChart() {
                 axisLine={false}
                 tickLine={false}
               />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.4)" }} />
+              <Tooltip content={<CustomGoalTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.4)" }} />
               <Legend
                 wrapperStyle={{ fontSize: 11, paddingTop: 4 }}
                 iconType="circle"
@@ -281,6 +595,10 @@ export default function DashboardPage() {
   const { user, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const createMutation = useCreateConversation();
+
+  const { data: dashboardStats, isLoading: statsLoading } = useQuery<DashboardStats>({
+    queryKey: ["/api/dashboard/stats"],
+  });
 
   const handleTopicClick = (text: string) => {
     createMutation.mutate("New Chat", {
@@ -338,6 +656,19 @@ export default function DashboardPage() {
               </div>
             </div>
           </Card>
+
+          {statsLoading ? (
+            <Card className="p-4 sm:p-5 mb-6 sm:mb-8">
+              <div className="flex items-center justify-center h-[120px]">
+                <Loader2 className="h-6 w-6 text-primary animate-spin" />
+              </div>
+            </Card>
+          ) : dashboardStats ? (
+            <>
+              <TodayAchievements stats={dashboardStats} />
+              <ProgressTrendChart stats={dashboardStats} />
+            </>
+          ) : null}
 
           <WeeklyGoalsChart />
 
