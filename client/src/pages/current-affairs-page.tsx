@@ -169,7 +169,10 @@ export default function CurrentAffairsPage() {
   const totalCount = topics.length;
 
   const allDates = getDateRange();
-  const dateRange = allDates.filter((d) => availableDateSet.has(d) || d === todayStr);
+  const dateRange = allDates.filter((d) => {
+    const day = new Date(d + "T00:00:00").getDay();
+    return day !== 0;
+  });
 
   useEffect(() => {
     if (dateStripRef.current && selectedDate) {
