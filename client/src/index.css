@@ -199,3 +199,63 @@
 .animate-marquee {
   animation: marquee 25s linear infinite;
 }
+
+@keyframes stats-border-spin {
+  0% { --stats-angle: 0deg; }
+  100% { --stats-angle: 360deg; }
+}
+@keyframes stats-pulse-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.3); }
+}
+@keyframes stats-number-glow {
+  0%, 100% { text-shadow: 0 0 8px rgba(var(--primary-rgb, 139,92,246), 0.3); }
+  50% { text-shadow: 0 0 20px rgba(var(--primary-rgb, 139,92,246), 0.6), 0 0 40px rgba(var(--primary-rgb, 139,92,246), 0.2); }
+}
+@keyframes stats-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@keyframes stats-float-particle {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-60px) translateX(20px); opacity: 0; }
+}
+.stats-card {
+  position: relative;
+  background: hsl(var(--card) / 0.6);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+.stats-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 1rem;
+  padding: 1.5px;
+  background: conic-gradient(from var(--stats-angle, 0deg), transparent 40%, var(--stat-color, hsl(var(--primary))) 50%, transparent 60%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: stats-border-spin 4s linear infinite;
+}
+@property --stats-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+.stats-glow-ring {
+  animation: stats-pulse-glow 3s ease-in-out infinite;
+}
+.stats-number-glow {
+  animation: stats-number-glow 3s ease-in-out infinite;
+}
+.stats-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.05), transparent);
+  animation: stats-shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}

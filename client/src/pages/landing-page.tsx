@@ -787,48 +787,120 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="py-10 sm:py-14 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 dark:from-primary/10 dark:via-primary/15 dark:to-primary/10 border-y border-primary/10 relative overflow-hidden">
+        <section className="py-12 sm:py-16 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
-            <motion.div
-              className="absolute -top-20 -left-20 w-60 h-60 rounded-full bg-primary/5 blur-3xl"
-              animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
-              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-            />
-            <motion.div
-              className="absolute -bottom-20 -right-20 w-60 h-60 rounded-full bg-primary/5 blur-3xl"
-              animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
-              transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-            />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.15),transparent_50%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(59,130,246,0.1),transparent_50%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(236,72,153,0.08),transparent_50%)]" />
+            {[...Array(20)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1 h-1 rounded-full bg-white/20"
+                style={{
+                  left: `${5 + (i * 4.7) % 90}%`,
+                  top: `${10 + (i * 7.3) % 80}%`,
+                }}
+                animate={{
+                  opacity: [0, 0.6, 0],
+                  scale: [0.5, 1.2, 0.5],
+                }}
+                transition={{
+                  duration: 3 + (i % 3),
+                  repeat: Infinity,
+                  delay: i * 0.3,
+                  ease: "easeInOut",
+                }}
+              />
+            ))}
+            <svg className="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="stats-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.5" />
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#stats-grid)" />
+            </svg>
           </div>
+
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8 sm:mb-10"
+            >
+              <span className="text-xs font-semibold tracking-[0.2em] uppercase text-violet-400/80">Trusted by Aspirants Nationwide</span>
+              <div className="mt-1 h-px w-16 mx-auto bg-gradient-to-r from-transparent via-violet-500/50 to-transparent" />
+            </motion.div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
               {[
-                { value: 10000, label: "Aspirants Trust Us", icon: Users, suffix: "+", accent: "from-amber-500 to-orange-500" },
-                { value: 50000, label: "Questions Practiced", icon: Target, suffix: "+", accent: "from-blue-500 to-indigo-500" },
-                { value: 15000, label: "Answers Evaluated", icon: FileText, suffix: "+", accent: "from-emerald-500 to-teal-500" },
-                { value: 60, label: "Exams Covered", icon: BarChart3, suffix: "+", accent: "from-purple-500 to-pink-500" },
+                { value: 10000, label: "Aspirants Trust Us", icon: Users, suffix: "+", color: "#f59e0b", rgb: "245,158,11" },
+                { value: 50000, label: "Questions Practiced", icon: Target, suffix: "+", color: "#3b82f6", rgb: "59,130,246" },
+                { value: 15000, label: "Answers Evaluated", icon: FileText, suffix: "+", color: "#10b981", rgb: "16,185,129" },
+                { value: 60, label: "Exams Covered", icon: BarChart3, suffix: "+", color: "#a855f7", rgb: "168,85,247" },
               ].map((stat, i) => (
                 <motion.div
                   key={i}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.1, duration: 0.5 }}
-                  className="relative group"
+                  transition={{ delay: i * 0.12, duration: 0.6, ease: "easeOut" }}
                   data-testid={`stat-${i}`}
                 >
-                  <div className="flex flex-col items-center py-5 px-3 rounded-2xl bg-card/60 dark:bg-card/40 backdrop-blur-sm border border-border/50">
-                    <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${stat.accent} flex items-center justify-center mb-3 shadow-lg`}>
-                      <stat.icon className="h-5 w-5 text-white" />
+                  <div
+                    className="stats-card stats-shimmer backdrop-blur-md flex flex-col items-center py-6 sm:py-7 px-3 relative"
+                    style={{ '--stat-color': stat.color } as React.CSSProperties}
+                  >
+                    <div className="relative mb-4">
+                      <div
+                        className="absolute inset-0 rounded-full blur-xl stats-glow-ring"
+                        style={{ background: `rgba(${stat.rgb}, 0.25)` }}
+                      />
+                      <div
+                        className="relative h-11 w-11 sm:h-12 sm:w-12 rounded-full flex items-center justify-center"
+                        style={{ background: `linear-gradient(135deg, rgba(${stat.rgb}, 0.2), rgba(${stat.rgb}, 0.05))`, border: `1px solid rgba(${stat.rgb}, 0.3)` }}
+                      >
+                        <stat.icon className="h-5 w-5 sm:h-5.5 sm:w-5.5" style={{ color: stat.color }} />
+                      </div>
                     </div>
-                    <span className="text-2xl sm:text-4xl font-display font-bold text-foreground tracking-tight">
+                    <span
+                      className="text-3xl sm:text-[2.75rem] font-display font-extrabold tracking-tight text-white stats-number-glow"
+                      style={{ '--primary-rgb': stat.rgb } as React.CSSProperties}
+                    >
                       <AnimatedCounter target={stat.value} suffix={stat.suffix} />
                     </span>
-                    <span className="text-[11px] sm:text-xs text-muted-foreground mt-1.5 font-medium tracking-wide uppercase">{stat.label}</span>
+                    <span className="text-[10px] sm:text-[11px] text-slate-400 mt-2 font-medium tracking-[0.15em] uppercase">{stat.label}</span>
+
+                    <motion.div
+                      className="absolute bottom-2 right-2 w-6 h-6 rounded-full opacity-10"
+                      style={{ background: `radial-gradient(circle, rgba(${stat.rgb}, 0.8), transparent)` }}
+                      animate={{ scale: [1, 1.5, 1], opacity: [0.1, 0.2, 0.1] }}
+                      transition={{ duration: 4, repeat: Infinity, delay: i * 0.5 }}
+                    />
                   </div>
                 </motion.div>
               ))}
             </div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.6 }}
+              className="mt-6 sm:mt-8 flex justify-center"
+            >
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10">
+                <div className="flex -space-x-2">
+                  {[0, 1, 2, 3].map((j) => (
+                    <div key={j} className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-400 to-indigo-600 border-2 border-slate-900 flex items-center justify-center">
+                      <span className="text-[8px] font-bold text-white">{["A", "S", "R", "P"][j]}</span>
+                    </div>
+                  ))}
+                </div>
+                <span className="text-xs text-slate-400 ml-1">Join thousands preparing smarter with AI</span>
+              </div>
+            </motion.div>
           </div>
         </section>
 
