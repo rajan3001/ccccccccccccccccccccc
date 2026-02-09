@@ -1,5 +1,6 @@
 import ReactMarkdown, { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 import { cn } from "@/lib/utils";
 
 const markdownComponents: Components = {
@@ -81,11 +82,14 @@ const markdownComponents: Components = {
 };
 
 function preprocessMarkdown(text: string): string {
-  return text.replace(/^(.*)([A-D]\))\s+/gm, (line) => {
-    const hasMultipleOptions = /[A-D]\)\s+\S.*[A-D]\)\s+\S/.test(line);
-    if (!hasMultipleOptions) return line;
-    return line.replace(/\s+([A-D]\))\s+/g, '\n$1 ');
-  });
+  return text.split('\n').map(line => {
+    const optionPattern = /[A-D]\)\s+\S/g;
+    const matches = line.match(optionPattern);
+    if (matches && matches.length >= 2) {
+      return line.replace(/\s*([B-D]\))\s+/g, '  \n$1 ');
+    }
+    return line;
+  }).join('\n');
 }
 
 interface StyledMarkdownProps {
@@ -97,7 +101,7 @@ export function StyledMarkdown({ children, className }: StyledMarkdownProps) {
   const processed = preprocessMarkdown(children);
   return (
     <div className={cn("max-w-none text-sm sm:text-base", className)}>
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+      <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={markdownComponents}>
         {processed}
       </ReactMarkdown>
     </div>
