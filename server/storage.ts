@@ -6,10 +6,13 @@ export interface IStorage {
   getSubscription(userId: string): Promise<Subscription | undefined>;
   getActiveSubscription(userId: string): Promise<Subscription | undefined>;
   getSubscriptionByOrderId(orderId: string): Promise<Subscription | undefined>;
+  getSubscriptionByRazorpaySubId(razorpaySubId: string): Promise<Subscription | undefined>;
   createSubscription(sub: InsertSubscription): Promise<Subscription>;
   updateSubscriptionStatus(userId: string, status: string): Promise<Subscription | undefined>;
   activateSubscription(orderId: string, paymentId: string, signature: string, periodEnd: Date): Promise<Subscription | undefined>;
+  activateByRazorpaySub(razorpaySubId: string, paymentId: string, signature: string, periodEnd: Date): Promise<Subscription | undefined>;
   cleanupPendingSubscriptions(userId: string): Promise<void>;
+  cancelSubscription(userId: string): Promise<Subscription | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -38,6 +41,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(subscriptions)
       .where(eq(subscriptions.razorpayOrderId, orderId));
+    return sub;
+  }
+
+  async getSubscriptionByRazorpaySubId(razorpaySubId: string): Promise<Subscription | undefined> {
+    const [sub] = await db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.razorpaySubscriptionId, razorpaySubId));
     return sub;
   }
 
@@ -77,10 +88,43 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updated;
   }
+
+  async activateByRazorpaySub(razorpaySubId: string, paymentId: string, signature: string, periodEnd: Date): Promise<Subscription | undefined> {
+    const sub = await this.getSubscriptionByRazorpaySubId(razorpaySubId);
+    if (sub) {
+      await db
+        .update(subscriptions)
+        .set({ status: "expired", updatedAt: new Date() })
+        .where(and(eq(subscriptions.userId, sub.userId), eq(subscriptions.status, "active")));
+    }
+
+    const [updated] = await db
+      .update(subscriptions)
+      .set({
+        status: "active",
+        razorpayPaymentId: paymentId,
+        razorpaySignature: signature,
+        currentPeriodEnd: periodEnd,
+        updatedAt: new Date(),
+      })
+      .where(eq(subscriptions.razorpaySubscriptionId, razorpaySubId))
+      .returning();
+    return updated;
+  }
+
   async cleanupPendingSubscriptions(userId: string): Promise<void> {
     await db
       .delete(subscriptions)
       .where(and(eq(subscriptions.userId, userId), eq(subscriptions.status, "pending")));
+  }
+
+  async cancelSubscription(userId: string): Promise<Subscription | undefined> {
+    const [updated] = await db
+      .update(subscriptions)
+      .set({ status: "cancelled", updatedAt: new Date() })
+      .where(and(eq(subscriptions.userId, userId), eq(subscriptions.status, "active")))
+      .returning();
+    return updated;
   }
 }
 

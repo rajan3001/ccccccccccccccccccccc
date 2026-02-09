@@ -13,12 +13,11 @@ type SubscriptionResponse = {
   } | null;
 };
 
-type RazorpayOrderResponse = {
-  orderId: string;
-  amount: number;
-  currency: string;
+type RazorpaySubscribeResponse = {
+  subscriptionId: string;
   keyId: string;
   planLabel: string;
+  amount: number;
 };
 
 declare global {
@@ -58,15 +57,15 @@ export function useRazorpayCheckout() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const createOrderMutation = useMutation({
-    mutationFn: async (planCode: string): Promise<RazorpayOrderResponse> => {
-      const res = await fetch("/api/payments/razorpay/order", {
+  const subscribeMutation = useMutation({
+    mutationFn: async (planCode: string): Promise<RazorpaySubscribeResponse> => {
+      const res = await fetch("/api/payments/razorpay/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ planCode }),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: "Failed to create order" }));
+        const err = await res.json().catch(() => ({ message: "Failed to create subscription" }));
         throw new Error(err.message);
       }
       return res.json();
@@ -75,8 +74,8 @@ export function useRazorpayCheckout() {
 
   const verifyMutation = useMutation({
     mutationFn: async (paymentData: {
-      razorpay_order_id: string;
       razorpay_payment_id: string;
+      razorpay_subscription_id: string;
       razorpay_signature: string;
     }) => {
       const res = await fetch("/api/payments/razorpay/verify", {
@@ -94,7 +93,7 @@ export function useRazorpayCheckout() {
       queryClient.invalidateQueries({ queryKey: ["/api/subscription"] });
       toast({
         title: "Payment Successful",
-        description: "Your subscription is now active. Enjoy all premium features!",
+        description: "Your subscription is now active with auto-renewal. Enjoy all premium features!",
       });
     },
     onError: (error: Error) => {
@@ -118,19 +117,17 @@ export function useRazorpayCheckout() {
         return;
       }
 
-      const orderData = await createOrderMutation.mutateAsync(planCode);
+      const subData = await subscribeMutation.mutateAsync(planCode);
 
       const options = {
-        key: orderData.keyId,
-        amount: orderData.amount,
-        currency: orderData.currency,
+        key: subData.keyId,
+        subscription_id: subData.subscriptionId,
         name: "Learnpro AI",
-        description: `${orderData.planLabel} Plan`,
-        order_id: orderData.orderId,
+        description: `${subData.planLabel} Plan - Auto Renewal`,
         handler: async (response: any) => {
           await verifyMutation.mutateAsync({
-            razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_subscription_id: response.razorpay_subscription_id,
             razorpay_signature: response.razorpay_signature,
           });
         },
@@ -148,15 +145,15 @@ export function useRazorpayCheckout() {
         },
       };
 
-      const razorpay = new window.Razorpay(options);
-      razorpay.on("payment.failed", (response: any) => {
+      const razorpayInstance = new window.Razorpay(options);
+      razorpayInstance.on("payment.failed", (response: any) => {
         toast({
           title: "Payment Failed",
           description: response.error?.description || "Something went wrong. Please try again.",
           variant: "destructive",
         });
       });
-      razorpay.open();
+      razorpayInstance.open();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -168,8 +165,8 @@ export function useRazorpayCheckout() {
 
   return {
     initiateCheckout,
-    isCreatingOrder: createOrderMutation.isPending,
+    isCreatingOrder: subscribeMutation.isPending,
     isVerifying: verifyMutation.isPending,
-    isProcessing: createOrderMutation.isPending || verifyMutation.isPending,
+    isProcessing: subscribeMutation.isPending || verifyMutation.isPending,
   };
 }

@@ -10,18 +10,58 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET!,
 });
 
+const planIdCache: Record<string, string> = {};
+
+async function getOrCreateRazorpayPlan(planCode: PlanCode): Promise<string> {
+  if (planIdCache[planCode]) return planIdCache[planCode];
+
+  const plan = PLAN_CATALOG[planCode];
+  const amountInPaise = plan.amount * 100;
+
+  try {
+    const plans = await razorpay.plans.all({ count: 100 });
+    const existing = (plans as any).items?.find(
+      (p: any) =>
+        p.item?.amount === amountInPaise &&
+        p.period === plan.period &&
+        p.interval === plan.interval &&
+        p.item?.currency === plan.currency
+    );
+
+    if (existing) {
+      planIdCache[planCode] = existing.id;
+      return existing.id;
+    }
+  } catch (e) {
+  }
+
+  const created = await razorpay.plans.create({
+    period: plan.period,
+    interval: plan.interval,
+    item: {
+      name: `Learnpro AI - ${plan.label}`,
+      amount: amountInPaise,
+      currency: plan.currency,
+      description: `${plan.label} subscription for Learnpro AI`,
+    },
+  });
+
+  planIdCache[planCode] = created.id;
+  return created.id;
+}
+
 const createOrderSchema = z.object({
   planCode: z.enum(["monthly", "6months", "yearly"]),
 });
 
 const verifyPaymentSchema = z.object({
-  razorpay_order_id: z.string(),
   razorpay_payment_id: z.string(),
+  razorpay_subscription_id: z.string(),
   razorpay_signature: z.string(),
 });
 
 export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
-  app.post("/api/payments/razorpay/order", isAuthenticated, async (req: any, res) => {
+  app.post("/api/payments/razorpay/subscribe", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = createOrderSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -35,14 +75,16 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
       }
 
       const userId = req.user.claims.sub;
-      const amountInPaise = plan.amount * 100;
 
       await storage.cleanupPendingSubscriptions(userId);
 
-      const order = await razorpay.orders.create({
-        amount: amountInPaise,
-        currency: plan.currency,
-        receipt: `lp_${userId.slice(0, 8)}_${Date.now()}`,
+      const razorpayPlanId = await getOrCreateRazorpayPlan(planCode as PlanCode);
+
+      const subscription = await razorpay.subscriptions.create({
+        plan_id: razorpayPlanId,
+        total_count: planCode === "monthly" ? 12 : planCode === "6months" ? 2 : 1,
+        quantity: 1,
+        customer_notify: 0,
         notes: {
           userId,
           planCode,
@@ -56,19 +98,19 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
         plan: planCode,
         amount: plan.amount,
         currency: plan.currency,
-        razorpayOrderId: order.id,
+        razorpaySubscriptionId: subscription.id,
+        razorpayPlanId: razorpayPlanId,
       });
 
       res.json({
-        orderId: order.id,
-        amount: order.amount,
-        currency: order.currency,
+        subscriptionId: subscription.id,
         keyId: process.env.RAZORPAY_KEY_ID,
         planLabel: plan.label,
+        amount: plan.amount,
       });
     } catch (error: any) {
-      console.error("Razorpay order creation error:", error);
-      res.status(500).json({ message: "Failed to create payment order" });
+      console.error("Razorpay subscription creation error:", error);
+      res.status(500).json({ message: "Failed to create subscription" });
     }
   });
 
@@ -79,12 +121,12 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
         return res.status(400).json({ message: "Invalid payment data" });
       }
 
-      const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = parsed.data;
+      const { razorpay_payment_id, razorpay_subscription_id, razorpay_signature } = parsed.data;
       const userId = req.user.claims.sub;
 
-      const sub = await storage.getSubscriptionByOrderId(razorpay_order_id);
+      const sub = await storage.getSubscriptionByRazorpaySubId(razorpay_subscription_id);
       if (!sub) {
-        return res.status(404).json({ message: "Order not found" });
+        return res.status(404).json({ message: "Subscription not found" });
       }
 
       if (sub.userId !== userId) {
@@ -92,29 +134,25 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
       }
 
       if (sub.status !== "pending") {
-        return res.status(400).json({ message: "This order has already been processed" });
-      }
-
-      const planCode = sub.plan as PlanCode;
-      const plan = PLAN_CATALOG[planCode];
-      if (!plan || (sub.amount && sub.amount !== plan.amount)) {
-        return res.status(400).json({ message: "Plan amount mismatch" });
+        return res.status(400).json({ message: "This subscription has already been processed" });
       }
 
       const expectedSignature = crypto
         .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
-        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+        .update(`${razorpay_payment_id}|${razorpay_subscription_id}`)
         .digest("hex");
 
       if (razorpay_signature !== expectedSignature) {
         return res.status(400).json({ message: "Payment verification failed" });
       }
 
+      const planCode = sub.plan as PlanCode;
+      const plan = PLAN_CATALOG[planCode];
       const periodEnd = new Date();
       periodEnd.setDate(periodEnd.getDate() + (plan?.durationDays || 30));
 
-      const activated = await storage.activateSubscription(
-        razorpay_order_id,
+      const activated = await storage.activateByRazorpaySub(
+        razorpay_subscription_id,
         razorpay_payment_id,
         razorpay_signature,
         periodEnd
@@ -128,6 +166,25 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
     } catch (error: any) {
       console.error("Payment verification error:", error);
       res.status(500).json({ message: "Payment verification failed" });
+    }
+  });
+
+  app.post("/api/payments/razorpay/cancel", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const activeSub = await storage.getActiveSubscription(userId);
+
+      if (!activeSub || !activeSub.razorpaySubscriptionId) {
+        return res.status(404).json({ message: "No active subscription found" });
+      }
+
+      await (razorpay.subscriptions as any).cancel(activeSub.razorpaySubscriptionId, { cancel_at_cycle_end: true });
+      const cancelled = await storage.cancelSubscription(userId);
+
+      res.json({ success: true, subscription: cancelled });
+    } catch (error: any) {
+      console.error("Subscription cancellation error:", error);
+      res.status(500).json({ message: "Failed to cancel subscription" });
     }
   });
 }

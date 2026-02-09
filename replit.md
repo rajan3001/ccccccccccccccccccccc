@@ -34,6 +34,6 @@ The Learnpro AI platform is built with a modern web stack. The frontend is devel
 - **SMSGatewayHub**: For Phone OTP authentication via Indian SMS gateway (requires API Key, Sender ID, Entity ID, DLT Template ID).
 - **Google OAuth**: Direct Google login via OIDC (requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET). Button only shows when credentials are configured.
 - **Replit Object Storage (Google Cloud Storage)**: For file uploads and storage.
-- **Razorpay**: Payment gateway for subscription management. Plans: Monthly (₹299), 6 Months (₹1,200), Yearly (₹2,000). Server-side order creation + HMAC-SHA256 signature verification. Requires RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET env vars.
+- **Razorpay**: Payment gateway for subscription management. Plans: Monthly (₹299), 6 Months (₹1,200), Yearly (₹2,000). Server-side order creation + HMAC-SHA256 signature verification. Requires RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET env vars. Uses Razorpay Subscriptions API for recurring auto-pay (not one-time orders).
 - **Recharts**: For interactive data visualizations on the dashboard (e.g., weekly goals chart).
 - **NextIAS Scraper**: For sourcing current affairs topics (primary source).
