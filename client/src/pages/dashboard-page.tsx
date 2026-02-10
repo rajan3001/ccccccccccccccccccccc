@@ -239,35 +239,47 @@ function getTimeOfDayTheme() {
   const hour = new Date().getHours();
   if (hour >= 5 && hour < 12) {
     return {
-      bg: "linear-gradient(135deg, #1a0f00 0%, #2d1800 50%, #1a0f00 100%)",
-      orb1: "radial-gradient(circle, rgba(251,146,60,0.35) 0%, transparent 70%)",
-      orb2: "radial-gradient(circle, rgba(245,158,11,0.25) 0%, transparent 70%)",
-      accent: "#fb923c",
-      glow: "#f59e0b",
+      bg: "linear-gradient(135deg, #fffbeb 0%, #fef3c7 30%, #fde68a 70%, #fcd34d 100%)",
+      accent: "#b45309",
+      iconBg: "rgba(180,83,9,0.1)",
+      valueColor: "#78350f",
+      labelColor: "#92400e",
+      subtextColor: "#a16207",
+      divider: "rgba(180,83,9,0.12)",
+      shimmer: "rgba(251,191,36,0.4)",
     };
   } else if (hour >= 12 && hour < 17) {
     return {
-      bg: "linear-gradient(135deg, #001a12 0%, #002d1e 50%, #001a12 100%)",
-      orb1: "radial-gradient(circle, rgba(52,211,153,0.3) 0%, transparent 70%)",
-      orb2: "radial-gradient(circle, rgba(16,185,129,0.2) 0%, transparent 70%)",
-      accent: "#34d399",
-      glow: "#10b981",
+      bg: "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 30%, #a7f3d0 70%, #6ee7b7 100%)",
+      accent: "#047857",
+      iconBg: "rgba(4,120,87,0.1)",
+      valueColor: "#064e3b",
+      labelColor: "#065f46",
+      subtextColor: "#047857",
+      divider: "rgba(4,120,87,0.12)",
+      shimmer: "rgba(52,211,153,0.4)",
     };
   } else if (hour >= 17 && hour < 21) {
     return {
-      bg: "linear-gradient(135deg, #120024 0%, #1e003d 50%, #120024 100%)",
-      orb1: "radial-gradient(circle, rgba(192,132,252,0.3) 0%, transparent 70%)",
-      orb2: "radial-gradient(circle, rgba(232,121,249,0.2) 0%, transparent 70%)",
-      accent: "#c084fc",
-      glow: "#a855f7",
+      bg: "linear-gradient(135deg, #faf5ff 0%, #ede9fe 30%, #ddd6fe 70%, #c4b5fd 100%)",
+      accent: "#6d28d9",
+      iconBg: "rgba(109,40,217,0.1)",
+      valueColor: "#4c1d95",
+      labelColor: "#5b21b6",
+      subtextColor: "#6d28d9",
+      divider: "rgba(109,40,217,0.12)",
+      shimmer: "rgba(167,139,250,0.4)",
     };
   } else {
     return {
-      bg: "linear-gradient(135deg, #020617 0%, #0f172a 50%, #020617 100%)",
-      orb1: "radial-gradient(circle, rgba(96,165,250,0.3) 0%, transparent 70%)",
-      orb2: "radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%)",
-      accent: "#60a5fa",
-      glow: "#3b82f6",
+      bg: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 30%, #bfdbfe 70%, #93c5fd 100%)",
+      accent: "#1d4ed8",
+      iconBg: "rgba(29,78,216,0.1)",
+      valueColor: "#1e3a5f",
+      labelColor: "#1e40af",
+      subtextColor: "#1d4ed8",
+      divider: "rgba(29,78,216,0.12)",
+      shimmer: "rgba(96,165,250,0.4)",
     };
   }
 }
@@ -278,8 +290,8 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
   const achievements = [
     { label: "MCQs Solved", value: stats.today.mcqsSolved, allTime: stats.allTime.mcqsSolved, icon: Brain, allTimeLabel: "All time" },
     { label: "AI Chats", value: stats.today.topicsStudied, allTime: stats.allTime.topicsStudied, icon: MessageSquare, allTimeLabel: "All time" },
-    { label: "Articles Revised", value: stats.allTime.currentAffairsRevised, allTime: stats.allTime.currentAffairsTotal, icon: Newspaper, allTimeLabel: "Total" },
-    { label: "Notes Saved", value: stats.today.notesSaved, allTime: stats.allTime.notesSaved, icon: NotebookPen, allTimeLabel: "All time" },
+    { label: "Articles", value: stats.allTime.currentAffairsRevised, allTime: stats.allTime.currentAffairsTotal, icon: Newspaper, allTimeLabel: "Total" },
+    { label: "Notes", value: stats.today.notesSaved, allTime: stats.allTime.notesSaved, icon: NotebookPen, allTimeLabel: "All time" },
   ];
 
   const accuracy = stats.today.mcqsSolved > 0
@@ -289,20 +301,9 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
   return (
     <div className="mb-4" data-testid="section-today-achievements">
       <style>{`
-        @keyframes ach-orb-drift {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(15px, -8px) scale(1.1); }
-          66% { transform: translate(-10px, 5px) scale(0.95); }
-        }
-        @keyframes ach-orb-drift-2 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(-12px, 6px) scale(1.05); }
-          66% { transform: translate(8px, -10px) scale(0.9); }
-        }
-        @keyframes ach-line-sweep {
-          0% { transform: translateX(-100%); opacity: 0; }
-          50% { opacity: 1; }
-          100% { transform: translateX(100%); opacity: 0; }
+        @keyframes ach-shimmer {
+          0% { left: -30%; }
+          100% { left: 130%; }
         }
       `}</style>
 
@@ -311,22 +312,14 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
         style={{ background: theme.bg }}
         data-testid="strip-today-achievements"
       >
-        <div className="absolute inset-0 pointer-events-none" style={{
-          background: theme.orb1,
-          width: "50%", height: "150%", top: "-25%", left: "-5%",
-          animation: "ach-orb-drift 8s ease-in-out infinite",
-        }} />
-        <div className="absolute inset-0 pointer-events-none" style={{
-          background: theme.orb2,
-          width: "45%", height: "140%", top: "-20%", right: "-5%", left: "auto",
-          animation: "ach-orb-drift-2 10s ease-in-out infinite",
-        }} />
-
-        <div className="absolute bottom-0 left-0 right-0 h-[1px] pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div style={{
-            width: "40%", height: "100%",
-            background: `linear-gradient(90deg, transparent, ${theme.accent}, transparent)`,
-            animation: "ach-line-sweep 4s ease-in-out infinite",
+            position: "absolute",
+            top: 0, bottom: 0,
+            width: "20%",
+            background: `linear-gradient(90deg, transparent, ${theme.shimmer}, transparent)`,
+            animation: "ach-shimmer 3s ease-in-out infinite",
+            transform: "skewX(-15deg)",
           }} />
         </div>
 
@@ -334,15 +327,15 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
           <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
             <div className="flex items-center gap-2">
               <Trophy className="h-4 w-4" style={{ color: theme.accent }} />
-              <h2 className="text-sm font-bold text-white/90" data-testid="text-achievements-heading">
+              <h2 className="text-sm font-bold" style={{ color: theme.labelColor }} data-testid="text-achievements-heading">
                 Today's Achievements
               </h2>
             </div>
             {stats.today.mcqsSolved > 0 && (
               <div className="flex items-center gap-1 rounded-full px-2.5 py-0.5"
-                style={{ background: `${theme.accent}20`, border: `1px solid ${theme.accent}30` }}>
+                style={{ background: theme.iconBg, border: `1px solid ${theme.divider}` }}>
                 <Zap className="h-3 w-3" style={{ color: theme.accent }} />
-                <span className="text-[10px] font-semibold text-white/90">
+                <span className="text-[10px] font-semibold" style={{ color: theme.labelColor }}>
                   <AnimatedCounter target={accuracy} suffix="%" /> accuracy
                 </span>
               </div>
@@ -354,22 +347,21 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
               <div
                 key={item.label}
                 className="flex-1 flex flex-col items-center text-center px-2 min-w-0"
-                style={idx < achievements.length - 1 ? { borderRight: "1px solid rgba(255,255,255,0.08)" } : undefined}
+                style={idx < achievements.length - 1 ? { borderRight: `1px solid ${theme.divider}` } : undefined}
                 data-testid={`card-achievement-${idx}`}
               >
                 <div className="flex items-center gap-1.5 mb-2">
-                  <div className="h-5 w-5 rounded-md flex items-center justify-center flex-shrink-0"
-                    style={{ background: `${theme.accent}20` }}>
-                    <item.icon className="h-3 w-3" style={{ color: theme.accent }} />
+                  <div className="h-6 w-6 rounded-md flex items-center justify-center flex-shrink-0"
+                    style={{ background: theme.iconBg }}>
+                    <item.icon className="h-3.5 w-3.5" style={{ color: theme.accent }} />
                   </div>
-                  <span className="text-[11px] font-medium text-white/60 truncate">{item.label}</span>
+                  <span className="text-[11px] font-semibold truncate" style={{ color: theme.labelColor }}>{item.label}</span>
                 </div>
-                <div className="text-2xl font-black text-white leading-none mb-1 tracking-tight" data-testid={`text-achievement-value-${idx}`}
-                  style={{ textShadow: `0 0 20px ${theme.glow}40` }}>
+                <div className="text-2xl font-black leading-none mb-1 tracking-tight" style={{ color: theme.valueColor }} data-testid={`text-achievement-value-${idx}`}>
                   <AnimatedCounter target={item.value} />
                 </div>
-                <div className="text-[10px] text-white/40 font-medium">
-                  {item.allTimeLabel}: <span className="text-white/55">{item.allTime}</span>
+                <div className="text-[10px] font-medium" style={{ color: theme.subtextColor, opacity: 0.7 }}>
+                  {item.allTimeLabel}: {item.allTime}
                 </div>
               </div>
             ))}
