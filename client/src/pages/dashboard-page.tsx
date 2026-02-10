@@ -235,53 +235,55 @@ function FloatingParticle({ color, size, x, y, delay, seed = 0 }: { color: strin
   );
 }
 
+function getTimeOfDayTheme() {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) {
+    return {
+      label: "Good Morning",
+      gradient: "linear-gradient(135deg, #f97316 0%, #fb923c 25%, #fbbf24 50%, #f59e0b 75%, #ea580c 100%)",
+      glowColor: "rgba(251, 146, 60, 0.3)",
+      accentText: "text-orange-100",
+      iconTint: "text-amber-200",
+      shimmerColor: "rgba(255,255,255,0.15)",
+    };
+  } else if (hour >= 12 && hour < 17) {
+    return {
+      label: "Good Afternoon",
+      gradient: "linear-gradient(135deg, #0ea5e9 0%, #06b6d4 25%, #14b8a6 50%, #10b981 75%, #0d9488 100%)",
+      glowColor: "rgba(14, 165, 233, 0.3)",
+      accentText: "text-cyan-100",
+      iconTint: "text-teal-200",
+      shimmerColor: "rgba(255,255,255,0.12)",
+    };
+  } else if (hour >= 17 && hour < 21) {
+    return {
+      label: "Good Evening",
+      gradient: "linear-gradient(135deg, #8b5cf6 0%, #a78bfa 25%, #c084fc 50%, #e879f9 75%, #f472b6 100%)",
+      glowColor: "rgba(139, 92, 246, 0.3)",
+      accentText: "text-purple-100",
+      iconTint: "text-violet-200",
+      shimmerColor: "rgba(255,255,255,0.1)",
+    };
+  } else {
+    return {
+      label: "Night Owl",
+      gradient: "linear-gradient(135deg, #1e3a5f 0%, #1e40af 25%, #3b82f6 50%, #6366f1 75%, #312e81 100%)",
+      glowColor: "rgba(59, 130, 246, 0.25)",
+      accentText: "text-blue-100",
+      iconTint: "text-indigo-200",
+      shimmerColor: "rgba(255,255,255,0.08)",
+    };
+  }
+}
+
 function TodayAchievements({ stats }: { stats: DashboardStats }) {
+  const theme = getTimeOfDayTheme();
+
   const achievements = [
-    {
-      label: "MCQs Solved",
-      value: stats.today.mcqsSolved,
-      allTime: stats.allTime.mcqsSolved,
-      icon: Brain,
-      gradient: "from-emerald-500/15 to-emerald-600/5",
-      iconBg: "bg-emerald-500/20",
-      color: "text-emerald-600 dark:text-emerald-400",
-      accentColor: "#10b981",
-      borderColor: "border-emerald-500/30",
-    },
-    {
-      label: "AI Chat Sessions",
-      value: stats.today.topicsStudied,
-      allTime: stats.allTime.topicsStudied,
-      icon: MessageSquare,
-      gradient: "from-blue-500/15 to-blue-600/5",
-      iconBg: "bg-blue-500/20",
-      color: "text-blue-600 dark:text-blue-400",
-      accentColor: "#3b82f6",
-      borderColor: "border-blue-500/30",
-    },
-    {
-      label: "Articles Revised",
-      value: stats.allTime.currentAffairsRevised,
-      allTime: stats.allTime.currentAffairsTotal,
-      icon: Newspaper,
-      gradient: "from-amber-500/15 to-amber-600/5",
-      iconBg: "bg-amber-500/20",
-      color: "text-amber-600 dark:text-amber-400",
-      accentColor: "#f59e0b",
-      borderColor: "border-amber-500/30",
-      allTimeLabel: "Total articles",
-    },
-    {
-      label: "Notes Saved",
-      value: stats.today.notesSaved,
-      allTime: stats.allTime.notesSaved,
-      icon: NotebookPen,
-      gradient: "from-purple-500/15 to-purple-600/5",
-      iconBg: "bg-purple-500/20",
-      color: "text-purple-600 dark:text-purple-400",
-      accentColor: "#a855f7",
-      borderColor: "border-purple-500/30",
-    },
+    { label: "MCQs Solved", value: stats.today.mcqsSolved, allTime: stats.allTime.mcqsSolved, icon: Brain, allTimeLabel: "All time" },
+    { label: "AI Chats", value: stats.today.topicsStudied, allTime: stats.allTime.topicsStudied, icon: MessageSquare, allTimeLabel: "All time" },
+    { label: "Articles Revised", value: stats.allTime.currentAffairsRevised, allTime: stats.allTime.currentAffairsTotal, icon: Newspaper, allTimeLabel: "Total" },
+    { label: "Notes Saved", value: stats.today.notesSaved, allTime: stats.allTime.notesSaved, icon: NotebookPen, allTimeLabel: "All time" },
   ];
 
   const accuracy = stats.today.mcqsSolved > 0
@@ -290,52 +292,79 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
 
   return (
     <div className="mb-4" data-testid="section-today-achievements">
-      <div className="flex items-center gap-2 mb-3">
-        <Trophy className="h-4 w-4 text-primary" style={{ animation: "dashboard-bounce 2s ease-in-out infinite" }} />
-        <h2 className="text-sm font-semibold" data-testid="text-achievements-heading">Today's Achievements</h2>
-        {stats.today.mcqsSolved > 0 && (
-          <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-600 ml-auto text-[10px]">
-            <Zap className="h-3 w-3 mr-0.5" />
-            <AnimatedCounter target={accuracy} suffix="%" /> accuracy
-          </Badge>
-        )}
-      </div>
+      <style>{`
+        @keyframes achievements-shimmer {
+          0% { transform: translateX(-100%) skewX(-15deg); }
+          100% { transform: translateX(200%) skewX(-15deg); }
+        }
+        @keyframes achievements-glow {
+          0%, 100% { opacity: 0.4; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(1.05); }
+        }
+        @keyframes stat-pop {
+          0% { transform: scale(0.8); opacity: 0; }
+          60% { transform: scale(1.05); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+      `}</style>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-        {achievements.map((item, idx) => (
-          <div
-            key={item.label}
-            className="relative"
-            style={{
-              animation: `dashboard-slide-up 0.5s ease-out ${idx * 0.1}s both`,
-            }}
-          >
-            <Card
-              className={`relative p-3 border ${item.borderColor} bg-gradient-to-br ${item.gradient} overflow-visible`}
-              data-testid={`card-achievement-${idx}`}
-            >
-              <FloatingParticle color={item.accentColor} size={3} x={85} y={30} delay={idx * 0.3} seed={idx * 2} />
+      <div
+        className="relative rounded-md overflow-hidden"
+        style={{
+          background: theme.gradient,
+          boxShadow: `0 4px 24px -4px ${theme.glowColor}, 0 0 0 1px rgba(255,255,255,0.1) inset`,
+          animation: "achievements-glow 4s ease-in-out infinite",
+        }}
+        data-testid="strip-today-achievements"
+      >
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `linear-gradient(90deg, transparent 0%, ${theme.shimmerColor} 50%, transparent 100%)`,
+            animation: "achievements-shimmer 3s ease-in-out infinite",
+          }}
+        />
 
-              <div className="flex items-center gap-1.5 mb-2">
-                <div
-                  className={`h-6 w-6 rounded-md ${item.iconBg} flex items-center justify-center flex-shrink-0`}
-                >
-                  <item.icon className={`h-3 w-3 ${item.color}`} />
-                </div>
-                <span className="text-[10px] font-medium text-muted-foreground leading-tight">{item.label}</span>
+        <div className="relative z-10 px-4 py-3">
+          <div className="flex items-center justify-between gap-2 mb-2.5 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Trophy className={`h-4 w-4 ${theme.iconTint}`} style={{ animation: "dashboard-bounce 2s ease-in-out infinite" }} />
+              <h2 className={`text-sm font-bold ${theme.accentText}`} data-testid="text-achievements-heading">
+                Today's Achievements
+              </h2>
+            </div>
+            {stats.today.mcqsSolved > 0 && (
+              <div className="flex items-center gap-1 bg-white/15 backdrop-blur-sm rounded-full px-2 py-0.5">
+                <Zap className={`h-3 w-3 ${theme.iconTint}`} />
+                <span className={`text-[10px] font-semibold ${theme.accentText}`}>
+                  <AnimatedCounter target={accuracy} suffix="%" /> accuracy
+                </span>
               </div>
+            )}
+          </div>
 
-              <div className="flex items-end justify-between gap-1">
-                <div className="text-2xl font-bold text-foreground leading-none" data-testid={`text-achievement-value-${idx}`}>
+          <div className="grid grid-cols-4 gap-0">
+            {achievements.map((item, idx) => (
+              <div
+                key={item.label}
+                className={`flex flex-col items-center text-center px-2 py-1 ${idx < achievements.length - 1 ? "border-r border-white/15" : ""}`}
+                style={{ animation: `stat-pop 0.5s ease-out ${idx * 0.1}s both` }}
+                data-testid={`card-achievement-${idx}`}
+              >
+                <div className="flex items-center gap-1 mb-1">
+                  <item.icon className={`h-3 w-3 ${theme.iconTint}`} />
+                  <span className={`text-[10px] font-medium ${theme.accentText} opacity-80 whitespace-nowrap`}>{item.label}</span>
+                </div>
+                <div className="text-2xl font-black text-white leading-none mb-0.5 drop-shadow-sm" data-testid={`text-achievement-value-${idx}`}>
                   <AnimatedCounter target={item.value} />
                 </div>
-                <div className="text-[10px] text-muted-foreground pb-0.5">
-                  {(item as any).allTimeLabel || "All time"}: <span className="font-medium text-foreground/70">{item.allTime}</span>
+                <div className={`text-[9px] ${theme.accentText} opacity-60`}>
+                  {item.allTimeLabel}: {item.allTime}
                 </div>
               </div>
-            </Card>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );
