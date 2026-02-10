@@ -41,6 +41,7 @@ import { HeroDashboardAnimation, NeuralNetworkAnimation } from "@/components/lan
 import { LoginSlideOver } from "@/components/login-slide-over";
 import { LandingFooter } from "@/components/landing/footer";
 import { MobileAppSection } from "@/components/landing/mobile-app-section";
+import { HowItWorksTour } from "@/components/landing/how-it-works-tour";
 
 function AnimatedCounter({ target, suffix = "+" }: { target: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -620,6 +621,7 @@ function PrepareForExamsSection() {
 export default function LandingPage() {
   const { isAuthenticated, isLoading } = useAuth();
   const [loginOpen, setLoginOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -636,6 +638,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans">
       <LoginSlideOver open={loginOpen} onClose={() => setLoginOpen(false)} />
+      <HowItWorksTour open={tourOpen} onOpenChange={setTourOpen} />
 
       <nav className="border-b border-border/40 backdrop-blur-md sticky top-0 z-[999] bg-background/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
@@ -754,6 +757,7 @@ export default function LandingPage() {
                       size="lg"
                       variant="outline"
                       className="w-full sm:w-auto rounded-full"
+                      onClick={() => setTourOpen(true)}
                       data-testid="button-view-demo"
                     >
                       See How It Works
