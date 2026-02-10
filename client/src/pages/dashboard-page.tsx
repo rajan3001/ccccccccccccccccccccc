@@ -235,57 +235,16 @@ function FloatingParticle({ color, size, x, y, delay, seed = 0 }: { color: strin
   );
 }
 
-function getTimeOfDayTheme() {
+function getTimeOfDayGradient() {
   const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) {
-    return {
-      bg: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 30%, #bfdbfe 70%, #93c5fd 100%)",
-      accent: "#1d4ed8",
-      iconBg: "rgba(29,78,216,0.1)",
-      valueColor: "#1e3a5f",
-      labelColor: "#1e40af",
-      subtextColor: "#2563eb",
-      divider: "rgba(29,78,216,0.12)",
-      shimmer: "rgba(96,165,250,0.4)",
-    };
-  } else if (hour >= 12 && hour < 17) {
-    return {
-      bg: "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 30%, #a7f3d0 70%, #6ee7b7 100%)",
-      accent: "#047857",
-      iconBg: "rgba(4,120,87,0.1)",
-      valueColor: "#064e3b",
-      labelColor: "#065f46",
-      subtextColor: "#047857",
-      divider: "rgba(4,120,87,0.12)",
-      shimmer: "rgba(52,211,153,0.4)",
-    };
-  } else if (hour >= 17 && hour < 21) {
-    return {
-      bg: "linear-gradient(135deg, #faf5ff 0%, #ede9fe 30%, #ddd6fe 70%, #c4b5fd 100%)",
-      accent: "#6d28d9",
-      iconBg: "rgba(109,40,217,0.1)",
-      valueColor: "#4c1d95",
-      labelColor: "#5b21b6",
-      subtextColor: "#6d28d9",
-      divider: "rgba(109,40,217,0.12)",
-      shimmer: "rgba(167,139,250,0.4)",
-    };
-  } else {
-    return {
-      bg: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 30%, #bfdbfe 70%, #93c5fd 100%)",
-      accent: "#1d4ed8",
-      iconBg: "rgba(29,78,216,0.1)",
-      valueColor: "#1e3a5f",
-      labelColor: "#1e40af",
-      subtextColor: "#1d4ed8",
-      divider: "rgba(29,78,216,0.12)",
-      shimmer: "rgba(96,165,250,0.4)",
-    };
-  }
+  if (hour >= 5 && hour < 12) return "linear-gradient(135deg, #2563eb 0%, #3b82f6 30%, #60a5fa 60%, #38bdf8 100%)";
+  if (hour >= 12 && hour < 17) return "linear-gradient(135deg, #059669 0%, #10b981 30%, #34d399 60%, #2dd4bf 100%)";
+  if (hour >= 17 && hour < 21) return "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 30%, #a78bfa 60%, #c084fc 100%)";
+  return "linear-gradient(135deg, #1e40af 0%, #3b82f6 30%, #60a5fa 60%, #818cf8 100%)";
 }
 
 function TodayAchievements({ stats }: { stats: DashboardStats }) {
-  const theme = getTimeOfDayTheme();
+  const bgGradient = getTimeOfDayGradient();
 
   const achievements = [
     { label: "MCQs Solved", value: stats.today.mcqsSolved, allTime: stats.allTime.mcqsSolved, icon: Brain, allTimeLabel: "All time" },
@@ -301,70 +260,89 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
   return (
     <div className="mb-4" data-testid="section-today-achievements">
       <style>{`
-        @keyframes ach-shimmer {
-          0% { left: -30%; }
-          100% { left: 130%; }
+        @keyframes ach-border-spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes ach-shine {
+          0% { transform: translateX(-100%) skewX(-12deg); }
+          100% { transform: translateX(250%) skewX(-12deg); }
+        }
+        @keyframes ach-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-2px); }
         }
       `}</style>
 
-      <div
-        className="relative rounded-md overflow-hidden"
-        style={{ background: theme.bg }}
-        data-testid="strip-today-achievements"
-      >
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div style={{
-            position: "absolute",
-            top: 0, bottom: 0,
-            width: "20%",
-            background: `linear-gradient(90deg, transparent, ${theme.shimmer}, transparent)`,
-            animation: "ach-shimmer 3s ease-in-out infinite",
-            transform: "skewX(-15deg)",
-          }} />
-        </div>
+      <div className="relative rounded-md p-[1.5px] overflow-hidden" data-testid="strip-today-achievements">
+        <div className="absolute inset-0 rounded-md" style={{
+          background: bgGradient,
+        }} />
 
-        <div className="relative z-10 px-4 py-3">
-          <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <Trophy className="h-4 w-4" style={{ color: theme.accent }} />
-              <h2 className="text-sm font-bold" style={{ color: theme.labelColor }} data-testid="text-achievements-heading">
-                Today's Achievements
-              </h2>
-            </div>
-            {stats.today.mcqsSolved > 0 && (
-              <div className="flex items-center gap-1 rounded-full px-2.5 py-0.5"
-                style={{ background: theme.iconBg, border: `1px solid ${theme.divider}` }}>
-                <Zap className="h-3 w-3" style={{ color: theme.accent }} />
-                <span className="text-[10px] font-semibold" style={{ color: theme.labelColor }}>
-                  <AnimatedCounter target={accuracy} suffix="%" /> accuracy
-                </span>
-              </div>
-            )}
+        <div className="absolute inset-[-50%] pointer-events-none" style={{
+          background: "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.5) 10%, transparent 20%)",
+          animation: "ach-border-spin 4s linear infinite",
+        }} />
+
+        <div className="relative rounded-[5px] overflow-hidden"
+          style={{ background: bgGradient }}>
+
+          <div className="absolute inset-0 pointer-events-none" style={{
+            background: "linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 40%, rgba(0,0,0,0.1) 100%)",
+          }} />
+
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div style={{
+              position: "absolute", top: 0, bottom: 0, width: "25%",
+              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)",
+              animation: "ach-shine 3.5s ease-in-out infinite",
+            }} />
           </div>
 
-          <div className="flex items-center">
-            {achievements.map((item, idx) => (
-              <div
-                key={item.label}
-                className="flex-1 flex flex-col items-center text-center px-2 min-w-0"
-                style={idx < achievements.length - 1 ? { borderRight: `1px solid ${theme.divider}` } : undefined}
-                data-testid={`card-achievement-${idx}`}
-              >
-                <div className="flex items-center gap-1.5 mb-2">
-                  <div className="h-6 w-6 rounded-md flex items-center justify-center flex-shrink-0"
-                    style={{ background: theme.iconBg }}>
-                    <item.icon className="h-3.5 w-3.5" style={{ color: theme.accent }} />
-                  </div>
-                  <span className="text-[11px] font-semibold truncate" style={{ color: theme.labelColor }}>{item.label}</span>
+          <div className="relative z-10 px-5 py-3.5">
+            <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+              <div className="flex items-center gap-2"
+                style={{ animation: "ach-float 3s ease-in-out infinite" }}>
+                <div className="h-6 w-6 rounded-md bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <Trophy className="h-3.5 w-3.5 text-white" />
                 </div>
-                <div className="text-2xl font-black leading-none mb-1 tracking-tight" style={{ color: theme.valueColor }} data-testid={`text-achievement-value-${idx}`}>
-                  <AnimatedCounter target={item.value} />
-                </div>
-                <div className="text-[10px] font-medium" style={{ color: theme.subtextColor, opacity: 0.7 }}>
-                  {item.allTimeLabel}: {item.allTime}
-                </div>
+                <h2 className="text-sm font-bold text-white tracking-wide" data-testid="text-achievements-heading">
+                  Today's Achievements
+                </h2>
               </div>
-            ))}
+              {stats.today.mcqsSolved > 0 && (
+                <div className="flex items-center gap-1 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-2.5 py-0.5">
+                  <Zap className="h-3 w-3 text-yellow-200" />
+                  <span className="text-[10px] font-bold text-white">
+                    <AnimatedCounter target={accuracy} suffix="%" /> accuracy
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-stretch">
+              {achievements.map((item, idx) => (
+                <div
+                  key={item.label}
+                  className="flex-1 flex flex-col items-center text-center px-3 min-w-0"
+                  style={idx < achievements.length - 1 ? { borderRight: "1px solid rgba(255,255,255,0.15)" } : undefined}
+                  data-testid={`card-achievement-${idx}`}
+                >
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="h-5 w-5 rounded-md bg-white/15 flex items-center justify-center flex-shrink-0">
+                      <item.icon className="h-3 w-3 text-white/90" />
+                    </div>
+                    <span className="text-[11px] font-medium text-white/75 truncate">{item.label}</span>
+                  </div>
+                  <div className="text-[28px] font-black text-white leading-none mb-1 tracking-tight drop-shadow-sm" data-testid={`text-achievement-value-${idx}`}>
+                    <AnimatedCounter target={item.value} />
+                  </div>
+                  <div className="text-[10px] text-white/50 font-medium">
+                    {item.allTimeLabel}: <span className="text-white/70 font-semibold">{item.allTime}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
