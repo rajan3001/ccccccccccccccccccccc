@@ -239,14 +239,14 @@ function getTimeOfDayTheme() {
   const hour = new Date().getHours();
   if (hour >= 5 && hour < 12) {
     return {
-      bg: "linear-gradient(135deg, #fffbeb 0%, #fef3c7 30%, #fde68a 70%, #fcd34d 100%)",
-      accent: "#b45309",
-      iconBg: "rgba(180,83,9,0.1)",
-      valueColor: "#78350f",
-      labelColor: "#92400e",
-      subtextColor: "#a16207",
-      divider: "rgba(180,83,9,0.12)",
-      shimmer: "rgba(251,191,36,0.4)",
+      bg: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 30%, #bfdbfe 70%, #93c5fd 100%)",
+      accent: "#1d4ed8",
+      iconBg: "rgba(29,78,216,0.1)",
+      valueColor: "#1e3a5f",
+      labelColor: "#1e40af",
+      subtextColor: "#2563eb",
+      divider: "rgba(29,78,216,0.12)",
+      shimmer: "rgba(96,165,250,0.4)",
     };
   } else if (hour >= 12 && hour < 17) {
     return {
