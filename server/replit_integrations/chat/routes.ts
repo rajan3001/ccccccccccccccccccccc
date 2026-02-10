@@ -104,7 +104,8 @@ export function registerChatRoutes(app: Express): void {
     }
   });
 
-  const FREE_DAILY_LIMIT = 5;
+  const PROMO_END = new Date("2026-02-16T23:59:59+05:30");
+  const FREE_DAILY_LIMIT = new Date() < PROMO_END ? 10 : 5;
   function isAdmin(req: any): boolean {
     return req.user?.dbUser?.isAdmin === true;
   }

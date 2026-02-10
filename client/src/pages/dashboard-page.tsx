@@ -202,38 +202,6 @@ interface DashboardStats {
   }>;
 }
 
-function PulseRing({ color, delay = 0 }: { color: string; delay?: number }) {
-  return (
-    <span
-      className="absolute inset-0 rounded-md pointer-events-none"
-      style={{
-        border: `2px solid ${color}`,
-        animation: `dashboard-pulse-ring 2.5s ease-out ${delay}s infinite`,
-        opacity: 0,
-      }}
-    />
-  );
-}
-
-const PARTICLE_DURATIONS = [3.2, 3.8, 4.1, 3.5, 4.4, 3.9, 4.2, 3.6];
-
-function FloatingParticle({ color, size, x, y, delay, seed = 0 }: { color: string; size: number; x: number; y: number; delay: number; seed?: number }) {
-  const dur = PARTICLE_DURATIONS[seed % PARTICLE_DURATIONS.length];
-  return (
-    <span
-      className="absolute rounded-full pointer-events-none"
-      style={{
-        width: size,
-        height: size,
-        background: color,
-        left: `${x}%`,
-        top: `${y}%`,
-        animation: `dashboard-float ${dur}s ease-in-out ${delay}s infinite`,
-        opacity: 0.4,
-      }}
-    />
-  );
-}
 
 function TodayAchievements({ stats }: { stats: DashboardStats }) {
   const achievements = [
@@ -250,9 +218,9 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
   return (
     <div className="mb-4" data-testid="section-today-achievements">
       <Card className="border-0 shadow-sm bg-card/80">
-        <div className="px-5 pt-4 pb-1">
+        <div className="px-4 sm:px-5 pt-3 sm:pt-4 pb-1">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <h2 className="text-base font-bold text-foreground" data-testid="text-achievements-heading">
+            <h2 className="text-sm sm:text-base font-bold text-foreground" data-testid="text-achievements-heading">
               Today's Activity
             </h2>
             {stats.today.mcqsSolved > 0 && (
@@ -264,22 +232,22 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
           </div>
         </div>
 
-        <div className="px-5 pb-4 pt-2">
-          <div className="grid grid-cols-4 gap-2.5">
+        <div className="px-4 sm:px-5 pb-4 pt-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
             {achievements.map((item, idx) => (
               <div
                 key={item.label}
-                className="rounded-md p-3 flex flex-col items-center text-center"
+                className="rounded-md p-2.5 sm:p-3 flex flex-col items-center text-center"
                 style={{ background: item.bg }}
                 data-testid={`card-achievement-${idx}`}
               >
-                <div className="flex items-center gap-1.5 mb-2">
+                <div className="flex items-center gap-1.5 mb-1.5 sm:mb-2">
                   <item.icon className="h-4 w-4 flex-shrink-0" style={{ color: item.color }} />
-                  <span className="text-xl font-black text-foreground leading-none" data-testid={`text-achievement-value-${idx}`}>
+                  <span className="text-lg sm:text-xl font-black text-foreground leading-none" data-testid={`text-achievement-value-${idx}`}>
                     <AnimatedCounter target={item.value} />
                   </span>
                 </div>
-                <span className="text-[11px] font-medium text-muted-foreground leading-tight">{item.label}</span>
+                <span className="text-[10px] sm:text-[11px] font-medium text-muted-foreground leading-tight">{item.label}</span>
               </div>
             ))}
           </div>
@@ -309,12 +277,12 @@ function ProgressTrendChart({ stats }: { stats: DashboardStats }) {
       data-testid="card-progress-trend"
       style={{ animation: "dashboard-slide-up 0.5s ease-out 0.5s both" }}
     >
-      <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <TrendingUp className="h-3.5 w-3.5 text-primary" />
+      <div className="flex items-center justify-between gap-2 mb-2 sm:mb-3 flex-wrap">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <TrendingUp className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" />
           </div>
-          <h3 className="text-xs font-semibold text-foreground" data-testid="text-trend-title">7-Day Learning Trend</h3>
+          <h3 className="text-[11px] sm:text-xs font-semibold text-foreground" data-testid="text-trend-title">7-Day Learning Trend</h3>
         </div>
         {hasAnyData && (
           <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-600 text-[10px]">
@@ -334,7 +302,7 @@ function ProgressTrendChart({ stats }: { stats: DashboardStats }) {
           <p className="text-[10px] text-muted-foreground/60 max-w-[200px]">Take quizzes and study topics to see your progress</p>
         </div>
       ) : (
-        <div className="w-full" style={{ height: 180 }}>
+        <div className="w-full h-[150px] sm:h-[180px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
               <defs>
@@ -502,19 +470,19 @@ function WeeklyGoalsChart() {
       data-testid="card-weekly-goals"
       style={{ animation: "dashboard-slide-up 0.5s ease-out 0.6s both" }}
     >
-      <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-            <CalendarDays className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+      <div className="flex items-center justify-between gap-2 mb-2 sm:mb-3 flex-wrap">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+            <CalendarDays className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-blue-600 dark:text-blue-400" />
           </div>
-          <h3 className="text-xs font-semibold text-foreground" data-testid="text-weekly-goals-title">This Week's Goals</h3>
+          <h3 className="text-[11px] sm:text-xs font-semibold text-foreground" data-testid="text-weekly-goals-title">This Week's Goals</h3>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-foreground" data-testid="text-completion-rate">{completionRate}%</span>
-          <span className="text-[10px] text-muted-foreground">done</span>
-          <span className="text-xs text-muted-foreground">|</span>
-          <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400" data-testid="text-total-completed">{totalCompleted}</span>
-          <span className="text-xs text-muted-foreground">/{totalGoals}</span>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <span className="text-xs sm:text-sm font-bold text-foreground" data-testid="text-completion-rate">{completionRate}%</span>
+          <span className="text-[9px] sm:text-[10px] text-muted-foreground">done</span>
+          <span className="text-[10px] sm:text-xs text-muted-foreground">|</span>
+          <span className="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400" data-testid="text-total-completed">{totalCompleted}</span>
+          <span className="text-[10px] sm:text-xs text-muted-foreground">/{totalGoals}</span>
         </div>
       </div>
 
@@ -532,7 +500,7 @@ function WeeklyGoalsChart() {
           </Link>
         </div>
       ) : (
-        <div className="w-full" style={{ height: 180 }}>
+        <div className="w-full h-[150px] sm:h-[180px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
@@ -607,14 +575,14 @@ export default function DashboardPage() {
       <Sidebar />
 
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+        <div className="max-w-5xl mx-auto px-3 sm:px-6 py-3 sm:py-6">
 
           <div
-            className="relative flex items-center justify-between gap-3 mb-4"
+            className="relative flex items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-4"
             style={{ animation: "dashboard-slide-right 0.4s ease-out both" }}
           >
             <div className="flex items-center gap-2 min-w-0">
-              <h1 className="text-base sm:text-lg font-semibold truncate" data-testid="text-dashboard-greeting">
+              <h1 className="text-sm sm:text-lg font-semibold truncate" data-testid="text-dashboard-greeting">
                 {getGreeting()}, <span className="text-primary">{displayName}</span>
               </h1>
               {examLabels.length > 0 && (
@@ -646,31 +614,31 @@ export default function DashboardPage() {
             <TodayAchievements stats={dashboardStats} />
           ) : null}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 sm:gap-3 mb-3 sm:mb-4">
             {dashboardStats && <ProgressTrendChart stats={dashboardStats} />}
             <WeeklyGoalsChart />
           </div>
 
           <div style={{ animation: "dashboard-slide-up 0.5s ease-out 0.7s both" }}>
-            <h2 className="text-sm font-semibold mb-2" data-testid="text-quick-actions-heading">
+            <h2 className="text-xs sm:text-sm font-semibold mb-2" data-testid="text-quick-actions-heading">
               Start Learning
             </h2>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5 mb-3 sm:mb-4">
               {quickActions.map((action, idx) => (
                 <Link key={action.href} href={action.href} data-testid={`link-action-${action.title.toLowerCase().replace(/\s/g, "-")}`}>
                   <Card
-                    className="p-3 h-full hover-elevate cursor-pointer group"
+                    className="p-2.5 sm:p-3 h-full hover-elevate cursor-pointer group"
                     data-testid={`card-action-${action.title.toLowerCase().replace(/\s/g, "-")}`}
                     style={{ animation: `dashboard-scale-in 0.4s ease-out ${0.8 + idx * 0.08}s both` }}
                   >
-                    <div className={`h-8 w-8 rounded-md ${action.bgColor} flex items-center justify-center mb-2`}>
-                      <action.icon className={`h-4 w-4 ${action.color}`} />
+                    <div className={`h-7 w-7 sm:h-8 sm:w-8 rounded-md ${action.bgColor} flex items-center justify-center mb-1.5 sm:mb-2`}>
+                      <action.icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${action.color}`} />
                     </div>
-                    <h3 className="font-semibold text-xs mb-0.5">{action.title}</h3>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2">{action.description}</p>
-                    <div className="flex items-center gap-0.5 text-[10px] text-primary font-medium mt-2 opacity-70 group-hover:opacity-100 transition-opacity">
+                    <h3 className="font-semibold text-[11px] sm:text-xs mb-0.5">{action.title}</h3>
+                    <p className="text-[9px] sm:text-[10px] text-muted-foreground leading-relaxed line-clamp-2">{action.description}</p>
+                    <div className="flex items-center gap-0.5 text-[9px] sm:text-[10px] text-primary font-medium mt-1.5 sm:mt-2 opacity-70 group-hover:opacity-100 transition-opacity">
                       Open
-                      <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                      <ArrowRight className="h-2.5 w-2.5 sm:h-3 sm:w-3 transition-transform group-hover:translate-x-0.5" />
                     </div>
                   </Card>
                 </Link>
@@ -679,10 +647,10 @@ export default function DashboardPage() {
           </div>
 
           <div style={{ animation: "dashboard-slide-up 0.5s ease-out 0.9s both" }}>
-            <h2 className="text-sm font-semibold mb-2" data-testid="text-suggested-heading">
+            <h2 className="text-xs sm:text-sm font-semibold mb-2" data-testid="text-suggested-heading">
               Suggested Topics
             </h2>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2">
               {[
                 { text: "Indian Polity Basics", icon: BookOpen },
                 { text: "Economic Survey 2025", icon: Newspaper },
@@ -693,12 +661,12 @@ export default function DashboardPage() {
                   key={i}
                   onClick={() => handleTopicClick(topic.text)}
                   disabled={createMutation.isPending}
-                  className="flex items-center gap-2 p-2.5 rounded-md bg-secondary/50 hover-elevate border border-border cursor-pointer text-left group"
+                  className="flex items-center gap-1.5 sm:gap-2 p-2 sm:p-2.5 rounded-md bg-secondary/50 hover-elevate border border-border cursor-pointer text-left group"
                   data-testid={`topic-${i}`}
                   style={{ animation: `dashboard-scale-in 0.4s ease-out ${1.0 + i * 0.06}s both` }}
                 >
-                  <topic.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                  <span className="text-[11px] font-medium">{topic.text}</span>
+                  <topic.icon className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary flex-shrink-0" />
+                  <span className="text-[10px] sm:text-[11px] font-medium">{topic.text}</span>
                 </button>
               ))}
             </div>
