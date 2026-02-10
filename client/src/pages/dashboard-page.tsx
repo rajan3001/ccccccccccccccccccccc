@@ -239,39 +239,35 @@ function getTimeOfDayTheme() {
   const hour = new Date().getHours();
   if (hour >= 5 && hour < 12) {
     return {
-      label: "Good Morning",
-      gradient: "linear-gradient(135deg, #f97316 0%, #fb923c 25%, #fbbf24 50%, #f59e0b 75%, #ea580c 100%)",
-      glowColor: "rgba(251, 146, 60, 0.3)",
-      accentText: "text-orange-100",
-      iconTint: "text-amber-200",
-      shimmerColor: "rgba(255,255,255,0.15)",
+      gradient: "linear-gradient(135deg, #92400e 0%, #b45309 40%, #d97706 100%)",
+      labelColor: "rgba(255,255,255,0.95)",
+      subtextColor: "rgba(255,255,255,0.7)",
+      valueColor: "#ffffff",
+      dividerColor: "rgba(255,255,255,0.2)",
     };
   } else if (hour >= 12 && hour < 17) {
     return {
-      label: "Good Afternoon",
-      gradient: "linear-gradient(135deg, #0ea5e9 0%, #06b6d4 25%, #14b8a6 50%, #10b981 75%, #0d9488 100%)",
-      glowColor: "rgba(14, 165, 233, 0.3)",
-      accentText: "text-cyan-100",
-      iconTint: "text-teal-200",
-      shimmerColor: "rgba(255,255,255,0.12)",
+      gradient: "linear-gradient(135deg, #065f46 0%, #047857 40%, #059669 100%)",
+      labelColor: "rgba(255,255,255,0.95)",
+      subtextColor: "rgba(255,255,255,0.7)",
+      valueColor: "#ffffff",
+      dividerColor: "rgba(255,255,255,0.2)",
     };
   } else if (hour >= 17 && hour < 21) {
     return {
-      label: "Good Evening",
-      gradient: "linear-gradient(135deg, #8b5cf6 0%, #a78bfa 25%, #c084fc 50%, #e879f9 75%, #f472b6 100%)",
-      glowColor: "rgba(139, 92, 246, 0.3)",
-      accentText: "text-purple-100",
-      iconTint: "text-violet-200",
-      shimmerColor: "rgba(255,255,255,0.1)",
+      gradient: "linear-gradient(135deg, #581c87 0%, #7e22ce 40%, #9333ea 100%)",
+      labelColor: "rgba(255,255,255,0.95)",
+      subtextColor: "rgba(255,255,255,0.7)",
+      valueColor: "#ffffff",
+      dividerColor: "rgba(255,255,255,0.2)",
     };
   } else {
     return {
-      label: "Night Owl",
-      gradient: "linear-gradient(135deg, #1e3a5f 0%, #1e40af 25%, #3b82f6 50%, #6366f1 75%, #312e81 100%)",
-      glowColor: "rgba(59, 130, 246, 0.25)",
-      accentText: "text-blue-100",
-      iconTint: "text-indigo-200",
-      shimmerColor: "rgba(255,255,255,0.08)",
+      gradient: "linear-gradient(135deg, #1e3a5f 0%, #1e40af 40%, #2563eb 100%)",
+      labelColor: "rgba(255,255,255,0.95)",
+      subtextColor: "rgba(255,255,255,0.7)",
+      valueColor: "#ffffff",
+      dividerColor: "rgba(255,255,255,0.2)",
     };
   }
 }
@@ -294,71 +290,58 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
     <div className="mb-4" data-testid="section-today-achievements">
       <style>{`
         @keyframes achievements-shimmer {
-          0% { transform: translateX(-100%) skewX(-15deg); }
-          100% { transform: translateX(200%) skewX(-15deg); }
-        }
-        @keyframes achievements-glow {
-          0%, 100% { opacity: 0.4; transform: scale(1); }
-          50% { opacity: 0.7; transform: scale(1.05); }
-        }
-        @keyframes stat-pop {
-          0% { transform: scale(0.8); opacity: 0; }
-          60% { transform: scale(1.05); }
-          100% { transform: scale(1); opacity: 1; }
+          0% { transform: translateX(-200%) skewX(-15deg); }
+          100% { transform: translateX(300%) skewX(-15deg); }
         }
       `}</style>
 
       <div
         className="relative rounded-md overflow-hidden"
-        style={{
-          background: theme.gradient,
-          boxShadow: `0 4px 24px -4px ${theme.glowColor}, 0 0 0 1px rgba(255,255,255,0.1) inset`,
-          animation: "achievements-glow 4s ease-in-out infinite",
-        }}
+        style={{ background: theme.gradient }}
         data-testid="strip-today-achievements"
       >
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: `linear-gradient(90deg, transparent 0%, ${theme.shimmerColor} 50%, transparent 100%)`,
-            animation: "achievements-shimmer 3s ease-in-out infinite",
+            background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%)",
+            animation: "achievements-shimmer 4s ease-in-out infinite",
           }}
         />
 
         <div className="relative z-10 px-4 py-3">
-          <div className="flex items-center justify-between gap-2 mb-2.5 flex-wrap">
+          <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <Trophy className={`h-4 w-4 ${theme.iconTint}`} style={{ animation: "dashboard-bounce 2s ease-in-out infinite" }} />
-              <h2 className={`text-sm font-bold ${theme.accentText}`} data-testid="text-achievements-heading">
+              <Trophy className="h-4 w-4" style={{ color: theme.labelColor }} />
+              <h2 className="text-sm font-bold" style={{ color: theme.labelColor }} data-testid="text-achievements-heading">
                 Today's Achievements
               </h2>
             </div>
             {stats.today.mcqsSolved > 0 && (
-              <div className="flex items-center gap-1 bg-white/15 backdrop-blur-sm rounded-full px-2 py-0.5">
-                <Zap className={`h-3 w-3 ${theme.iconTint}`} />
-                <span className={`text-[10px] font-semibold ${theme.accentText}`}>
+              <div className="flex items-center gap-1 bg-white/15 backdrop-blur-sm rounded-full px-2.5 py-0.5">
+                <Zap className="h-3 w-3" style={{ color: theme.labelColor }} />
+                <span className="text-[10px] font-semibold" style={{ color: theme.labelColor }}>
                   <AnimatedCounter target={accuracy} suffix="%" /> accuracy
                 </span>
               </div>
             )}
           </div>
 
-          <div className="grid grid-cols-4 gap-0">
+          <div className="flex items-center">
             {achievements.map((item, idx) => (
               <div
                 key={item.label}
-                className={`flex flex-col items-center text-center px-2 py-1 ${idx < achievements.length - 1 ? "border-r border-white/15" : ""}`}
-                style={{ animation: `stat-pop 0.5s ease-out ${idx * 0.1}s both` }}
+                className="flex-1 flex flex-col items-center text-center px-1 min-w-0"
+                style={idx < achievements.length - 1 ? { borderRight: `1px solid ${theme.dividerColor}` } : undefined}
                 data-testid={`card-achievement-${idx}`}
               >
-                <div className="flex items-center gap-1 mb-1">
-                  <item.icon className={`h-3 w-3 ${theme.iconTint}`} />
-                  <span className={`text-[10px] font-medium ${theme.accentText} opacity-80 whitespace-nowrap`}>{item.label}</span>
+                <div className="flex items-center gap-1 mb-1.5">
+                  <item.icon className="h-3.5 w-3.5 flex-shrink-0" style={{ color: theme.labelColor }} />
+                  <span className="text-[11px] font-semibold truncate" style={{ color: theme.labelColor }}>{item.label}</span>
                 </div>
-                <div className="text-2xl font-black text-white leading-none mb-0.5 drop-shadow-sm" data-testid={`text-achievement-value-${idx}`}>
+                <div className="text-2xl font-black leading-none mb-1" style={{ color: theme.valueColor }} data-testid={`text-achievement-value-${idx}`}>
                   <AnimatedCounter target={item.value} />
                 </div>
-                <div className={`text-[9px] ${theme.accentText} opacity-60`}>
+                <div className="text-[10px] font-medium" style={{ color: theme.subtextColor }}>
                   {item.allTimeLabel}: {item.allTime}
                 </div>
               </div>

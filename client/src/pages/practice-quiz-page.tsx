@@ -34,6 +34,16 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+function renderQuizText(text: string) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
 const EXAM_TYPES = [
   { value: "UPSC", label: "UPSC (Union Public Service Commission)", group: "National" },
   { value: "JPSC", label: "JPSC (Jharkhand)", group: "State PSC" },
@@ -633,7 +643,7 @@ function QuizView({
       <Card>
         <CardContent className="pt-6">
           <p className="text-sm text-muted-foreground mb-1">Question {currentIndex + 1} of {questions.length}</p>
-          <p className="text-base font-medium mb-5" data-testid="text-question">{q.question}</p>
+          <p className="text-base font-medium mb-5" data-testid="text-question">{renderQuizText(q.question)}</p>
 
           <div className="space-y-2">
             {q.options.map((opt, i) => (
@@ -656,7 +666,7 @@ function QuizView({
                 )}>
                   {String.fromCharCode(65 + i)}
                 </span>
-                <span>{opt}</span>
+                <span>{renderQuizText(opt)}</span>
               </button>
             ))}
           </div>
@@ -781,7 +791,7 @@ function ResultsView({
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground mb-1">Question {currentIndex + 1} of {total}</p>
-            <p className="text-base font-medium mb-5" data-testid="text-review-question">{q.question}</p>
+            <p className="text-base font-medium mb-5" data-testid="text-review-question">{renderQuizText(q.question)}</p>
 
             <div className="space-y-2">
               {q.options.map((opt, i) => {
@@ -812,7 +822,7 @@ function ResultsView({
                     )}>
                       {isCorrect ? <CheckCircle2 className="h-3.5 w-3.5" /> : isWrongAnswer ? <XCircle className="h-3.5 w-3.5" /> : String.fromCharCode(65 + i)}
                     </span>
-                    <span className="flex-1">{opt}</span>
+                    <span className="flex-1">{renderQuizText(opt)}</span>
                     {isCorrect && <Badge variant="secondary" className="ml-auto flex-shrink-0">Correct</Badge>}
                     {isWrongAnswer && <Badge variant="destructive" className="ml-auto flex-shrink-0">Your Answer</Badge>}
                   </div>
