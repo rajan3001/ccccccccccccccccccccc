@@ -235,22 +235,12 @@ function FloatingParticle({ color, size, x, y, delay, seed = 0 }: { color: strin
   );
 }
 
-function getTimeOfDayGradient() {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return "linear-gradient(135deg, #2563eb 0%, #3b82f6 30%, #60a5fa 60%, #38bdf8 100%)";
-  if (hour >= 12 && hour < 17) return "linear-gradient(135deg, #059669 0%, #10b981 30%, #34d399 60%, #2dd4bf 100%)";
-  if (hour >= 17 && hour < 21) return "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 30%, #a78bfa 60%, #c084fc 100%)";
-  return "linear-gradient(135deg, #1e40af 0%, #3b82f6 30%, #60a5fa 60%, #818cf8 100%)";
-}
-
 function TodayAchievements({ stats }: { stats: DashboardStats }) {
-  const bgGradient = getTimeOfDayGradient();
-
   const achievements = [
-    { label: "MCQs Solved", value: stats.today.mcqsSolved, allTime: stats.allTime.mcqsSolved, icon: Brain, allTimeLabel: "All time" },
-    { label: "AI Chats", value: stats.today.topicsStudied, allTime: stats.allTime.topicsStudied, icon: MessageSquare, allTimeLabel: "All time" },
-    { label: "Articles", value: stats.allTime.currentAffairsRevised, allTime: stats.allTime.currentAffairsTotal, icon: Newspaper, allTimeLabel: "Total" },
-    { label: "Notes", value: stats.today.notesSaved, allTime: stats.allTime.notesSaved, icon: NotebookPen, allTimeLabel: "All time" },
+    { label: "MCQs Practiced", value: stats.today.mcqsSolved, allTime: stats.allTime.mcqsSolved, icon: Brain, color: "#f59e0b", bg: "#fef3c7" },
+    { label: "AI Chats", value: stats.today.topicsStudied, allTime: stats.allTime.topicsStudied, icon: MessageSquare, color: "#3b82f6", bg: "#dbeafe" },
+    { label: "Articles Read", value: stats.allTime.currentAffairsRevised, allTime: stats.allTime.currentAffairsTotal, icon: Newspaper, color: "#10b981", bg: "#d1fae5" },
+    { label: "Notes Saved", value: stats.today.notesSaved, allTime: stats.allTime.notesSaved, icon: NotebookPen, color: "#f97316", bg: "#ffedd5" },
   ];
 
   const accuracy = stats.today.mcqsSolved > 0
@@ -259,93 +249,42 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
 
   return (
     <div className="mb-4" data-testid="section-today-achievements">
-      <style>{`
-        @keyframes ach-border-spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        @keyframes ach-shine {
-          0% { transform: translateX(-100%) skewX(-12deg); }
-          100% { transform: translateX(250%) skewX(-12deg); }
-        }
-        @keyframes ach-float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-2px); }
-        }
-      `}</style>
-
-      <div className="relative rounded-md p-[1.5px] overflow-hidden" data-testid="strip-today-achievements">
-        <div className="absolute inset-0 rounded-md" style={{
-          background: bgGradient,
-        }} />
-
-        <div className="absolute inset-[-50%] pointer-events-none" style={{
-          background: "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.5) 10%, transparent 20%)",
-          animation: "ach-border-spin 4s linear infinite",
-        }} />
-
-        <div className="relative rounded-[5px] overflow-hidden"
-          style={{ background: bgGradient }}>
-
-          <div className="absolute inset-0 pointer-events-none" style={{
-            background: "linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 40%, rgba(0,0,0,0.1) 100%)",
-          }} />
-
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div style={{
-              position: "absolute", top: 0, bottom: 0, width: "25%",
-              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)",
-              animation: "ach-shine 3.5s ease-in-out infinite",
-            }} />
-          </div>
-
-          <div className="relative z-10 px-5 py-3.5">
-            <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
-              <div className="flex items-center gap-2"
-                style={{ animation: "ach-float 3s ease-in-out infinite" }}>
-                <div className="h-6 w-6 rounded-md bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Trophy className="h-3.5 w-3.5 text-white" />
-                </div>
-                <h2 className="text-sm font-bold text-white tracking-wide" data-testid="text-achievements-heading">
-                  Today's Achievements
-                </h2>
-              </div>
-              {stats.today.mcqsSolved > 0 && (
-                <div className="flex items-center gap-1 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-2.5 py-0.5">
-                  <Zap className="h-3 w-3 text-yellow-200" />
-                  <span className="text-[10px] font-bold text-white">
-                    <AnimatedCounter target={accuracy} suffix="%" /> accuracy
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-stretch">
-              {achievements.map((item, idx) => (
-                <div
-                  key={item.label}
-                  className="flex-1 flex flex-col items-center text-center px-3 min-w-0"
-                  style={idx < achievements.length - 1 ? { borderRight: "1px solid rgba(255,255,255,0.15)" } : undefined}
-                  data-testid={`card-achievement-${idx}`}
-                >
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <div className="h-5 w-5 rounded-md bg-white/15 flex items-center justify-center flex-shrink-0">
-                      <item.icon className="h-3 w-3 text-white/90" />
-                    </div>
-                    <span className="text-[11px] font-medium text-white/75 truncate">{item.label}</span>
-                  </div>
-                  <div className="text-[28px] font-black text-white leading-none mb-1 tracking-tight drop-shadow-sm" data-testid={`text-achievement-value-${idx}`}>
-                    <AnimatedCounter target={item.value} />
-                  </div>
-                  <div className="text-[10px] text-white/50 font-medium">
-                    {item.allTimeLabel}: <span className="text-white/70 font-semibold">{item.allTime}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+      <Card className="border-0 shadow-sm bg-card/80">
+        <div className="px-5 pt-4 pb-1">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <h2 className="text-base font-bold text-foreground" data-testid="text-achievements-heading">
+              Today's Activity
+            </h2>
+            {stats.today.mcqsSolved > 0 && (
+              <Badge variant="secondary" className="text-[10px] font-semibold">
+                <Zap className="h-3 w-3 mr-0.5 text-amber-500" />
+                <AnimatedCounter target={accuracy} suffix="%" /> accuracy
+              </Badge>
+            )}
           </div>
         </div>
-      </div>
+
+        <div className="px-5 pb-4 pt-2">
+          <div className="grid grid-cols-4 gap-2.5">
+            {achievements.map((item, idx) => (
+              <div
+                key={item.label}
+                className="rounded-md p-3 flex flex-col items-center text-center"
+                style={{ background: item.bg }}
+                data-testid={`card-achievement-${idx}`}
+              >
+                <div className="flex items-center gap-1.5 mb-2">
+                  <item.icon className="h-4 w-4 flex-shrink-0" style={{ color: item.color }} />
+                  <span className="text-xl font-black text-foreground leading-none" data-testid={`text-achievement-value-${idx}`}>
+                    <AnimatedCounter target={item.value} />
+                  </span>
+                </div>
+                <span className="text-[11px] font-medium text-muted-foreground leading-tight">{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }
