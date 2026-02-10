@@ -239,35 +239,35 @@ function getTimeOfDayTheme() {
   const hour = new Date().getHours();
   if (hour >= 5 && hour < 12) {
     return {
-      gradient: "linear-gradient(135deg, #92400e 0%, #b45309 40%, #d97706 100%)",
-      labelColor: "rgba(255,255,255,0.95)",
-      subtextColor: "rgba(255,255,255,0.7)",
-      valueColor: "#ffffff",
-      dividerColor: "rgba(255,255,255,0.2)",
+      bg: "linear-gradient(135deg, #1a0f00 0%, #2d1800 50%, #1a0f00 100%)",
+      orb1: "radial-gradient(circle, rgba(251,146,60,0.35) 0%, transparent 70%)",
+      orb2: "radial-gradient(circle, rgba(245,158,11,0.25) 0%, transparent 70%)",
+      accent: "#fb923c",
+      glow: "#f59e0b",
     };
   } else if (hour >= 12 && hour < 17) {
     return {
-      gradient: "linear-gradient(135deg, #065f46 0%, #047857 40%, #059669 100%)",
-      labelColor: "rgba(255,255,255,0.95)",
-      subtextColor: "rgba(255,255,255,0.7)",
-      valueColor: "#ffffff",
-      dividerColor: "rgba(255,255,255,0.2)",
+      bg: "linear-gradient(135deg, #001a12 0%, #002d1e 50%, #001a12 100%)",
+      orb1: "radial-gradient(circle, rgba(52,211,153,0.3) 0%, transparent 70%)",
+      orb2: "radial-gradient(circle, rgba(16,185,129,0.2) 0%, transparent 70%)",
+      accent: "#34d399",
+      glow: "#10b981",
     };
   } else if (hour >= 17 && hour < 21) {
     return {
-      gradient: "linear-gradient(135deg, #581c87 0%, #7e22ce 40%, #9333ea 100%)",
-      labelColor: "rgba(255,255,255,0.95)",
-      subtextColor: "rgba(255,255,255,0.7)",
-      valueColor: "#ffffff",
-      dividerColor: "rgba(255,255,255,0.2)",
+      bg: "linear-gradient(135deg, #120024 0%, #1e003d 50%, #120024 100%)",
+      orb1: "radial-gradient(circle, rgba(192,132,252,0.3) 0%, transparent 70%)",
+      orb2: "radial-gradient(circle, rgba(232,121,249,0.2) 0%, transparent 70%)",
+      accent: "#c084fc",
+      glow: "#a855f7",
     };
   } else {
     return {
-      gradient: "linear-gradient(135deg, #1e3a5f 0%, #1e40af 40%, #2563eb 100%)",
-      labelColor: "rgba(255,255,255,0.95)",
-      subtextColor: "rgba(255,255,255,0.7)",
-      valueColor: "#ffffff",
-      dividerColor: "rgba(255,255,255,0.2)",
+      bg: "linear-gradient(135deg, #020617 0%, #0f172a 50%, #020617 100%)",
+      orb1: "radial-gradient(circle, rgba(96,165,250,0.3) 0%, transparent 70%)",
+      orb2: "radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%)",
+      accent: "#60a5fa",
+      glow: "#3b82f6",
     };
   }
 }
@@ -289,37 +289,60 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
   return (
     <div className="mb-4" data-testid="section-today-achievements">
       <style>{`
-        @keyframes achievements-shimmer {
-          0% { transform: translateX(-200%) skewX(-15deg); }
-          100% { transform: translateX(300%) skewX(-15deg); }
+        @keyframes ach-orb-drift {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(15px, -8px) scale(1.1); }
+          66% { transform: translate(-10px, 5px) scale(0.95); }
+        }
+        @keyframes ach-orb-drift-2 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(-12px, 6px) scale(1.05); }
+          66% { transform: translate(8px, -10px) scale(0.9); }
+        }
+        @keyframes ach-line-sweep {
+          0% { transform: translateX(-100%); opacity: 0; }
+          50% { opacity: 1; }
+          100% { transform: translateX(100%); opacity: 0; }
         }
       `}</style>
 
       <div
         className="relative rounded-md overflow-hidden"
-        style={{ background: theme.gradient }}
+        style={{ background: theme.bg }}
         data-testid="strip-today-achievements"
       >
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%)",
-            animation: "achievements-shimmer 4s ease-in-out infinite",
-          }}
-        />
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: theme.orb1,
+          width: "50%", height: "150%", top: "-25%", left: "-5%",
+          animation: "ach-orb-drift 8s ease-in-out infinite",
+        }} />
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: theme.orb2,
+          width: "45%", height: "140%", top: "-20%", right: "-5%", left: "auto",
+          animation: "ach-orb-drift-2 10s ease-in-out infinite",
+        }} />
+
+        <div className="absolute bottom-0 left-0 right-0 h-[1px] pointer-events-none overflow-hidden">
+          <div style={{
+            width: "40%", height: "100%",
+            background: `linear-gradient(90deg, transparent, ${theme.accent}, transparent)`,
+            animation: "ach-line-sweep 4s ease-in-out infinite",
+          }} />
+        </div>
 
         <div className="relative z-10 px-4 py-3">
           <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <Trophy className="h-4 w-4" style={{ color: theme.labelColor }} />
-              <h2 className="text-sm font-bold" style={{ color: theme.labelColor }} data-testid="text-achievements-heading">
+              <Trophy className="h-4 w-4" style={{ color: theme.accent }} />
+              <h2 className="text-sm font-bold text-white/90" data-testid="text-achievements-heading">
                 Today's Achievements
               </h2>
             </div>
             {stats.today.mcqsSolved > 0 && (
-              <div className="flex items-center gap-1 bg-white/15 backdrop-blur-sm rounded-full px-2.5 py-0.5">
-                <Zap className="h-3 w-3" style={{ color: theme.labelColor }} />
-                <span className="text-[10px] font-semibold" style={{ color: theme.labelColor }}>
+              <div className="flex items-center gap-1 rounded-full px-2.5 py-0.5"
+                style={{ background: `${theme.accent}20`, border: `1px solid ${theme.accent}30` }}>
+                <Zap className="h-3 w-3" style={{ color: theme.accent }} />
+                <span className="text-[10px] font-semibold text-white/90">
                   <AnimatedCounter target={accuracy} suffix="%" /> accuracy
                 </span>
               </div>
@@ -330,19 +353,23 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
             {achievements.map((item, idx) => (
               <div
                 key={item.label}
-                className="flex-1 flex flex-col items-center text-center px-1 min-w-0"
-                style={idx < achievements.length - 1 ? { borderRight: `1px solid ${theme.dividerColor}` } : undefined}
+                className="flex-1 flex flex-col items-center text-center px-2 min-w-0"
+                style={idx < achievements.length - 1 ? { borderRight: "1px solid rgba(255,255,255,0.08)" } : undefined}
                 data-testid={`card-achievement-${idx}`}
               >
-                <div className="flex items-center gap-1 mb-1.5">
-                  <item.icon className="h-3.5 w-3.5 flex-shrink-0" style={{ color: theme.labelColor }} />
-                  <span className="text-[11px] font-semibold truncate" style={{ color: theme.labelColor }}>{item.label}</span>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <div className="h-5 w-5 rounded-md flex items-center justify-center flex-shrink-0"
+                    style={{ background: `${theme.accent}20` }}>
+                    <item.icon className="h-3 w-3" style={{ color: theme.accent }} />
+                  </div>
+                  <span className="text-[11px] font-medium text-white/60 truncate">{item.label}</span>
                 </div>
-                <div className="text-2xl font-black leading-none mb-1" style={{ color: theme.valueColor }} data-testid={`text-achievement-value-${idx}`}>
+                <div className="text-2xl font-black text-white leading-none mb-1 tracking-tight" data-testid={`text-achievement-value-${idx}`}
+                  style={{ textShadow: `0 0 20px ${theme.glow}40` }}>
                   <AnimatedCounter target={item.value} />
                 </div>
-                <div className="text-[10px] font-medium" style={{ color: theme.subtextColor }}>
-                  {item.allTimeLabel}: {item.allTime}
+                <div className="text-[10px] text-white/40 font-medium">
+                  {item.allTimeLabel}: <span className="text-white/55">{item.allTime}</span>
                 </div>
               </div>
             ))}
