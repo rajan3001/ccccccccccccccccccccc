@@ -41,6 +41,7 @@ import { motion } from "framer-motion";
 import { HeroDashboardAnimation, NeuralNetworkAnimation } from "@/components/landing/hero-animation";
 import { LoginSlideOver } from "@/components/login-slide-over";
 import { LandingFooter } from "@/components/landing/footer";
+import { IndiaTestimonialsSection } from "@/components/landing/india-testimonials";
 import { SUPPORTED_LANGUAGES } from "@/i18n/languages";
 import { MobileAppSection } from "@/components/landing/mobile-app-section";
 import { HowItWorksTour } from "@/components/landing/how-it-works-tour";
@@ -1073,6 +1074,7 @@ export default function LandingPage() {
 
         <LanguageShowcaseSection t={t} />
 
+        <IndiaTestimonialsSection />
 
         <section className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-primary/[0.03] to-background" />
