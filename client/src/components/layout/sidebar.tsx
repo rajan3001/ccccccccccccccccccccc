@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useConversations, useDeleteConversation } from "@/hooks/use-chat";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useLanguage } from "@/i18n/context";
+import { SUPPORTED_LANGUAGES, type LanguageCode } from "@/i18n/languages";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,9 @@ import {
   User,
   Phone,
   ChevronRight,
+  Globe,
+  Check,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
@@ -51,9 +55,10 @@ export function Sidebar() {
   const { data: conversations, isLoading } = useConversations();
   const deleteMutation = useDeleteConversation();
   const { data: subData } = useSubscription();
-  const { t } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [showMobileLang, setShowMobileLang] = useState(false);
 
   const currentId = location.startsWith("/chat/") 
     ? parseInt(location.split("/")[2]) 
@@ -365,7 +370,51 @@ export function Sidebar() {
           </SheetContent>
         </Sheet>
         <Logo size="sm" />
-        <div className="w-10" />
+        <div className="relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowMobileLang(!showMobileLang)}
+            data-testid="button-mobile-language"
+            className="text-muted-foreground"
+          >
+            <Globe className="h-5 w-5" />
+          </Button>
+          {showMobileLang && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowMobileLang(false)} />
+              <div className="absolute right-0 top-full mt-2 z-50 w-56 rounded-lg border bg-popover shadow-lg overflow-hidden">
+                <div className="px-3 py-2 border-b">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Language</p>
+                </div>
+                <ScrollArea className="max-h-72">
+                  <div className="p-1">
+                    {SUPPORTED_LANGUAGES.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => {
+                          setLanguage(lang.code as LanguageCode);
+                          setShowMobileLang(false);
+                        }}
+                        className={cn(
+                          "flex items-center gap-3 w-full rounded-md px-3 py-2.5 text-sm transition-colors",
+                          language === lang.code
+                            ? "bg-primary/10 text-primary font-medium"
+                            : "hover-elevate text-foreground"
+                        )}
+                        data-testid={`button-mobile-lang-${lang.code}`}
+                      >
+                        <span className="text-base">{lang.flag}</span>
+                        <span className="flex-1 text-left">{lang.nativeName}</span>
+                        {language === lang.code && <Check className="h-4 w-4 text-primary" />}
+                      </button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </>
   );
