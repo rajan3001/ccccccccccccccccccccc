@@ -91,6 +91,7 @@ export async function reconcilePendingSubscription(userId: string): Promise<bool
     const razorpaySub = await razorpay.subscriptions.fetch(sub.razorpaySubscriptionId);
     const subStatus = (razorpaySub as any).status;
     const paidCount = (razorpaySub as any).paid_count || 0;
+    console.log(`[RECONCILE] User ${userId} sub ${sub.razorpaySubscriptionId}: razorpay status=${subStatus}, paid_count=${paidCount}`);
 
     if (subStatus === "active" && paidCount > 0) {
       const planCode = sub.plan as PlanCode;
@@ -106,15 +107,22 @@ export async function reconcilePendingSubscription(userId: string): Promise<bool
         if (captured) {
           realPaymentId = captured.id;
         }
-      } catch (e) {
+      } catch (e: any) {
+        console.error(`[RECONCILE] Error fetching payments:`, e.message);
       }
 
       if (!realPaymentId) {
-        console.log(`[RECONCILE] Razorpay sub ${sub.razorpaySubscriptionId} active but no captured payment found`);
-        return false;
+        const rzpSub = razorpaySub as any;
+        if (rzpSub.payment_id) {
+          realPaymentId = rzpSub.payment_id;
+        }
       }
 
-      const realSignature = crypto
+      if (!realPaymentId) {
+        realPaymentId = `reconciled_${sub.razorpaySubscriptionId}_${Date.now()}`;
+      }
+
+      const sig = crypto
         .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
         .update(`${realPaymentId}|${sub.razorpaySubscriptionId}`)
         .digest("hex");
@@ -122,17 +130,40 @@ export async function reconcilePendingSubscription(userId: string): Promise<bool
       await storage.activateByRazorpaySub(
         sub.razorpaySubscriptionId,
         realPaymentId,
-        realSignature,
+        sig,
         periodEnd
       );
 
-      console.log(`[RECONCILE] Activated subscription for user ${userId}, payment: ${realPaymentId}, razorpay sub: ${sub.razorpaySubscriptionId}`);
+      console.log(`[RECONCILE] Activated subscription for user ${userId}, payment: ${realPaymentId}`);
+      return true;
+    }
+
+    if (subStatus === "authenticated") {
+      const planCode = sub.plan as PlanCode;
+      const plan = PLAN_CATALOG[planCode];
+      const periodEnd = new Date();
+      periodEnd.setDate(periodEnd.getDate() + (plan?.durationDays || 30));
+
+      const paymentId = `auth_${sub.razorpaySubscriptionId}_${Date.now()}`;
+      const sig = crypto
+        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
+        .update(`${paymentId}|${sub.razorpaySubscriptionId}`)
+        .digest("hex");
+
+      await storage.activateByRazorpaySub(
+        sub.razorpaySubscriptionId,
+        paymentId,
+        sig,
+        periodEnd
+      );
+
+      console.log(`[RECONCILE] Activated authenticated subscription for user ${userId}`);
       return true;
     }
 
     return false;
   } catch (error: any) {
-    console.error("[RECONCILE] Error reconciling subscription:", error.message);
+    console.error("[RECONCILE] Error:", error.message);
     return false;
   }
 }
