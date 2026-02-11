@@ -172,14 +172,15 @@ export function registerCurrentAffairsRoutes(app: Express): void {
       const stateFilter = req.body?.stateFilter || null;
 
       const [existing] = await db.select().from(dailyDigests).where(sql`${dailyDigests.date} = ${dateStr}`);
+      let existingTopics: any[] = [];
       if (existing) {
-        const topics = await db.select().from(dailyTopics).where(eq(dailyTopics.digestId, existing.id));
-        if (topics.length > 0) {
-          return res.json({ digest: existing, topics });
+        existingTopics = await db.select().from(dailyTopics).where(eq(dailyTopics.digestId, existing.id));
+        if (existingTopics.length > 0 && existing.source === "nextias") {
+          return res.json({ digest: existing, topics: existingTopics });
         }
-        await db.delete(dailyTopics).where(eq(dailyTopics.digestId, existing.id));
-        await db.delete(dailyDigests).where(eq(dailyDigests.id, existing.id));
-        console.log(`[Current Affairs] Cleaned up empty digest for ${dateStr}, regenerating...`);
+        if (existingTopics.length > 0 && existing.source === "ai") {
+          console.log(`[Current Affairs] Existing digest for ${dateStr} is AI-only, checking if NextIAS content is now available...`);
+        }
       }
 
       console.log(`[Current Affairs] Scraping NextIAS for ${dateStr}...`);
@@ -222,6 +223,16 @@ export function registerCurrentAffairsRoutes(app: Express): void {
         source: string;
         pageNumber: number | null;
       }> = [];
+
+      if (!scrapeSuccess && existing && existingTopics.length > 0 && existing.source === "ai") {
+        console.log(`[Current Affairs] NextIAS still not available for ${dateStr}, keeping existing AI content`);
+        return res.json({ digest: existing, topics: existingTopics });
+      }
+
+      if (existing) {
+        await db.delete(dailyTopics).where(eq(dailyTopics.digestId, existing.id));
+        await db.delete(dailyDigests).where(eq(dailyDigests.id, existing.id));
+      }
 
       if (scrapeSuccess && scrapedArticles.length > 0) {
         for (const article of scrapedArticles) {
@@ -343,7 +354,8 @@ No markdown, no explanations, just the JSON array.`;
         return res.status(500).json({ error: "No topics could be generated" });
       }
 
-      const [newDigest] = await db.insert(dailyDigests).values({ date: dateStr as string }).returning();
+      const digestSource = scrapeSuccess ? "nextias" : "ai";
+      const [newDigest] = await db.insert(dailyDigests).values({ date: dateStr as string, source: digestSource }).returning();
 
       const insertedTopics = await db.insert(dailyTopics).values(
         topicsToInsert.map(topic => ({ digestId: newDigest.id, ...topic }))

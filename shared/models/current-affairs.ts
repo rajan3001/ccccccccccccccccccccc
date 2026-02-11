@@ -6,6 +6,7 @@ import { sql } from "drizzle-orm";
 export const dailyDigests = pgTable("daily_digests", {
   id: serial("id").primaryKey(),
   date: date("date").notNull().unique(),
+  source: text("source").default("ai").notNull(),
   generatedAt: timestamp("generated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
