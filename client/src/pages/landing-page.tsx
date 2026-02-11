@@ -528,7 +528,7 @@ function AutoCyclingFeatures({ openLogin, t }: { openLogin: () => void; t: any }
             </p>
             <Button
               size="sm"
-              className="mt-2 gap-1.5"
+              className="mt-2 gap-1.5 bg-blue-600 border-blue-700 text-white"
               onClick={openLogin}
               data-testid={`button-feature-${active.id}`}
             >
@@ -557,7 +557,7 @@ function AutoCyclingFeatures({ openLogin, t }: { openLogin: () => void; t: any }
             </p>
             <Button
               size="sm"
-              className="mt-2 gap-1.5"
+              className="mt-2 gap-1.5 bg-blue-600 border-blue-700 text-white"
               onClick={openLogin}
               data-testid={`button-feature-mobile-${active.id}`}
             >
