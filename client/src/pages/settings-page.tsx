@@ -4,82 +4,16 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Crown, Clock, FileCheck, LayoutDashboard, ArrowRight } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Loader2, Crown, Clock, FileCheck, LayoutDashboard, ArrowRight, Bell } from "lucide-react";
 import { useLocation } from "wouter";
 
 type TabKey = "billing" | "notifications";
 
-const notificationCategories = [
-  {
-    key: "transaction",
-    title: "Transaction updates",
-    description: "Important notifications such as OTPs, payment receipts, etc.",
-    channels: [
-      { key: "transaction_email", label: "Email" },
-      { key: "transaction_whatsapp", label: "WhatsApp" },
-    ],
-  },
-  {
-    key: "content",
-    title: "Content updates",
-    description: "Get updates for latest content, videos and notes",
-    channels: [
-      { key: "content_email", label: "Email" },
-      { key: "content_whatsapp", label: "WhatsApp" },
-    ],
-  },
-  {
-    key: "announcements",
-    title: "General announcements",
-    description: "Get updates on new features releases and improvements. No spam!",
-    channels: [
-      { key: "announcements_email", label: "Email" },
-      { key: "announcements_whatsapp", label: "WhatsApp" },
-    ],
-  },
-  {
-    key: "dna",
-    title: "Daily News Analysis",
-    description: "Get updates on Daily News Analysis and MCQ practice",
-    channels: [
-      { key: "dna_whatsapp", label: "WhatsApp" },
-    ],
-  },
-];
-
 export default function SettingsPage() {
   const { user, isLoading } = useAuth();
   const { data: subData } = useSubscription();
-  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabKey>("billing");
-  const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>(
-    (user?.notificationPrefs as Record<string, boolean>) || {}
-  );
-
-  const updatePrefsMutation = useMutation({
-    mutationFn: async (prefs: Record<string, boolean>) => {
-      const res = await fetch("/api/auth/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notificationPrefs: prefs }),
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to update");
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-    },
-  });
-
-  const handleToggle = (key: string, checked: boolean) => {
-    const newPrefs = { ...notifPrefs, [key]: checked };
-    setNotifPrefs(newPrefs);
-    updatePrefsMutation.mutate(newPrefs);
-  };
 
   if (isLoading) {
     return (
@@ -173,26 +107,18 @@ export default function SettingsPage() {
 
           {activeTab === "notifications" && (
             <div className="space-y-6">
-              {notificationCategories.map((cat) => (
-                <div key={cat.key}>
-                  <h3 className="font-bold text-sm text-foreground" data-testid={`text-notif-${cat.key}`}>
-                    {cat.title}
-                  </h3>
-                  <p className="text-xs text-muted-foreground mb-3">{cat.description}</p>
-                  <Card className="divide-y divide-border">
-                    {cat.channels.map((ch) => (
-                      <div key={ch.key} className="flex items-center justify-between px-4 py-3">
-                        <span className="text-sm text-foreground">{ch.label}</span>
-                        <Switch
-                          checked={notifPrefs[ch.key] ?? true}
-                          onCheckedChange={(checked) => handleToggle(ch.key, checked)}
-                          data-testid={`switch-${ch.key}`}
-                        />
-                      </div>
-                    ))}
-                  </Card>
+              <Card className="p-6 sm:p-8 text-center border-dashed">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <Bell className="h-6 w-6 text-primary" />
                 </div>
-              ))}
+                <Badge variant="secondary" className="mb-3 text-xs font-bold uppercase">
+                  Coming Soon
+                </Badge>
+                <h3 className="font-bold text-foreground mb-1.5" data-testid="text-notif-coming-soon">Notification Preferences</h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
+                  We're building Email and WhatsApp notifications for transaction updates, content alerts, and announcements. Stay tuned!
+                </p>
+              </Card>
             </div>
           )}
         </div>

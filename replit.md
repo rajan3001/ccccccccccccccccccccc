@@ -25,8 +25,9 @@ The Learnpro AI platform is built with a modern web stack. The frontend is devel
     - **Answer Sheet Evaluation**: AI-powered evaluation of uploaded answer sheets against UPSC/State PSC norms, providing detailed scores, competency analysis across 7 parameters, and per-question feedback. Supports optional question paper uploads for context.
     - **My Notes**: Allows saving AI chat responses as structured notes with markdown support, categorization, tags, folders, and spaced repetition for review.
     - **Study Planner**: Comprehensive module for building weekly timetables, tracking UPSC and State PSC syllabus progress, setting daily goals, and analyzing weak areas based on quiz performance. Includes AI-powered timetable and goal generation.
+    - **Study Progress**: Dashboard showing 90-day streak calendar (GitHub-style contributions), daily study time chart (30 days), GS paper coverage with accuracy bars, exam-wise performance, motivational messages, and recent study topics. Derives data from existing chat/quiz/notes activity.
 - **PDF Export**: Client-side PDF generation for Chat, Current Affairs, and Evaluation reports, incorporating Learnpro branding (logo, watermark, footer).
-- **User Profile & Settings**: Learner profile popup with avatar, name, plan, and links to settings including Billing and Notification preferences (Email/WhatsApp toggles).
+- **User Profile & Settings**: Learner profile popup with avatar, name, plan, and links to settings including Billing. Notification Settings tab shows "Coming Soon" placeholder.
 
 ### External Dependencies
 - **Gemini 2.5 Flash**: Via Replit AI Integrations for all AI functionalities.

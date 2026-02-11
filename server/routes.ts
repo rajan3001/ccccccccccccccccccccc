@@ -9,6 +9,7 @@ import { registerQuizRoutes } from "./quiz-routes";
 import { registerEvaluationRoutes } from "./evaluation-routes";
 import { registerNotesRoutes } from "./notes-routes";
 import { registerStudyPlannerRoutes } from "./study-planner-routes";
+import { registerStudyProgressRoutes } from "./study-progress-routes";
 import { registerPaymentRoutes } from "./payment-routes";
 import { api } from "@shared/routes";
 import { db } from "./db";
@@ -29,6 +30,7 @@ export async function registerRoutes(
   registerEvaluationRoutes(app);
   registerNotesRoutes(app);
   registerStudyPlannerRoutes(app);
+  registerStudyProgressRoutes(app);
   registerPaymentRoutes(app, isAuthenticated);
 
   // Subscription Routes

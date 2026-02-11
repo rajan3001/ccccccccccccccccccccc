@@ -17,6 +17,7 @@ import {
   FileCheck,
   StickyNote,
   CalendarCheck,
+  BarChart3,
   Settings,
   User,
   Phone,
@@ -147,6 +148,17 @@ export function Sidebar() {
           >
             <CalendarCheck className="h-5 w-5" />
             Study Planner
+          </Button>
+        </Link>
+
+        <Link href="/study-progress" onClick={() => setIsMobileOpen(false)}>
+          <Button
+            variant={location === "/study-progress" ? "default" : "ghost"}
+            className="w-full mt-2 justify-start gap-2"
+            data-testid="link-study-progress"
+          >
+            <BarChart3 className="h-5 w-5" />
+            Study Progress
           </Button>
         </Link>
       </div>
