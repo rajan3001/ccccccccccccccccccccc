@@ -28,6 +28,7 @@ The Learnpro AI platform is built with a modern web stack. The frontend is devel
     - **Study Progress**: Dashboard showing 90-day streak calendar (GitHub-style contributions), daily study time chart (30 days), GS paper coverage with accuracy bars, exam-wise performance, motivational messages, and recent study topics. Derives data from existing chat/quiz/notes activity.
 - **PDF Export**: Client-side PDF generation for Chat, Current Affairs, and Evaluation reports, incorporating Learnpro branding (logo, watermark, footer).
 - **User Profile & Settings**: Learner profile popup with avatar, name, plan, and links to settings including Billing. Notification Settings tab shows "Coming Soon" placeholder.
+- **Multilingual i18n**: Full internationalization across all pages. Architecture: `client/src/i18n/languages.ts` (14 supported languages), `client/src/i18n/translations.ts` (curated translations for en/hi/bn/gu/mr, others fallback to English), `client/src/i18n/context.tsx` (LanguageProvider + useLanguage hook). Language stored in DB (`users.language`), localStorage, and context. All pages translated: Dashboard, Settings, Study Progress, Practice Quiz, Chat, Login, Notes, Study Planner, Current Affairs (both list + detail), Paper Evaluation, Landing page, and Sidebar.
 
 ### External Dependencies
 - **Gemini 2.5 Flash**: Via Replit AI Integrations for all AI functionalities.

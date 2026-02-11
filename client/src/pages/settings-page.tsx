@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/use-subscription";
+import { useLanguage } from "@/i18n/context";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ type TabKey = "billing" | "notifications";
 export default function SettingsPage() {
   const { user, isLoading } = useAuth();
   const { data: subData } = useSubscription();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabKey>("billing");
 
   if (isLoading) {
@@ -31,7 +33,7 @@ export default function SettingsPage() {
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-          <h1 className="text-2xl font-bold mb-6" data-testid="text-settings-heading">Settings</h1>
+          <h1 className="text-2xl font-bold mb-6" data-testid="text-settings-heading">{t.settings.title}</h1>
 
           <div className="flex gap-1 mb-6 border-b border-border">
             <button
@@ -43,7 +45,7 @@ export default function SettingsPage() {
               }`}
               data-testid="tab-billing"
             >
-              Billing Details
+              {t.settings.billingDetails}
             </button>
             <button
               onClick={() => setActiveTab("notifications")}
@@ -54,7 +56,7 @@ export default function SettingsPage() {
               }`}
               data-testid="tab-notifications"
             >
-              Notification Settings
+              {t.settings.notificationSettings}
             </button>
           </div>
 
@@ -62,23 +64,23 @@ export default function SettingsPage() {
             <div className="space-y-5">
               <Card className="p-5 sm:p-6">
                 <Badge variant={isPro ? "default" : "secondary"} className="mb-4 text-xs font-bold uppercase">
-                  {isPro ? "PRO" : "FREE"}
+                  {isPro ? t.common.pro : t.common.free}
                 </Badge>
                 <p className="text-sm text-foreground font-medium mb-3">
-                  You have {isPro ? "unlimited" : "limited"} access with -
+                  {t.settings.youHave} {isPro ? t.settings.unlimited : t.settings.limited} {t.settings.accessWith}
                 </p>
                 <div className="space-y-2.5">
                   <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4 flex-shrink-0" />
-                    <span>{isPro ? "Unlimited queries / day" : "2 queries / day"}</span>
+                    <span>{isPro ? t.settings.unlimitedQueries : t.settings.limitedQueries}</span>
                   </div>
                   <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
                     <FileCheck className="h-4 w-4 flex-shrink-0" />
-                    <span>{isPro ? "Unlimited Mains evaluations" : "3 Mains evaluations / month"}</span>
+                    <span>{isPro ? t.settings.unlimitedEvals : t.settings.limitedEvals}</span>
                   </div>
                   <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
                     <LayoutDashboard className="h-4 w-4 flex-shrink-0" />
-                    <span>{isPro ? "Full access to all features" : "Limited access in dashboard"}</span>
+                    <span>{isPro ? t.settings.fullAccess : t.settings.limitedAccess}</span>
                   </div>
                 </div>
               </Card>
@@ -89,14 +91,14 @@ export default function SettingsPage() {
                     <div>
                       <h3 className="font-bold text-foreground flex items-center gap-2">
                         <Crown className="h-4 w-4 text-primary" />
-                        Upgrade Your Plan
+                        {t.settings.upgradePlan}
                       </h3>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Continue your preparation with <span className="font-bold text-foreground">Unlimited Access</span> of Learnpro AI
+                        {t.settings.upgradeDesc} <span className="font-bold text-foreground">{t.settings.unlimitedAccess}</span> {t.settings.ofLearnpro}
                       </p>
                     </div>
                     <Button className="gap-2 whitespace-nowrap" data-testid="button-upgrade-pro" onClick={() => navigate("/subscription")}>
-                      View Plans
+                      {t.settings.viewPlans}
                       <ArrowRight className="h-3.5 w-3.5" />
                     </Button>
                   </div>
@@ -112,11 +114,11 @@ export default function SettingsPage() {
                   <Bell className="h-6 w-6 text-primary" />
                 </div>
                 <Badge variant="secondary" className="mb-3 text-xs font-bold uppercase">
-                  Coming Soon
+                  {t.common.comingSoon}
                 </Badge>
-                <h3 className="font-bold text-foreground mb-1.5" data-testid="text-notif-coming-soon">Notification Preferences</h3>
+                <h3 className="font-bold text-foreground mb-1.5" data-testid="text-notif-coming-soon">{t.settings.notifComingSoon}</h3>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
-                  We're building Email and WhatsApp notifications for transaction updates, content alerts, and announcements. Stay tuned!
+                  {t.settings.notifComingSoonDesc}
                 </p>
               </Card>
             </div>

@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNotes, useNoteFolders, useNoteTags, useUpdateNote, useDeleteNote, useReviewNote, useDueNotesCount } from "@/hooks/use-notes";
 import { generatePDF, noteToPDFSections } from "@/lib/pdf-generator";
 import { StyledMarkdown } from "@/components/ui/styled-markdown";
+import { useLanguage } from "@/i18n/context";
 import {
   Select,
   SelectContent,
@@ -89,6 +90,7 @@ const SUBJECT_COLORS: Record<string, string> = {
 };
 
 export default function NotesPage() {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("all");
@@ -140,7 +142,7 @@ export default function NotesPage() {
 
   const handleSaveEdit = () => {
     if (!selectedNote) return;
-    const tagsArr = editTags.split(",").map((t) => t.trim()).filter(Boolean);
+    const tagsArr = editTags.split(",").map((s) => s.trim()).filter(Boolean);
     const folderValue = showNewEditFolder ? newEditFolderName.trim() : editFolder;
     updateNote.mutate({
       id: selectedNote.id,
@@ -153,9 +155,9 @@ export default function NotesPage() {
       onSuccess: (updated: Note) => {
         setSelectedNote(updated);
         setView("detail");
-        toast({ title: "Note updated" });
+        toast({ title: t.notes.noteUpdated });
       },
-      onError: () => toast({ title: "Failed to update note", variant: "destructive" }),
+      onError: () => toast({ title: t.notes.noteUpdateFailed, variant: "destructive" }),
     });
   };
 
@@ -164,7 +166,7 @@ export default function NotesPage() {
       onSuccess: () => {
         setView("list");
         setSelectedNote(null);
-        toast({ title: "Note deleted" });
+        toast({ title: t.notes.noteDeleted });
       },
     });
   };
@@ -173,7 +175,7 @@ export default function NotesPage() {
     reviewNote.mutate(id, {
       onSuccess: (updated: Note) => {
         setSelectedNote(updated);
-        toast({ title: "Marked as reviewed! Next review scheduled." });
+        toast({ title: t.notes.reviewSuccess });
       },
     });
   };
@@ -192,9 +194,9 @@ export default function NotesPage() {
         sections,
         fileName: `learnpro-note-${note.id}.pdf`,
       });
-      toast({ title: "PDF downloaded" });
+      toast({ title: t.chat.pdfDownloaded });
     } catch {
-      toast({ title: "Failed to generate PDF", variant: "destructive" });
+      toast({ title: t.chat.pdfFailed, variant: "destructive" });
     }
   };
 
@@ -207,7 +209,7 @@ export default function NotesPage() {
     a.download = `learnpro-note-${note.id}.md`;
     a.click();
     URL.revokeObjectURL(url);
-    toast({ title: "Markdown exported" });
+    toast({ title: t.notes.mdExported });
   };
 
   const isDue = (note: Note) => note.nextReviewAt && new Date(note.nextReviewAt) <= new Date();
@@ -218,10 +220,10 @@ export default function NotesPage() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h1 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-notes-heading">
-              My Notes
+              {t.notes.title}
             </h1>
             <p className="text-muted-foreground text-xs sm:text-sm mt-0.5">
-              Your saved study notes from AI conversations
+              {t.notes.savedNotes}
             </p>
           </div>
           {dueCount && dueCount.count > 0 && (
@@ -232,7 +234,7 @@ export default function NotesPage() {
               data-testid="button-due-for-review"
             >
               <Bell className="h-4 w-4 mr-1.5" />
-              {dueCount.count} due
+              {dueCount.count} {t.notes.due}
             </Button>
           )}
         </div>
@@ -241,7 +243,7 @@ export default function NotesPage() {
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search notes..."
+              placeholder={t.notes.searchNotes}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -255,33 +257,33 @@ export default function NotesPage() {
             data-testid="button-toggle-filters"
           >
             <Filter className="h-4 w-4 mr-1.5" />
-            Filters
+            {t.notes.filters}
           </Button>
         </div>
 
         {showFilters && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Subject</label>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.notes.subject}</label>
               <Select value={subjectFilter} onValueChange={setSubjectFilter}>
                 <SelectTrigger data-testid="select-subject-filter">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {SUBJECT_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    <SelectItem key={opt.value} value={opt.value}>{opt.value === "all" ? t.notes.allSubjects : opt.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Folder</label>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.notes.folder}</label>
               <Select value={folderFilter} onValueChange={setFolderFilter}>
                 <SelectTrigger data-testid="select-folder-filter">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Folders</SelectItem>
+                  <SelectItem value="all">{t.notes.allFolders}</SelectItem>
                   {(folders || []).map((f) => (
                     <SelectItem key={f} value={f}>{f}</SelectItem>
                   ))}
@@ -289,15 +291,15 @@ export default function NotesPage() {
               </Select>
             </div>
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Tag</label>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.notes.tag}</label>
               <Select value={tagFilter} onValueChange={setTagFilter}>
                 <SelectTrigger data-testid="select-tag-filter">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Tags</SelectItem>
-                  {(tags || []).map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  <SelectItem value="all">{t.notes.allTags}</SelectItem>
+                  {(tags || []).map((tg) => (
+                    <SelectItem key={tg} value={tg}>{tg}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -317,13 +319,13 @@ export default function NotesPage() {
           </div>
           <h3 className="text-lg font-semibold mb-2">
             {searchQuery || subjectFilter !== "all" || folderFilter !== "all" || tagFilter !== "all" || showDueOnly
-              ? "No matching notes found"
-              : "No notes yet"}
+              ? t.notes.noMatchingNotes
+              : t.notes.noNotes}
           </h3>
           <p className="text-muted-foreground text-sm max-w-md">
             {searchQuery || subjectFilter !== "all"
-              ? "Try adjusting your filters or search query."
-              : "Save AI responses from your chat conversations as notes to build your study library."}
+              ? t.notes.adjustFilters
+              : t.notes.saveFromChat}
           </p>
         </div>
       ) : (
@@ -347,7 +349,7 @@ export default function NotesPage() {
                     {isDue(note) && (
                       <Badge variant="secondary" className="text-amber-600 dark:text-amber-400">
                         <Bell className="h-3 w-3 mr-1" />
-                        Due for review
+                        {t.notes.dueForReview}
                       </Badge>
                     )}
                   </div>
@@ -397,7 +399,7 @@ export default function NotesPage() {
             data-testid="button-back-to-notes"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t.common.back}
           </button>
           <div className="flex items-center gap-1 flex-wrap">
             {isDue(selectedNote) && (
@@ -409,12 +411,12 @@ export default function NotesPage() {
                 data-testid="button-mark-reviewed"
               >
                 <CheckCircle2 className="h-4 w-4 mr-1.5" />
-                Mark Reviewed
+                {t.notes.reviewNote}
               </Button>
             )}
             <Button variant="ghost" size="sm" onClick={() => startEdit(selectedNote)} data-testid="button-edit-note">
               <Edit3 className="h-4 w-4 mr-1.5" />
-              Edit
+              {t.common.edit}
             </Button>
             <Button variant="ghost" size="sm" onClick={() => handleExportPDF(selectedNote)} data-testid="button-export-pdf">
               <Download className="h-4 w-4 mr-1.5" />
@@ -432,16 +434,16 @@ export default function NotesPage() {
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Note?</AlertDialogTitle>
-                  <AlertDialogDescription>This will permanently delete this note.</AlertDialogDescription>
+                  <AlertDialogTitle>{t.notes.deleteNoteTitle}</AlertDialogTitle>
+                  <AlertDialogDescription>{t.notes.deleteConfirm}</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => handleDelete(selectedNote.id)}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    Delete
+                    {t.common.delete}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -475,11 +477,11 @@ export default function NotesPage() {
           </div>
 
           <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4 border-b border-border pb-3">
-            <span>Created: {new Date(selectedNote.createdAt).toLocaleDateString("en-IN")}</span>
-            <span>Updated: {new Date(selectedNote.updatedAt).toLocaleDateString("en-IN")}</span>
+            <span>{t.notes.created}: {new Date(selectedNote.createdAt).toLocaleDateString("en-IN")}</span>
+            <span>{t.notes.updated}: {new Date(selectedNote.updatedAt).toLocaleDateString("en-IN")}</span>
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              Reviews: {selectedNote.reviewCount}
+              {t.notes.reviews}: {selectedNote.reviewCount}
             </span>
             {selectedNote.nextReviewAt && (
               <span className={cn(
@@ -487,7 +489,7 @@ export default function NotesPage() {
                 isDue(selectedNote) ? "text-amber-600 dark:text-amber-400 font-medium" : ""
               )}>
                 <Bell className="h-3 w-3" />
-                Next: {new Date(selectedNote.nextReviewAt).toLocaleDateString("en-IN")}
+                {t.notes.nextReview}: {new Date(selectedNote.nextReviewAt).toLocaleDateString("en-IN")}
               </span>
             )}
           </div>
@@ -512,12 +514,12 @@ export default function NotesPage() {
             data-testid="button-back-to-detail"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t.common.back}
           </button>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setView("detail")}>Cancel</Button>
+            <Button variant="outline" size="sm" onClick={() => setView("detail")}>{t.common.cancel}</Button>
             <Button size="sm" onClick={handleSaveEdit} disabled={updateNote.isPending} data-testid="button-save-edit">
-              {updateNote.isPending ? "Saving..." : "Save Changes"}
+              {updateNote.isPending ? t.notes.saving : t.notes.saveChanges}
             </Button>
           </div>
         </div>
@@ -525,24 +527,24 @@ export default function NotesPage() {
         <Card className="p-6" data-testid="card-note-edit">
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-1.5 block">Title</label>
+              <label className="text-sm font-medium mb-1.5 block">{t.notes.noteTitle}</label>
               <Input
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                placeholder="Note title..."
+                placeholder={t.notes.noteTitle_placeholder}
                 data-testid="input-edit-title"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Subject</label>
+                <label className="text-sm font-medium mb-1.5 block">{t.notes.subject}</label>
                 <Select value={editSubject} onValueChange={setEditSubject}>
                   <SelectTrigger data-testid="select-edit-subject">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No subject</SelectItem>
+                    <SelectItem value="none">{t.notes.noSubject}</SelectItem>
                     {SUBJECT_OPTIONS.filter((o) => o.value !== "all").map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                     ))}
@@ -550,22 +552,22 @@ export default function NotesPage() {
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Tags</label>
+                <label className="text-sm font-medium mb-1.5 block">{t.notes.tags}</label>
                 <Input
                   value={editTags}
                   onChange={(e) => setEditTags(e.target.value)}
-                  placeholder="history, polity (comma separated)"
+                  placeholder={t.notes.tagsPlaceholder}
                   data-testid="input-edit-tags"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Folder</label>
+                <label className="text-sm font-medium mb-1.5 block">{t.notes.folder}</label>
                 {showNewEditFolder ? (
                   <div className="flex items-center gap-2">
                     <Input
                       value={newEditFolderName}
                       onChange={(e) => setNewEditFolderName(e.target.value)}
-                      placeholder="New folder name..."
+                      placeholder={t.notes.newFolderPlaceholder}
                       autoFocus
                       data-testid="input-new-edit-folder"
                     />
@@ -574,17 +576,17 @@ export default function NotesPage() {
                       size="sm"
                       onClick={() => { setShowNewEditFolder(false); setNewEditFolderName(""); }}
                     >
-                      Cancel
+                      {t.common.cancel}
                     </Button>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
                     <Select value={editFolder || "none"} onValueChange={(v) => setEditFolder(v === "none" ? "" : v)}>
                       <SelectTrigger data-testid="select-edit-folder" className="flex-1">
-                        <SelectValue placeholder="Select folder" />
+                        <SelectValue placeholder={t.notes.selectFolder} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">No folder</SelectItem>
+                        <SelectItem value="none">{t.notes.noFolder}</SelectItem>
                         {(folders || []).map((f) => (
                           <SelectItem key={f} value={f}>{f}</SelectItem>
                         ))}
@@ -604,7 +606,7 @@ export default function NotesPage() {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-1.5 block">Content (Markdown supported)</label>
+              <label className="text-sm font-medium mb-1.5 block">{t.notes.content}</label>
               <Textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
@@ -614,7 +616,7 @@ export default function NotesPage() {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-1.5 block">Preview</label>
+              <label className="text-sm font-medium mb-1.5 block">{t.notes.preview}</label>
               <Card className="p-4">
                 <div>
                   <StyledMarkdown>{editContent}</StyledMarkdown>

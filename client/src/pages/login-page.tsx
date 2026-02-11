@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Phone, ArrowLeft, Shield, CheckCircle2 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLanguage } from "@/i18n/context";
 import { motion, AnimatePresence } from "framer-motion";
 
 function GoogleIcon({ className }: { className?: string }) {
@@ -24,6 +25,7 @@ export default function LoginPage() {
   const { isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -113,7 +115,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     if (phoneNumber.length !== 10) {
-      setError("Please enter a valid 10-digit mobile number");
+      setError(t.auth.invalidPhone);
       return;
     }
     sendOtpMutation.mutate(phoneNumber);
@@ -189,17 +191,17 @@ export default function LoginPage() {
                     <Phone className="h-6 w-6 text-primary" />
                   </div>
                   <h1 className="text-2xl font-bold text-foreground" data-testid="text-login-heading">
-                    Welcome Back
+                    {t.auth.welcomeBack}
                   </h1>
                   <p className="text-sm text-muted-foreground mt-1.5">
-                    Sign in to continue your preparation
+                    {t.auth.loginSubtitle}
                   </p>
                 </div>
 
                 <form onSubmit={handlePhoneSubmit} className="space-y-5">
                   <div>
                     <Label htmlFor="phone" className="text-sm font-medium">
-                      Mobile Number
+                      {t.auth.phoneNumber}
                     </Label>
                     <div className="flex flex-wrap gap-2 mt-1.5">
                       <div className="flex items-center justify-center px-3 rounded-md bg-secondary border border-border text-sm font-medium text-foreground min-w-[52px]">
@@ -208,7 +210,7 @@ export default function LoginPage() {
                       <Input
                         id="phone"
                         type="tel"
-                        placeholder="Enter 10-digit number"
+                        placeholder={t.auth.enterPhone}
                         value={phoneNumber}
                         onChange={(e) => {
                           const val = e.target.value.replace(/\D/g, "").slice(0, 10);
@@ -238,16 +240,16 @@ export default function LoginPage() {
                     {sendOtpMutation.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Sending OTP...
+                        {t.auth.sendingOtp}
                       </>
                     ) : (
-                      "Get OTP"
+                      t.auth.sendOtp
                     )}
                   </Button>
 
                   <div className="flex items-center flex-wrap gap-2 text-xs text-muted-foreground justify-center">
                     <Shield className="h-3.5 w-3.5" />
-                    <span>Your number is safe and secure with us</span>
+                    <span>{t.auth.numberSafe}</span>
                   </div>
                 </form>
 
@@ -258,7 +260,7 @@ export default function LoginPage() {
                         <span className="w-full border-t border-border" />
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-muted-foreground">or</span>
+                        <span className="bg-background px-2 text-muted-foreground">{t.auth.orContinueWith}</span>
                       </div>
                     </div>
 
@@ -270,7 +272,7 @@ export default function LoginPage() {
                       data-testid="button-google-login"
                     >
                       <GoogleIcon className="h-5 w-5 mr-2" />
-                      Continue with Google
+                      {t.auth.continueWithGoogle}
                     </Button>
                   </>
                 )}
@@ -288,17 +290,17 @@ export default function LoginPage() {
                     <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <h1 className="text-2xl font-bold text-foreground" data-testid="text-otp-heading">
-                    Verify OTP
+                    {t.auth.verifyOtp}
                   </h1>
                   <p className="text-sm text-muted-foreground mt-1.5">
-                    Enter the 6-digit code sent to{" "}
+                    {t.auth.otpSentTo}{" "}
                     <span className="font-medium text-foreground">+91 {phoneNumber}</span>
                   </p>
                 </div>
 
                 {screenOtp && (
                   <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-md p-3 text-center" data-testid="screen-otp-display">
-                    <p className="text-xs text-amber-700 dark:text-amber-300 mb-1">Your OTP</p>
+                    <p className="text-xs text-amber-700 dark:text-amber-300 mb-1">{t.auth.yourOtp}</p>
                     <p className="text-2xl font-bold tracking-[0.3em] text-amber-900 dark:text-amber-100">{screenOtp}</p>
                   </div>
                 )}
@@ -330,7 +332,7 @@ export default function LoginPage() {
                   {verifyOtpMutation.isPending && (
                     <div className="flex items-center justify-center flex-wrap gap-2 text-sm text-muted-foreground">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Verifying...
+                      {t.auth.verifying}
                     </div>
                   )}
 
@@ -341,7 +343,7 @@ export default function LoginPage() {
                       className="text-sm text-foreground font-medium disabled:text-muted-foreground disabled:cursor-not-allowed"
                       data-testid="button-resend-otp"
                     >
-                      {countdown > 0 ? `Resend OTP in ${countdown}s` : "Resend OTP"}
+                      {countdown > 0 ? `${t.auth.resendIn} ${countdown}s` : t.auth.resendOtp}
                     </button>
                   </div>
 
@@ -355,7 +357,7 @@ export default function LoginPage() {
                     data-testid="button-change-number"
                   >
                     <ArrowLeft className="h-3.5 w-3.5" />
-                    Change number
+                    {t.auth.changeNumber}
                   </button>
                 </div>
               </motion.div>
@@ -366,7 +368,7 @@ export default function LoginPage() {
 
       <div className="px-6 py-4 border-t border-border/40">
         <p className="text-[11px] text-muted-foreground text-center">
-          By continuing, you agree to Learnpro AI's Terms of Service and Privacy Policy
+          {t.auth.termsText}
         </p>
       </div>
     </div>

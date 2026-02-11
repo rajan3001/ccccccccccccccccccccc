@@ -25,6 +25,7 @@ import {
   ArrowDown,
 } from "lucide-react";
 import { generatePDF, chatToPDFSections } from "@/lib/pdf-generator";
+import { useLanguage } from "@/i18n/context";
 
 const TOPIC_SUGGESTIONS = [
   { text: "Create 5 Prelims MCQs on this topic", icon: ListChecks },
@@ -49,6 +50,7 @@ export default function ChatPage() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const { data: conversationData, isLoading: isChatLoading } = useConversation(conversationId);
   const { sendMessage, streamedContent, isStreaming, stopStream, pendingUserMessage } = useChatStream(conversationId || 0);
@@ -144,17 +146,17 @@ export default function ChatPage() {
                   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
                     <MessageCircle className="h-4 w-4 text-primary" />
                     <span className="text-sm font-medium text-foreground">
-                      {queryStatus.remaining} / {queryStatus.limit} queries left today
+                      {queryStatus.remaining} / {queryStatus.limit} {t.chat.queriesLeft}
                     </span>
                   </div>
                 </div>
               )}
 
               <h2 className="text-lg sm:text-2xl font-display font-semibold mb-1 text-center px-4" data-testid="text-welcome-heading">
-                Let's begin learning, {user?.firstName || "Aspirant"}
+                {t.chat.welcome}, {user?.firstName || t.chat.aspirant}
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground max-w-md text-center px-4">
-                Ask me anything about UPSC & State PSC preparation
+                {t.chat.askAnything}
               </p>
             </div>
           ) : isChatLoading ? (
@@ -180,14 +182,14 @@ export default function ChatPage() {
                           sections,
                           fileName: `learnpro-chat-${conversationId}.pdf`,
                         });
-                        toast({ title: "PDF downloaded successfully" });
+                        toast({ title: t.chat.pdfDownloaded });
                       } catch {
-                        toast({ title: "Failed to generate PDF", variant: "destructive" });
+                        toast({ title: t.chat.pdfFailed, variant: "destructive" });
                       }
                     }}
                   >
                     <Download className="h-4 w-4 mr-1.5" />
-                    Download Full Chat PDF
+                    {t.chat.downloadChatPdf}
                   </Button>
                 </div>
               )}
@@ -224,7 +226,7 @@ export default function ChatPage() {
                 <div className="px-3 sm:px-6 py-4" data-testid="chat-suggestions">
                   <div className="flex items-center gap-2 mb-3">
                     <Sparkles className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-semibold text-muted-foreground">You can also ask</span>
+                    <span className="text-sm font-semibold text-muted-foreground">{t.chat.youCanAlsoAsk}</span>
                   </div>
                   <div className="space-y-2">
                     {TOPIC_SUGGESTIONS.map((suggestion, i) => (
@@ -268,7 +270,7 @@ export default function ChatPage() {
           {queryLimitReached ? (
             <div className="max-w-3xl mx-auto text-center py-3 px-4 rounded-lg bg-destructive/10 border border-destructive/20">
               <p className="text-sm text-destructive font-medium" data-testid="text-query-limit">
-                Daily query limit reached. Upgrade to Pro for unlimited queries.
+                {t.chat.queryLimitReached}
               </p>
             </div>
           ) : (

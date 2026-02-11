@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/i18n/context";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,23 +37,18 @@ const GS_PAPER_COLORS: Record<string, string> = {
   "Essay": "hsl(45 80% 50%)",
 };
 
-const MOTIVATIONAL_MESSAGES = [
-  { min: 0, max: 0, message: "Start your preparation today. Every journey begins with a single step." },
-  { min: 1, max: 2, message: "Good start! Building consistency is the key to cracking UPSC." },
-  { min: 3, max: 6, message: "You're building momentum. Keep this pace going!" },
-  { min: 7, max: 13, message: "A week of consistency! Discipline beats motivation." },
-  { min: 14, max: 29, message: "Two weeks strong! You're developing a study habit." },
-  { min: 30, max: 59, message: "A month of dedication! Your future self will thank you." },
-  { min: 60, max: 89, message: "Incredible discipline! You're among the top aspirants now." },
-  { min: 90, max: Infinity, message: "90+ day streak! This level of commitment will take you to the top." },
-];
-
-function getMotivationalMessage(streak: number): string {
-  const msg = MOTIVATIONAL_MESSAGES.find(m => streak >= m.min && streak <= m.max);
-  return msg?.message || MOTIVATIONAL_MESSAGES[0].message;
+function getMotivationalMessage(streak: number, t: any): string {
+  if (streak === 0) return t.motivational.streak0;
+  if (streak >= 1 && streak <= 2) return t.motivational.streak1_2;
+  if (streak >= 3 && streak <= 6) return t.motivational.streak3_6;
+  if (streak >= 7 && streak <= 13) return t.motivational.streak7_13;
+  if (streak >= 14 && streak <= 29) return t.motivational.streak14_29;
+  if (streak >= 30 && streak <= 59) return t.motivational.streak30_59;
+  if (streak >= 60 && streak <= 89) return t.motivational.streak60_89;
+  return t.motivational.streak90plus;
 }
 
-function StreakCalendar({ data }: { data: { date: string; level: number }[] }) {
+function StreakCalendar({ data, t }: { data: { date: string; level: number }[]; t: any }) {
   const weeks = useMemo(() => {
     const result: { date: string; level: number }[][] = [];
     let currentWeek: { date: string; level: number }[] = [];
@@ -114,11 +110,11 @@ function StreakCalendar({ data }: { data: { date: string; level: number }[] }) {
         ))}
       </div>
       <div className="flex items-center gap-1 mt-2 justify-end text-[10px] text-muted-foreground">
-        <span>Less</span>
+        <span>{t.studyProgress.less}</span>
         {levelColors.map((color, i) => (
           <div key={i} className={`h-2.5 w-2.5 rounded-[2px] ${color}`} />
         ))}
-        <span>More</span>
+        <span>{t.studyProgress.more}</span>
       </div>
     </div>
   );
@@ -151,6 +147,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
 
 export default function StudyProgressPage() {
   const { isLoading: authLoading } = useAuth();
+  const { t } = useLanguage();
 
   const { data: overview, isLoading: overviewLoading } = useQuery<{
     streakCalendar: { date: string; level: number }[];
@@ -203,7 +200,7 @@ export default function StudyProgressPage() {
   }
 
   const streak = overview?.currentStreak || 0;
-  const motivationalMsg = getMotivationalMessage(streak);
+  const motivationalMsg = getMotivationalMessage(streak, t);
 
   return (
     <div className="flex h-screen bg-background" data-testid="study-progress-page">
@@ -211,8 +208,8 @@ export default function StudyProgressPage() {
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-16">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-foreground" data-testid="text-page-title">Study Progress</h1>
-            <p className="text-sm text-muted-foreground mt-1">Track your UPSC preparation journey</p>
+            <h1 className="text-2xl font-bold text-foreground" data-testid="text-page-title">{t.studyProgress.title}</h1>
+            <p className="text-sm text-muted-foreground mt-1">{t.studyProgress.subtitle}</p>
           </div>
 
           <Card className="p-4 sm:p-5 mb-5 border-primary/20 bg-primary/5 dark:bg-primary/10">
@@ -223,11 +220,11 @@ export default function StudyProgressPage() {
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-2xl font-bold text-foreground" data-testid="stat-current-streak">{streak}</span>
-                  <span className="text-sm text-muted-foreground">day streak</span>
+                  <span className="text-sm text-muted-foreground">{t.studyProgress.dayStreak}</span>
                   {streak >= 7 && (
                     <Badge variant="secondary" className="text-[10px]">
                       <Trophy className="h-3 w-3 mr-0.5 text-primary" />
-                      On Fire
+                      {t.studyProgress.onFire}
                     </Badge>
                   )}
                 </div>
@@ -239,28 +236,28 @@ export default function StudyProgressPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
             <StatCard
               icon={Flame}
-              label="Current Streak"
+              label={t.studyProgress.currentStreak}
               value={streak}
-              sub="days"
+              sub={t.studyProgress.days}
               color="hsl(35 90% 45%)"
             />
             <StatCard
               icon={Trophy}
-              label="Longest Streak"
+              label={t.studyProgress.longestStreak}
               value={overview?.longestStreak || 0}
-              sub="days"
+              sub={t.studyProgress.days}
               color="hsl(45 80% 50%)"
             />
             <StatCard
               icon={Calendar}
-              label="Study Days"
+              label={t.studyProgress.studyDays}
               value={overview?.totalStudyDays || 0}
-              sub="out of 90"
+              sub={t.studyProgress.outOf90}
               color="hsl(200 70% 50%)"
             />
             <StatCard
               icon={Target}
-              label="Quiz Accuracy"
+              label={t.studyProgress.quizAccuracy}
               value={`${overview?.stats?.quizAccuracy || 0}%`}
               sub={`${overview?.stats?.totalCorrect || 0}/${overview?.stats?.totalQuestions || 0}`}
               color="hsl(150 60% 40%)"
@@ -271,11 +268,11 @@ export default function StudyProgressPage() {
             <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
               <h2 className="font-bold text-foreground flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-primary" />
-                Study Streak (90 Days)
+                {t.studyProgress.streakCalendar}
               </h2>
             </div>
             {overview?.streakCalendar && (
-              <StreakCalendar data={overview.streakCalendar} />
+              <StreakCalendar data={overview.streakCalendar} t={t} />
             )}
           </Card>
 
@@ -283,11 +280,11 @@ export default function StudyProgressPage() {
             <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
               <h2 className="font-bold text-foreground flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-primary" />
-                Daily Study Time (30 Days)
+                {t.studyProgress.dailyStudyTime}
               </h2>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span>Total: <strong className="text-foreground">{Math.round(totalMinutes / 60)}h {totalMinutes % 60}m</strong></span>
-                <span>Avg: <strong className="text-foreground">{avgMinutes}m/day</strong></span>
+                <span>{t.studyProgress.totalTime}: <strong className="text-foreground">{Math.round(totalMinutes / 60)}h {totalMinutes % 60}m</strong></span>
+                <span>{t.studyProgress.avgPerDay}: <strong className="text-foreground">{avgMinutes}{t.studyProgress.min}/{t.studyProgress.perDay}</strong></span>
               </div>
             </div>
             <div className="h-48 sm:h-56">
@@ -315,7 +312,7 @@ export default function StudyProgressPage() {
                       borderRadius: "8px",
                       fontSize: "12px",
                     }}
-                    formatter={(value: number) => [`${value} min`, "Study Time"]}
+                    formatter={(value: number) => [`${value} ${t.studyProgress.min}`, t.studyProgress.studyTime]}
                   />
                   <Bar dataKey="minutes" fill="hsl(35 90% 45%)" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -326,20 +323,20 @@ export default function StudyProgressPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5">
             <StatCard
               icon={MessageSquare}
-              label="Total Chats"
+              label={t.studyProgress.totalChats}
               value={overview?.stats?.totalChats || 0}
               color="hsl(35 90% 45%)"
             />
             <StatCard
               icon={Brain}
-              label="Quiz Attempts"
+              label={t.studyProgress.quizAttempts}
               value={overview?.stats?.totalQuizAttempts || 0}
-              sub={`${overview?.stats?.totalQuestions || 0} MCQs`}
+              sub={`${overview?.stats?.totalQuestions || 0} ${t.studyProgress.mcqs}`}
               color="hsl(280 60% 50%)"
             />
             <StatCard
               icon={StickyNote}
-              label="Notes Saved"
+              label={t.studyProgress.notesSaved}
               value={overview?.stats?.totalNotes || 0}
               color="hsl(150 60% 40%)"
             />
@@ -349,7 +346,7 @@ export default function StudyProgressPage() {
             <Card className="p-4 sm:p-5 mb-5">
               <h2 className="font-bold text-foreground flex items-center gap-2 mb-4">
                 <BookOpen className="h-4 w-4 text-primary" />
-                GS Paper Coverage
+                {t.studyProgress.gsPaperCoverage}
               </h2>
               <div className="space-y-3">
                 {subjects.byGsPaper.map((paper) => {
@@ -365,9 +362,9 @@ export default function StudyProgressPage() {
                       <div className="flex items-center justify-between gap-2 mb-1.5">
                         <span className="text-sm font-medium text-foreground">{paper.gsPaper}</span>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>{paper.totalQuestions} MCQs</span>
+                          <span>{paper.totalQuestions} {t.studyProgress.mcqs}</span>
                           <Badge variant="secondary" className="text-[10px]">
-                            {accuracy}% accuracy
+                            {accuracy}% {t.studyProgress.accuracy}
                           </Badge>
                         </div>
                       </div>
@@ -388,7 +385,7 @@ export default function StudyProgressPage() {
             <Card className="p-4 sm:p-5 mb-5">
               <h2 className="font-bold text-foreground flex items-center gap-2 mb-4">
                 <TrendingUp className="h-4 w-4 text-primary" />
-                Exam-wise Performance
+                {t.studyProgress.examPerformance}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {subjects.byExam.map((exam) => {
@@ -402,9 +399,9 @@ export default function StudyProgressPage() {
                         <Badge variant="secondary" className="text-[10px] flex-shrink-0">{accuracy}%</Badge>
                       </div>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span>{exam.attempts} attempts</span>
-                        <span>{exam.totalQuestions} MCQs</span>
-                        <span>{exam.totalCorrect} correct</span>
+                        <span>{exam.attempts} {t.studyProgress.attempts}</span>
+                        <span>{exam.totalQuestions} {t.studyProgress.mcqs}</span>
+                        <span>{exam.totalCorrect} {t.studyProgress.correct}</span>
                       </div>
                     </div>
                   );
@@ -417,7 +414,7 @@ export default function StudyProgressPage() {
             <Card className="p-4 sm:p-5">
               <h2 className="font-bold text-foreground flex items-center gap-2 mb-4">
                 <MessageSquare className="h-4 w-4 text-primary" />
-                Recent Study Topics
+                {t.studyProgress.recentTopics}
               </h2>
               <div className="space-y-2">
                 {subjects.recentTopics.map((topic) => (

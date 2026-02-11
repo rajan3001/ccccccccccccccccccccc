@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { useSearch } from "wouter";
+import { useLanguage } from "@/i18n/context";
+import type { TranslationKeys } from "@/i18n/translations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -230,6 +232,7 @@ const QUESTION_COUNTS = [
 type ViewMode = "create" | "quiz" | "results" | "history" | "analytics";
 
 export default function PracticeQuizPage() {
+  const { t } = useLanguage();
   const searchString = useSearch();
   const [view, setView] = useState<ViewMode>("create");
   const [examType, setExamType] = useState("UPSC");
@@ -329,7 +332,7 @@ export default function PracticeQuizPage() {
         <div className="border-b px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-4 flex-wrap bg-background sticky top-0 z-40">
           <div className="flex items-center gap-2 sm:gap-3">
             <Brain className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            <h1 className="text-lg sm:text-xl font-bold" data-testid="text-quiz-title">Practice Quiz</h1>
+            <h1 className="text-lg sm:text-xl font-bold" data-testid="text-quiz-title">{t.quiz.title}</h1>
           </div>
           <div className="flex items-center gap-1 sm:gap-2">
             <Button
@@ -339,7 +342,7 @@ export default function PracticeQuizPage() {
               data-testid="button-new-quiz"
             >
               <Sparkles className="h-4 w-4 sm:mr-1" />
-              <span className="hidden sm:inline">New Quiz</span>
+              <span className="hidden sm:inline">{t.quiz.tryAgain}</span>
             </Button>
             <Button
               variant={view === "history" ? "default" : "ghost"}
@@ -348,7 +351,7 @@ export default function PracticeQuizPage() {
               data-testid="button-quiz-history"
             >
               <ListChecks className="h-4 w-4 sm:mr-1" />
-              <span className="hidden sm:inline">History</span>
+              <span className="hidden sm:inline">{t.nav.history}</span>
             </Button>
             <Button
               variant={view === "analytics" ? "default" : "ghost"}
@@ -376,6 +379,7 @@ export default function PracticeQuizPage() {
                 setNumQuestions={setNumQuestions}
                 onGenerate={handleGenerate}
                 isGenerating={generateMutation.isPending}
+                t={t}
               />
             )}
 
@@ -397,6 +401,7 @@ export default function PracticeQuizPage() {
                   onSubmit={handleSubmit}
                   isSubmitting={submitMutation.isPending}
                   answeredCount={answeredCount}
+                  t={t}
                 />
               ) : null
             )}
@@ -413,6 +418,7 @@ export default function PracticeQuizPage() {
                   currentIndex={currentQuestionIndex}
                   onSelectQuestion={(i) => setCurrentQuestionIndex(i)}
                   onNewQuiz={handleNewQuiz}
+                  t={t}
                 />
               ) : null
             )}
@@ -449,6 +455,7 @@ function CreateQuizView({
   setNumQuestions,
   onGenerate,
   isGenerating,
+  t,
 }: {
   examType: string;
   setExamType: (v: string) => void;
@@ -460,17 +467,24 @@ function CreateQuizView({
   setNumQuestions: (v: string) => void;
   onGenerate: () => void;
   isGenerating: boolean;
+  t: TranslationKeys;
 }) {
   const categories = getCategoriesForExam(examType);
   const nationalExams = EXAM_TYPES.filter(e => e.group === "National");
   const stateExams = EXAM_TYPES.filter(e => e.group === "State PSC");
   const neExams = EXAM_TYPES.filter(e => e.group === "State PSC (NE)");
 
+  const difficultyLabels: Record<string, string> = {
+    easy: t.quiz.easy,
+    medium: t.quiz.medium,
+    hard: t.quiz.hard,
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold" data-testid="text-create-heading">Create a Practice Quiz</h2>
-        <p className="text-muted-foreground">Generate exam-style MCQs powered by AI for UPSC & State PSC exams</p>
+        <h2 className="text-2xl font-bold" data-testid="text-create-heading">{t.quiz.title}</h2>
+        <p className="text-muted-foreground">{t.quiz.subtitle}</p>
       </div>
 
       <Card>
@@ -478,7 +492,7 @@ function CreateQuizView({
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-2">
               <GraduationCap className="h-4 w-4" />
-              Select Exam
+              {t.quiz.selectExam}
             </label>
             <Select value={examType} onValueChange={setExamType}>
               <SelectTrigger data-testid="select-exam-type">
@@ -508,7 +522,7 @@ function CreateQuizView({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Subject / Paper</label>
+            <label className="text-sm font-medium">{t.quiz.selectCategory}</label>
             <Select value={gsCategory} onValueChange={setGsCategory}>
               <SelectTrigger data-testid="select-gs-category">
                 <SelectValue placeholder="Select subject" />
@@ -524,7 +538,7 @@ function CreateQuizView({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Difficulty Level</label>
+            <label className="text-sm font-medium">{t.quiz.selectDifficulty}</label>
             <Select value={difficulty} onValueChange={setDifficulty}>
               <SelectTrigger data-testid="select-difficulty">
                 <SelectValue placeholder="Select difficulty" />
@@ -532,7 +546,7 @@ function CreateQuizView({
               <SelectContent>
                 {DIFFICULTIES.map((d) => (
                   <SelectItem key={d.value} value={d.value} data-testid={`option-difficulty-${d.value}`}>
-                    {d.label}
+                    {difficultyLabels[d.value] || d.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -564,12 +578,12 @@ function CreateQuizView({
             {isGenerating ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Generating {getExamLabel(examType)} Quiz...
+                {t.quiz.generating}
               </>
             ) : (
               <>
                 <Sparkles className="h-4 w-4 mr-2" />
-                Generate Quiz
+                {t.quiz.generate}
               </>
             )}
           </Button>
@@ -591,6 +605,7 @@ function QuizView({
   onSubmit,
   isSubmitting,
   answeredCount,
+  t,
 }: {
   attempt: QuizAttempt;
   questions: QuizQuestion[];
@@ -603,6 +618,7 @@ function QuizView({
   onSubmit: () => void;
   isSubmitting: boolean;
   answeredCount: number;
+  t: TranslationKeys;
 }) {
   const q = questions[currentIndex];
   const selectedOption = selectedAnswers[String(q.id)];
@@ -616,7 +632,7 @@ function QuizView({
           <Badge variant="outline" className="capitalize">{attempt.difficulty}</Badge>
         </div>
         <span className="text-sm text-muted-foreground" data-testid="text-quiz-progress">
-          {answeredCount} of {questions.length} answered
+          {answeredCount} {t.quiz.of} {questions.length}
         </span>
       </div>
 
@@ -642,7 +658,7 @@ function QuizView({
 
       <Card>
         <CardContent className="pt-6">
-          <p className="text-sm text-muted-foreground mb-1">Question {currentIndex + 1} of {questions.length}</p>
+          <p className="text-sm text-muted-foreground mb-1">{t.quiz.question} {currentIndex + 1} {t.quiz.of} {questions.length}</p>
           <p className="text-base font-medium mb-5" data-testid="text-question">{renderQuizText(q.question)}</p>
 
           <div className="space-y-2">
@@ -681,12 +697,12 @@ function QuizView({
           data-testid="button-prev-question"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
-          Previous
+          {t.common.back}
         </Button>
 
         {currentIndex < questions.length - 1 ? (
           <Button onClick={onNext} data-testid="button-next-question">
-            Next
+            {t.common.next}
             <ArrowRight className="h-4 w-4 ml-1" />
           </Button>
         ) : (
@@ -698,12 +714,12 @@ function QuizView({
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Submitting...
+                {t.common.submit}...
               </>
             ) : (
               <>
                 <CheckCircle2 className="h-4 w-4 mr-2" />
-                Submit Quiz ({answeredCount}/{questions.length})
+                {t.common.submit} ({answeredCount}/{questions.length})
               </>
             )}
           </Button>
@@ -719,12 +735,14 @@ function ResultsView({
   currentIndex,
   onSelectQuestion,
   onNewQuiz,
+  t,
 }: {
   attempt: QuizAttempt;
   questions: QuizQuestion[];
   currentIndex: number;
   onSelectQuestion: (i: number) => void;
   onNewQuiz: () => void;
+  t: TranslationKeys;
 }) {
   const score = attempt.score ?? 0;
   const total = attempt.totalQuestions;
@@ -737,7 +755,7 @@ function ResultsView({
         <CardContent className="pt-6">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="space-y-1">
-              <h2 className="text-xl font-bold" data-testid="text-results-heading">Quiz Results</h2>
+              <h2 className="text-xl font-bold" data-testid="text-results-heading">{t.quiz.results}</h2>
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant="default">{attempt.examType || "UPSC"}</Badge>
                 <Badge variant="secondary">{attempt.gsCategory}</Badge>
@@ -758,7 +776,7 @@ function ResultsView({
           <div className="mt-4 flex gap-2">
             <Button onClick={onNewQuiz} data-testid="button-new-quiz-from-results">
               <RotateCcw className="h-4 w-4 mr-2" />
-              New Quiz
+              {t.quiz.tryAgain}
             </Button>
           </div>
         </CardContent>
@@ -790,7 +808,7 @@ function ResultsView({
       {q && (
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground mb-1">Question {currentIndex + 1} of {total}</p>
+            <p className="text-sm text-muted-foreground mb-1">{t.quiz.question} {currentIndex + 1} {t.quiz.of} {total}</p>
             <p className="text-base font-medium mb-5" data-testid="text-review-question">{renderQuizText(q.question)}</p>
 
             <div className="space-y-2">
@@ -823,8 +841,8 @@ function ResultsView({
                       {isCorrect ? <CheckCircle2 className="h-3.5 w-3.5" /> : isWrongAnswer ? <XCircle className="h-3.5 w-3.5" /> : String.fromCharCode(65 + i)}
                     </span>
                     <span className="flex-1">{renderQuizText(opt)}</span>
-                    {isCorrect && <Badge variant="secondary" className="ml-auto flex-shrink-0">Correct</Badge>}
-                    {isWrongAnswer && <Badge variant="destructive" className="ml-auto flex-shrink-0">Your Answer</Badge>}
+                    {isCorrect && <Badge variant="secondary" className="ml-auto flex-shrink-0">{t.quiz.correct}</Badge>}
+                    {isWrongAnswer && <Badge variant="destructive" className="ml-auto flex-shrink-0">{t.quiz.yourAnswer}</Badge>}
                   </div>
                 );
               })}
@@ -832,7 +850,7 @@ function ResultsView({
 
             {q.explanation && (
               <div className="mt-4 p-4 rounded-md bg-muted/50 border border-border">
-                <p className="text-sm font-medium mb-1 text-muted-foreground">Explanation</p>
+                <p className="text-sm font-medium mb-1 text-muted-foreground">{t.quiz.explanation}</p>
                 <p className="text-sm" data-testid="text-explanation">{q.explanation}</p>
               </div>
             )}
@@ -848,7 +866,7 @@ function ResultsView({
           data-testid="button-review-prev"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
-          Previous
+          {t.common.back}
         </Button>
         <Button
           variant="outline"
@@ -856,7 +874,7 @@ function ResultsView({
           disabled={currentIndex === questions.length - 1}
           data-testid="button-review-next"
         >
-          Next
+          {t.common.next}
           <ArrowRight className="h-4 w-4 ml-1" />
         </Button>
       </div>

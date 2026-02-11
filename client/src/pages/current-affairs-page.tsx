@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { generatePDF, currentAffairsToPDFSections } from "@/lib/pdf-generator";
+import { useLanguage } from "@/i18n/context";
 
 const GS_CATEGORIES = ["All", "GS-I", "GS-II", "GS-III", "GS-IV", "Prelims"] as const;
 
@@ -131,6 +132,7 @@ function getDateRange(): string[] {
 }
 
 export default function CurrentAffairsPage() {
+  const { t } = useLanguage();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [gsFilter, setGsFilter] = useState<string>("All");
   const { toast } = useToast();
@@ -160,9 +162,9 @@ export default function CurrentAffairsPage() {
 
   const topics = data?.topics || [];
   const hasDigest = !!data?.digest;
-  const filteredTopics = gsFilter === "All" ? topics : topics.filter(t => t.gsCategory === gsFilter);
+  const filteredTopics = gsFilter === "All" ? topics : topics.filter(tp => tp.gsCategory === gsFilter);
 
-  const revisedCount = topics.filter((t) => t.revised).length;
+  const revisedCount = topics.filter((tp) => tp.revised).length;
   const totalCount = topics.length;
 
   const isFutureOrToday = (d: string) => d >= todayStr;
@@ -239,14 +241,14 @@ export default function CurrentAffairsPage() {
         <div className="max-w-6xl mx-auto px-4 py-4 sm:px-6 sm:py-5 pb-20">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-xl font-bold text-foreground" data-testid="text-page-title">Daily News Analysis</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">UPSC & State PSC Current Affairs</p>
+              <h1 className="text-xl font-bold text-foreground" data-testid="text-page-title">{t.currentAffairs.title}</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">{t.currentAffairs.subtitle}</p>
             </div>
             <div className="flex items-center gap-2">
               <Link href="/practice-quiz">
                 <Button variant="outline" size="sm" className="gap-1.5" data-testid="button-practice-tab">
                   <FileText className="h-3.5 w-3.5" />
-                  Practice MCQs
+                  {t.currentAffairs.practiceMCQs}
                 </Button>
               </Link>
             </div>
@@ -357,7 +359,7 @@ export default function CurrentAffairsPage() {
                   </h2>
                   {hasDigest && (
                     <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                      {totalCount} topics
+                      {totalCount} {t.currentAffairs.topics}
                     </span>
                   )}
                 </div>
@@ -383,7 +385,7 @@ export default function CurrentAffairsPage() {
                       data-testid="button-share-ca"
                     >
                       <Share2 className="h-3.5 w-3.5" />
-                      Share
+                      {t.currentAffairs.share}
                     </Button>
                     <Button
                       variant="outline"
@@ -406,7 +408,7 @@ export default function CurrentAffairsPage() {
                       }}
                     >
                       <Download className="h-3.5 w-3.5" />
-                      PDF
+                      {t.currentAffairs.downloadPdf}
                     </Button>
                   </div>
                 )}
@@ -417,11 +419,11 @@ export default function CurrentAffairsPage() {
                   <div className="flex flex-wrap items-center gap-3 mb-5">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mr-auto">
                       <BookOpen className="h-4 w-4" />
-                      <span data-testid="text-revision-progress">{revisedCount}/{totalCount} revised</span>
+                      <span data-testid="text-revision-progress">{revisedCount}/{totalCount} {t.currentAffairs.revised}</span>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       {GS_CATEGORIES.map((gs) => {
-                        const count = gs === "All" ? topics.length : topics.filter(t => t.gsCategory === gs).length;
+                        const count = gs === "All" ? topics.length : topics.filter(tp => tp.gsCategory === gs).length;
                         if (gs !== "All" && count === 0) return null;
                         return (
                           <button
@@ -435,7 +437,7 @@ export default function CurrentAffairsPage() {
                                 : "border-border text-muted-foreground hover-elevate"
                             )}
                           >
-                            {gs === "All" ? "All" : getGsBadgeLabel(gs, "")} {count > 0 && `(${count})`}
+                            {gs === "All" ? t.currentAffairs.allCategories : getGsBadgeLabel(gs, "")} {count > 0 && `(${count})`}
                           </button>
                         );
                       })}
@@ -491,7 +493,7 @@ export default function CurrentAffairsPage() {
                                   {topic.revised && (
                                     <span className="flex items-center gap-0.5 text-[11px] text-green-600 dark:text-green-400 font-medium">
                                       <Check className="h-3 w-3" />
-                                      Revised
+                                      {t.currentAffairs.revised}
                                     </span>
                                   )}
                                 </div>

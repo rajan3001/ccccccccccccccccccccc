@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUpload } from "@/hooks/use-upload";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/i18n/context";
 import {
   Dialog,
   DialogContent,
@@ -256,6 +257,7 @@ interface EvaluationSession {
 export default function PaperEvaluationPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -315,23 +317,23 @@ export default function PaperEvaluationPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/evaluations"] });
     },
     onError: () => {
-      toast({ title: "Failed to start evaluation", variant: "destructive" });
+      toast({ title: t.evaluation.failedToStart, variant: "destructive" });
     },
   });
 
   const validateFile = (file: File): boolean => {
     if (!ALLOWED_TYPES.includes(file.type)) {
       toast({
-        title: "Unsupported file type",
-        description: "Please upload a PDF, JPG, PNG, or WebP file.",
+        title: t.evaluation.unsupportedFileType,
+        description: t.evaluation.unsupportedFileDesc,
         variant: "destructive",
       });
       return false;
     }
     if (file.size > MAX_SIZE) {
       toast({
-        title: "File too large",
-        description: "Maximum file size is 20MB.",
+        title: t.evaluation.fileTooLarge,
+        description: t.evaluation.fileTooLargeDesc,
         variant: "destructive",
       });
       return false;
@@ -363,7 +365,7 @@ export default function PaperEvaluationPage() {
     if (!selectedFile) return;
 
     if (!hasQuestionPaper && !hasManualFields) {
-      toast({ title: "Missing paper details", description: "Either upload a question paper or fill in total marks, total questions, and questions attempted.", variant: "destructive" });
+      toast({ title: t.evaluation.missingDetails, description: t.evaluation.missingDetailsDesc, variant: "destructive" });
       return;
     }
 
@@ -372,14 +374,14 @@ export default function PaperEvaluationPage() {
       const questions = parseInt(totalQuestions);
       const attempted = parseInt(questionsAttempted);
       if (attempted > questions) {
-        toast({ title: "Invalid input", description: "Questions attempted cannot exceed total questions.", variant: "destructive" });
+        toast({ title: t.evaluation.invalidInput, description: t.evaluation.invalidInputDesc, variant: "destructive" });
         return;
       }
     }
 
     const answerResult = await uploadFile(selectedFile);
     if (!answerResult) {
-      toast({ title: "Upload failed", description: "Please try again.", variant: "destructive" });
+      toast({ title: t.evaluation.uploadFailed, description: t.evaluation.uploadFailedDesc, variant: "destructive" });
       return;
     }
 
@@ -387,7 +389,7 @@ export default function PaperEvaluationPage() {
     if (questionPaperFile) {
       const qpResult = await uploadFile(questionPaperFile);
       if (!qpResult) {
-        toast({ title: "Question paper upload failed", description: "Please try again.", variant: "destructive" });
+        toast({ title: t.evaluation.qpUploadFailed, description: t.evaluation.uploadFailedDesc, variant: "destructive" });
         return;
       }
       questionPaperObjectPath = qpResult.objectPath;
@@ -436,10 +438,10 @@ export default function PaperEvaluationPage() {
           <PenLine className="h-7 w-7 text-primary" />
         </div>
         <h1 className="text-2xl font-display font-bold" data-testid="text-evaluation-heading">
-          Answer Sheet Evaluation
+          {t.evaluation.title}
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Upload your answer sheet and get detailed AI evaluation as per exam norms
+          {t.evaluation.subtitle}
         </p>
       </div>
 
@@ -447,7 +449,7 @@ export default function PaperEvaluationPage() {
         <div className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium mb-1.5 block">Exam Type</label>
+              <label className="text-sm font-medium mb-1.5 block">{t.evaluation.examType}</label>
               <Select value={examType} onValueChange={handleExamTypeChange}>
                 <SelectTrigger data-testid="select-exam-type">
                   <SelectValue />
@@ -460,7 +462,7 @@ export default function PaperEvaluationPage() {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium mb-1.5 block">Paper Type</label>
+              <label className="text-sm font-medium mb-1.5 block">{t.evaluation.paperType}</label>
               <Select value={paperType} onValueChange={setPaperType}>
                 <SelectTrigger data-testid="select-paper-type">
                   <SelectValue />
@@ -475,7 +477,7 @@ export default function PaperEvaluationPage() {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-1.5 block">Upload Question Paper (Optional)</label>
+            <label className="text-sm font-medium mb-1.5 block">{t.evaluation.uploadQuestion}</label>
             <div
               className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
                 questionPaperFile ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/30"
@@ -508,21 +510,21 @@ export default function PaperEvaluationPage() {
                     onClick={(e) => { e.stopPropagation(); setQuestionPaperFile(null); }}
                     data-testid="button-remove-question-paper"
                   >
-                    Remove
+                    {t.evaluation.remove}
                   </Button>
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-1.5 py-1">
                   <BookOpen className="h-6 w-6 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Upload question paper to auto-extract details</span>
-                  <span className="text-xs text-muted-foreground">PDF, JPG, PNG or WebP</span>
+                  <span className="text-sm text-muted-foreground">{t.evaluation.uploadQuestionPaperDesc}</span>
+                  <span className="text-xs text-muted-foreground">PDF, JPG, PNG, WebP</span>
                 </div>
               )}
             </div>
             <span className="text-xs text-muted-foreground mt-1.5 block">
               {hasQuestionPaper
-                ? "AI will extract marks, questions, and other details from the question paper"
-                : "If you don't have the question paper, fill in the details below instead"}
+                ? t.evaluation.aiExtractHint
+                : t.evaluation.noQuestionPaperHint}
             </span>
           </div>
 
@@ -530,12 +532,12 @@ export default function PaperEvaluationPage() {
             <>
               <div className="flex items-center gap-3">
                 <div className="h-px flex-1 bg-border" />
-                <span className="text-xs text-muted-foreground font-medium">OR fill in paper details manually</span>
+                <span className="text-xs text-muted-foreground font-medium">{t.evaluation.orFillManually}</span>
                 <div className="h-px flex-1 bg-border" />
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="text-sm font-medium mb-1.5 block">Total Marks</label>
+                  <label className="text-sm font-medium mb-1.5 block">{t.evaluation.totalMarks}</label>
                   <Input
                     type="number"
                     placeholder="e.g. 250"
@@ -544,10 +546,10 @@ export default function PaperEvaluationPage() {
                     min={1}
                     data-testid="input-total-marks"
                   />
-                  <span className="text-xs text-muted-foreground mt-1 block">Full marks of the paper</span>
+                  <span className="text-xs text-muted-foreground mt-1 block">{t.evaluation.fullMarks}</span>
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1.5 block">Total Questions</label>
+                  <label className="text-sm font-medium mb-1.5 block">{t.evaluation.totalQuestions}</label>
                   <Input
                     type="number"
                     placeholder="e.g. 20"
@@ -556,10 +558,10 @@ export default function PaperEvaluationPage() {
                     min={1}
                     data-testid="input-total-questions"
                   />
-                  <span className="text-xs text-muted-foreground mt-1 block">Questions in the paper</span>
+                  <span className="text-xs text-muted-foreground mt-1 block">{t.evaluation.questionsInPaper}</span>
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1.5 block">Questions Attempted</label>
+                  <label className="text-sm font-medium mb-1.5 block">{t.evaluation.questionsAttempted}</label>
                   <Input
                     type="number"
                     placeholder="e.g. 18"
@@ -568,7 +570,7 @@ export default function PaperEvaluationPage() {
                     min={1}
                     data-testid="input-questions-attempted"
                   />
-                  <span className="text-xs text-muted-foreground mt-1 block">How many you answered</span>
+                  <span className="text-xs text-muted-foreground mt-1 block">{t.evaluation.howManyAnswered}</span>
                 </div>
               </div>
             </>
@@ -582,7 +584,7 @@ export default function PaperEvaluationPage() {
             data-testid="button-show-instructions"
           >
             <Info className="h-3.5 w-3.5 mr-1.5" />
-            Important instructions for accurate evaluation
+            {t.evaluation.importantInstructions}
           </Button>
 
           <div
@@ -611,14 +613,14 @@ export default function PaperEvaluationPage() {
                 <span className="text-xs text-muted-foreground">
                   {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB
                 </span>
-                <span className="text-xs text-primary">Click to change file</span>
+                <span className="text-xs text-primary">{t.evaluation.clickToChange}</span>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-2">
                 <Upload className="h-10 w-10 text-muted-foreground" />
-                <span className="font-medium text-sm">Upload Answer Sheet</span>
+                <span className="font-medium text-sm">{t.evaluation.uploadSheet}</span>
                 <span className="text-xs text-muted-foreground">
-                  PDF, JPG, PNG or WebP (max 20MB)
+                  PDF, JPG, PNG, WebP ({t.evaluation.maxFileSize})
                 </span>
               </div>
             )}
@@ -628,7 +630,7 @@ export default function PaperEvaluationPage() {
             <div className="space-y-2">
               <Progress value={isUploading ? uploadProgress : 100} className="h-1.5" />
               <p className="text-xs text-muted-foreground text-center">
-                {isUploading ? "Uploading file..." : "Starting evaluation..."}
+                {isUploading ? t.evaluation.uploadingFile : t.evaluation.startingEvaluation}
               </p>
             </div>
           )}
@@ -643,12 +645,12 @@ export default function PaperEvaluationPage() {
             {isProcessing ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Processing...
+                {t.evaluation.processing}
               </>
             ) : (
               <>
                 <Star className="h-4 w-4 mr-2" />
-                Evaluate Answer Sheet
+                {t.evaluation.evaluateAnswerSheet}
               </>
             )}
           </Button>
@@ -658,9 +660,9 @@ export default function PaperEvaluationPage() {
       {history && history.length > 0 && (
         <div className="mt-8">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-semibold" data-testid="text-history-heading">Previous Evaluations</h2>
+            <h2 className="text-base font-semibold" data-testid="text-history-heading">{t.evaluation.previousEvals}</h2>
             <Button variant="ghost" size="sm" onClick={() => setView("history")} data-testid="button-view-all-history">
-              View all
+              {t.evaluation.viewAll}
             </Button>
           </div>
           <div className="space-y-2">
@@ -698,7 +700,7 @@ export default function PaperEvaluationPage() {
                   )}
                   {session.status === "processing" && (
                     <Badge variant="secondary" className="text-amber-600 dark:text-amber-400">
-                      Processing
+                      {t.evaluation.processing}
                     </Badge>
                   )}
                 </div>
@@ -725,9 +727,9 @@ export default function PaperEvaluationPage() {
           <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-          <h2 className="text-xl font-display font-bold mb-2" data-testid="text-processing">Evaluating your answers...</h2>
+          <h2 className="text-xl font-display font-bold mb-2" data-testid="text-processing">{t.evaluation.evaluatingAnswers}</h2>
           <p className="text-sm text-muted-foreground">
-            Our AI examiner is analyzing your answer sheet. This may take a minute.
+            {t.evaluation.aiAnalyzing}
           </p>
           <Progress value={60} className="mt-6 h-1.5" />
         </div>
@@ -740,10 +742,10 @@ export default function PaperEvaluationPage() {
           <div className="h-16 w-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
           </div>
-          <h2 className="text-xl font-display font-bold mb-2">Evaluation Failed</h2>
+          <h2 className="text-xl font-display font-bold mb-2">{t.evaluation.evaluationFailed}</h2>
           <p className="text-sm text-muted-foreground mb-4">{activeResult.overallFeedback}</p>
           <Button onClick={() => { setView("upload"); setSelectedFile(null); setActiveSessionId(null); }}>
-            Try Again
+            {t.evaluation.tryAgain}
           </Button>
         </div>
       );
@@ -761,7 +763,7 @@ export default function PaperEvaluationPage() {
             data-testid="button-back-to-upload"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t.common.back}
           </button>
           <Button
             variant="ghost"
@@ -783,26 +785,26 @@ export default function PaperEvaluationPage() {
                   questions: questions,
                 });
                 await generatePDF({
-                  title: `Answer Evaluation Report - ${activeResult.examType} ${activeResult.paperType}`,
+                  title: `${t.evaluation.answerEvalReport} - ${activeResult.examType} ${activeResult.paperType}`,
                   subtitle: `${activeResult.fileName} - ${new Date(activeResult.createdAt).toLocaleDateString("en-IN")}`,
                   sections,
                   fileName: `learnpro-evaluation-${activeResult.id}.pdf`,
                 });
-                toast({ title: "PDF downloaded successfully" });
+                toast({ title: t.evaluation.pdfDownloaded });
               } catch {
-                toast({ title: "Failed to generate PDF", variant: "destructive" });
+                toast({ title: t.evaluation.pdfFailed, variant: "destructive" });
               }
             }}
           >
             <Download className="h-4 w-4 mr-1.5" />
-            Download PDF
+            {t.evaluation.downloadPdf}
           </Button>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6">
           <Card className={`flex-1 p-5 ${getScoreBgColor(activeResult.totalScore || 0, activeResult.maxScore || 250)}`} data-testid="card-overall-score">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Overall Score</h2>
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t.evaluation.overallScore}</h2>
               <Badge variant="secondary">{activeResult.examType} {activeResult.paperType}</Badge>
             </div>
             <div className="flex items-baseline gap-1">
@@ -820,32 +822,32 @@ export default function PaperEvaluationPage() {
           </Card>
 
           <Card className="flex-1 p-5" data-testid="card-file-info">
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Evaluation Details</h2>
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">{t.evaluation.evaluationDetails}</h2>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">File</span>
+                <span className="text-muted-foreground">{t.evaluation.file}</span>
                 <span className="font-medium truncate max-w-[200px]">{activeResult.fileName}</span>
               </div>
               {activeResult.totalMarks != null && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Marks</span>
+                  <span className="text-muted-foreground">{t.evaluation.totalMarks}</span>
                   <span className="font-medium">{activeResult.totalMarks}</span>
                 </div>
               )}
               {activeResult.totalQuestions != null && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Questions</span>
-                  <span className="font-medium">{activeResult.questionsAttempted ?? "?"} / {activeResult.totalQuestions} attempted</span>
+                  <span className="text-muted-foreground">{t.evaluation.questions}</span>
+                  <span className="font-medium">{activeResult.questionsAttempted ?? "?"} / {activeResult.totalQuestions} {t.evaluation.attempted}</span>
                 </div>
               )}
               {activeResult.questionPaperObjectPath && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Question Paper</span>
-                  <Badge variant="secondary">Uploaded</Badge>
+                  <span className="text-muted-foreground">{t.evaluation.questionPaper}</span>
+                  <Badge variant="secondary">{t.evaluation.uploaded}</Badge>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Date</span>
+                <span className="text-muted-foreground">{t.evaluation.date}</span>
                 <span className="font-medium">{new Date(activeResult.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
@@ -854,7 +856,7 @@ export default function PaperEvaluationPage() {
 
         {activeResult.overallFeedback && (
           <Card className="p-5 mb-6" data-testid="card-overall-feedback">
-            <h2 className="text-base font-semibold mb-3">Overall Feedback</h2>
+            <h2 className="text-base font-semibold mb-3">{t.evaluation.overallFeedback}</h2>
             <div>
               <StyledMarkdown>{activeResult.overallFeedback}</StyledMarkdown>
             </div>
@@ -870,7 +872,7 @@ export default function PaperEvaluationPage() {
             >
               <h2 className="text-base font-semibold flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-primary" />
-                Parameter-wise Analysis
+                {t.evaluation.parameterAnalysis}
               </h2>
               {showCompetency ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
@@ -893,7 +895,7 @@ export default function PaperEvaluationPage() {
                       </div>
                       {comp.strengths.length > 0 && (
                         <div className="mb-2">
-                          <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">Strengths</span>
+                          <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">{t.evaluation.strengths}</span>
                           <ul className="mt-1 space-y-1">
                             {comp.strengths.map((s, i) => (
                               <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
@@ -906,7 +908,7 @@ export default function PaperEvaluationPage() {
                       )}
                       {comp.improvements.length > 0 && (
                         <div>
-                          <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wide">Areas for Improvement</span>
+                          <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wide">{t.evaluation.improvements}</span>
                           <ul className="mt-1 space-y-1">
                             {comp.improvements.map((imp, i) => (
                               <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
@@ -927,7 +929,7 @@ export default function PaperEvaluationPage() {
 
         {questions.length > 0 && (
           <div className="mb-6">
-            <h2 className="text-base font-semibold mb-3" data-testid="text-questions-heading">Question-wise Evaluation</h2>
+            <h2 className="text-base font-semibold mb-3" data-testid="text-questions-heading">{t.evaluation.questionWiseEval}</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-4">
               {questions.map((q) => (
                 <button
@@ -968,7 +970,7 @@ export default function PaperEvaluationPage() {
 
                   {q.detailedFeedback && (
                     <div className="mb-4">
-                      <h4 className="text-sm font-semibold mb-2">Detailed Analysis</h4>
+                      <h4 className="text-sm font-semibold mb-2">{t.evaluation.detailedAnalysis}</h4>
                       <div>
                         <StyledMarkdown>{q.detailedFeedback}</StyledMarkdown>
                       </div>
@@ -979,7 +981,7 @@ export default function PaperEvaluationPage() {
                     {q.strengths.length > 0 && (
                       <div className="rounded-md bg-emerald-500/5 border border-emerald-500/20 p-3">
                         <h4 className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mb-2">
-                          Strengths
+                          {t.evaluation.strengths}
                         </h4>
                         <ul className="space-y-1.5">
                           {q.strengths.map((s, i) => (
@@ -994,7 +996,7 @@ export default function PaperEvaluationPage() {
                     {q.improvements.length > 0 && (
                       <div className="rounded-md bg-amber-500/5 border border-amber-500/20 p-3">
                         <h4 className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wide mb-2">
-                          Areas for Improvement
+                          {t.evaluation.improvements}
                         </h4>
                         <ul className="space-y-1.5">
                           {q.improvements.map((imp, i) => (
@@ -1012,19 +1014,19 @@ export default function PaperEvaluationPage() {
                     <div className="mt-4 space-y-3 border-t border-border pt-4">
                       {q.introductionFeedback && (
                         <div>
-                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Introduction</h4>
+                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">{t.evaluation.introduction}</h4>
                           <p className="text-sm">{q.introductionFeedback}</p>
                         </div>
                       )}
                       {q.bodyFeedback && (
                         <div>
-                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Body</h4>
+                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">{t.evaluation.body}</h4>
                           <p className="text-sm">{q.bodyFeedback}</p>
                         </div>
                       )}
                       {q.conclusionFeedback && (
                         <div>
-                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Conclusion</h4>
+                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">{t.evaluation.conclusion}</h4>
                           <p className="text-sm">{q.conclusionFeedback}</p>
                         </div>
                       )}
@@ -1047,11 +1049,11 @@ export default function PaperEvaluationPage() {
         data-testid="button-back-from-history"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back
+        {t.common.back}
       </button>
-      <h1 className="text-xl font-display font-bold mb-4" data-testid="text-all-evaluations-heading">All Evaluations</h1>
+      <h1 className="text-xl font-display font-bold mb-4" data-testid="text-all-evaluations-heading">{t.evaluation.allEvaluations}</h1>
       {!history || history.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No evaluations yet.</p>
+        <p className="text-sm text-muted-foreground">{t.evaluation.noEvaluationsYet}</p>
       ) : (
         <div className="space-y-2">
           {history.map((session) => (
@@ -1088,12 +1090,12 @@ export default function PaperEvaluationPage() {
                 )}
                 {session.status === "processing" && (
                   <Badge variant="secondary" className="text-amber-600 dark:text-amber-400">
-                    Processing
+                    {t.evaluation.processing}
                   </Badge>
                 )}
                 {session.status === "failed" && (
                   <Badge variant="secondary" className="text-red-600 dark:text-red-400">
-                    Failed
+                    {t.evaluation.failed}
                   </Badge>
                 )}
               </div>
@@ -1123,37 +1125,37 @@ export default function PaperEvaluationPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Info className="h-5 w-5 text-primary" />
-              Instructions for Accurate Evaluation
+              {t.evaluation.instructionsTitle}
             </DialogTitle>
             <DialogDescription>
-              Follow these guidelines to get the most accurate evaluation of your answer sheet.
+              {t.evaluation.instructionsDesc}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 text-sm">
             <div className="flex items-start gap-3 p-3 rounded-md bg-amber-500/5 border border-amber-500/20">
               <span className="font-bold text-amber-600 dark:text-amber-400 mt-0.5">1</span>
-              <p><span className="font-semibold">Write question numbers clearly</span> on every answer. Label each answer with its question number (e.g., Q1, Q2a, Q3b).</p>
+              <p><span className="font-semibold">{t.evaluation.instruction1Title}</span> {t.evaluation.instruction1Desc}</p>
             </div>
             <div className="flex items-start gap-3 p-3 rounded-md bg-amber-500/5 border border-amber-500/20">
               <span className="font-bold text-amber-600 dark:text-amber-400 mt-0.5">2</span>
-              <p><span className="font-semibold">Mention marks for each question</span> next to the question number. Write the marks allotted (e.g., "10 marks", "15 marks") so the AI can evaluate proportionally.</p>
+              <p><span className="font-semibold">{t.evaluation.instruction2Title}</span> {t.evaluation.instruction2Desc}</p>
             </div>
             <div className="flex items-start gap-3 p-3 rounded-md bg-amber-500/5 border border-amber-500/20">
               <span className="font-bold text-amber-600 dark:text-amber-400 mt-0.5">3</span>
-              <p><span className="font-semibold">Ensure clear handwriting</span> or typed text. Blurry images or illegible handwriting will reduce evaluation accuracy.</p>
+              <p><span className="font-semibold">{t.evaluation.instruction3Title}</span> {t.evaluation.instruction3Desc}</p>
             </div>
             <div className="flex items-start gap-3 p-3 rounded-md bg-amber-500/5 border border-amber-500/20">
               <span className="font-bold text-amber-600 dark:text-amber-400 mt-0.5">4</span>
-              <p><span className="font-semibold">Upload all pages</span> in a single PDF file if possible. For images, upload one page at a time.</p>
+              <p><span className="font-semibold">{t.evaluation.instruction4Title}</span> {t.evaluation.instruction4Desc}</p>
             </div>
             <div className="flex items-start gap-3 p-3 rounded-md bg-amber-500/5 border border-amber-500/20">
               <span className="font-bold text-amber-600 dark:text-amber-400 mt-0.5">5</span>
-              <p><span className="font-semibold">Fill in paper details accurately</span> - total marks, total questions, and questions attempted help the AI calculate scores correctly.</p>
+              <p><span className="font-semibold">{t.evaluation.instruction5Title}</span> {t.evaluation.instruction5Desc}</p>
             </div>
           </div>
           <DialogFooter>
             <Button onClick={() => { setShowInstructions(false); sessionStorage.setItem("evalInstructionsSeen", "true"); }} data-testid="button-close-instructions">
-              Got it, let's start
+              {t.evaluation.gotItStart}
             </Button>
           </DialogFooter>
         </DialogContent>

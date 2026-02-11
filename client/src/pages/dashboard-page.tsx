@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/i18n/context";
 import { Link, useLocation } from "wouter";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Card } from "@/components/ui/card";
@@ -67,40 +68,42 @@ const USER_TYPE_LABELS: Record<string, string> = {
   full_time_aspirant: "Full Time Aspirant",
 };
 
-const quickActions = [
-  {
-    title: "AI Chat",
-    description: "Ask any UPSC doubt to your AI mentor",
-    icon: MessageSquare,
-    href: "/chat/new",
-    color: "text-blue-600 dark:text-blue-400",
-    bgColor: "bg-blue-500/10",
-  },
-  {
-    title: "Current Affairs",
-    description: "Today's news mapped to GS papers",
-    icon: Newspaper,
-    href: "/current-affairs",
-    color: "text-amber-600 dark:text-amber-400",
-    bgColor: "bg-amber-500/10",
-  },
-  {
-    title: "Practice Quiz",
-    description: "Test yourself with AI-generated MCQs",
-    icon: Brain,
-    href: "/practice-quiz",
-    color: "text-emerald-600 dark:text-emerald-400",
-    bgColor: "bg-emerald-500/10",
-  },
-  {
-    title: "Answer Evaluation",
-    description: "Get your answer sheets evaluated by AI",
-    icon: FileCheck,
-    href: "/paper-evaluation",
-    color: "text-purple-600 dark:text-purple-400",
-    bgColor: "bg-purple-500/10",
-  },
-];
+function getQuickActions(t: any) {
+  return [
+    {
+      title: t.dashboard.startChat,
+      description: t.dashboard.startChatDesc,
+      icon: MessageSquare,
+      href: "/chat/new",
+      color: "text-blue-600 dark:text-blue-400",
+      bgColor: "bg-blue-500/10",
+    },
+    {
+      title: t.dashboard.dailyCA,
+      description: t.dashboard.dailyCADesc,
+      icon: Newspaper,
+      href: "/current-affairs",
+      color: "text-amber-600 dark:text-amber-400",
+      bgColor: "bg-amber-500/10",
+    },
+    {
+      title: t.dashboard.takeQuiz,
+      description: t.dashboard.takeQuizDesc,
+      icon: Brain,
+      href: "/practice-quiz",
+      color: "text-emerald-600 dark:text-emerald-400",
+      bgColor: "bg-emerald-500/10",
+    },
+    {
+      title: t.dashboard.evaluateAnswer,
+      description: t.dashboard.evaluateAnswerDesc,
+      icon: FileCheck,
+      href: "/paper-evaluation",
+      color: "text-purple-600 dark:text-purple-400",
+      bgColor: "bg-purple-500/10",
+    },
+  ];
+}
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -203,12 +206,12 @@ interface DashboardStats {
 }
 
 
-function TodayAchievements({ stats }: { stats: DashboardStats }) {
+function TodayAchievements({ stats, t }: { stats: DashboardStats; t: any }) {
   const achievements = [
-    { label: "MCQs Practiced", value: stats.today.mcqsSolved, allTime: stats.allTime.mcqsSolved, icon: Brain, color: "#f59e0b", bg: "#fef3c7" },
-    { label: "AI Chats", value: stats.today.topicsStudied, allTime: stats.allTime.topicsStudied, icon: MessageSquare, color: "#3b82f6", bg: "#dbeafe" },
-    { label: "Articles Read", value: stats.allTime.currentAffairsRevised, allTime: stats.allTime.currentAffairsTotal, icon: Newspaper, color: "#10b981", bg: "#d1fae5" },
-    { label: "Notes Saved", value: stats.today.notesSaved, allTime: stats.allTime.notesSaved, icon: NotebookPen, color: "#f97316", bg: "#ffedd5" },
+    { label: t.dashboard.mcqsSolved, value: stats.today.mcqsSolved, allTime: stats.allTime.mcqsSolved, icon: Brain, color: "#f59e0b", bg: "#fef3c7" },
+    { label: t.dashboard.topicsStudied, value: stats.today.topicsStudied, allTime: stats.allTime.topicsStudied, icon: MessageSquare, color: "#3b82f6", bg: "#dbeafe" },
+    { label: t.dashboard.caRead, value: stats.allTime.currentAffairsRevised, allTime: stats.allTime.currentAffairsTotal, icon: Newspaper, color: "#10b981", bg: "#d1fae5" },
+    { label: t.dashboard.notesSaved, value: stats.today.notesSaved, allTime: stats.allTime.notesSaved, icon: NotebookPen, color: "#f97316", bg: "#ffedd5" },
   ];
 
   const accuracy = stats.today.mcqsSolved > 0
@@ -221,7 +224,7 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
         <div className="px-4 sm:px-5 pt-3 sm:pt-4 pb-1">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <h2 className="text-sm sm:text-base font-bold text-foreground" data-testid="text-achievements-heading">
-              Today's Activity
+              {t.dashboard.todayAchievements}
             </h2>
             {stats.today.mcqsSolved > 0 && (
               <Badge variant="secondary" className="text-[10px] font-semibold">
@@ -257,7 +260,7 @@ function TodayAchievements({ stats }: { stats: DashboardStats }) {
   );
 }
 
-function ProgressTrendChart({ stats }: { stats: DashboardStats }) {
+function ProgressTrendChart({ stats, t }: { stats: DashboardStats; t: any }) {
   const chartData = stats.trend.map((d) => {
     const dateObj = new Date(d.date + "T00:00:00");
     const dayName = DAY_NAMES[dateObj.getDay() === 0 ? 6 : dateObj.getDay() - 1];
@@ -282,7 +285,7 @@ function ProgressTrendChart({ stats }: { stats: DashboardStats }) {
           <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
             <TrendingUp className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" />
           </div>
-          <h3 className="text-[11px] sm:text-xs font-semibold text-foreground" data-testid="text-trend-title">7-Day Learning Trend</h3>
+          <h3 className="text-[11px] sm:text-xs font-semibold text-foreground" data-testid="text-trend-title">{t.dashboard.weeklyProgress}</h3>
         </div>
         {hasAnyData && (
           <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-600 text-[10px]">
@@ -438,7 +441,7 @@ function CustomGoalTooltip({ active, payload, label }: any) {
   );
 }
 
-function WeeklyGoalsChart() {
+function WeeklyGoalsChart({ t }: { t: any }) {
   const { data, isLoading } = useQuery<WeeklyGoalData[]>({
     queryKey: ["/api/study-planner/weekly-goals"],
   });
@@ -475,7 +478,7 @@ function WeeklyGoalsChart() {
           <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
             <CalendarDays className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-blue-600 dark:text-blue-400" />
           </div>
-          <h3 className="text-[11px] sm:text-xs font-semibold text-foreground" data-testid="text-weekly-goals-title">This Week's Goals</h3>
+          <h3 className="text-[11px] sm:text-xs font-semibold text-foreground" data-testid="text-weekly-goals-title">{t.dashboard.weeklyProgress}</h3>
         </div>
         <div className="flex items-center gap-1 sm:gap-2">
           <span className="text-xs sm:text-sm font-bold text-foreground" data-testid="text-completion-rate">{completionRate}%</span>
@@ -542,6 +545,7 @@ function WeeklyGoalsChart() {
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth();
+  const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const createMutation = useCreateConversation();
 
@@ -611,12 +615,12 @@ export default function DashboardPage() {
               </div>
             </Card>
           ) : dashboardStats ? (
-            <TodayAchievements stats={dashboardStats} />
+            <TodayAchievements stats={dashboardStats} t={t} />
           ) : null}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 sm:gap-3 mb-3 sm:mb-4">
-            {dashboardStats && <ProgressTrendChart stats={dashboardStats} />}
-            <WeeklyGoalsChart />
+            {dashboardStats && <ProgressTrendChart stats={dashboardStats} t={t} />}
+            <WeeklyGoalsChart t={t} />
           </div>
 
           <div style={{ animation: "dashboard-slide-up 0.5s ease-out 0.7s both" }}>
@@ -624,7 +628,7 @@ export default function DashboardPage() {
               Start Learning
             </h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5 mb-3 sm:mb-4">
-              {quickActions.map((action, idx) => (
+              {getQuickActions(t).map((action, idx) => (
                 <Link key={action.href} href={action.href} data-testid={`link-action-${action.title.toLowerCase().replace(/\s/g, "-")}`}>
                   <Card
                     className="p-2.5 sm:p-3 h-full hover-elevate cursor-pointer group"

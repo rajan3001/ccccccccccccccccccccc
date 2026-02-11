@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/i18n/context";
 import {
   Select,
   SelectContent,
@@ -140,6 +141,7 @@ function ExamSelector({ selectedExam, onExamChange, userExams }: { selectedExam:
 }
 
 function TimetableTab({ userExams }: { userExams: string[] }) {
+  const { t } = useLanguage();
   const { data: slots, isLoading } = useTimetable();
   const createSlot = useCreateSlot();
   const deleteSlot = useDeleteSlot();
@@ -156,14 +158,14 @@ function TimetableTab({ userExams }: { userExams: string[] }) {
 
   const handleCreate = () => {
     if (!form.subject.trim()) {
-      toast({ title: "Please enter a subject", variant: "destructive" });
+      toast({ title: t.planner.enterSubject, variant: "destructive" });
       return;
     }
     createSlot.mutate(form, {
       onSuccess: () => {
         setDialogOpen(false);
         setForm({ dayOfWeek: 1, startTime: "09:00", endTime: "10:00", gsPaper: "General Studies", subject: "" });
-        toast({ title: "Time slot added" });
+        toast({ title: t.planner.slotAdded });
       },
     });
   };
@@ -171,10 +173,10 @@ function TimetableTab({ userExams }: { userExams: string[] }) {
   const handleAIGenerate = () => {
     aiGenerate.mutate({ targetExams: userExams }, {
       onSuccess: () => {
-        toast({ title: "Timetable created by AI", description: "Your weekly study timetable has been generated based on your syllabus." });
+        toast({ title: t.planner.timetableCreated, description: t.planner.timetableCreatedDesc });
       },
       onError: (err) => {
-        toast({ title: "Failed to generate", description: err.message, variant: "destructive" });
+        toast({ title: t.planner.failedToGenerate, description: err.message, variant: "destructive" });
       },
     });
   };
@@ -187,28 +189,28 @@ function TimetableTab({ userExams }: { userExams: string[] }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h3 className="text-lg font-semibold" data-testid="text-timetable-heading">Weekly Timetable</h3>
-          <p className="text-sm text-muted-foreground">Plan your study schedule for the week</p>
+          <h3 className="text-lg font-semibold" data-testid="text-timetable-heading">{t.planner.weeklyTimetable}</h3>
+          <p className="text-sm text-muted-foreground">{t.planner.planSchedule}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" onClick={handleAIGenerate} disabled={aiGenerate.isPending} data-testid="button-ai-generate-timetable">
             {aiGenerate.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Sparkles className="h-4 w-4 mr-1.5" />}
-            {aiGenerate.isPending ? "Generating..." : "AI Generate"}
+            {aiGenerate.isPending ? t.planner.generatingTimetable : t.planner.aiGenerate}
           </Button>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button data-testid="button-add-slot">
                 <Plus className="h-4 w-4 mr-1.5" />
-                Add Slot
+                {t.planner.addSlot}
               </Button>
             </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Study Slot</DialogTitle>
+              <DialogTitle>{t.planner.addStudySlot}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-2">
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Day</label>
+                <label className="text-sm font-medium mb-1.5 block">{t.planner.day}</label>
                 <Select value={String(form.dayOfWeek)} onValueChange={(v) => setForm({ ...form, dayOfWeek: parseInt(v) })}>
                   <SelectTrigger data-testid="select-day"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -218,25 +220,25 @@ function TimetableTab({ userExams }: { userExams: string[] }) {
               </div>
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label className="text-sm font-medium mb-1.5 block">Start Time</label>
+                  <label className="text-sm font-medium mb-1.5 block">{t.planner.startTime}</label>
                   <Input type="time" value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} data-testid="input-start-time" />
                 </div>
                 <div className="flex-1">
-                  <label className="text-sm font-medium mb-1.5 block">End Time</label>
+                  <label className="text-sm font-medium mb-1.5 block">{t.planner.endTime}</label>
                   <Input type="time" value={form.endTime} onChange={(e) => setForm({ ...form, endTime: e.target.value })} data-testid="input-end-time" />
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Paper / Category</label>
+                <label className="text-sm font-medium mb-1.5 block">{t.planner.paperCategory}</label>
                 <Input placeholder="e.g. GS Paper I, Bihar Special" value={form.gsPaper} onChange={(e) => setForm({ ...form, gsPaper: e.target.value })} data-testid="input-gs-paper" />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Subject / Topic</label>
+                <label className="text-sm font-medium mb-1.5 block">{t.planner.subjectTopic}</label>
                 <Input placeholder="e.g. Modern Indian History" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} data-testid="input-subject" />
               </div>
               <Button onClick={handleCreate} disabled={createSlot.isPending} className="w-full" data-testid="button-save-slot">
                 {createSlot.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
-                Save Slot
+                {t.planner.saveSlot}
               </Button>
             </div>
           </DialogContent>
@@ -270,7 +272,7 @@ function TimetableTab({ userExams }: { userExams: string[] }) {
         {(!slots || slots.length === 0) && (
           <Card className="p-8 text-center">
             <Calendar className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-            <p className="text-muted-foreground text-sm">No study slots added yet. Click "Add Slot" to create your weekly timetable.</p>
+            <p className="text-muted-foreground text-sm">{t.planner.noSlots}</p>
           </Card>
         )}
       </div>
@@ -279,6 +281,7 @@ function TimetableTab({ userExams }: { userExams: string[] }) {
 }
 
 function SyllabusTab({ selectedExam, onExamChange, userExams }: { selectedExam: string; onExamChange: (e: string) => void; userExams: string[] }) {
+  const { t } = useLanguage();
   const { data: topics, isLoading } = useSyllabus(selectedExam);
   const toggleTopic = useToggleSyllabusTopic(selectedExam);
   const [expandedPapers, setExpandedPapers] = useState<Record<string, boolean>>({});
@@ -320,9 +323,9 @@ function SyllabusTab({ selectedExam, onExamChange, userExams }: { selectedExam: 
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h3 className="text-lg font-semibold" data-testid="text-syllabus-heading">
-            {EXAM_LABELS[selectedExam] || selectedExam} Syllabus Tracker
+            {EXAM_LABELS[selectedExam] || selectedExam} {t.planner.syllabusTracker}
           </h3>
-          <p className="text-sm text-muted-foreground">Track your progress across all papers</p>
+          <p className="text-sm text-muted-foreground">{t.planner.trackProgress}</p>
         </div>
         <ExamSelector selectedExam={selectedExam} onExamChange={onExamChange} userExams={userExams} />
       </div>
@@ -412,7 +415,7 @@ function SyllabusTab({ selectedExam, onExamChange, userExams }: { selectedExam: 
       {paperNames.length === 0 && (
         <Card className="p-8 text-center">
           <BookOpen className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-          <p className="text-muted-foreground text-sm">No syllabus data found for this exam.</p>
+          <p className="text-muted-foreground text-sm">{t.planner.noSyllabus}</p>
         </Card>
       )}
     </div>
@@ -420,6 +423,7 @@ function SyllabusTab({ selectedExam, onExamChange, userExams }: { selectedExam: 
 }
 
 function DailyGoalsTab({ userExams }: { userExams: string[] }) {
+  const { t } = useLanguage();
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const [selectedDate, setSelectedDate] = useState(today);
@@ -436,7 +440,7 @@ function DailyGoalsTab({ userExams }: { userExams: string[] }) {
     createGoal.mutate({ title: newGoal.trim(), goalDate: selectedDate }, {
       onSuccess: () => {
         setNewGoal("");
-        toast({ title: "Goal added" });
+        toast({ title: t.planner.goalAdded });
       },
     });
   };
@@ -444,10 +448,10 @@ function DailyGoalsTab({ userExams }: { userExams: string[] }) {
   const handleAIGenerate = () => {
     aiGenerate.mutate({ targetExams: userExams, date: selectedDate }, {
       onSuccess: () => {
-        toast({ title: "Goals created by AI", description: "Practical study goals have been added for this day." });
+        toast({ title: t.planner.goalsCreated, description: t.planner.goalsCreatedDesc });
       },
       onError: (err) => {
-        toast({ title: "Failed to generate", description: err.message, variant: "destructive" });
+        toast({ title: t.planner.failedToGenerate, description: err.message, variant: "destructive" });
       },
     });
   };
@@ -459,8 +463,8 @@ function DailyGoalsTab({ userExams }: { userExams: string[] }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h3 className="text-lg font-semibold" data-testid="text-goals-heading">Daily Study Goals</h3>
-          <p className="text-sm text-muted-foreground">Set and track your daily study targets</p>
+          <h3 className="text-lg font-semibold" data-testid="text-goals-heading">{t.planner.dailyStudyGoals}</h3>
+          <p className="text-sm text-muted-foreground">{t.planner.setAndTrack}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Input
@@ -472,7 +476,7 @@ function DailyGoalsTab({ userExams }: { userExams: string[] }) {
           />
           <Button variant="outline" onClick={handleAIGenerate} disabled={aiGenerate.isPending} data-testid="button-ai-generate-goals">
             {aiGenerate.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Sparkles className="h-4 w-4 mr-1.5" />}
-            {aiGenerate.isPending ? "Generating..." : "AI Generate"}
+            {aiGenerate.isPending ? t.planner.generatingGoals : t.planner.aiGenerate}
           </Button>
         </div>
       </div>
@@ -480,8 +484,8 @@ function DailyGoalsTab({ userExams }: { userExams: string[] }) {
       {totalCount > 0 && (
         <Card className="p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Today's Progress</span>
-            <span className="text-sm text-muted-foreground">{completedCount}/{totalCount} completed</span>
+            <span className="text-sm font-medium">{t.planner.todaysProgress}</span>
+            <span className="text-sm text-muted-foreground">{completedCount}/{totalCount} {t.planner.completed}</span>
           </div>
           <Progress value={totalCount > 0 ? (completedCount / totalCount) * 100 : 0} className="h-2" />
         </Card>
@@ -489,7 +493,7 @@ function DailyGoalsTab({ userExams }: { userExams: string[] }) {
 
       <div className="flex gap-2">
         <Input
-          placeholder="Add a study goal..."
+          placeholder={t.planner.addStudyGoal}
           value={newGoal}
           onChange={(e) => setNewGoal(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
@@ -523,7 +527,7 @@ function DailyGoalsTab({ userExams }: { userExams: string[] }) {
       ) : (
         <Card className="p-8 text-center">
           <Target className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-          <p className="text-muted-foreground text-sm">No goals set for this day. Add a goal to start tracking!</p>
+          <p className="text-muted-foreground text-sm">{t.planner.noGoals}</p>
         </Card>
       )}
     </div>
@@ -531,6 +535,7 @@ function DailyGoalsTab({ userExams }: { userExams: string[] }) {
 }
 
 function DashboardTab({ selectedExam, onExamChange, userExams }: { selectedExam: string; onExamChange: (e: string) => void; userExams: string[] }) {
+  const { t } = useLanguage();
   const { data: dashboard, isLoading } = usePlannerDashboard(selectedExam);
 
   if (isLoading) {
@@ -543,8 +548,8 @@ function DashboardTab({ selectedExam, onExamChange, userExams }: { selectedExam:
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h3 className="text-lg font-semibold" data-testid="text-dashboard-heading">Preparation Dashboard</h3>
-          <p className="text-sm text-muted-foreground">Overview of your {EXAM_LABELS[selectedExam] || selectedExam} preparation progress</p>
+          <h3 className="text-lg font-semibold" data-testid="text-dashboard-heading">{t.planner.preparationDashboard}</h3>
+          <p className="text-sm text-muted-foreground">{t.planner.preparationProgress}</p>
         </div>
         <ExamSelector selectedExam={selectedExam} onExamChange={onExamChange} userExams={userExams} />
       </div>
@@ -556,7 +561,7 @@ function DashboardTab({ selectedExam, onExamChange, userExams }: { selectedExam:
               <TrendingUp className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Overall Progress</p>
+              <p className="text-xs text-muted-foreground">{t.planner.overallProgress}</p>
               <p className="text-2xl font-bold" data-testid="text-overall-progress">{dashboard.overallProgress}%</p>
             </div>
           </div>
@@ -569,7 +574,7 @@ function DashboardTab({ selectedExam, onExamChange, userExams }: { selectedExam:
               <CheckCircle2 className="h-5 w-5 text-emerald-600" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Today's Goals</p>
+              <p className="text-xs text-muted-foreground">{t.planner.todaysGoals}</p>
               <p className="text-2xl font-bold" data-testid="text-today-goals">
                 {dashboard.todayGoals.completed}/{dashboard.todayGoals.total}
               </p>
@@ -583,7 +588,7 @@ function DashboardTab({ selectedExam, onExamChange, userExams }: { selectedExam:
               <AlertTriangle className="h-5 w-5 text-amber-600" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Weak Areas</p>
+              <p className="text-xs text-muted-foreground">{t.planner.weakAreas}</p>
               <p className="text-2xl font-bold" data-testid="text-weak-areas-count">{dashboard.weakAreas.length}</p>
             </div>
           </div>
@@ -591,14 +596,14 @@ function DashboardTab({ selectedExam, onExamChange, userExams }: { selectedExam:
       </div>
 
       <Card className="p-4">
-        <h4 className="font-semibold text-sm mb-4">Progress by Paper</h4>
+        <h4 className="font-semibold text-sm mb-4">{t.planner.progressByPaper}</h4>
         <div className="space-y-4">
           {dashboard.paperProgress.map((pp, idx) => (
             <div key={pp.paper}>
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant="outline" className={cn("text-xs", getPaperColor(idx))}>{pp.paper}</Badge>
-                  <span className="text-xs text-muted-foreground">{pp.completed}/{pp.total} topics</span>
+                  <span className="text-xs text-muted-foreground">{pp.completed}/{pp.total} {t.planner.topics}</span>
                 </div>
                 <span className="text-sm font-semibold">{pp.percentage}%</span>
               </div>
@@ -614,20 +619,20 @@ function DashboardTab({ selectedExam, onExamChange, userExams }: { selectedExam:
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-4">
             <AlertTriangle className="h-4 w-4 text-amber-500" />
-            <h4 className="font-semibold text-sm">Weak Areas (Based on Quiz Performance)</h4>
+            <h4 className="font-semibold text-sm">{t.planner.weakAreasBased}</h4>
           </div>
           <div className="space-y-3">
             {dashboard.weakAreas.map((wa, i) => (
               <div key={i} className="flex items-center justify-between p-3 rounded-md bg-secondary/40" data-testid={`weak-area-${i}`}>
                 <div>
                   <p className="text-sm font-medium">{wa.category}</p>
-                  <p className="text-xs text-muted-foreground">{wa.correct}/{wa.totalQuestions} correct</p>
+                  <p className="text-xs text-muted-foreground">{wa.correct}/{wa.totalQuestions} {t.planner.correct}</p>
                 </div>
                 <div className="text-right">
                   <p className={cn("text-sm font-bold", wa.accuracy < 50 ? "text-red-500" : wa.accuracy < 70 ? "text-amber-500" : "text-emerald-500")}>
                     {wa.accuracy}%
                   </p>
-                  <p className="text-xs text-muted-foreground">accuracy</p>
+                  <p className="text-xs text-muted-foreground">{t.planner.accuracy}</p>
                 </div>
               </div>
             ))}
@@ -639,7 +644,7 @@ function DashboardTab({ selectedExam, onExamChange, userExams }: { selectedExam:
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-4">
             <Lightbulb className="h-4 w-4 text-primary" />
-            <h4 className="font-semibold text-sm">Recommended Topics to Study</h4>
+            <h4 className="font-semibold text-sm">{t.planner.recommendedTopics}</h4>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {dashboard.recommendedTopics.map((rt, i) => (
@@ -659,6 +664,7 @@ function DashboardTab({ selectedExam, onExamChange, userExams }: { selectedExam:
 }
 
 export default function StudyPlannerPage() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const userExams: string[] = (user as any)?.targetExams || ["UPSC"];
   const [selectedExam, setSelectedExam] = useState(userExams[0] || "UPSC");
@@ -671,27 +677,27 @@ export default function StudyPlannerPage() {
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-20">
           <div className="mb-6">
-            <h1 className="text-2xl font-display font-bold" data-testid="text-study-planner-title">Study Planner</h1>
-            <p className="text-sm text-muted-foreground mt-1">Organize your {examLabel} preparation effectively</p>
+            <h1 className="text-2xl font-display font-bold" data-testid="text-study-planner-title">{t.planner.title}</h1>
+            <p className="text-sm text-muted-foreground mt-1">{t.planner.organizePrep}</p>
           </div>
 
           <Tabs defaultValue="dashboard">
             <TabsList className="grid grid-cols-4 w-full mb-6">
               <TabsTrigger value="dashboard" data-testid="tab-dashboard">
                 <BarChart3 className="h-4 w-4 mr-1.5 hidden sm:block" />
-                Dashboard
+                {t.planner.dashboard}
               </TabsTrigger>
               <TabsTrigger value="timetable" data-testid="tab-timetable">
                 <Calendar className="h-4 w-4 mr-1.5 hidden sm:block" />
-                Timetable
+                {t.planner.timetable}
               </TabsTrigger>
               <TabsTrigger value="syllabus" data-testid="tab-syllabus">
                 <BookOpen className="h-4 w-4 mr-1.5 hidden sm:block" />
-                Syllabus
+                {t.planner.syllabus}
               </TabsTrigger>
               <TabsTrigger value="goals" data-testid="tab-goals">
                 <Target className="h-4 w-4 mr-1.5 hidden sm:block" />
-                Goals
+                {t.planner.goals}
               </TabsTrigger>
             </TabsList>
 

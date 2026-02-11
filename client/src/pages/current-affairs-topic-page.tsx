@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { generatePDF } from "@/lib/pdf-generator";
+import { useLanguage } from "@/i18n/context";
 
 const GS_BADGE_COLORS: Record<string, string> = {
   "GS-I": "border-amber-400 text-amber-600 dark:border-amber-500 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30",
@@ -57,6 +58,7 @@ function formatDisplayDate(dateStr: string): string {
 }
 
 export default function CurrentAffairsTopicPage() {
+  const { t } = useLanguage();
   const params = useParams<{ id: string }>();
   const topicId = parseInt(params.id || "0");
   const [detailContent, setDetailContent] = useState("");
@@ -185,7 +187,7 @@ export default function CurrentAffairsTopicPage() {
             <Link href="/current-affairs">
               <Button variant="outline" className="gap-2" data-testid="button-back-to-list-error">
                 <ArrowLeft className="h-4 w-4" />
-                Back to Current Affairs
+                {t.currentAffairs.backToDigest}
               </Button>
             </Link>
           </div>
@@ -204,7 +206,7 @@ export default function CurrentAffairsTopicPage() {
             <Link href="/current-affairs">
               <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="button-back-to-list">
                 <ArrowLeft className="h-4 w-4" />
-                <span>Back to Daily News</span>
+                <span>{t.currentAffairs.backToDigest}</span>
               </button>
             </Link>
           </div>
@@ -243,7 +245,7 @@ export default function CurrentAffairsTopicPage() {
             {totalTopics > 0 && (
               <span className="flex items-center gap-1.5">
                 <BookOpen className="h-3.5 w-3.5" />
-                {topicIndex} of {totalTopics}
+                {topicIndex} {t.currentAffairs.topicOf} {totalTopics}
               </span>
             )}
           </div>
@@ -261,7 +263,7 @@ export default function CurrentAffairsTopicPage() {
               data-testid="button-topic-revise"
             >
               <Check className="h-3.5 w-3.5" />
-              {topic.revised ? "Revised" : "Mark as Revised"}
+              {topic.revised ? t.currentAffairs.revised : t.currentAffairs.markRevised}
             </Button>
             <Button
               variant="outline"
@@ -290,7 +292,7 @@ export default function CurrentAffairsTopicPage() {
               }}
             >
               <Download className="h-3.5 w-3.5" />
-              PDF
+              {t.currentAffairs.downloadPdf}
             </Button>
             <Button
               variant="outline"
@@ -311,7 +313,7 @@ export default function CurrentAffairsTopicPage() {
               }}
             >
               <Share2 className="h-3.5 w-3.5" />
-              Share
+              {t.currentAffairs.share}
             </Button>
           </div>
 
@@ -325,7 +327,7 @@ export default function CurrentAffairsTopicPage() {
             {isStreaming && !detailContent && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground py-8 justify-center">
                 <Loader2 className="h-5 w-5 animate-spin" />
-                <span>Generating detailed analysis...</span>
+                <span>{t.currentAffairs.generating}</span>
               </div>
             )}
 
@@ -344,7 +346,7 @@ export default function CurrentAffairsTopicPage() {
               <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <h3 className="font-bold text-white text-base" data-testid="text-attempt-mcqs">Practice MCQs on this Topic</h3>
+                    <h3 className="font-bold text-white text-base" data-testid="text-attempt-mcqs">{t.currentAffairs.practiceMCQs}</h3>
                     <p className="text-xs text-blue-100 mt-0.5">Test your understanding with practice questions</p>
                   </div>
                   <Button
@@ -397,7 +399,7 @@ export default function CurrentAffairsTopicPage() {
                 >
                   <ChevronLeft className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                   <div className="min-w-0">
-                    <span className="text-xs text-muted-foreground font-medium">Previous</span>
+                    <span className="text-xs text-muted-foreground font-medium">{t.currentAffairs.previousTopic}</span>
                     <p className="text-sm font-semibold text-foreground truncate">{prevTopic.title}</p>
                   </div>
                 </button>
@@ -411,7 +413,7 @@ export default function CurrentAffairsTopicPage() {
                   data-testid="button-next-topic"
                 >
                   <div className="min-w-0">
-                    <span className="text-xs text-muted-foreground font-medium">Next</span>
+                    <span className="text-xs text-muted-foreground font-medium">{t.currentAffairs.nextTopic}</span>
                     <p className="text-sm font-semibold text-foreground truncate">{nextTopic.title}</p>
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />

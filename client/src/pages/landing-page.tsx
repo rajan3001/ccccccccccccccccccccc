@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/i18n/context";
 import { Redirect } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
@@ -83,43 +84,45 @@ function AnimatedCounter({ target, suffix = "+" }: { target: number; suffix?: st
   );
 }
 
-const featureItems = [
-  {
-    id: "ai-chat",
-    icon: MessageSquare,
-    title: "Ask Anything, Anytime",
-    description: "Your AI study buddy is always here. Get clear, structured answers to any UPSC or State PSC doubt, with PYQ references and real concept clarity -- day or night.",
-    cta: "Start a Conversation",
-  },
-  {
-    id: "syllabus",
-    icon: BookOpen,
-    title: "Your Syllabus, Organized",
-    description: "No more guessing what to study next. GS Paper I-IV, CSAT, and Optionals -- all mapped out with structured learning paths based on NCERTs and standard books.",
-    cta: "See Your Syllabus",
-  },
-  {
-    id: "answer-writing",
-    icon: PenTool,
-    title: "Practice Writing, Get Better",
-    description: "Write answers for GS, Ethics, and Essay. Get thoughtful, structured feedback on your Introduction, Body, and Conclusion -- just like a mentor would give.",
-    cta: "Try Answer Practice",
-  },
-  {
-    id: "current-affairs",
-    icon: Newspaper,
-    title: "Stay Updated, Stay Ahead",
-    description: "Daily digests from top newspapers, mapped to GS papers. State-specific filtering for 15 State PSCs. Never miss what matters for your exam.",
-    cta: "Read Today's Digest",
-  },
-  {
-    id: "practice-mcqs",
-    icon: Target,
-    title: "Build Confidence with Practice",
-    description: "Topic-wise MCQs for UPSC + 15 State PSCs. AI-crafted questions with detailed explanations so you understand why, not just what.",
-    cta: "Start Practicing",
-  },
-];
+function getFeatureItems(t: any) {
+  return [
+    {
+      id: "ai-chat",
+      icon: MessageSquare,
+      title: t.landing.featureAiChatTitle,
+      description: t.landing.featureAiChatDesc,
+      cta: t.landing.featureAiChatCta,
+    },
+    {
+      id: "syllabus",
+      icon: BookOpen,
+      title: t.landing.featureSyllabusTitle,
+      description: t.landing.featureSyllabusDesc,
+      cta: t.landing.featureSyllabusCta,
+    },
+    {
+      id: "answer-writing",
+      icon: PenTool,
+      title: t.landing.featureAnswerTitle,
+      description: t.landing.featureAnswerDesc,
+      cta: t.landing.featureAnswerCta,
+    },
+    {
+      id: "current-affairs",
+      icon: Newspaper,
+      title: t.landing.featureCATitle,
+      description: t.landing.featureCADesc,
+      cta: t.landing.featureCACta,
+    },
+    {
+      id: "practice-mcqs",
+      icon: Target,
+      title: t.landing.featureMCQTitle,
+      description: t.landing.featureMCQDesc,
+      cta: t.landing.featureMCQCta,
+    },
+  ];
+}
 
 const FEATURE_CYCLE_MS = 5000;
 
@@ -420,7 +423,8 @@ const featureVisuals: Record<string, () => JSX.Element> = {
   "practice-mcqs": FeatureVisualPracticeMCQ,
 };
 
-function AutoCyclingFeatures({ openLogin }: { openLogin: () => void }) {
+function AutoCyclingFeatures({ openLogin, t }: { openLogin: () => void; t: any }) {
+  const featureItems = getFeatureItems(t);
   const [activeIndex, setActiveIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -569,7 +573,7 @@ const STATE_PSC_EXAMS = [
   { id: "nepsc", label: "NE States", icon: TreePine, abbr: "NE" },
 ];
 
-function PrepareForExamsSection() {
+function PrepareForExamsSection({ t }: { t: any }) {
   return (
     <div className="space-y-8" data-testid="exams-grid">
       <motion.div
@@ -584,13 +588,13 @@ function PrepareForExamsSection() {
           </div>
           <div>
             <h3 className="font-display font-bold text-base sm:text-lg">UPSC CSE</h3>
-            <p className="text-xs text-muted-foreground">IAS / IPS / IFS</p>
+            <p className="text-xs text-muted-foreground">{t.landing.upscSubtitle}</p>
           </div>
         </div>
         <div className="hidden sm:block h-8 w-px bg-border" />
         <div className="text-center sm:text-left">
           <p className="text-2xl sm:text-3xl font-display font-bold">
-            + 15 <span className="text-muted-foreground text-base font-normal">State PSCs</span>
+            + 15 <span className="text-muted-foreground text-base font-normal">{t.landing.statePSCs}</span>
           </p>
         </div>
       </motion.div>
@@ -620,6 +624,7 @@ function PrepareForExamsSection() {
 
 export default function LandingPage() {
   const { isAuthenticated, isLoading } = useAuth();
+  const { t } = useLanguage();
   const [loginOpen, setLoginOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
 
@@ -646,19 +651,19 @@ export default function LandingPage() {
           <div className="flex items-center flex-wrap gap-4">
             <a href="#features">
               <Button variant="ghost" className="hidden sm:inline-flex text-muted-foreground" data-testid="link-features">
-                Features
+                {t.landing.features}
               </Button>
             </a>
             <a href="#exams">
               <Button variant="ghost" className="hidden sm:inline-flex text-muted-foreground" data-testid="link-exams">
-                Exams
+                {t.landing.navExams}
               </Button>
             </a>
             <Button
               onClick={openLogin}
               data-testid="button-login-nav"
             >
-              Login
+              {t.landing.login}
             </Button>
           </div>
         </div>
@@ -730,17 +735,17 @@ export default function LandingPage() {
                 >
                   <span className="inline-flex items-center gap-1.5 py-1.5 px-4 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-semibold mb-6 sm:mb-8 border border-primary/20" data-testid="badge-hero">
                     <Heart className="h-3.5 w-3.5" />
-                    Trusted by 10,000+ aspirants
+                    {t.landing.trustedByAspirants}
                   </span>
                   <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-bold text-foreground mb-5 sm:mb-6 leading-[1.1]" data-testid="text-hero-heading">
-                    Your AI companion for{" "}
+                    {t.landing.heroHeadingPart1}{" "}
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-amber-600">
-                      UPSC & State PSC
+                      {t.landing.heroHeadingHighlight}
                     </span>{" "}
-                    preparation
+                    {t.landing.heroHeadingPart2}
                   </h1>
                   <p className="text-base sm:text-lg text-muted-foreground mb-8 sm:mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0" data-testid="text-hero-subtitle">
-                    Preparing for civil services is a long journey -- you don't have to walk it alone. Learnpro AI is the patient, intelligent study partner that's always by your side.
+                    {t.landing.heroDescription}
                   </p>
 
                   <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start flex-wrap gap-4">
@@ -750,7 +755,7 @@ export default function LandingPage() {
                       className="w-full sm:w-auto rounded-full shadow-xl shadow-primary/30"
                       data-testid="button-get-started"
                     >
-                      Begin Your Journey
+                      {t.landing.beginJourney}
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                     <Button
@@ -760,15 +765,15 @@ export default function LandingPage() {
                       onClick={() => setTourOpen(true)}
                       data-testid="button-view-demo"
                     >
-                      See How It Works
+                      {t.landing.seeHow}
                     </Button>
                   </div>
 
                   <div className="flex items-center justify-center lg:justify-start flex-wrap gap-6 mt-8 sm:mt-10">
                     {[
-                      { icon: Brain, label: "AI-Powered" },
-                      { icon: Shield, label: "Always Free" },
-                      { icon: Sparkles, label: "Personalized" },
+                      { icon: Brain, label: t.landing.aiPowered },
+                      { icon: Shield, label: t.landing.alwaysFree },
+                      { icon: Sparkles, label: t.landing.personalized },
                     ].map((item) => (
                       <div key={item.label} className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground">
                         <item.icon className="h-4 w-4 text-primary" />
@@ -825,16 +830,16 @@ export default function LandingPage() {
               viewport={{ once: true }}
               className="text-center mb-8 sm:mb-10"
             >
-              <span className="text-xs font-semibold tracking-[0.2em] uppercase text-primary">Trusted by Aspirants Nationwide</span>
+              <span className="text-xs font-semibold tracking-[0.2em] uppercase text-primary">{t.landing.trustedNationwide}</span>
               <div className="mt-1.5 h-px w-16 mx-auto bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
             </motion.div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
               {[
-                { value: 10000, label: "Aspirants Trust Us", icon: Users, suffix: "+", glowDelay: 0.5 },
-                { value: 50000, label: "Questions Practiced", icon: Target, suffix: "+", glowDelay: 1.5 },
-                { value: 15000, label: "Answers Evaluated", icon: FileText, suffix: "+", glowDelay: 2.5 },
-                { value: 60, label: "Exams Covered", icon: BarChart3, suffix: "+", glowDelay: 3.5 },
+                { value: 10000, label: t.landing.aspirantsTrust, icon: Users, suffix: "+", glowDelay: 0.5 },
+                { value: 50000, label: t.landing.questionsPracticed, icon: Target, suffix: "+", glowDelay: 1.5 },
+                { value: 15000, label: t.landing.answersEvaluated, icon: FileText, suffix: "+", glowDelay: 2.5 },
+                { value: 60, label: t.landing.examsCovered, icon: BarChart3, suffix: "+", glowDelay: 3.5 },
               ].map((stat, i) => (
                 <motion.div
                   key={i}
@@ -900,7 +905,7 @@ export default function LandingPage() {
                     ))}
                   </div>
                 </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">Join thousands preparing smarter with AI</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">{t.landing.joinThousands}</span>
               </div>
             </motion.div>
           </div>
@@ -915,13 +920,13 @@ export default function LandingPage() {
               className="text-center mb-8 sm:mb-12"
             >
               <span className="text-xs sm:text-sm font-semibold text-primary tracking-wide uppercase" data-testid="text-features-subtitle">
-                Built for Serious Aspirants
+                {t.landing.builtForAspirants}
               </span>
               <h2 className="text-2xl sm:text-4xl font-display font-bold mt-2 sm:mt-3" data-testid="text-features-heading">
-                Everything you need, in one place
+                {t.landing.everythingYouNeed}
               </h2>
               <p className="text-muted-foreground mt-2 text-sm sm:text-base max-w-xl mx-auto">
-                No more juggling between apps and tabs. Your entire preparation ecosystem, powered by AI.
+                {t.landing.noMoreJuggling}
               </p>
             </motion.div>
 
@@ -930,7 +935,7 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <AutoCyclingFeatures openLogin={openLogin} />
+              <AutoCyclingFeatures openLogin={openLogin} t={t} />
             </motion.div>
           </div>
         </section>
@@ -954,20 +959,20 @@ export default function LandingPage() {
                 className="flex-1 text-center lg:text-left"
               >
                 <span className="text-xs sm:text-sm font-semibold text-primary tracking-wide uppercase">
-                  Why Learnpro AI?
+                  {t.landing.whyLearnpro}
                 </span>
                 <h2 className="text-2xl sm:text-4xl font-display font-bold mt-2 sm:mt-3 mb-4 sm:mb-6" data-testid="text-why-heading">
-                  More than a tool. A study partner who understands you.
+                  {t.landing.whyHeading}
                 </h2>
                 <p className="text-muted-foreground text-sm sm:text-base leading-relaxed mb-6 sm:mb-8 max-w-lg mx-auto lg:mx-0">
-                  UPSC preparation is demanding. You need consistency, clarity, and confidence. Learnpro AI is designed to give you all three -- with the patience of a mentor and the precision of technology.
+                  {t.landing.whyDescription}
                 </p>
                 <div className="grid sm:grid-cols-2 gap-4">
                   {[
-                    { icon: Brain, title: "Thinks Like a Mentor", desc: "Understands UPSC patterns and gives exam-relevant responses" },
-                    { icon: Heart, title: "Patient & Supportive", desc: "Ask the same question 100 times -- no judgment, ever" },
-                    { icon: Sparkles, title: "Learns About You", desc: "Adapts to your strengths, weaknesses, and study pace" },
-                    { icon: Shield, title: "Always Available", desc: "24/7 access. Your preparation never has to wait" },
+                    { icon: Brain, title: t.landing.thinksLikeMentor, desc: t.landing.thinksLikeMentorDesc },
+                    { icon: Heart, title: t.landing.patientSupportive, desc: t.landing.patientSupportiveDesc },
+                    { icon: Sparkles, title: t.landing.learnsAboutYou, desc: t.landing.learnsAboutYouDesc },
+                    { icon: Shield, title: t.landing.alwaysAvailable, desc: t.landing.alwaysAvailableDesc },
                   ].map((item) => (
                     <div key={item.title} className="flex gap-3 text-left" data-testid={`why-item-${item.title.toLowerCase().replace(/\s+/g, "-")}`}>
                       <div className="h-9 w-9 rounded-md bg-primary/10 dark:bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -1000,17 +1005,17 @@ export default function LandingPage() {
                 className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4 border border-primary/20"
               >
                 <Sparkles className="h-3 w-3" />
-                16 Exams Supported
+                {t.landing.examsSupported}
               </motion.div>
               <h2 className="text-2xl sm:text-4xl font-display font-bold" data-testid="text-exams-heading">
-                Prepare for Top Exams
+                {t.landing.prepareForExams}
               </h2>
               <p className="text-muted-foreground mt-2 sm:mt-3 text-sm sm:text-base max-w-lg mx-auto">
-                Comprehensive preparation support for India's most competitive civil services examinations
+                {t.landing.prepareForExamsDesc}
               </p>
             </motion.div>
 
-            <PrepareForExamsSection />
+            <PrepareForExamsSection t={t} />
           </div>
         </section>
 
@@ -1023,10 +1028,10 @@ export default function LandingPage() {
               className="text-center mb-8 sm:mb-12"
             >
               <h2 className="text-2xl sm:text-4xl font-display font-bold" data-testid="text-testimonials-heading">
-                From aspirants who've been where you are
+                {t.landing.testimonialsHeading}
               </h2>
               <p className="text-muted-foreground mt-2 sm:mt-3 text-sm sm:text-base">
-                Real stories from real learners
+                {t.landing.testimonialsSubtitle}
               </p>
             </motion.div>
 
@@ -1078,10 +1083,10 @@ export default function LandingPage() {
                   <GraduationCap className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
                 </div>
                 <h2 className="text-2xl sm:text-4xl font-display font-bold mb-3 sm:mb-4" data-testid="text-cta-heading">
-                  Your preparation deserves a better companion
+                  {t.landing.ctaHeading}
                 </h2>
                 <p className="text-muted-foreground text-sm sm:text-base mb-8 sm:mb-10 max-w-xl mx-auto">
-                  Join thousands of aspirants who chose a smarter, kinder way to prepare. Learnpro AI is here to walk with you -- every single day.
+                  {t.landing.ctaDescription}
                 </p>
                 <Button
                   size="lg"
@@ -1089,7 +1094,7 @@ export default function LandingPage() {
                   className="rounded-full shadow-xl shadow-primary/30"
                   data-testid="button-bottom-cta"
                 >
-                  Start Your Journey
+                  {t.landing.startYourJourney}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </motion.div>
