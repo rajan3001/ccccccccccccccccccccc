@@ -236,6 +236,21 @@
   animation: aspirant-scroll 8s linear infinite;
 }
 
+@keyframes lang-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes lang-marquee-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+.animate-lang-marquee {
+  animation: lang-marquee 30s linear infinite;
+}
+.animate-lang-marquee-reverse {
+  animation: lang-marquee-reverse 35s linear infinite;
+}
+
 @keyframes streaming-blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }

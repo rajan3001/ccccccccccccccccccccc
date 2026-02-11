@@ -37,6 +37,7 @@ import {
   Globe,
   Flag,
   Languages,
+  ChevronRight,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { HeroDashboardAnimation, NeuralNetworkAnimation } from "@/components/landing/hero-animation";
@@ -575,43 +576,79 @@ const STATE_PSC_EXAMS = [
   { id: "nepsc", label: "NE States", icon: TreePine, abbr: "NE" },
 ];
 
-const LANGUAGE_SAMPLES = [
-  { code: "hi", native: "हिन्दी", sample: "मौलिक अधिकार भारतीय संविधान की आधारशिला हैं", topic: "मौलिक अधिकार" },
-  { code: "bn", native: "বাংলা", sample: "মৌলিক অধিকার ভারতীয় সংবিধানের ভিত্তিপ্রস্তর", topic: "মৌলিক অধিকার" },
-  { code: "ta", native: "தமிழ்", sample: "அடிப்படை உரிமைகள் இந்திய அரசியலமைப்பின் அடித்தளம்", topic: "அடிப்படை உரிமைகள்" },
-  { code: "te", native: "తెలుగు", sample: "ప్రాథమిక హక్కులు భారత రాజ్యాంగానికి పునాది", topic: "ప్రాథమిక హక్కులు" },
-  { code: "gu", native: "ગુજરાતી", sample: "મૂળભૂત અધિકારો ભારતીય બંધારણનો પાયો છે", topic: "મૂળભૂત અધિકારો" },
-  { code: "mr", native: "मराठी", sample: "मूलभूत अधिकार हे भारतीय राज्यघटनेचा पाया आहेत", topic: "मूलभूत अधिकार" },
-  { code: "kn", native: "ಕನ್ನಡ", sample: "ಮೂಲಭೂತ ಹಕ್ಕುಗಳು ಭಾರತೀಯ ಸಂವಿಧಾನದ ಅಡಿಪಾಯ", topic: "ಮೂಲಭೂತ ಹಕ್ಕುಗಳು" },
-  { code: "ml", native: "മലയാളം", sample: "മൗലികാവകാശങ്ങള്‍ ഇന്ത്യന്‍ ഭരണഘടനയുടെ അടിത്തറ", topic: "മൗലികാവകാശങ്ങള്‍" },
-  { code: "pa", native: "ਪੰਜਾਬੀ", sample: "ਮੁੱਢਲੇ ਅਧਿਕਾਰ ਭਾਰਤੀ ਸੰਵਿਧਾਨ ਦੀ ਨੀਂਹ ਹਨ", topic: "ਮੁੱਢਲੇ ਅਧਿਕਾਰ" },
-  { code: "or", native: "ଓଡ଼ିଆ", sample: "ମୌଳିକ ଅଧିକାର ଭାରତୀୟ ସମ୍ବିଧାନର ଭିତ୍ତିପ୍ରସ୍ତର", topic: "ମୌଳିକ ଅଧିକାର" },
-  { code: "ur", native: "اردو", sample: "بنیادی حقوق ہندوستانی آئین کی بنیاد ہیں", topic: "بنیادی حقوق" },
-  { code: "as", native: "অসমীয়া", sample: "মৌলিক অধিকাৰ ভাৰতীয় সংবিধানৰ ভেটি", topic: "মৌলিক অধিকাৰ" },
+const LANG_MARQUEE = [
+  { native: "हिन्दी", code: "hi" }, { native: "বাংলা", code: "bn" },
+  { native: "தமிழ்", code: "ta" }, { native: "తెలుగు", code: "te" },
+  { native: "ગુજરાતી", code: "gu" }, { native: "मराठी", code: "mr" },
+  { native: "ಕನ್ನಡ", code: "kn" }, { native: "മലയാളം", code: "ml" },
+  { native: "ਪੰਜਾਬੀ", code: "pa" }, { native: "ଓଡ଼ିଆ", code: "or" },
+  { native: "اردو", code: "ur" }, { native: "অসমীয়া", code: "as" },
 ];
 
 function LanguageShowcaseSection({ t }: { t: any }) {
   const { language, setLanguage } = useLanguage();
-  const [activeIdx, setActiveIdx] = useState(0);
-  const [autoPlay, setAutoPlay] = useState(true);
-  const activeLang = LANGUAGE_SAMPLES[activeIdx];
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const currentLangLabel = SUPPORTED_LANGUAGES.find(l => l.code === language)?.nativeLabel || "English";
 
   useEffect(() => {
-    if (!autoPlay) return;
-    const timer = setInterval(() => {
-      setActiveIdx((prev) => (prev + 1) % LANGUAGE_SAMPLES.length);
-    }, 3000);
-    return () => clearInterval(timer);
-  }, [autoPlay]);
+    function handleClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    if (dropdownOpen) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [dropdownOpen]);
 
   return (
     <section className="py-14 sm:py-20 bg-background overflow-hidden" data-testid="section-languages">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative mb-8 sm:mb-12">
+        <div
+          className="flex whitespace-nowrap"
+          style={{
+            maskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
+            WebkitMaskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
+          }}
+        >
+          <div className="flex animate-lang-marquee gap-6 sm:gap-10">
+            {[...LANG_MARQUEE, ...LANG_MARQUEE].map((lang, i) => (
+              <span
+                key={`${lang.code}-${i}`}
+                className="text-3xl sm:text-5xl font-display font-bold text-foreground/[0.06] dark:text-foreground/[0.08] select-none"
+              >
+                {lang.native}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div
+          className="flex whitespace-nowrap mt-2"
+          style={{
+            maskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
+            WebkitMaskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
+          }}
+        >
+          <div className="flex animate-lang-marquee-reverse gap-6 sm:gap-10">
+            {[...LANG_MARQUEE.slice().reverse(), ...LANG_MARQUEE.slice().reverse()].map((lang, i) => (
+              <span
+                key={`rev-${lang.code}-${i}`}
+                className="text-2xl sm:text-4xl font-display font-bold text-foreground/[0.04] dark:text-foreground/[0.06] select-none"
+              >
+                {lang.native}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-10 sm:mb-14"
+          className="text-center"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -622,171 +659,82 @@ function LanguageShowcaseSection({ t }: { t: any }) {
             <Languages className="h-3 w-3" />
             Not Google Translate
           </motion.div>
-          <h2 className="text-2xl sm:text-4xl font-display font-bold" data-testid="text-language-heading">
+
+          <h2 className="text-2xl sm:text-4xl font-display font-bold mb-3" data-testid="text-language-heading">
             Study in Your{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-amber-600">
               Mother Tongue
             </span>
           </h2>
-          <p className="text-muted-foreground mt-2 sm:mt-3 text-sm sm:text-base max-w-xl mx-auto">
-            Fully transliterated content in 13 Indian languages. Every word in native script -- no mixed English, no machine gibberish.
+          <p className="text-muted-foreground text-sm sm:text-base max-w-lg mx-auto mb-8">
+            Every word fully transliterated in native script. 13 Indian languages, zero mixed English.
+          </p>
+
+          <div className="relative inline-block" ref={dropdownRef}>
+            <Button
+              size="lg"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="rounded-full gap-3 shadow-xl shadow-primary/20 px-8"
+              data-testid="button-language-picker"
+            >
+              <Globe className="h-5 w-5" />
+              <span>{currentLangLabel}</span>
+              <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${dropdownOpen ? "rotate-90" : ""}`} />
+            </Button>
+
+            {dropdownOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.15 }}
+                className="absolute left-1/2 -translate-x-1/2 mt-3 w-72 sm:w-80 z-50"
+              >
+                <Card className="p-2 shadow-xl border-primary/10">
+                  <div className="grid grid-cols-2 gap-1">
+                    <button
+                      onClick={() => { setLanguage("en" as any); setDropdownOpen(false); }}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-colors ${
+                        language === "en" ? "bg-primary/10" : "hover-elevate"
+                      }`}
+                      data-testid="button-lang-en"
+                    >
+                      <span className="text-sm font-bold text-foreground">Aa</span>
+                      <div className="min-w-0">
+                        <p className={`text-sm font-semibold ${language === "en" ? "text-primary" : "text-foreground"}`}>English</p>
+                      </div>
+                      {language === "en" && <CheckCircle2 className="h-3.5 w-3.5 text-primary ml-auto flex-shrink-0" />}
+                    </button>
+                    {LANG_MARQUEE.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => { setLanguage(lang.code as any); setDropdownOpen(false); }}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-colors ${
+                          language === lang.code ? "bg-primary/10" : "hover-elevate"
+                        }`}
+                        data-testid={`button-lang-${lang.code}`}
+                      >
+                        <span className="text-sm font-bold text-foreground">{lang.native.slice(0, 2)}</span>
+                        <div className="min-w-0">
+                          <p className={`text-sm font-semibold truncate ${language === lang.code ? "text-primary" : "text-foreground"}`}>
+                            {lang.native}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {SUPPORTED_LANGUAGES.find(l => l.code === lang.code)?.label}
+                          </p>
+                        </div>
+                        {language === lang.code && <CheckCircle2 className="h-3.5 w-3.5 text-primary ml-auto flex-shrink-0" />}
+                      </button>
+                    ))}
+                  </div>
+                </Card>
+              </motion.div>
+            )}
+          </div>
+
+          <p className="text-xs text-muted-foreground mt-4">
+            <span className="font-bold text-foreground">13 languages</span> with authentic transliteration
           </p>
         </motion.div>
-
-        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="flex-1 w-full"
-          >
-            <Card className="relative overflow-visible p-6 sm:p-8">
-              <div className="absolute -top-3 left-6 px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold tracking-wider uppercase">
-                Live Preview
-              </div>
-
-              <div className="flex items-center gap-2 mb-4 mt-1">
-                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs text-muted-foreground">AI is responding in</span>
-                <motion.span
-                  key={activeLang.code}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  className="text-xs font-bold text-primary"
-                >
-                  {activeLang.native}
-                </motion.span>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <MessageSquare className="h-3.5 w-3.5 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground mb-1">You asked about</p>
-                    <motion.p
-                      key={`topic-${activeLang.code}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-sm font-semibold text-foreground"
-                    >
-                      {activeLang.topic}
-                    </motion.p>
-                  </div>
-                </div>
-
-                <div className="rounded-xl bg-secondary/50 border border-border/50 p-4">
-                  <motion.p
-                    key={`sample-${activeLang.code}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className={`text-base sm:text-lg leading-relaxed text-foreground font-medium ${activeLang.code === "ur" ? "text-right" : ""}`}
-                    dir={activeLang.code === "ur" ? "rtl" : "ltr"}
-                    data-testid="text-language-sample"
-                  >
-                    {activeLang.sample}
-                  </motion.p>
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
-                    <span className="text-[10px] text-muted-foreground tracking-wide uppercase">
-                      Fundamental Rights
-                    </span>
-                    <span className="text-[10px] font-bold text-primary">
-                      {activeLang.native}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="flex-shrink-0 w-full lg:w-auto"
-          >
-            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-3 gap-2">
-              {LANGUAGE_SAMPLES.map((lang, i) => {
-                const isActive = activeIdx === i;
-                const isCurrentLang = language === lang.code;
-                return (
-                  <motion.button
-                    key={lang.code}
-                    onClick={() => {
-                      setAutoPlay(false);
-                      setActiveIdx(i);
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                    className={`relative px-3 py-2.5 rounded-lg text-center transition-all duration-300 border ${
-                      isActive
-                        ? "bg-primary/10 border-primary/40 shadow-sm"
-                        : isCurrentLang
-                        ? "bg-emerald-500/10 border-emerald-500/30"
-                        : "bg-card border-border/40 hover-elevate"
-                    }`}
-                    data-testid={`button-lang-${lang.code}`}
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="lang-active-glow"
-                        className="absolute inset-0 rounded-lg bg-primary/5 border border-primary/20"
-                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                      />
-                    )}
-                    <span className={`relative block text-base font-bold ${
-                      isActive ? "text-primary" : isCurrentLang ? "text-emerald-600 dark:text-emerald-400" : "text-foreground/80"
-                    }`}>
-                      {lang.native}
-                    </span>
-                    <span className="relative block text-[10px] text-muted-foreground mt-0.5 capitalize">
-                      {SUPPORTED_LANGUAGES.find(l => l.code === lang.code)?.label || lang.code}
-                    </span>
-                    {isCurrentLang && (
-                      <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center">
-                        <CheckCircle2 className="h-3 w-3 text-white" />
-                      </span>
-                    )}
-                  </motion.button>
-                );
-              })}
-            </div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="mt-5"
-            >
-              <Button
-                onClick={() => setLanguage(activeLang.code as any)}
-                className="w-full rounded-full gap-2 shadow-lg shadow-primary/20"
-                disabled={language === activeLang.code}
-                data-testid="button-switch-language"
-              >
-                <Languages className="h-4 w-4" />
-                {language === activeLang.code
-                  ? `Currently using ${activeLang.native}`
-                  : `Switch to ${activeLang.native}`
-                }
-              </Button>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
-              className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground"
-            >
-              <Globe className="h-3.5 w-3.5 text-primary" />
-              <span>+ English = <span className="font-bold text-foreground">13 languages</span> supported</span>
-            </motion.div>
-          </motion.div>
-        </div>
       </div>
     </section>
   );
