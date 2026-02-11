@@ -271,11 +271,10 @@ Return ONLY a valid JSON array. No markdown.`;
           }
         }
       } else {
-        const today = new Date();
-        const requestedDate = new Date(dateStr + "T00:00:00");
-        const diffDays = Math.floor((today.getTime() - requestedDate.getTime()) / (1000 * 60 * 60 * 24));
+        const todayIST = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+        const todayStr = `${todayIST.getFullYear()}-${String(todayIST.getMonth() + 1).padStart(2, "0")}-${String(todayIST.getDate()).padStart(2, "0")}`;
 
-        if (diffDays < 0) {
+        if (dateStr > todayStr) {
           return res.status(404).json({
             error: "not_available_yet",
             message: "This date is in the future. Current affairs are not available yet."

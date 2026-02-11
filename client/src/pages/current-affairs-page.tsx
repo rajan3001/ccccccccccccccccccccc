@@ -171,7 +171,6 @@ export default function CurrentAffairsPage() {
 
   const isFuture = (d: string) => d > todayStr;
   const isDateAvailable = (d: string) => availableDateSet.has(d);
-  const isDateClickable = (d: string) => isDateAvailable(d) || (!isFuture(d));
 
   const allDates = getDateRange();
   const dateRange = allDates.filter((d) => {
@@ -282,19 +281,19 @@ export default function CurrentAffairsPage() {
               >
                 {dateRange.map((d) => {
                   const available = isDateAvailable(d);
-                  const clickable = isDateClickable(d);
+                  const future = isFuture(d);
                   const isSelected = d === dateStr;
                   const isDayToday = d === todayStr;
-                  const futureNoContent = isFuture(d) && !available;
+                  const disabled = future && !available;
 
                   return (
                     <button
                       key={d}
                       data-active={isSelected ? "true" : "false"}
                       data-testid={`date-item-${d}`}
-                      disabled={!clickable && futureNoContent}
+                      disabled={disabled}
                       onClick={() => {
-                        if (clickable || available) {
+                        if (!disabled) {
                           setSelectedDate(d);
                           setGsFilter("All");
                         }
@@ -303,10 +302,10 @@ export default function CurrentAffairsPage() {
                         "flex flex-col items-center min-w-[52px] px-2 py-2 rounded-lg transition-all flex-shrink-0",
                         isSelected
                           ? "bg-primary text-primary-foreground"
-                          : available
-                            ? "hover-elevate cursor-pointer"
-                            : futureNoContent
-                              ? "opacity-40 cursor-not-allowed"
+                          : disabled
+                            ? "opacity-30 cursor-not-allowed"
+                            : available
+                              ? "hover-elevate cursor-pointer"
                               : "hover-elevate cursor-pointer opacity-70"
                       )}
                     >
