@@ -307,36 +307,38 @@ export function Sidebar() {
                 </div>
               </div>
               <div className="p-1.5">
-                <Popover open={showLangPicker} onOpenChange={setShowLangPicker}>
-                  <PopoverTrigger asChild>
-                    <button className="w-full flex items-center justify-between px-3 py-2 rounded-md text-sm text-foreground hover-elevate" data-testid="button-language-picker">
-                      <div className="flex items-center gap-2.5">
-                        <Globe className="h-4 w-4 text-muted-foreground" />
-                        {t.settings.language}
-                      </div>
-                      <span className="text-xs text-muted-foreground">{SUPPORTED_LANGUAGES.find(l => l.code === language)?.nativeLabel}</span>
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent side="right" align="start" className="w-56 p-1 max-h-80 overflow-y-auto" sideOffset={8}>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowLangPicker(!showLangPicker); }}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-md text-sm text-foreground hover-elevate"
+                  data-testid="button-language-picker"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Globe className="h-4 w-4 text-muted-foreground" />
+                    {t.settings.language}
+                  </div>
+                  <span className="text-xs text-muted-foreground">{SUPPORTED_LANGUAGES.find(l => l.code === language)?.nativeLabel}</span>
+                </button>
+                {showLangPicker && (
+                  <div className="max-h-48 overflow-y-auto rounded-md border border-border bg-popover p-1 mt-1">
                     {SUPPORTED_LANGUAGES.map((lang) => (
                       <button
                         key={lang.code}
-                        onClick={() => { setLanguage(lang.code); setShowLangPicker(false); }}
+                        onClick={(e) => { e.stopPropagation(); setLanguage(lang.code); setShowLangPicker(false); }}
                         className={cn(
-                          "w-full flex items-center justify-between px-3 py-2 rounded-md text-sm hover-elevate",
+                          "w-full flex items-center justify-between px-3 py-1.5 rounded-md text-sm hover-elevate",
                           language === lang.code ? "text-primary font-semibold" : "text-foreground"
                         )}
                         data-testid={`button-lang-${lang.code}`}
                       >
                         <div className="flex items-center gap-2">
-                          <span className="text-base">{lang.nativeLabel}</span>
+                          <span className="text-sm">{lang.nativeLabel}</span>
                           <span className="text-xs text-muted-foreground">{lang.label}</span>
                         </div>
                         {language === lang.code && <Check className="h-4 w-4 text-primary" />}
                       </button>
                     ))}
-                  </PopoverContent>
-                </Popover>
+                  </div>
+                )}
                 <Link href="/settings" onClick={() => setIsMobileOpen(false)}>
                   <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-foreground hover-elevate" data-testid="link-settings">
                     <Settings className="h-4 w-4 text-muted-foreground" />
