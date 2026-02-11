@@ -25,6 +25,8 @@ import {
   Clock,
   FileText,
   ArrowRight,
+  CalendarDays,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { InlineLanguageButton } from "@/components/inline-language-button";
@@ -136,6 +138,7 @@ export default function CurrentAffairsPage() {
   const { t } = useLanguage();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [gsFilter, setGsFilter] = useState<string>("All");
+  const [showMobileCalendar, setShowMobileCalendar] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const dateStripRef = useRef<HTMLDivElement>(null);
@@ -349,8 +352,68 @@ export default function CurrentAffairsPage() {
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="flex-shrink-0 lg:hidden"
+                onClick={() => setShowMobileCalendar(!showMobileCalendar)}
+                data-testid="button-mobile-calendar"
+              >
+                <CalendarDays className="h-4 w-4" />
+              </Button>
             </div>
           </div>
+
+          {showMobileCalendar && (
+            <div className="lg:hidden mb-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-sm">Calendar</h3>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowMobileCalendar(false)}
+                      data-testid="button-close-mobile-calendar"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate ? new Date(dateStr + "T00:00:00") : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        const d = formatDate(date);
+                        setSelectedDate(d);
+                        setGsFilter("All");
+                        setShowMobileCalendar(false);
+                      }
+                    }}
+                    disabled={(date) => date > new Date()}
+                    className="w-full"
+                    modifiers={{
+                      hasDigest: (date: Date) => availableDateSet.has(formatDate(date)),
+                    }}
+                    modifiersClassNames={{
+                      hasDigest: "bg-emerald-100 dark:bg-emerald-900/30 font-bold text-emerald-700 dark:text-emerald-400",
+                    }}
+                  />
+                  <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                      <span>Available</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-2.5 w-2.5 rounded-full bg-primary" />
+                      <span>Selected</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1 min-w-0">
