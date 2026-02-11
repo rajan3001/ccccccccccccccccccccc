@@ -210,8 +210,8 @@ export function IndiaTestimonialsSection() {
               <img
                 src={indiaMapImg}
                 alt="Map of India"
-                className="w-full h-auto opacity-20 dark:opacity-15"
-                style={{ filter: "hue-rotate(15deg) saturate(0.5) brightness(1.1)" }}
+                className="w-full h-auto opacity-80 dark:opacity-70"
+                style={{ filter: "hue-rotate(0deg) saturate(1.3) brightness(0.95) contrast(1.05)" }}
                 draggable={false}
               />
               {inView && avatarSpots.map((spot, i) => (
