@@ -274,3 +274,14 @@
   background: hsl(var(--primary));
   animation: streaming-bounce 1.2s ease-in-out infinite;
 }
+
+@keyframes testimonial-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-testimonial-scroll {
+  animation: testimonial-scroll 30s linear infinite;
+}
+.animate-testimonial-scroll:hover {
+  animation-play-state: paused;
+}
