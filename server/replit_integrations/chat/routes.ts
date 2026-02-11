@@ -291,4 +291,71 @@ MCQ GENERATION RULES:
       }
     }
   });
+
+  app.get("/api/conversations/:id/suggestions", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const conversationId = parseInt(req.params.id as string);
+      if (isNaN(conversationId)) {
+        return res.status(400).json({ error: "Invalid conversation ID" });
+      }
+
+      const conversation = await chatStorage.getConversation(conversationId);
+      if (!conversation || conversation.userId !== (req as any).user.claims.sub) {
+        return res.json({ suggestions: [] });
+      }
+
+      const messages = await chatStorage.getMessagesByConversation(conversationId);
+      if (!messages || messages.length === 0) {
+        return res.json({ suggestions: [] });
+      }
+
+      const recentMessages = messages.slice(-6);
+      const context = recentMessages
+        .map((m: any) => `${m.role === "user" ? "User" : "Assistant"}: ${(m.content || "").slice(0, 300)}`)
+        .join("\n");
+
+      const userLang = getUserLanguage(req);
+      const langNote = userLang !== "en" ? `\nIMPORTANT: Write all suggestions in the user's language (${userLang}). Transliterate fully into native script.` : "";
+
+      const prompt = `Based on this UPSC/PSC study conversation, generate exactly 4 smart follow-up questions the student would likely want to ask next.
+
+CONVERSATION:
+${context}
+
+RULES:
+- Questions must be specific to the actual topic being discussed, NOT generic
+- Each question should explore a different angle: deeper explanation, comparison, practice, or application
+- Keep each question under 60 characters
+- Make questions feel natural and conversational
+- If the conversation mentions a specific topic (e.g. Article 21, Fundamental Rights, Indian Economy), reference it directly
+- Do NOT use generic phrases like "this topic" or "the above" - name the specific subject${langNote}
+
+Respond ONLY with a JSON array of exactly 4 strings. No markdown, no explanation.
+Example: ["How does Article 21 differ from Article 19?","What are landmark cases on Right to Life?","Create 5 MCQs on Fundamental Rights","Compare Article 14 and Article 21"]`;
+
+      const result = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          thinkingConfig: { thinkingBudget: 0 },
+          temperature: 0.7,
+        },
+      });
+
+      const text = (result.text || "").replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      let suggestions: string[] = [];
+      try {
+        suggestions = JSON.parse(text);
+        if (!Array.isArray(suggestions)) suggestions = [];
+        suggestions = suggestions.slice(0, 4).map(s => String(s).trim()).filter(Boolean);
+      } catch {
+        suggestions = [];
+      }
+
+      res.json({ suggestions });
+    } catch (error) {
+      console.error("Error generating suggestions:", error);
+      res.json({ suggestions: [] });
+    }
+  });
 }

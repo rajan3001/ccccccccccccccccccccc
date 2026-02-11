@@ -11,30 +11,15 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import {
   Loader2,
-  BookOpen,
-  Newspaper,
-  Lightbulb,
-  Scale,
   Download,
   Sparkles,
   ArrowRight,
-  PenLine,
-  ListChecks,
-  HelpCircle,
   MessageCircle,
   ArrowDown,
 } from "lucide-react";
 import { generatePDF, chatToPDFSections } from "@/lib/pdf-generator";
 import { useLanguage } from "@/i18n/context";
 import { InlineLanguageButton } from "@/components/inline-language-button";
-
-const TOPIC_SUGGESTIONS = [
-  { text: "Create 5 Prelims MCQs on this topic", icon: ListChecks },
-  { text: "Write a Mains answer on this topic", icon: PenLine },
-  { text: "How to write good answers for this topic?", icon: HelpCircle },
-  { text: "Explain the key concepts in simple terms", icon: Lightbulb },
-  { text: "What are the important facts to remember?", icon: BookOpen },
-];
 
 const CASUAL_GREETINGS = /^\s*(hi|hello|hey|hii+|helo|good\s*(morning|afternoon|evening|night)|namaste|namaskar|howdy|sup|what'?s\s*up|yo)\b.*$/i;
 
@@ -125,6 +110,15 @@ export default function ChatPage() {
   const lastMessage = hasMessages ? conversationData.messages[conversationData.messages.length - 1] : null;
   const hasTopic = hasMessages && isSubstantiveConversation(conversationData.messages);
   const showSuggestions = hasMessages && lastMessage?.role === "assistant" && !isStreaming && hasTopic;
+
+  const lastMsgId = lastMessage?.id;
+  const { data: suggestionsData, isLoading: suggestionsLoading } = useQuery<{ suggestions: string[] }>({
+    queryKey: [`/api/conversations/${conversationId}/suggestions`, lastMsgId],
+    enabled: showSuggestions && !!conversationId,
+    staleTime: Infinity,
+    gcTime: 5 * 60 * 1000,
+  });
+  const smartSuggestions = suggestionsData?.suggestions || [];
 
   if (isAuthLoading) {
     return (
@@ -233,22 +227,30 @@ export default function ChatPage() {
                     <span className="text-sm font-semibold text-muted-foreground">{t.chat.youCanAlsoAsk}</span>
                   </div>
                   <div className="space-y-2">
-                    {TOPIC_SUGGESTIONS.map((suggestion, i) => (
-                      <Button
-                        key={i}
-                        variant="outline"
-                        data-testid={`button-suggestion-${i}`}
-                        onClick={() => conversationId && sendMessage(suggestion.text)}
-                        disabled={isStreaming || !conversationId}
-                        className="w-full justify-between gap-3 text-left bg-primary/5 border-primary/10"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <suggestion.icon className="h-4 w-4 text-primary flex-shrink-0" />
-                          <span className="text-sm font-medium">{suggestion.text}</span>
-                        </div>
-                        <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      </Button>
-                    ))}
+                    {suggestionsLoading ? (
+                      <div className="space-y-2">
+                        {[0, 1, 2, 3].map(i => (
+                          <div key={i} className="h-10 rounded-md bg-primary/5 border border-primary/10 animate-pulse" />
+                        ))}
+                      </div>
+                    ) : smartSuggestions.length > 0 ? (
+                      smartSuggestions.map((suggestion, i) => (
+                        <Button
+                          key={i}
+                          variant="outline"
+                          data-testid={`button-suggestion-${i}`}
+                          onClick={() => conversationId && sendMessage(suggestion)}
+                          disabled={isStreaming || !conversationId}
+                          className="w-full justify-between gap-3 text-left bg-primary/5 border-primary/10"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <Sparkles className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                            <span className="text-sm font-medium truncate">{suggestion}</span>
+                          </div>
+                          <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        </Button>
+                      ))
+                    ) : null}
                   </div>
                 </div>
               )}
