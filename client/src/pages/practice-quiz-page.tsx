@@ -363,7 +363,9 @@ export default function PracticeQuizPage() {
               <BarChart3 className="h-4 w-4 sm:mr-1" />
               <span className="hidden sm:inline">Analytics</span>
             </Button>
-            <InlineLanguageButton />
+            <div className="hidden md:block">
+              <InlineLanguageButton />
+            </div>
           </div>
         </div>
 

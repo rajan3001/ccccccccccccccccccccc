@@ -252,7 +252,9 @@ export default function CurrentAffairsPage() {
                   {t.currentAffairs.practiceMCQs}
                 </Button>
               </Link>
-              <InlineLanguageButton />
+              <div className="hidden md:block">
+                <InlineLanguageButton />
+              </div>
             </div>
           </div>
 
