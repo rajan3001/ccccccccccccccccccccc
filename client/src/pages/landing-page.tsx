@@ -529,7 +529,8 @@ function AutoCyclingFeatures({ openLogin, t }: { openLogin: () => void; t: any }
             </p>
             <Button
               size="sm"
-              className="mt-2 gap-1.5 !bg-blue-600 !border-blue-700 !text-white hover:!bg-blue-700"
+              className="mt-2 gap-1.5"
+              style={{ backgroundColor: '#2563eb', borderColor: '#1d4ed8', color: 'white' }}
               onClick={openLogin}
               data-testid={`button-feature-${active.id}`}
             >
@@ -558,7 +559,8 @@ function AutoCyclingFeatures({ openLogin, t }: { openLogin: () => void; t: any }
             </p>
             <Button
               size="sm"
-              className="mt-2 gap-1.5 !bg-blue-600 !border-blue-700 !text-white hover:!bg-blue-700"
+              className="mt-2 gap-1.5"
+              style={{ backgroundColor: '#2563eb', borderColor: '#1d4ed8', color: 'white' }}
               onClick={openLogin}
               data-testid={`button-feature-mobile-${active.id}`}
             >
@@ -856,7 +858,8 @@ export default function LandingPage() {
                     <Button
                       size="lg"
                       onClick={openLogin}
-                      className="w-full sm:w-auto rounded-full shadow-xl shadow-blue-500/30 !bg-blue-600 !border-blue-700 !text-white hover:!bg-blue-700"
+                      className="w-full sm:w-auto rounded-full shadow-xl shadow-blue-500/30"
+                      style={{ backgroundColor: '#2563eb', borderColor: '#1d4ed8', color: 'white' }}
                       data-testid="button-get-started"
                     >
                       {t.landing.beginJourney}
