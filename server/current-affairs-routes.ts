@@ -266,10 +266,10 @@ Return ONLY a valid JSON array. No markdown.`;
         const requestedDate = new Date(dateStr + "T00:00:00");
         const diffDays = Math.floor((today.getTime() - requestedDate.getTime()) / (1000 * 60 * 60 * 24));
 
-        if (diffDays <= 1) {
+        if (diffDays < 0) {
           return res.status(404).json({
             error: "not_available_yet",
-            message: "Today's current affairs are not available yet. Our team curates content from leading newspapers and it's typically available by afternoon. Please try again in a few hours."
+            message: "This date is in the future. Current affairs are not available yet."
           });
         }
 
