@@ -211,7 +211,7 @@ export default function StudyProgressPage() {
 
   if (!hasProgressAccess) {
     return (
-      <div className="flex h-screen bg-background" data-testid="study-progress-page">
+      <div className="flex flex-col md:flex-row h-[100dvh] bg-background overflow-hidden" data-testid="study-progress-page">
         <Sidebar />
         <UpgradeBanner
           feature="Study Progress"
@@ -224,7 +224,7 @@ export default function StudyProgressPage() {
   }
 
   return (
-    <div className="flex h-screen bg-background" data-testid="study-progress-page">
+    <div className="flex flex-col md:flex-row h-[100dvh] bg-background overflow-hidden" data-testid="study-progress-page">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <div className="hidden md:flex justify-end px-4 pt-3">
