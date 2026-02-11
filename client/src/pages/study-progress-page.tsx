@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/i18n/context";
+import { InlineLanguageButton } from "@/components/inline-language-button";
 import { Sidebar } from "@/components/layout/sidebar";
 import { UpgradeBanner } from "@/components/upgrade-banner";
 import { useSubscription } from "@/hooks/use-subscription";
@@ -226,6 +227,9 @@ export default function StudyProgressPage() {
     <div className="flex h-screen bg-background" data-testid="study-progress-page">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
+        <div className="hidden md:flex justify-end px-4 pt-3">
+          <InlineLanguageButton />
+        </div>
         <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-16">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-foreground" data-testid="text-page-title">{t.studyProgress.title}</h1>

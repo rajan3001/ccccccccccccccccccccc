@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/i18n/context";
+import { InlineLanguageButton } from "@/components/inline-language-button";
 import { Link, useLocation } from "wouter";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Card } from "@/components/ui/card";
@@ -579,6 +580,9 @@ export default function DashboardPage() {
       <Sidebar />
 
       <main className="flex-1 overflow-y-auto">
+        <div className="hidden md:flex justify-end px-4 pt-3">
+          <InlineLanguageButton />
+        </div>
         <div className="max-w-5xl mx-auto px-3 sm:px-6 py-3 sm:py-6">
 
           <div
