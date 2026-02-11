@@ -40,20 +40,21 @@ const DURATIONS: DurationOption[] = [
 type FeatureItem = {
   label: string;
   icon: any;
+  free: string | boolean;
   starter: string | boolean;
   pro: string | boolean;
   ultimate: string | boolean;
 };
 
 const FEATURES: FeatureItem[] = [
-  { label: "AI Chat", icon: MessageSquare, starter: "Limited", pro: "Extended", ultimate: true },
-  { label: "Current Affairs", icon: Newspaper, starter: true, pro: true, ultimate: true },
-  { label: "Practice Quiz", icon: Brain, starter: "Limited", pro: "Extended", ultimate: true },
-  { label: "Paper Evaluation", icon: FileCheck, starter: "2/month", pro: "10/month", ultimate: true },
-  { label: "My Notes", icon: StickyNote, starter: false, pro: true, ultimate: true },
-  { label: "Study Planner", icon: CalendarCheck, starter: false, pro: true, ultimate: true },
-  { label: "Study Progress", icon: BarChart3, starter: false, pro: true, ultimate: true },
-  { label: "Priority Support", icon: Sparkles, starter: false, pro: false, ultimate: true },
+  { label: "AI Chat", icon: MessageSquare, free: "10/day", starter: "50/day", pro: "Extended", ultimate: true },
+  { label: "Current Affairs", icon: Newspaper, free: "2 days", starter: true, pro: true, ultimate: true },
+  { label: "Practice Quiz", icon: Brain, free: false, starter: "Limited", pro: "Extended", ultimate: true },
+  { label: "Paper Evaluation", icon: FileCheck, free: "1/month", starter: "2/month", pro: "10/month", ultimate: true },
+  { label: "My Notes", icon: StickyNote, free: false, starter: false, pro: true, ultimate: true },
+  { label: "Study Planner", icon: CalendarCheck, free: false, starter: false, pro: true, ultimate: true },
+  { label: "Study Progress", icon: BarChart3, free: false, starter: false, pro: true, ultimate: true },
+  { label: "Priority Support", icon: Sparkles, free: false, starter: false, pro: false, ultimate: true },
 ];
 
 function getPlanCode(tier: PlanTier, duration: PlanDuration): string {
@@ -161,8 +162,7 @@ export default function SubscriptionPage() {
                   )}
                   data-testid={`button-duration-${d.key}`}
                 >
-                  <span className="hidden sm:inline">{d.label}</span>
-                  <span className="sm:hidden">{d.shortLabel}</span>
+                  {d.label}
                   {d.key !== "monthly" && selectedDuration === d.key && (
                     <span className="absolute -top-2 -right-1 text-[9px] font-bold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/60 px-1.5 rounded-full">
                       Save
@@ -299,7 +299,8 @@ export default function SubscriptionPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b bg-muted/30">
-                      <th className="text-left px-4 py-3 font-semibold text-muted-foreground w-[40%]">Feature</th>
+                      <th className="text-left px-4 py-3 font-semibold text-muted-foreground w-[30%]">Feature</th>
+                      <th className="text-center px-3 py-3 font-semibold text-muted-foreground">Free</th>
                       <th className="text-center px-3 py-3 font-semibold">Starter</th>
                       <th className="text-center px-3 py-3 font-semibold text-primary">Pro</th>
                       <th className="text-center px-3 py-3 font-semibold">Ultimate</th>
@@ -311,6 +312,9 @@ export default function SubscriptionPage() {
                         <td className="px-4 py-3 flex items-center gap-2">
                           <feat.icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                           {feat.label}
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <div className="flex justify-center"><FeatureValue value={feat.free} /></div>
                         </td>
                         <td className="px-3 py-3 text-center">
                           <div className="flex justify-center"><FeatureValue value={feat.starter} /></div>

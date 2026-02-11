@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
+import { UpgradeBanner } from "@/components/upgrade-banner";
+import { useSubscription } from "@/hooks/use-subscription";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -629,16 +631,29 @@ export default function NotesPage() {
     );
   };
 
+  const { data: subData } = useSubscription();
+  const userTier = subData?.tier || null;
+  const hasNotesAccess = userTier === "pro" || userTier === "ultimate";
+
   return (
     <div className="flex flex-col md:flex-row h-[100dvh] bg-background overflow-hidden">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto">
-        <div className="px-4 sm:px-6 py-6 sm:py-10">
-          {view === "list" && renderListView()}
-          {view === "detail" && renderDetailView()}
-          {view === "edit" && renderEditView()}
-        </div>
-      </main>
+      {hasNotesAccess ? (
+        <main className="flex-1 overflow-y-auto">
+          <div className="px-4 sm:px-6 py-6 sm:py-10">
+            {view === "list" && renderListView()}
+            {view === "detail" && renderDetailView()}
+            {view === "edit" && renderEditView()}
+          </div>
+        </main>
+      ) : (
+        <UpgradeBanner
+          feature="My Notes"
+          description="Save and organize your study notes with categories, tags, folders, and spaced repetition. Available on Pro plan and above."
+          requiredTier="pro"
+          blocking
+        />
+      )}
     </div>
   );
 }

@@ -6,8 +6,9 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Crown, Clock, FileCheck, LayoutDashboard, ArrowRight, Bell } from "lucide-react";
+import { Loader2, Crown, Clock, FileCheck, LayoutDashboard, ArrowRight, Bell, MessageSquare, Newspaper, Brain, StickyNote, CalendarCheck, BarChart3 } from "lucide-react";
 import { useLocation } from "wouter";
+import { TIER_INFO } from "@shared/schema";
 
 type TabKey = "billing" | "notifications";
 
@@ -26,7 +27,52 @@ export default function SettingsPage() {
   }
 
   const isPro = subData?.isPro;
+  const userTier = subData?.tier || null;
+  const tierLabel = userTier ? TIER_INFO[userTier].label : "Free";
   const [, navigate] = useLocation();
+
+  const freeLimits = [
+    { icon: MessageSquare, label: "10 AI chats / day" },
+    { icon: Newspaper, label: "Current Affairs (last 2 days only)" },
+    { icon: Brain, label: "No Practice Quiz" },
+    { icon: FileCheck, label: "1 Paper Evaluation / month" },
+    { icon: StickyNote, label: "No Save Notes" },
+    { icon: CalendarCheck, label: "No Study Planner" },
+    { icon: BarChart3, label: "No Study Progress" },
+  ];
+
+  const starterLimits = [
+    { icon: MessageSquare, label: "50 AI chats / day" },
+    { icon: Newspaper, label: "Full Current Affairs access" },
+    { icon: Brain, label: "Limited Practice Quiz" },
+    { icon: FileCheck, label: "2 Paper Evaluations / month" },
+    { icon: StickyNote, label: "No Save Notes" },
+    { icon: CalendarCheck, label: "No Study Planner" },
+    { icon: BarChart3, label: "No Study Progress" },
+  ];
+
+  const proLimits = [
+    { icon: MessageSquare, label: "Extended AI chats" },
+    { icon: Newspaper, label: "Full Current Affairs access" },
+    { icon: Brain, label: "Extended Practice Quiz" },
+    { icon: FileCheck, label: "10 Paper Evaluations / month" },
+    { icon: StickyNote, label: "My Notes" },
+    { icon: CalendarCheck, label: "Study Planner" },
+    { icon: BarChart3, label: "Study Progress" },
+  ];
+
+  const ultimateLimits = [
+    { icon: MessageSquare, label: "Unlimited AI chats" },
+    { icon: Newspaper, label: "Full Current Affairs access" },
+    { icon: Brain, label: "Unlimited Practice Quiz" },
+    { icon: FileCheck, label: "Unlimited Paper Evaluations" },
+    { icon: StickyNote, label: "My Notes" },
+    { icon: CalendarCheck, label: "Study Planner" },
+    { icon: BarChart3, label: "Study Progress + Priority Support" },
+  ];
+
+  const currentLimits = userTier === "ultimate" ? ultimateLimits : userTier === "pro" ? proLimits : userTier === "starter" ? starterLimits : freeLimits;
+  const isFreePlan = !userTier;
 
   return (
     <div className="flex flex-col md:flex-row h-[100dvh] bg-background overflow-hidden">
@@ -64,28 +110,22 @@ export default function SettingsPage() {
             <div className="space-y-5">
               <Card className="p-5 sm:p-6">
                 <Badge variant={isPro ? "default" : "secondary"} className="mb-4 text-xs font-bold uppercase">
-                  {isPro ? t.common.pro : t.common.free}
+                  {tierLabel}
                 </Badge>
                 <p className="text-sm text-foreground font-medium mb-3">
-                  {t.settings.youHave} {isPro ? t.settings.unlimited : t.settings.limited} {t.settings.accessWith}
+                  {isFreePlan ? "You have limited access with -" : `Your ${tierLabel} plan includes -`}
                 </p>
                 <div className="space-y-2.5">
-                  <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4 flex-shrink-0" />
-                    <span>{isPro ? t.settings.unlimitedQueries : t.settings.limitedQueries}</span>
-                  </div>
-                  <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-                    <FileCheck className="h-4 w-4 flex-shrink-0" />
-                    <span>{isPro ? t.settings.unlimitedEvals : t.settings.limitedEvals}</span>
-                  </div>
-                  <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-                    <LayoutDashboard className="h-4 w-4 flex-shrink-0" />
-                    <span>{isPro ? t.settings.fullAccess : t.settings.limitedAccess}</span>
-                  </div>
+                  {currentLimits.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-2.5 text-sm text-muted-foreground">
+                      <item.icon className="h-4 w-4 flex-shrink-0" />
+                      <span>{item.label}</span>
+                    </div>
+                  ))}
                 </div>
               </Card>
 
-              {!isPro && (
+              {isFreePlan && (
                 <Card className="p-5 sm:p-6 border-primary/30 bg-primary/5 dark:bg-primary/10">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
@@ -94,7 +134,7 @@ export default function SettingsPage() {
                         {t.settings.upgradePlan}
                       </h3>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {t.settings.upgradeDesc} <span className="font-bold text-foreground">{t.settings.unlimitedAccess}</span> {t.settings.ofLearnpro}
+                        Unlock more features starting at just <span className="font-bold text-foreground">{"\u20B9"}299/month</span>
                       </p>
                     </div>
                     <Button className="gap-2 whitespace-nowrap" data-testid="button-upgrade-pro" onClick={() => navigate("/subscription")}>

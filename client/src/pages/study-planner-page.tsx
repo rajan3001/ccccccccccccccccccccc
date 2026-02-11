@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
+import { UpgradeBanner } from "@/components/upgrade-banner";
+import { useSubscription } from "@/hooks/use-subscription";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -671,51 +673,64 @@ export default function StudyPlannerPage() {
 
   const examLabel = EXAM_LABELS[selectedExam] || selectedExam;
 
+  const { data: subData } = useSubscription();
+  const plannerTier = subData?.tier || null;
+  const hasPlannerAccess = plannerTier === "pro" || plannerTier === "ultimate";
+
   return (
     <div className="flex flex-col md:flex-row h-[100dvh] bg-background overflow-hidden">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-20">
-          <div className="mb-6">
-            <h1 className="text-2xl font-display font-bold" data-testid="text-study-planner-title">{t.planner.title}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{t.planner.organizePrep}</p>
+      {hasPlannerAccess ? (
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-20">
+            <div className="mb-6">
+              <h1 className="text-2xl font-display font-bold" data-testid="text-study-planner-title">{t.planner.title}</h1>
+              <p className="text-sm text-muted-foreground mt-1">{t.planner.organizePrep}</p>
+            </div>
+
+            <Tabs defaultValue="dashboard">
+              <TabsList className="grid grid-cols-4 w-full mb-6">
+                <TabsTrigger value="dashboard" data-testid="tab-dashboard">
+                  <BarChart3 className="h-4 w-4 mr-1.5 hidden sm:block" />
+                  {t.planner.dashboard}
+                </TabsTrigger>
+                <TabsTrigger value="timetable" data-testid="tab-timetable">
+                  <Calendar className="h-4 w-4 mr-1.5 hidden sm:block" />
+                  {t.planner.timetable}
+                </TabsTrigger>
+                <TabsTrigger value="syllabus" data-testid="tab-syllabus">
+                  <BookOpen className="h-4 w-4 mr-1.5 hidden sm:block" />
+                  {t.planner.syllabus}
+                </TabsTrigger>
+                <TabsTrigger value="goals" data-testid="tab-goals">
+                  <Target className="h-4 w-4 mr-1.5 hidden sm:block" />
+                  {t.planner.goals}
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="dashboard">
+                <DashboardTab selectedExam={selectedExam} onExamChange={setSelectedExam} userExams={userExams} />
+              </TabsContent>
+              <TabsContent value="timetable">
+                <TimetableTab userExams={userExams} />
+              </TabsContent>
+              <TabsContent value="syllabus">
+                <SyllabusTab selectedExam={selectedExam} onExamChange={setSelectedExam} userExams={userExams} />
+              </TabsContent>
+              <TabsContent value="goals">
+                <DailyGoalsTab userExams={userExams} />
+              </TabsContent>
+            </Tabs>
           </div>
-
-          <Tabs defaultValue="dashboard">
-            <TabsList className="grid grid-cols-4 w-full mb-6">
-              <TabsTrigger value="dashboard" data-testid="tab-dashboard">
-                <BarChart3 className="h-4 w-4 mr-1.5 hidden sm:block" />
-                {t.planner.dashboard}
-              </TabsTrigger>
-              <TabsTrigger value="timetable" data-testid="tab-timetable">
-                <Calendar className="h-4 w-4 mr-1.5 hidden sm:block" />
-                {t.planner.timetable}
-              </TabsTrigger>
-              <TabsTrigger value="syllabus" data-testid="tab-syllabus">
-                <BookOpen className="h-4 w-4 mr-1.5 hidden sm:block" />
-                {t.planner.syllabus}
-              </TabsTrigger>
-              <TabsTrigger value="goals" data-testid="tab-goals">
-                <Target className="h-4 w-4 mr-1.5 hidden sm:block" />
-                {t.planner.goals}
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="dashboard">
-              <DashboardTab selectedExam={selectedExam} onExamChange={setSelectedExam} userExams={userExams} />
-            </TabsContent>
-            <TabsContent value="timetable">
-              <TimetableTab userExams={userExams} />
-            </TabsContent>
-            <TabsContent value="syllabus">
-              <SyllabusTab selectedExam={selectedExam} onExamChange={setSelectedExam} userExams={userExams} />
-            </TabsContent>
-            <TabsContent value="goals">
-              <DailyGoalsTab userExams={userExams} />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </main>
+        </main>
+      ) : (
+        <UpgradeBanner
+          feature="Study Planner"
+          description="Build weekly timetables, track syllabus progress, set daily goals, and analyze weak areas. Available on Pro plan and above."
+          requiredTier="pro"
+          blocking
+        />
+      )}
     </div>
   );
 }

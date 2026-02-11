@@ -1,6 +1,8 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/i18n/context";
 import { Sidebar } from "@/components/layout/sidebar";
+import { UpgradeBanner } from "@/components/upgrade-banner";
+import { useSubscription } from "@/hooks/use-subscription";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
@@ -201,6 +203,24 @@ export default function StudyProgressPage() {
 
   const streak = overview?.currentStreak || 0;
   const motivationalMsg = getMotivationalMessage(streak, t);
+
+  const { data: subData } = useSubscription();
+  const progressTier = subData?.tier || null;
+  const hasProgressAccess = progressTier === "pro" || progressTier === "ultimate";
+
+  if (!hasProgressAccess) {
+    return (
+      <div className="flex h-screen bg-background" data-testid="study-progress-page">
+        <Sidebar />
+        <UpgradeBanner
+          feature="Study Progress"
+          description="Track your 90-day streak, daily study time, GS paper coverage, and exam-wise performance. Available on Pro plan and above."
+          requiredTier="pro"
+          blocking
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-background" data-testid="study-progress-page">

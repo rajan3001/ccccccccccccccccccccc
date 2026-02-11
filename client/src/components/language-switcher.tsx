@@ -61,7 +61,7 @@ export function LanguageSwitcher() {
   };
 
   return (
-    <div ref={containerRef} className="hidden md:block fixed top-5 right-5 z-[9999]" data-testid="language-switcher-container">
+    <div ref={containerRef} className="hidden md:block fixed top-4 right-4 z-[50]" data-testid="language-switcher-container">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
