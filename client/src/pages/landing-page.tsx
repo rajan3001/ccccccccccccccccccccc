@@ -1190,7 +1190,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <LandingFooter />
+      <LandingFooter onLoginClick={openLogin} />
     </div>
   );
 }
