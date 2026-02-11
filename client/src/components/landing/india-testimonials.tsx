@@ -204,9 +204,9 @@ export function IndiaTestimonialsSection() {
           </p>
         </div>
 
-        <div className="flex gap-3 sm:gap-6 lg:gap-8 items-center">
-          <div className="relative flex-[2] min-w-0" data-testid="india-map-container">
-            <div className="relative">
+        <div className="grid grid-cols-[1.2fr_1fr] sm:grid-cols-[1fr_1fr] lg:grid-cols-[3fr_2fr] gap-3 sm:gap-6 lg:gap-8 items-center">
+          <div className="relative" data-testid="india-map-container">
+            <div className="relative max-w-md lg:max-w-lg mx-auto">
               <img
                 src={indiaMapImg}
                 alt="Map of India"
@@ -220,10 +220,10 @@ export function IndiaTestimonialsSection() {
             </div>
           </div>
 
-          <div className="flex-1 min-w-0 hidden sm:block">
+          <div className="hidden sm:block">
             <VerticalMarquee />
           </div>
-          <div className="flex-1 min-w-0 sm:hidden" style={{ maxWidth: "42%" }}>
+          <div className="sm:hidden">
             <VerticalMarquee compact />
           </div>
         </div>
