@@ -17,7 +17,6 @@ import {
   Users,
   FileText,
   BarChart3,
-  Star,
   Clock,
   Zap,
   Shield,
@@ -533,28 +532,6 @@ function AutoCyclingFeatures({ openLogin, t }: { openLogin: () => void; t: any }
   );
 }
 
-const testimonials = [
-  {
-    name: "Aarav Sharma",
-    text: "It feels like having a patient mentor who never gets tired of my questions. The AI understands exactly how UPSC wants you to frame answers.",
-    rating: 5,
-  },
-  {
-    name: "Priya Verma",
-    text: "The daily current affairs mapped to GS papers saved me hours every morning. The state-specific filtering for JPSC is something I couldn't find anywhere else.",
-    rating: 5,
-  },
-  {
-    name: "Rohit Kumar",
-    text: "I used to feel overwhelmed by the syllabus. Learnpro made it manageable. The practice MCQs with explanations genuinely helped me improve my accuracy.",
-    rating: 5,
-  },
-  {
-    name: "Sneha Patel",
-    text: "What I love most is that it doesn't just give answers -- it teaches you how to think. The answer writing feedback is structured and genuinely useful.",
-    rating: 5,
-  },
-];
 
 
 const STATE_PSC_EXAMS = [
@@ -1096,54 +1073,6 @@ export default function LandingPage() {
 
         <LanguageShowcaseSection t={t} />
 
-        <section className="py-14 sm:py-20 bg-secondary/30">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-8 sm:mb-12"
-            >
-              <h2 className="text-2xl sm:text-4xl font-display font-bold" data-testid="text-testimonials-heading">
-                {t.landing.testimonialsHeading}
-              </h2>
-              <p className="text-muted-foreground mt-2 sm:mt-3 text-sm sm:text-base">
-                {t.landing.testimonialsSubtitle}
-              </p>
-            </motion.div>
-
-            <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
-              {testimonials.map((testimonial, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                >
-                  <Card className="p-5 sm:p-6 h-full" data-testid={`testimonial-${i}`}>
-                    <div className="flex flex-wrap gap-0.5 mb-3">
-                      {Array.from({ length: testimonial.rating }).map((_, j) => (
-                        <Star key={j} className="h-4 w-4 fill-primary text-primary" />
-                      ))}
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-4 italic">
-                      "{testimonial.text}"
-                    </p>
-                    <div className="flex items-center flex-wrap gap-3">
-                      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-sm font-bold text-primary">
-                          {testimonial.name.split(" ").map(n => n[0]).join("")}
-                        </span>
-                      </div>
-                      <span className="font-semibold text-sm text-foreground">{testimonial.name}</span>
-                    </div>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         <section className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-primary/[0.03] to-background" />
