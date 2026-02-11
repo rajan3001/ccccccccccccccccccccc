@@ -63,7 +63,6 @@ function App() {
       <TooltipProvider>
         <LanguageProvider>
           <Toaster />
-          <LanguageSwitcher />
           <Router />
         </LanguageProvider>
       </TooltipProvider>

@@ -27,6 +27,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { InlineLanguageButton } from "@/components/inline-language-button";
 import { generatePDF, currentAffairsToPDFSections } from "@/lib/pdf-generator";
 import { useLanguage } from "@/i18n/context";
 
@@ -251,6 +252,7 @@ export default function CurrentAffairsPage() {
                   {t.currentAffairs.practiceMCQs}
                 </Button>
               </Link>
+              <InlineLanguageButton />
             </div>
           </div>
 
