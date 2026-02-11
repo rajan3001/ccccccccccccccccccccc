@@ -209,24 +209,68 @@ interface DashboardStats {
 
 function TodayAchievements({ stats, t }: { stats: DashboardStats; t: any }) {
   const achievements = [
-    { label: t.dashboard.mcqsSolved, value: stats.today.mcqsSolved, allTime: stats.allTime.mcqsSolved, icon: Brain, color: "#f59e0b", bg: "#fef3c7" },
-    { label: t.dashboard.topicsStudied, value: stats.today.topicsStudied, allTime: stats.allTime.topicsStudied, icon: MessageSquare, color: "#3b82f6", bg: "#dbeafe" },
-    { label: t.dashboard.caRead, value: stats.allTime.currentAffairsRevised, allTime: stats.allTime.currentAffairsTotal, icon: Newspaper, color: "#10b981", bg: "#d1fae5" },
-    { label: t.dashboard.notesSaved, value: stats.today.notesSaved, allTime: stats.allTime.notesSaved, icon: NotebookPen, color: "#f97316", bg: "#ffedd5" },
+    { label: t.dashboard.mcqsSolved, value: stats.today.mcqsSolved, icon: Brain, accent: "#f59e0b", glow: "rgba(245,158,11,0.25)" },
+    { label: t.dashboard.topicsStudied, value: stats.today.topicsStudied, icon: MessageSquare, accent: "#3b82f6", glow: "rgba(59,130,246,0.25)" },
+    { label: t.dashboard.caRead, value: stats.allTime.currentAffairsRevised, icon: Newspaper, accent: "#10b981", glow: "rgba(16,185,129,0.25)" },
+    { label: t.dashboard.notesSaved, value: stats.today.notesSaved, icon: NotebookPen, accent: "#f97316", glow: "rgba(249,115,22,0.25)" },
   ];
 
   const accuracy = stats.today.mcqsSolved > 0
     ? Math.round((stats.today.mcqsCorrect / stats.today.mcqsSolved) * 100)
     : 0;
 
+  const totalToday = stats.today.mcqsSolved + stats.today.topicsStudied + stats.today.notesSaved;
+
   return (
     <div className="mb-4" data-testid="section-today-achievements">
-      <Card className="border-0 shadow-sm bg-card/80">
-        <div className="px-4 sm:px-5 pt-3 sm:pt-4 pb-1">
+      <Card className="border-0 shadow-sm overflow-visible relative"
+        style={{
+          background: "linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card)) 100%)",
+        }}
+      >
+        <div className="absolute inset-0 rounded-md overflow-hidden pointer-events-none">
+          <div
+            className="absolute -top-20 -right-20 w-40 h-40 rounded-full opacity-[0.07]"
+            style={{ background: "radial-gradient(circle, #f59e0b, transparent 70%)" }}
+          />
+          <div
+            className="absolute -bottom-16 -left-16 w-32 h-32 rounded-full opacity-[0.05]"
+            style={{ background: "radial-gradient(circle, #3b82f6, transparent 70%)" }}
+          />
+        </div>
+
+        <div className="px-4 sm:px-5 pt-3 sm:pt-4 pb-1 relative z-10">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <h2 className="text-sm sm:text-base font-bold text-foreground" data-testid="text-achievements-heading">
-              {t.dashboard.todayAchievements}
-            </h2>
+            <div className="flex items-center gap-2">
+              <div
+                className="relative h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center"
+                style={{
+                  background: "linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(245,158,11,0.05) 100%)",
+                  borderRadius: "4px",
+                  border: "1px solid rgba(245,158,11,0.3)",
+                }}
+              >
+                <Trophy
+                  className="h-4 w-4 sm:h-5 sm:w-5"
+                  style={{
+                    color: "#f59e0b",
+                    filter: "drop-shadow(0 0 4px rgba(245,158,11,0.5))",
+                    animation: "achievement-trophy-pulse 2s ease-in-out infinite",
+                  }}
+                />
+                <div
+                  className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full"
+                  style={{
+                    background: totalToday > 0 ? "#10b981" : "#6b7280",
+                    boxShadow: totalToday > 0 ? "0 0 6px rgba(16,185,129,0.6)" : "none",
+                    animation: totalToday > 0 ? "achievement-dot-blink 2s ease-in-out infinite" : "none",
+                  }}
+                />
+              </div>
+              <h2 className="text-sm sm:text-base font-bold text-foreground" data-testid="text-achievements-heading">
+                {t.dashboard.todayAchievements}
+              </h2>
+            </div>
             {stats.today.mcqsSolved > 0 && (
               <Badge variant="secondary" className="text-[10px] font-semibold">
                 <Zap className="h-3 w-3 mr-0.5 text-amber-500" />
@@ -236,27 +280,100 @@ function TodayAchievements({ stats, t }: { stats: DashboardStats; t: any }) {
           </div>
         </div>
 
-        <div className="px-4 sm:px-5 pb-4 pt-2">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
+        <div className="px-4 sm:px-5 pb-4 pt-2 relative z-10">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
             {achievements.map((item, idx) => (
               <div
                 key={item.label}
-                className="rounded-md p-2.5 sm:p-3 flex flex-col items-center text-center"
-                style={{ background: item.bg }}
+                className="relative group"
                 data-testid={`card-achievement-${idx}`}
+                style={{
+                  animation: `achievement-card-enter 0.4s ease-out ${idx * 0.08}s both`,
+                }}
               >
-                <div className="flex items-center gap-1.5 mb-1.5 sm:mb-2">
-                  <item.icon className="h-4 w-4 flex-shrink-0" style={{ color: item.color }} />
-                  <span className="text-lg sm:text-xl font-black text-foreground leading-none" data-testid={`text-achievement-value-${idx}`}>
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                  style={{
+                    borderRadius: "4px",
+                    boxShadow: `0 0 16px ${item.glow}, inset 0 0 16px ${item.glow}`,
+                  }}
+                />
+                <div
+                  className="relative p-2.5 sm:p-3 flex flex-col items-center text-center transition-all duration-200"
+                  style={{
+                    borderRadius: "4px",
+                    border: `1px solid ${item.accent}33`,
+                    background: `linear-gradient(180deg, ${item.accent}08 0%, ${item.accent}03 100%)`,
+                  }}
+                >
+                  <div
+                    className="h-8 w-8 sm:h-9 sm:w-9 mb-2 flex items-center justify-center"
+                    style={{
+                      borderRadius: "4px",
+                      background: `linear-gradient(135deg, ${item.accent}20 0%, ${item.accent}08 100%)`,
+                      border: `1px solid ${item.accent}30`,
+                    }}
+                  >
+                    <item.icon
+                      className="h-4 w-4 sm:h-[18px] sm:w-[18px]"
+                      style={{
+                        color: item.accent,
+                        filter: `drop-shadow(0 0 3px ${item.glow})`,
+                        animation: `achievement-icon-float 3s ease-in-out ${idx * 0.5}s infinite`,
+                      }}
+                    />
+                  </div>
+                  <span
+                    className="text-xl sm:text-2xl font-black text-foreground leading-none mb-1"
+                    style={{ fontVariantNumeric: "tabular-nums" }}
+                    data-testid={`text-achievement-value-${idx}`}
+                  >
                     <AnimatedCounter target={item.value} />
                   </span>
+                  <span className="text-[10px] sm:text-[11px] font-medium text-muted-foreground leading-tight">{item.label}</span>
+
+                  <div
+                    className="absolute top-0 left-0 w-3 h-px"
+                    style={{ background: `linear-gradient(90deg, ${item.accent}60, transparent)` }}
+                  />
+                  <div
+                    className="absolute top-0 left-0 w-px h-3"
+                    style={{ background: `linear-gradient(180deg, ${item.accent}60, transparent)` }}
+                  />
+                  <div
+                    className="absolute bottom-0 right-0 w-3 h-px"
+                    style={{ background: `linear-gradient(270deg, ${item.accent}60, transparent)` }}
+                  />
+                  <div
+                    className="absolute bottom-0 right-0 w-px h-3"
+                    style={{ background: `linear-gradient(0deg, ${item.accent}60, transparent)` }}
+                  />
                 </div>
-                <span className="text-[10px] sm:text-[11px] font-medium text-muted-foreground leading-tight">{item.label}</span>
               </div>
             ))}
           </div>
         </div>
       </Card>
+
+      <style>{`
+        @keyframes achievement-trophy-pulse {
+          0%, 100% { transform: scale(1) rotate(0deg); }
+          25% { transform: scale(1.1) rotate(-5deg); }
+          75% { transform: scale(1.05) rotate(3deg); }
+        }
+        @keyframes achievement-dot-blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
+        @keyframes achievement-icon-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-2px); }
+        }
+        @keyframes achievement-card-enter {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
