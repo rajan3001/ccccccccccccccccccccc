@@ -108,6 +108,71 @@ function TestimonialCard({ t, i }: { t: typeof testimonials[0]; i: number }) {
   );
 }
 
+function VerticalMarquee() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const offsetRef = useRef(0);
+  const pausedRef = useRef(false);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    const inner = innerRef.current;
+    if (!container || !inner) return;
+
+    let animId: number;
+    const speed = 0.5;
+
+    function tick() {
+      if (!pausedRef.current && inner) {
+        offsetRef.current += speed;
+        const halfHeight = inner.scrollHeight / 2;
+        if (offsetRef.current >= halfHeight) {
+          offsetRef.current -= halfHeight;
+        }
+        inner.style.transform = `translateY(-${offsetRef.current}px)`;
+      }
+      animId = requestAnimationFrame(tick);
+    }
+
+    animId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animId);
+  }, []);
+
+  const cards = [...testimonials, ...testimonials];
+
+  return (
+    <div
+      ref={scrollRef}
+      className="relative overflow-hidden"
+      style={{ height: "450px" }}
+      onMouseEnter={() => { pausedRef.current = true; }}
+      onMouseLeave={() => { pausedRef.current = false; }}
+      data-testid="testimonials-scroll-container"
+    >
+      <div
+        className="absolute inset-x-0 top-0 h-16 z-10 pointer-events-none"
+        style={{ background: "linear-gradient(to bottom, hsl(var(--background)), transparent)" }}
+      />
+      <div
+        className="absolute inset-x-0 bottom-0 h-16 z-10 pointer-events-none"
+        style={{ background: "linear-gradient(to top, hsl(var(--background)), transparent)" }}
+      />
+      <div ref={innerRef} className="will-change-transform">
+        <div className="flex flex-col gap-4 pb-4">
+          {cards.map((t, i) => (
+            <TestimonialCard key={`a-${i}`} t={t} i={i} />
+          ))}
+        </div>
+        <div className="flex flex-col gap-4 pb-4">
+          {cards.map((t, i) => (
+            <TestimonialCard key={`b-${i}`} t={t} i={i} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function IndiaTestimonialsSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
@@ -121,8 +186,6 @@ export function IndiaTestimonialsSection() {
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
-
-  const allCards = [...testimonials, ...testimonials];
 
   return (
     <section ref={sectionRef} className="py-14 sm:py-20 overflow-hidden" data-testid="section-india-testimonials">
@@ -155,31 +218,8 @@ export function IndiaTestimonialsSection() {
             </div>
           </div>
 
-          <div
-            className="lg:col-span-2 relative overflow-hidden"
-            style={{ height: "450px" }}
-            data-testid="testimonials-scroll-container"
-          >
-            <div
-              className="absolute inset-x-0 top-0 h-16 z-10 pointer-events-none"
-              style={{ background: "linear-gradient(to bottom, hsl(var(--background)), transparent)" }}
-            />
-            <div
-              className="absolute inset-x-0 bottom-0 h-16 z-10 pointer-events-none"
-              style={{ background: "linear-gradient(to top, hsl(var(--background)), transparent)" }}
-            />
-            <div className="testimonial-marquee-vertical">
-              <div className="flex flex-col gap-4 pb-4">
-                {allCards.map((t, i) => (
-                  <TestimonialCard key={`a-${i}`} t={t} i={i} />
-                ))}
-              </div>
-              <div className="flex flex-col gap-4">
-                {allCards.map((t, i) => (
-                  <TestimonialCard key={`b-${i}`} t={t} i={i} />
-                ))}
-              </div>
-            </div>
+          <div className="lg:col-span-2">
+            <VerticalMarquee />
           </div>
         </div>
       </div>
