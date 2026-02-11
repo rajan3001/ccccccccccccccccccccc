@@ -694,8 +694,8 @@ function PrepareForExamsSection({ t }: { t: any }) {
       </motion.div>
 
       <div className="relative overflow-hidden" data-testid="exams-marquee">
-        <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-r from-blue-700 to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-l from-indigo-800 to-transparent z-10 pointer-events-none" />
+        <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-20 z-10 pointer-events-none" style={{ background: 'linear-gradient(to right, #1d4ed8, transparent)' }} />
+        <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-20 z-10 pointer-events-none" style={{ background: 'linear-gradient(to left, #3730a3, transparent)' }} />
         <div className="flex animate-marquee gap-3">
           {[...STATE_PSC_EXAMS, ...STATE_PSC_EXAMS].map((exam, i) => {
             const Icon = exam.icon;
@@ -1159,12 +1159,12 @@ export default function LandingPage() {
 
         <section id="exams" className="py-14 sm:py-20 overflow-hidden">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="relative rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-8 sm:p-12 overflow-hidden">
+            <div className="relative rounded-2xl p-8 sm:p-12 overflow-hidden" style={{ background: 'linear-gradient(to bottom right, #2563eb, #1d4ed8, #3730a3)' }}>
               <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)", backgroundSize: "40px 40px" }}>
                 <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)", backgroundSize: "40px 40px", animation: "grid-drift 8s linear infinite" }} />
               </div>
-              <div className="absolute top-0 left-0 w-40 h-40 bg-blue-400/20 rounded-full blur-3xl" />
-              <div className="absolute bottom-0 right-0 w-56 h-56 bg-indigo-400/15 rounded-full blur-3xl" />
+              <div className="absolute top-0 left-0 w-40 h-40 rounded-full blur-3xl" style={{ backgroundColor: 'rgba(96, 165, 250, 0.2)' }} />
+              <div className="absolute bottom-0 right-0 w-56 h-56 rounded-full blur-3xl" style={{ backgroundColor: 'rgba(129, 140, 248, 0.15)' }} />
               <style>{`
                 @keyframes grid-drift {
                   0% { transform: translate(0, 0); }
