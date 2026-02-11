@@ -193,6 +193,10 @@ export default function StudyProgressPage() {
     return Math.round(totalMinutes / activeDays);
   }, [totalMinutes, overview?.dailyTimeData]);
 
+  const { data: subData } = useSubscription();
+  const progressTier = subData?.tier || null;
+  const hasProgressAccess = progressTier === "pro" || progressTier === "ultimate";
+
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
@@ -203,10 +207,6 @@ export default function StudyProgressPage() {
 
   const streak = overview?.currentStreak || 0;
   const motivationalMsg = getMotivationalMessage(streak, t);
-
-  const { data: subData } = useSubscription();
-  const progressTier = subData?.tier || null;
-  const hasProgressAccess = progressTier === "pro" || progressTier === "ultimate";
 
   if (!hasProgressAccess) {
     return (
