@@ -293,14 +293,13 @@ MCQ GENERATION RULES:
   });
 
   function getDefaultSuggestions(messages: any[]): string[] {
-    const lastAssistant = [...messages].reverse().find((m: any) => m.role === "assistant");
     const lastUser = [...messages].reverse().find((m: any) => m.role === "user");
-    const topic = lastUser?.content?.slice(0, 50) || "this topic";
+    const topic = lastUser?.content?.slice(0, 40) || "this topic";
     return [
       `Explain ${topic} in more detail`,
-      `Create 5 MCQs on ${topic}`,
       `What are the key points to remember?`,
-      `How is this relevant for UPSC Mains?`
+      `How is this relevant for UPSC Mains?`,
+      `Create MCQs on ${topic}`
     ].map(s => s.length > 60 ? s.slice(0, 57) + "..." : s);
   }
 
@@ -336,14 +335,15 @@ ${context}
 
 RULES:
 - Questions must be specific to the actual topic being discussed, NOT generic
-- Each question should explore a different angle: deeper explanation, comparison, practice, or application
+- The 4th suggestion MUST ALWAYS be exactly in the format "Create MCQs on [specific topic]" - this triggers our quiz feature. Replace [specific topic] with the actual topic from the conversation.
+- The other 3 questions should explore different angles: deeper explanation, comparison, and application/relevance
 - Keep each question under 60 characters
 - Make questions feel natural and conversational
-- If the conversation mentions a specific topic (e.g. Article 21, Fundamental Rights, Indian Economy), reference it directly
+- If the conversation mentions a specific topic (e.g. Article 21, Mauryan Empire, Indian Economy), reference it directly
 - Do NOT use generic phrases like "this topic" or "the above" - name the specific subject${langNote}
 
 Respond ONLY with a JSON array of exactly 4 strings. No markdown, no explanation.
-Example: ["How does Article 21 differ from Article 19?","What are landmark cases on Right to Life?","Create 5 MCQs on Fundamental Rights","Compare Article 14 and Article 21"]`;
+Example: ["How does Article 21 differ from Article 19?","What are landmark cases on Right to Life?","Compare Article 14 and Article 21","Create MCQs on Fundamental Rights"]`;
 
       const result = await ai.models.generateContent({
         model: "gemini-2.5-flash",
