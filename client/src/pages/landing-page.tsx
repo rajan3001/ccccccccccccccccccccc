@@ -896,104 +896,48 @@ export default function LandingPage() {
                 className="relative w-48 h-48 sm:w-64 sm:h-64 md:w-72 md:h-72 flex-shrink-0"
                 data-testid="trophy-animation"
               >
-                <svg viewBox="0 0 300 300" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <linearGradient id="trophy-gold" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor="#f59e0b" />
-                      <stop offset="50%" stopColor="#fbbf24" />
-                      <stop offset="100%" stopColor="#d97706" />
-                    </linearGradient>
-                    <linearGradient id="trophy-shine" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#fef3c7" stopOpacity="0.8" />
-                      <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
-                    </linearGradient>
-                    <linearGradient id="ribbon-red" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor="#ef4444" />
-                      <stop offset="100%" stopColor="#dc2626" />
-                    </linearGradient>
-                    <linearGradient id="ribbon-blue" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor="#3b82f6" />
-                      <stop offset="100%" stopColor="#2563eb" />
-                    </linearGradient>
-                    <filter id="trophy-shadow">
-                      <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="#d97706" floodOpacity="0.3" />
-                    </filter>
-                  </defs>
-
-                  <g filter="url(#trophy-shadow)">
-                    <g>
-                      <animateTransform attributeName="transform" type="rotate" values="-2,150,150;2,150,150;-2,150,150" dur="4s" repeatCount="indefinite" />
-
-                      <rect x="120" y="210" width="60" height="12" rx="3" fill="url(#trophy-gold)" />
-                      <rect x="110" y="222" width="80" height="14" rx="4" fill="url(#trophy-gold)" />
-                      <rect x="135" y="190" width="30" height="22" rx="4" fill="url(#trophy-gold)" />
-
-                      <path d="M105 100 C105 60, 120 50, 150 48 C180 50, 195 60, 195 100 L195 155 C195 175, 180 190, 150 192 C120 190, 105 175, 105 155 Z" fill="url(#trophy-gold)" />
-                      <path d="M115 100 C115 70, 128 60, 150 58 C172 60, 185 70, 185 100 L185 145 C185 165, 172 178, 150 180 C128 178, 115 165, 115 145 Z" fill="url(#trophy-shine)" opacity="0.4" />
-
-                      <path d="M105 100 C105 95, 95 90, 80 95 C65 100, 60 120, 70 135 C78 145, 95 148, 105 140" fill="url(#trophy-gold)" stroke="#d97706" strokeWidth="1" />
-                      <path d="M195 100 C195 95, 205 90, 220 95 C235 100, 240 120, 230 135 C222 145, 205 148, 195 140" fill="url(#trophy-gold)" stroke="#d97706" strokeWidth="1" />
-
-                      <text x="150" y="140" textAnchor="middle" fill="#92400e" fontSize="18" fontWeight="bold" fontFamily="serif" opacity="0.6">
-                        <tspan x="150" dy="0">&#9733;</tspan>
-                      </text>
-                    </g>
-                  </g>
-
-                  <g opacity="0.9">
-                    <path d="M100 190 Q80 220, 60 260 Q55 270, 65 268 Q80 260, 95 245" fill="url(#ribbon-red)">
-                      <animate attributeName="d" values="M100 190 Q80 220, 60 260 Q55 270, 65 268 Q80 260, 95 245;M100 190 Q75 225, 55 265 Q50 275, 60 272 Q75 262, 95 245;M100 190 Q80 220, 60 260 Q55 270, 65 268 Q80 260, 95 245" dur="3s" repeatCount="indefinite" />
-                    </path>
-                    <path d="M108 190 Q88 218, 68 255 Q63 265, 73 263 Q88 255, 103 242" fill="#f87171" opacity="0.6">
-                      <animate attributeName="d" values="M108 190 Q88 218, 68 255 Q63 265, 73 263 Q88 255, 103 242;M108 190 Q83 223, 63 260 Q58 270, 68 267 Q83 258, 103 242;M108 190 Q88 218, 68 255 Q63 265, 73 263 Q88 255, 103 242" dur="3.2s" repeatCount="indefinite" />
-                    </path>
-                  </g>
-
-                  <g opacity="0.9">
-                    <path d="M200 190 Q220 220, 240 260 Q245 270, 235 268 Q220 260, 205 245" fill="url(#ribbon-blue)">
-                      <animate attributeName="d" values="M200 190 Q220 220, 240 260 Q245 270, 235 268 Q220 260, 205 245;M200 190 Q225 225, 245 265 Q250 275, 240 272 Q225 262, 205 245;M200 190 Q220 220, 240 260 Q245 270, 235 268 Q220 260, 205 245" dur="3.5s" repeatCount="indefinite" />
-                    </path>
-                    <path d="M192 190 Q212 218, 232 255 Q237 265, 227 263 Q212 255, 197 242" fill="#60a5fa" opacity="0.6">
-                      <animate attributeName="d" values="M192 190 Q212 218, 232 255 Q237 265, 227 263 Q212 255, 197 242;M192 190 Q217 223, 237 260 Q242 270, 232 267 Q217 258, 197 242;M192 190 Q212 218, 232 255 Q237 265, 227 263 Q212 255, 197 242" dur="3.7s" repeatCount="indefinite" />
-                    </path>
-                  </g>
-
-                  {[
-                    { cx: 70, cy: 60, size: 8, dur: "2.5s", delay: "0s", color: "#f59e0b" },
-                    { cx: 230, cy: 55, size: 7, dur: "3s", delay: "0.5s", color: "#fbbf24" },
-                    { cx: 55, cy: 130, size: 5, dur: "2.8s", delay: "1s", color: "#ef4444" },
-                    { cx: 245, cy: 125, size: 6, dur: "2.3s", delay: "0.3s", color: "#3b82f6" },
-                    { cx: 150, cy: 30, size: 9, dur: "3.2s", delay: "0.8s", color: "#f59e0b" },
-                    { cx: 85, cy: 40, size: 4, dur: "2s", delay: "1.5s", color: "#a855f7" },
-                    { cx: 215, cy: 38, size: 5, dur: "2.7s", delay: "0.7s", color: "#22c55e" },
-                    { cx: 260, cy: 85, size: 4, dur: "3.5s", delay: "1.2s", color: "#fbbf24" },
-                    { cx: 40, cy: 90, size: 3, dur: "2.2s", delay: "0.4s", color: "#ef4444" },
-                    { cx: 120, cy: 25, size: 6, dur: "2.6s", delay: "1.8s", color: "#3b82f6" },
-                    { cx: 180, cy: 28, size: 5, dur: "3.1s", delay: "0.2s", color: "#22c55e" },
-                  ].map((star, si) => (
-                    <g key={si}>
-                      <path
-                        d={`M${star.cx} ${star.cy - star.size} L${star.cx + star.size * 0.3} ${star.cy - star.size * 0.3} L${star.cx + star.size} ${star.cy - star.size * 0.2} L${star.cx + star.size * 0.4} ${star.cy + star.size * 0.2} L${star.cx + star.size * 0.6} ${star.cy + star.size} L${star.cx} ${star.cy + star.size * 0.5} L${star.cx - star.size * 0.6} ${star.cy + star.size} L${star.cx - star.size * 0.4} ${star.cy + star.size * 0.2} L${star.cx - star.size} ${star.cy - star.size * 0.2} L${star.cx - star.size * 0.3} ${star.cy - star.size * 0.3} Z`}
-                        fill={star.color}
-                      >
-                        <animate attributeName="opacity" values="0;1;0" dur={star.dur} begin={star.delay} repeatCount="indefinite" />
-                        <animateTransform attributeName="transform" type="scale" values="0.3;1.2;0.3" dur={star.dur} begin={star.delay} repeatCount="indefinite" additive="sum" />
-                      </path>
-                    </g>
-                  ))}
-
-                  {[
-                    { x1: 150, y1: 20, x2: 150, y2: 5, color: "#f59e0b", dur: "1.8s", delay: "0s" },
-                    { x1: 130, y1: 25, x2: 115, y2: 12, color: "#fbbf24", dur: "2s", delay: "0.3s" },
-                    { x1: 170, y1: 25, x2: 185, y2: 12, color: "#fbbf24", dur: "2.2s", delay: "0.6s" },
-                    { x1: 70, y1: 50, x2: 50, y2: 35, color: "#ef4444", dur: "2.5s", delay: "0.2s" },
-                    { x1: 230, y1: 50, x2: 250, y2: 35, color: "#3b82f6", dur: "2.3s", delay: "0.5s" },
-                  ].map((ray, ri) => (
-                    <line key={ri} x1={ray.x1} y1={ray.y1} x2={ray.x2} y2={ray.y2} stroke={ray.color} strokeWidth="1.5" strokeLinecap="round">
-                      <animate attributeName="opacity" values="0;0.6;0" dur={ray.dur} begin={ray.delay} repeatCount="indefinite" />
-                    </line>
-                  ))}
-                </svg>
+                <motion.img
+                  src="/images/trophy-3d.png"
+                  alt="Trophy"
+                  className="w-full h-full object-contain drop-shadow-2xl"
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  draggable={false}
+                />
+                <style>{`
+                  @keyframes sparkle-spin {
+                    0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; }
+                    50% { transform: translate(-50%, -50%) scale(1) rotate(180deg); opacity: 1; }
+                    100% { transform: translate(-50%, -50%) scale(0) rotate(360deg); opacity: 0; }
+                  }
+                `}</style>
+                {[
+                  { top: "5%", left: "15%", color: "#f59e0b", size: 10, delay: "0s", dur: "2.5s" },
+                  { top: "8%", left: "80%", color: "#3b82f6", size: 8, delay: "0.6s", dur: "3s" },
+                  { top: "25%", left: "5%", color: "#ef4444", size: 7, delay: "1.2s", dur: "2.8s" },
+                  { top: "20%", left: "90%", color: "#22c55e", size: 9, delay: "0.3s", dur: "3.2s" },
+                  { top: "60%", left: "2%", color: "#a855f7", size: 6, delay: "1.8s", dur: "2.3s" },
+                  { top: "65%", left: "95%", color: "#fbbf24", size: 8, delay: "0.9s", dur: "2.7s" },
+                  { top: "0%", left: "50%", color: "#f59e0b", size: 11, delay: "1.5s", dur: "3.5s" },
+                  { top: "40%", left: "0%", color: "#3b82f6", size: 5, delay: "2s", dur: "2.6s" },
+                  { top: "45%", left: "98%", color: "#ef4444", size: 7, delay: "0.4s", dur: "3s" },
+                ].map((s, si) => (
+                  <svg
+                    key={si}
+                    className="absolute pointer-events-none"
+                    style={{
+                      top: s.top,
+                      left: s.left,
+                      width: s.size * 2,
+                      height: s.size * 2,
+                      animation: `sparkle-spin ${s.dur} ${s.delay} ease-in-out infinite`,
+                    }}
+                    viewBox="0 0 24 24"
+                    fill={s.color}
+                  >
+                    <path d="M12 0L14.59 8.41L23 11L14.59 13.59L12 22L9.41 13.59L1 11L9.41 8.41Z" />
+                  </svg>
+                ))}
               </motion.div>
 
               <div className="flex-1 min-w-0">
