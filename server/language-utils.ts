@@ -26,11 +26,11 @@ export function getUserLanguage(req: any): string {
 export function getLanguageInstruction(langCode: string): string {
   if (!langCode || langCode === "en") return "";
   const langName = getLanguageName(langCode);
-  return `\n\nIMPORTANT LANGUAGE INSTRUCTION: You MUST respond entirely in ${langName} language. All content including headings, explanations, bullet points, and analysis must be written in ${langName}. Only keep proper nouns (names of people, places, organizations, acts, articles, schemes), technical terms, and abbreviations in English. Everything else must be in ${langName}.`;
+  return `\n\nIMPORTANT LANGUAGE INSTRUCTION: You MUST respond entirely in ${langName} language using the ${langName} script. ALL words must be in ${langName} — including country names, common English words, technical terms, and general vocabulary. Transliterate them into ${langName} script (e.g., "India" → "भारत", "Malaysia" → "मलेशिया", "defence" → "रक्षा", "energy" → "ऊर्जा", "semiconductor" → "सेमीकंडक्टर", "manufacturing" → "विनिर्माण"). Only keep these in English: specific abbreviations/acronyms (e.g., UPSC, GDP, NATO, PM, UN), names of specific acts/bills/schemes when commonly known in English form, and section/article numbers. Everything else — headings, explanations, bullet points, analysis, common nouns, verbs, adjectives — must be fully in ${langName}.`;
 }
 
 export function getQuizLanguageInstruction(langCode: string): string {
   if (!langCode || langCode === "en") return "";
   const langName = getLanguageName(langCode);
-  return `\n\nIMPORTANT LANGUAGE INSTRUCTION: Generate ALL questions, options, and explanations in ${langName} language. Only keep proper nouns (names of people, places, organizations, acts, articles), technical terms, and abbreviations in English. The "question", "options", and "explanation" fields in the JSON must all be in ${langName}.`;
+  return `\n\nIMPORTANT LANGUAGE INSTRUCTION: Generate ALL questions, options, and explanations entirely in ${langName} language using the ${langName} script. Transliterate all words into ${langName} script — including country names, common English words, technical terms, and general vocabulary. Only keep specific abbreviations/acronyms (e.g., UPSC, GDP, NATO, UN) and names of specific acts/bills/schemes in English. The "question", "options", and "explanation" fields in the JSON must all be fully in ${langName}.`;
 }

@@ -26,7 +26,13 @@ async function translateTopicsBatch(topics: TopicForTranslation[], langCode: str
   const langName = getLanguageName(langCode);
   const topicEntries = topics.map((t, i) => `[${i}] Title: ${t.title}\nSummary: ${t.summary}`).join("\n\n");
 
-  const prompt = `Translate the following ${topics.length} current affairs topic titles and summaries into ${langName}. Keep proper nouns (names of people, places, organizations, acts, schemes), technical terms, and abbreviations in English. Translate everything else into ${langName}.
+  const prompt = `Translate the following ${topics.length} current affairs topic titles and summaries fully into ${langName} using the ${langName} script.
+
+CRITICAL TRANSLATION RULES:
+- ALL words must be in ${langName} script — including country names, common English words, technical terms, and general vocabulary.
+- Transliterate everything into ${langName} script. For example in Hindi: "India" → "भारत", "Malaysia" → "मलेशिया", "defence" → "रक्षा", "energy" → "ऊर्जा", "semiconductor" → "सेमीकंडक्टर", "manufacturing" → "विनिर्माण", "trade" → "व्यापार".
+- ONLY keep specific abbreviations/acronyms in English (e.g., UPSC, GDP, NATO, PM, UN) and names of specific acts/bills/schemes.
+- Do NOT leave any common English words as-is. Every noun, verb, adjective must be in ${langName}.
 
 Return ONLY a valid JSON array with objects in the same order. Each object must have "title" and "summary" keys with the translated text. No markdown, no explanation.
 
