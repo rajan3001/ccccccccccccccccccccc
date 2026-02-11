@@ -3,9 +3,10 @@ import { GoogleGenAI } from "@google/genai";
 import { isAuthenticated } from "./replit_integrations/auth";
 import { ObjectStorageService } from "./replit_integrations/object_storage";
 import { db } from "./db";
-import { evaluationSessions, evaluationQuestions, createEvaluationSchema } from "@shared/schema";
+import { evaluationSessions, evaluationQuestions, createEvaluationSchema, users } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 import type { CompetencyFeedback } from "@shared/models/evaluation";
+import { getLanguageName, getLanguageInstruction } from "./language-utils";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
@@ -23,7 +24,8 @@ function buildEvaluationPrompt(
   totalMarks: number | null | undefined,
   totalQuestions: number | null | undefined,
   questionsAttempted: number | null | undefined,
-  hasQuestionPaper: boolean
+  hasQuestionPaper: boolean,
+  langCode?: string
 ): string {
   let paperDetailsSection: string;
 
@@ -135,7 +137,7 @@ CRITICAL RULES:
 - If a question has sub-parts (a, b, c), evaluate each sub-part separately
 - Score using 0.5 increments
 - The "score" field in competencyFeedback is a rating out of 10 for that parameter across all answers
-- Respond with ONLY the JSON object, no other text`;
+- Respond with ONLY the JSON object, no other text${langCode && langCode !== "en" ? `\n\nIMPORTANT LANGUAGE INSTRUCTION: Write ALL feedback text (overallFeedback, strengths, improvements, detailedFeedback, introductionFeedback, bodyFeedback, conclusionFeedback) in ${getLanguageName(langCode)} language. Only keep proper nouns, technical terms, article numbers, act names, and scheme names in English. The JSON structure and field names must remain in English.` : ""}`;
 }
 
 export function registerEvaluationRoutes(app: Express): void {
@@ -165,7 +167,8 @@ export function registerEvaluationRoutes(app: Express): void {
 
       res.json({ sessionId: session.id, status: "processing" });
 
-      processEvaluation(session.id, fileObjectPath, fileName, examType, paperType, totalMarks, totalQuestions, questionsAttempted, questionPaperObjectPath).catch(err => {
+      const userLangCode = req.user?.dbUser?.language || "en";
+      processEvaluation(session.id, fileObjectPath, fileName, examType, paperType, totalMarks, totalQuestions, questionsAttempted, questionPaperObjectPath, userLangCode).catch(err => {
         console.error("Evaluation processing failed:", err);
         db.update(evaluationSessions)
           .set({ status: "failed", overallFeedback: "Evaluation failed. Please try again." })
@@ -227,7 +230,8 @@ async function processEvaluation(
   totalMarks: number | null | undefined,
   totalQuestions: number | null | undefined,
   questionsAttempted: number | null | undefined,
-  questionPaperObjectPath?: string | null
+  questionPaperObjectPath?: string | null,
+  langCode?: string
 ): Promise<void> {
   const file = await objectStorage.getObjectEntityFile(fileObjectPath);
   const [fileData] = await file.download();
@@ -235,7 +239,7 @@ async function processEvaluation(
 
   const contentType = metadata.contentType || guessContentType(fileName);
   const hasQuestionPaper = !!questionPaperObjectPath;
-  const prompt = buildEvaluationPrompt(examType, paperType, totalMarks, totalQuestions, questionsAttempted, hasQuestionPaper);
+  const prompt = buildEvaluationPrompt(examType, paperType, totalMarks, totalQuestions, questionsAttempted, hasQuestionPaper, langCode);
 
   const parts: any[] = [{ text: prompt }];
 

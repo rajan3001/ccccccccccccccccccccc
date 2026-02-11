@@ -3,6 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import { chatStorage } from "./storage";
 import { isAuthenticated } from "../auth";
 import { ObjectStorageService } from "../object_storage";
+import { getUserLanguage, getLanguageInstruction } from "../../language-utils";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
@@ -206,10 +207,13 @@ export function registerChatRoutes(app: Express): void {
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
 
+      const userLang = getUserLanguage(req);
+      const langInstruction = getLanguageInstruction(userLang);
+
       const stream = await ai.models.generateContentStream({
         model: "gemini-2.5-flash",
         config: {
-          systemInstruction: `You are Learnpro AI, an expert UPSC and State PSC exam preparation assistant.
+          systemInstruction: `You are Learnpro AI, an expert UPSC and State PSC exam preparation assistant.${langInstruction}
 
 CRITICAL RULES:
 - NEVER mention, recommend, or reference any coaching institute, ed-tech company, or competitor by name (such as NextIAS, Vision IAS, Unacademy, Byju's, Allen, Vajiram, Drishti IAS, SuperKalam, Testbook, Adda247, Oliveboard, PrepLadder, or any others).

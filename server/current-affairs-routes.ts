@@ -5,6 +5,7 @@ import { db } from "./db";
 import { dailyDigests, dailyTopics } from "@shared/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import { scrapeNextIAS, type NextIASArticle } from "./nextias-scraper";
+import { getUserLanguage, getLanguageInstruction } from "./language-utils";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
@@ -307,6 +308,8 @@ No markdown, no explanations, just the JSON array.`;
       }
 
       const sourceInfo = topic.source ? ` (Source: ${topic.source})` : "";
+      const caLangCode = getUserLanguage(req);
+      const caLangInst = getLanguageInstruction(caLangCode);
       const prompt = `You are an expert UPSC/State PSC current affairs analyst. Write a concise, exam-focused analysis of this topic:
 
 **${topic.title}**${sourceInfo}
@@ -341,7 +344,7 @@ A brief box/table format:
 - **Syllabus Topic**: Specific syllabus connection
 - **Key Terms**: Important terms for prelims (comma separated)
 
-Write in a professional, analytical tone. Prioritize facts over opinions. Use markdown formatting.`;
+Write in a professional, analytical tone. Prioritize facts over opinions. Use markdown formatting.${caLangInst}`;
 
       let clientClosed = false;
       req.on("close", () => {

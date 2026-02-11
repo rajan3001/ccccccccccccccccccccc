@@ -12,6 +12,7 @@ import {
 import { eq, and, sql, desc } from "drizzle-orm";
 import { z } from "zod";
 import { GoogleGenAI } from "@google/genai";
+import { getUserLanguage, getLanguageInstruction, getLanguageName } from "./language-utils";
 
 type SyllabusSection = { parent: string; topics: string[] };
 type ExamSyllabus = { examType: string; papers: { gsPaper: string; topics: SyllabusSection[] }[] };
@@ -999,6 +1000,8 @@ export function registerStudyPlannerRoutes(app: Express): void {
         .map(([paper, topics]) => `${paper}: ${topics.join(", ")}`)
         .join("\n");
 
+      const plannerLangCode = getUserLanguage(req);
+      const plannerLangInst = getLanguageInstruction(plannerLangCode);
       const prompt = `You are a UPSC/State PSC exam preparation expert. Create a practical weekly study timetable for a student preparing for ${examNames}.
 
 The student has these pending topics to cover:
@@ -1012,7 +1015,7 @@ Each item must have exactly these fields:
 - "startTime": string in "HH:MM" 24hr format
 - "endTime": string in "HH:MM" 24hr format
 - "gsPaper": string (the paper name like "GS Paper I", "GS Paper II", "GS Paper III", "GS Paper IV", "Current Affairs", "Optional Subject", "Essay", or exam-specific paper names)
-- "subject": string (specific topic to study)
+- "subject": string (specific topic to study)${plannerLangInst ? `\n\nIMPORTANT LANGUAGE: Write the "subject" field values in ${getLanguageName(plannerLangCode)} language. Keep "gsPaper" values in English. Only keep proper nouns and technical terms in English within subject descriptions.` : ""}
 
 Example: [{"dayOfWeek":1,"startTime":"06:00","endTime":"08:00","gsPaper":"GS Paper I","subject":"Ancient Indian History - Indus Valley Civilization"}]
 
@@ -1098,6 +1101,8 @@ Generate 25-30 slots covering the full week with a balanced schedule.`;
         })
         .map(s => `${s.startTime}-${s.endTime}: ${s.gsPaper} - ${s.subject}`);
 
+      const goalsLangCode = getUserLanguage(req);
+      const goalsLangInst = goalsLangCode && goalsLangCode !== "en" ? `\n\nIMPORTANT LANGUAGE: Write ALL goal strings in ${getLanguageName(goalsLangCode)} language. Only keep proper nouns, book titles, and technical terms in English.` : "";
       const prompt = `You are a UPSC/State PSC exam preparation expert. Create practical, actionable daily study goals for a student preparing for ${examNames}.
 
 Today is ${dayOfWeek}, ${goalDate}.
@@ -1114,7 +1119,7 @@ Generate 6-10 specific, actionable study goals for today. Include a mix of:
 - Test/quiz practice
 
 IMPORTANT: Respond ONLY with a valid JSON array of strings. No markdown, no explanation, no code blocks.
-Each string should be a concise, specific goal (under 80 characters).
+Each string should be a concise, specific goal (under 80 characters).${goalsLangInst}
 
 Example: ["Read NCERT Ch.3 - Indian National Movement","Write 2 GS Paper II answers on Polity","Solve 30 MCQs on Indian Economy","Read today's newspaper editorial analysis","Revise Environment & Ecology notes","Practice map marking - India rivers"]`;
 

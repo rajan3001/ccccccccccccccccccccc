@@ -5,6 +5,7 @@ import { db } from "./db";
 import { quizAttempts, quizQuestions, dailyTopics, dailyDigests } from "@shared/schema";
 import { eq, desc, sql, and } from "drizzle-orm";
 import { z } from "zod";
+import { getUserLanguage, getQuizLanguageInstruction } from "./language-utils";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
@@ -41,6 +42,8 @@ export function registerQuizRoutes(app: Express): void {
       }
 
       const numQuestions = 5;
+      const langCode = getUserLanguage(req);
+      const quizLangInst = getQuizLanguageInstruction(langCode);
       const prompt = `Generate exactly ${numQuestions} multiple choice questions based SPECIFICALLY on this current affairs topic:
 
 **${topic.title}**
@@ -53,6 +56,7 @@ Requirements:
 - Include factual, analytical, and application-based questions
 - Questions should be at UPSC Prelims/Mains standard
 - Include a detailed explanation for the correct answer (2-3 sentences)
+${quizLangInst}
 
 Return ONLY a valid JSON array of objects with these exact keys:
 - "question": the question text
@@ -165,6 +169,9 @@ No markdown, no explanations outside the JSON, just the JSON array.`;
 
       const examContext = examContextMap[examType] || `${examType} examination. Tailor questions to the specific syllabus and regional context of this exam.`;
 
+      const mainLangCode = getUserLanguage(req);
+      const mainQuizLangInst = getQuizLanguageInstruction(mainLangCode);
+
       const prompt = `Generate exactly ${numQuestions} multiple choice questions for ${examType} - ${gsCategory} preparation.
 
 Exam context: ${examContext}
@@ -178,6 +185,7 @@ Requirements:
 - Cover diverse sub-topics within ${gsCategory}
 - Questions should reflect the actual exam pattern and syllabus of ${examType}
 ${topicContext}
+${mainQuizLangInst}
 
 Return ONLY a valid JSON array of objects with these exact keys:
 - "question": the question text
