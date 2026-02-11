@@ -1064,6 +1064,9 @@ export default function LandingPage() {
                               key={`${setIdx}-${j}`}
                               src={src}
                               alt=""
+                              loading="lazy"
+                              width={28}
+                              height={28}
                               className="w-7 h-7 rounded-full object-cover border-[1.5px] border-primary/30 flex-shrink-0 brightness-105"
                             />
                           ))

@@ -70,6 +70,7 @@ function AvatarPin({ x, y, delay, hue, seed }: typeof avatarSpots[0]) {
         <img
           src={avatarUrl(seed)}
           alt=""
+          loading="lazy"
           className="w-6 h-6 sm:w-10 sm:h-10 rounded-full ring-2 ring-white/90 shadow-lg"
           style={{ background: `hsl(${hue}, 60%, 90%)` }}
           draggable={false}
@@ -103,6 +104,7 @@ function TestimonialCard({ t, i, compact }: { t: typeof testimonials[0]; i: numb
         <img
           src={avatarUrl(t.seed)}
           alt=""
+          loading="lazy"
           className={`rounded-full shrink-0 ${compact ? "h-6 w-6" : "h-8 w-8"}`}
           style={{ background: `hsl(${t.hue}, 60%, 90%)` }}
           draggable={false}
@@ -210,6 +212,7 @@ export function IndiaTestimonialsSection() {
               <img
                 src={indiaMapImg}
                 alt="Map of India"
+                loading="lazy"
                 className="w-full h-auto opacity-80 dark:opacity-70"
                 style={{ filter: "hue-rotate(0deg) saturate(1.3) brightness(0.95) contrast(1.05)" }}
                 draggable={false}
