@@ -528,7 +528,7 @@ function AutoCyclingFeatures({ openLogin, t }: { openLogin: () => void; t: any }
             </p>
             <Button
               size="sm"
-              className="mt-2 gap-1.5 bg-blue-600 border-blue-700 text-white"
+              className="mt-2 gap-1.5 !bg-blue-600 !border-blue-700 !text-white hover:!bg-blue-700"
               onClick={openLogin}
               data-testid={`button-feature-${active.id}`}
             >
@@ -557,7 +557,7 @@ function AutoCyclingFeatures({ openLogin, t }: { openLogin: () => void; t: any }
             </p>
             <Button
               size="sm"
-              className="mt-2 gap-1.5 bg-blue-600 border-blue-700 text-white"
+              className="mt-2 gap-1.5 !bg-blue-600 !border-blue-700 !text-white hover:!bg-blue-700"
               onClick={openLogin}
               data-testid={`button-feature-mobile-${active.id}`}
             >
@@ -855,7 +855,7 @@ export default function LandingPage() {
                     <Button
                       size="lg"
                       onClick={openLogin}
-                      className="w-full sm:w-auto rounded-full shadow-xl shadow-blue-500/30 bg-blue-600 border-blue-700 text-white"
+                      className="w-full sm:w-auto rounded-full shadow-xl shadow-blue-500/30 !bg-blue-600 !border-blue-700 !text-white hover:!bg-blue-700"
                       data-testid="button-get-started"
                     >
                       {t.landing.beginJourney}
