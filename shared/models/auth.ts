@@ -26,6 +26,7 @@ export const users = pgTable("users", {
   isAdmin: boolean("is_admin").default(false),
   onboardingCompleted: boolean("onboarding_completed").default(false),
   notificationPrefs: jsonb("notification_prefs").$type<Record<string, boolean>>().default({}),
+  language: varchar("language").default("en"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

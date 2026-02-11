@@ -2,6 +2,8 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useConversations, useDeleteConversation } from "@/hooks/use-chat";
 import { useSubscription } from "@/hooks/use-subscription";
+import { useLanguage } from "@/i18n/context";
+import { SUPPORTED_LANGUAGES } from "@/i18n/languages";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +24,8 @@ import {
   User,
   Phone,
   ChevronRight,
+  Globe,
+  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
@@ -50,8 +54,10 @@ export function Sidebar() {
   const { data: conversations, isLoading } = useConversations();
   const deleteMutation = useDeleteConversation();
   const { data: subData } = useSubscription();
+  const { language, setLanguage, t } = useLanguage();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [showLangPicker, setShowLangPicker] = useState(false);
 
   const currentId = location.startsWith("/chat/") 
     ? parseInt(location.split("/")[2]) 
@@ -93,7 +99,7 @@ export function Sidebar() {
           data-testid="button-new-chat"
         >
           <Plus className="h-5 w-5 text-primary" />
-          New Chat
+          {t.nav.newChat}
         </Button>
 
         <Link href="/current-affairs" onClick={() => setIsMobileOpen(false)}>
@@ -103,7 +109,7 @@ export function Sidebar() {
             data-testid="link-current-affairs"
           >
             <Newspaper className="h-5 w-5" />
-            Current Affairs
+            {t.nav.currentAffairs}
           </Button>
         </Link>
 
@@ -114,7 +120,7 @@ export function Sidebar() {
             data-testid="link-practice-quiz"
           >
             <Brain className="h-5 w-5" />
-            Practice Quiz
+            {t.nav.practiceQuiz}
           </Button>
         </Link>
 
@@ -125,7 +131,7 @@ export function Sidebar() {
             data-testid="link-paper-evaluation"
           >
             <FileCheck className="h-5 w-5" />
-            Answer Evaluation
+            {t.nav.answerEvaluation}
           </Button>
         </Link>
 
@@ -136,7 +142,7 @@ export function Sidebar() {
             data-testid="link-my-notes"
           >
             <StickyNote className="h-5 w-5" />
-            My Notes
+            {t.nav.myNotes}
           </Button>
         </Link>
 
@@ -147,7 +153,7 @@ export function Sidebar() {
             data-testid="link-study-planner"
           >
             <CalendarCheck className="h-5 w-5" />
-            Study Planner
+            {t.nav.studyPlanner}
           </Button>
         </Link>
 
@@ -158,21 +164,21 @@ export function Sidebar() {
             data-testid="link-study-progress"
           >
             <BarChart3 className="h-5 w-5" />
-            Study Progress
+            {t.nav.studyProgress}
           </Button>
         </Link>
       </div>
 
       <div className="flex-1 overflow-hidden px-4">
         <div className="text-xs font-semibold text-muted-foreground mb-3 px-2 uppercase tracking-wider">
-          History
+          {t.nav.history}
         </div>
         <ScrollArea className="h-full">
           <div className="space-y-1 pr-2 pb-4">
             {isLoading ? (
-              <div className="px-2 text-sm text-muted-foreground animate-pulse">Loading chats...</div>
+              <div className="px-2 text-sm text-muted-foreground animate-pulse">{t.nav.loadingChats}</div>
             ) : conversations?.length === 0 ? (
-              <div className="px-2 text-sm text-muted-foreground italic">No chats yet.</div>
+              <div className="px-2 text-sm text-muted-foreground italic">{t.nav.noChatYet}</div>
             ) : (
               conversations?.map((chat) => (
                 <div
@@ -209,18 +215,18 @@ export function Sidebar() {
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Chat?</AlertDialogTitle>
+                        <AlertDialogTitle>{t.common.delete}?</AlertDialogTitle>
                         <AlertDialogDescription>
                           This will permanently delete this conversation.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel onClick={(e) => e.stopPropagation()}>{t.common.cancel}</AlertDialogCancel>
                         <AlertDialogAction 
                           onClick={(e) => handleDelete(e, chat.id)}
                           className="bg-destructive text-destructive-foreground"
                         >
-                          Delete
+                          {t.common.delete}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -237,13 +243,13 @@ export function Sidebar() {
           {isPro ? (
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 text-primary text-sm font-semibold border border-primary/20">
               <Crown className="h-4 w-4" />
-              <span>Pro Plan Active</span>
+              <span>{t.nav.proActive}</span>
             </div>
           ) : (
             <Link href="/subscription" className="block" onClick={() => setIsMobileOpen(false)}>
               <div className="group flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 border border-amber-200 dark:border-amber-700/50 text-amber-900 dark:text-amber-300 text-sm font-semibold cursor-pointer hover:shadow-md transition-all">
                 <Crown className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                <span>Upgrade to Pro</span>
+                <span>{t.nav.upgradePro}</span>
               </div>
             </Link>
           )}
@@ -260,7 +266,7 @@ export function Sidebar() {
                       variant="secondary"
                       className="absolute -bottom-1 -right-1 text-[8px] px-1 py-0 leading-tight font-bold no-default-hover-elevate no-default-active-elevate"
                     >
-                      {isPro ? "PRO" : "FREE"}
+                      {isPro ? t.common.pro : t.common.free}
                     </Badge>
                   </div>
                   <div className="flex flex-col min-w-0">
@@ -284,7 +290,7 @@ export function Sidebar() {
                       variant="secondary"
                       className="absolute -bottom-1 -right-1 text-[8px] px-1 py-0 leading-tight font-bold no-default-hover-elevate no-default-active-elevate"
                     >
-                      {isPro ? "PRO" : "FREE"}
+                      {isPro ? t.common.pro : t.common.free}
                     </Badge>
                   </div>
                   <div className="min-w-0">
@@ -301,10 +307,40 @@ export function Sidebar() {
                 </div>
               </div>
               <div className="p-1.5">
+                <Popover open={showLangPicker} onOpenChange={setShowLangPicker}>
+                  <PopoverTrigger asChild>
+                    <button className="w-full flex items-center justify-between px-3 py-2 rounded-md text-sm text-foreground hover-elevate" data-testid="button-language-picker">
+                      <div className="flex items-center gap-2.5">
+                        <Globe className="h-4 w-4 text-muted-foreground" />
+                        {t.settings.language}
+                      </div>
+                      <span className="text-xs text-muted-foreground">{SUPPORTED_LANGUAGES.find(l => l.code === language)?.nativeLabel}</span>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side="right" align="start" className="w-56 p-1 max-h-80 overflow-y-auto" sideOffset={8}>
+                    {SUPPORTED_LANGUAGES.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => { setLanguage(lang.code); setShowLangPicker(false); }}
+                        className={cn(
+                          "w-full flex items-center justify-between px-3 py-2 rounded-md text-sm hover-elevate",
+                          language === lang.code ? "text-primary font-semibold" : "text-foreground"
+                        )}
+                        data-testid={`button-lang-${lang.code}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">{lang.nativeLabel}</span>
+                          <span className="text-xs text-muted-foreground">{lang.label}</span>
+                        </div>
+                        {language === lang.code && <Check className="h-4 w-4 text-primary" />}
+                      </button>
+                    ))}
+                  </PopoverContent>
+                </Popover>
                 <Link href="/settings" onClick={() => setIsMobileOpen(false)}>
                   <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-foreground hover-elevate" data-testid="link-settings">
                     <Settings className="h-4 w-4 text-muted-foreground" />
-                    Settings
+                    {t.nav.settings}
                   </button>
                 </Link>
                 <button
@@ -313,7 +349,7 @@ export function Sidebar() {
                   data-testid="button-logout-trigger"
                 >
                   <LogOut className="h-4 w-4" />
-                  Logout
+                  {t.nav.logout}
                 </button>
               </div>
             </PopoverContent>
@@ -324,20 +360,20 @@ export function Sidebar() {
       <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Logout?</AlertDialogTitle>
+            <AlertDialogTitle>{t.auth.logoutConfirm}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to logout from Learnpro AI? You'll need to verify your phone number again to log back in.
+              {t.auth.logoutDesc}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel data-testid="button-cancel-logout">Cancel</AlertDialogCancel>
+            <AlertDialogCancel data-testid="button-cancel-logout">{t.common.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => logout()}
               className="bg-destructive text-destructive-foreground"
               disabled={isLoggingOut}
               data-testid="button-confirm-logout"
             >
-              {isLoggingOut ? "Logging out..." : "Yes, Logout"}
+              {isLoggingOut ? t.auth.loggingOut : t.auth.yesLogout}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

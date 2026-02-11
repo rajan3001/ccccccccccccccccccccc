@@ -46,12 +46,13 @@ export function registerAuthRoutes(app: Express): void {
   app.patch("/api/auth/profile", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { displayName, email, profileImageUrl, notificationPrefs } = req.body;
+      const { displayName, email, profileImageUrl, notificationPrefs, language } = req.body;
       const updates: any = { updatedAt: new Date() };
       if (displayName !== undefined) updates.displayName = displayName;
       if (email !== undefined) updates.email = email;
       if (profileImageUrl !== undefined) updates.profileImageUrl = profileImageUrl;
       if (notificationPrefs !== undefined) updates.notificationPrefs = notificationPrefs;
+      if (language !== undefined) updates.language = language;
 
       const [user] = await db.update(users)
         .set(updates)
