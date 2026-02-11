@@ -673,37 +673,37 @@ function PrepareForExamsSection({ t }: { t: any }) {
         viewport={{ once: true }}
         className="flex flex-col sm:flex-row items-center gap-5 sm:gap-8 justify-center"
       >
-        <div className="flex items-center gap-4 px-5 py-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 dark:from-amber-500/20 dark:to-orange-500/20 dark:border-amber-400/20" data-testid="exam-upsc">
-          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
+        <div className="flex items-center gap-4 px-5 py-4 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm" data-testid="exam-upsc">
+          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
             <Crown className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h3 className="font-display font-bold text-base sm:text-lg">UPSC CSE</h3>
-            <p className="text-xs text-muted-foreground">{t.landing.upscSubtitle}</p>
+            <h3 className="font-display font-bold text-base sm:text-lg text-white">UPSC CSE</h3>
+            <p className="text-xs text-blue-200/70">{t.landing.upscSubtitle}</p>
           </div>
         </div>
-        <div className="hidden sm:block h-8 w-px bg-border" />
+        <div className="hidden sm:block h-8 w-px bg-white/20" />
         <div className="text-center sm:text-left">
-          <p className="text-2xl sm:text-3xl font-display font-bold">
-            + 15 <span className="text-muted-foreground text-base font-normal">{t.landing.statePSCs}</span>
+          <p className="text-2xl sm:text-3xl font-display font-bold text-white">
+            + 15 <span className="text-blue-200/80 text-base font-normal">{t.landing.statePSCs}</span>
           </p>
         </div>
       </motion.div>
 
       <div className="relative overflow-hidden" data-testid="exams-marquee">
-        <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-r from-secondary/80 to-transparent z-10 pointer-events-none dark:from-secondary/90" />
-        <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-l from-secondary/80 to-transparent z-10 pointer-events-none dark:from-secondary/90" />
+        <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-r from-blue-700 to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-l from-indigo-800 to-transparent z-10 pointer-events-none" />
         <div className="flex animate-marquee gap-3">
           {[...STATE_PSC_EXAMS, ...STATE_PSC_EXAMS].map((exam, i) => {
             const Icon = exam.icon;
             return (
               <div
                 key={`${exam.id}-${i}`}
-                className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-card border border-border/50 whitespace-nowrap flex-shrink-0"
+                className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white/10 border border-white/10 whitespace-nowrap flex-shrink-0 backdrop-blur-sm"
                 data-testid={`exam-icon-${exam.id}`}
               >
-                <Icon className="h-4 w-4 text-primary/70" />
-                <span className="text-sm font-medium">{exam.label}</span>
+                <Icon className="h-4 w-4 text-blue-200/80" />
+                <span className="text-sm font-medium text-white">{exam.label}</span>
               </div>
             );
           })}
@@ -1153,32 +1153,48 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="exams" className="py-14 sm:py-20 bg-secondary/30 overflow-hidden">
+        <section id="exams" className="py-14 sm:py-20 overflow-hidden">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-8 sm:mb-10"
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4 border border-primary/20"
-              >
-                <Sparkles className="h-3 w-3" />
-                {t.landing.examsSupported}
-              </motion.div>
-              <h2 className="text-2xl sm:text-4xl font-display font-bold" data-testid="text-exams-heading">
-                {t.landing.prepareForExams}
-              </h2>
-              <p className="text-muted-foreground mt-2 sm:mt-3 text-sm sm:text-base max-w-lg mx-auto">
-                {t.landing.prepareForExamsDesc}
-              </p>
-            </motion.div>
+            <div className="relative rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-8 sm:p-12 overflow-hidden">
+              <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)", backgroundSize: "40px 40px" }}>
+                <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)", backgroundSize: "40px 40px", animation: "grid-drift 8s linear infinite" }} />
+              </div>
+              <div className="absolute top-0 left-0 w-40 h-40 bg-blue-400/20 rounded-full blur-3xl" />
+              <div className="absolute bottom-0 right-0 w-56 h-56 bg-indigo-400/15 rounded-full blur-3xl" />
+              <style>{`
+                @keyframes grid-drift {
+                  0% { transform: translate(0, 0); }
+                  100% { transform: translate(40px, 40px); }
+                }
+              `}</style>
 
-            <PrepareForExamsSection t={t} />
+              <div className="relative z-10">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="text-center mb-8 sm:mb-10"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-white text-xs font-semibold mb-4 border border-white/20 backdrop-blur-sm"
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    {t.landing.examsSupported}
+                  </motion.div>
+                  <h2 className="text-2xl sm:text-4xl font-display font-bold text-white" data-testid="text-exams-heading">
+                    {t.landing.prepareForExams}
+                  </h2>
+                  <p className="text-blue-100/80 mt-2 sm:mt-3 text-sm sm:text-base max-w-lg mx-auto">
+                    {t.landing.prepareForExamsDesc}
+                  </p>
+                </motion.div>
+
+                <PrepareForExamsSection t={t} />
+              </div>
+            </div>
           </div>
         </section>
 
