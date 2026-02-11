@@ -36,11 +36,13 @@ import {
   Scroll,
   Globe,
   Flag,
+  Languages,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { HeroDashboardAnimation, NeuralNetworkAnimation } from "@/components/landing/hero-animation";
 import { LoginSlideOver } from "@/components/login-slide-over";
 import { LandingFooter } from "@/components/landing/footer";
+import { SUPPORTED_LANGUAGES } from "@/i18n/languages";
 import { MobileAppSection } from "@/components/landing/mobile-app-section";
 import { HowItWorksTour } from "@/components/landing/how-it-works-tour";
 
@@ -573,6 +575,185 @@ const STATE_PSC_EXAMS = [
   { id: "nepsc", label: "NE States", icon: TreePine, abbr: "NE" },
 ];
 
+const LANGUAGE_SAMPLES = [
+  { code: "hi", native: "हिन्दी", sample: "मौलिक अधिकार भारतीय संविधान की आधारशिला हैं", topic: "मौलिक अधिकार" },
+  { code: "bn", native: "বাংলা", sample: "মৌলিক অধিকার ভারতীয় সংবিধানের ভিত্তিপ্রস্তর", topic: "মৌলিক অধিকার" },
+  { code: "ta", native: "தமிழ்", sample: "அடிப்படை உரிமைகள் இந்திய அரசியலமைப்பின் அடித்தளம்", topic: "அடிப்படை உரிமைகள்" },
+  { code: "te", native: "తెలుగు", sample: "ప్రాథమిక హక్కులు భారత రాజ్యాంగానికి పునాది", topic: "ప్రాథమిక హక్కులు" },
+  { code: "gu", native: "ગુજરાતી", sample: "મૂળભૂત અધિકારો ભારતીય બંધારણનો પાયો છે", topic: "મૂળભૂત અધિકારો" },
+  { code: "mr", native: "मराठी", sample: "मूलभूत अधिकार हे भारतीय राज्यघटनेचा पाया आहेत", topic: "मूलभूत अधिकार" },
+  { code: "kn", native: "ಕನ್ನಡ", sample: "ಮೂಲಭೂತ ಹಕ್ಕುಗಳು ಭಾರತೀಯ ಸಂವಿಧಾನದ ಅಡಿಪಾಯ", topic: "ಮೂಲಭೂತ ಹಕ್ಕುಗಳು" },
+  { code: "ml", native: "മലയാളം", sample: "മൗലികാവകാശങ്ങള്‍ ഇന്ത്യന്‍ ഭരണഘടനയുടെ അടിത്തറ", topic: "മൗലികാവകാശങ്ങള്‍" },
+  { code: "pa", native: "ਪੰਜਾਬੀ", sample: "ਮੁੱਢਲੇ ਅਧਿਕਾਰ ਭਾਰਤੀ ਸੰਵਿਧਾਨ ਦੀ ਨੀਂਹ ਹਨ", topic: "ਮੁੱਢਲੇ ਅਧਿਕਾਰ" },
+  { code: "or", native: "ଓଡ଼ିଆ", sample: "ମୌଳିକ ଅଧିକାର ଭାରତୀୟ ସମ୍ବିଧାନର ଭିତ୍ତିପ୍ରସ୍ତର", topic: "ମୌଳିକ ଅଧିକାର" },
+  { code: "ur", native: "اردو", sample: "بنیادی حقوق ہندوستانی آئین کی بنیاد ہیں", topic: "بنیادی حقوق" },
+  { code: "as", native: "অসমীয়া", sample: "মৌলিক অধিকাৰ ভাৰতীয় সংবিধানৰ ভেটি", topic: "মৌলিক অধিকাৰ" },
+];
+
+function LanguageShowcaseSection({ t }: { t: any }) {
+  const [activeIdx, setActiveIdx] = useState(0);
+  const activeLang = LANGUAGE_SAMPLES[activeIdx];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveIdx((prev) => (prev + 1) % LANGUAGE_SAMPLES.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <section className="py-14 sm:py-20 bg-background overflow-hidden" data-testid="section-languages">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-10 sm:mb-14"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4 border border-primary/20"
+          >
+            <Languages className="h-3 w-3" />
+            Not Google Translate
+          </motion.div>
+          <h2 className="text-2xl sm:text-4xl font-display font-bold" data-testid="text-language-heading">
+            Study in Your{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-amber-600">
+              Mother Tongue
+            </span>
+          </h2>
+          <p className="text-muted-foreground mt-2 sm:mt-3 text-sm sm:text-base max-w-xl mx-auto">
+            Fully transliterated content in 13 Indian languages. Every word in native script -- no mixed English, no machine gibberish.
+          </p>
+        </motion.div>
+
+        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="flex-1 w-full"
+          >
+            <Card className="relative overflow-visible p-6 sm:p-8">
+              <div className="absolute -top-3 left-6 px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold tracking-wider uppercase">
+                Live Preview
+              </div>
+
+              <div className="flex items-center gap-2 mb-4 mt-1">
+                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-xs text-muted-foreground">AI is responding in</span>
+                <motion.span
+                  key={activeLang.code}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="text-xs font-bold text-primary"
+                >
+                  {activeLang.native}
+                </motion.span>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <MessageSquare className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground mb-1">You asked about</p>
+                    <motion.p
+                      key={`topic-${activeLang.code}`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-sm font-semibold text-foreground"
+                    >
+                      {activeLang.topic}
+                    </motion.p>
+                  </div>
+                </div>
+
+                <div className="rounded-xl bg-secondary/50 border border-border/50 p-4">
+                  <motion.p
+                    key={`sample-${activeLang.code}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className={`text-base sm:text-lg leading-relaxed text-foreground font-medium ${activeLang.code === "ur" ? "text-right" : ""}`}
+                    dir={activeLang.code === "ur" ? "rtl" : "ltr"}
+                    data-testid="text-language-sample"
+                  >
+                    {activeLang.sample}
+                  </motion.p>
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
+                    <span className="text-[10px] text-muted-foreground tracking-wide uppercase">
+                      Fundamental Rights
+                    </span>
+                    <span className="text-[10px] font-bold text-primary">
+                      {activeLang.native}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="flex-shrink-0 w-full lg:w-auto"
+          >
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-3 gap-2">
+              {LANGUAGE_SAMPLES.map((lang, i) => (
+                <motion.button
+                  key={lang.code}
+                  onClick={() => setActiveIdx(i)}
+                  whileTap={{ scale: 0.95 }}
+                  className={`relative px-3 py-2.5 rounded-lg text-center transition-all duration-300 border ${
+                    activeIdx === i
+                      ? "bg-primary/10 border-primary/40 shadow-sm"
+                      : "bg-card border-border/40 hover-elevate"
+                  }`}
+                  data-testid={`button-lang-${lang.code}`}
+                >
+                  {activeIdx === i && (
+                    <motion.div
+                      layoutId="lang-active-glow"
+                      className="absolute inset-0 rounded-lg bg-primary/5 border border-primary/20"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                  <span className={`relative block text-base font-bold ${
+                    activeIdx === i ? "text-primary" : "text-foreground/80"
+                  }`}>
+                    {lang.native}
+                  </span>
+                  <span className="relative block text-[10px] text-muted-foreground mt-0.5 capitalize">
+                    {SUPPORTED_LANGUAGES.find(l => l.code === lang.code)?.label || lang.code}
+                  </span>
+                </motion.button>
+              ))}
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+              className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground"
+            >
+              <Globe className="h-3.5 w-3.5 text-primary" />
+              <span>+ English = <span className="font-bold text-foreground">13 languages</span> supported</span>
+            </motion.div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function PrepareForExamsSection({ t }: { t: any }) {
   return (
     <div className="space-y-8" data-testid="exams-grid">
@@ -1018,6 +1199,8 @@ export default function LandingPage() {
             <PrepareForExamsSection t={t} />
           </div>
         </section>
+
+        <LanguageShowcaseSection t={t} />
 
         <section className="py-14 sm:py-20 bg-secondary/30">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
