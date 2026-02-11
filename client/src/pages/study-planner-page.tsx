@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/i18n/context";
+import { InlineLanguageButton } from "@/components/inline-language-button";
 import {
   Select,
   SelectContent,
@@ -682,6 +683,9 @@ export default function StudyPlannerPage() {
       <Sidebar />
       {hasPlannerAccess ? (
         <main className="flex-1 overflow-y-auto">
+          <div className="hidden md:flex justify-end px-4 pt-3">
+            <InlineLanguageButton />
+          </div>
           <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-20">
             <div className="mb-6">
               <h1 className="text-2xl font-display font-bold" data-testid="text-study-planner-title">{t.planner.title}</h1>

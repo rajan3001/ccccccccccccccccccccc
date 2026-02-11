@@ -12,6 +12,7 @@ import { useNotes, useNoteFolders, useNoteTags, useUpdateNote, useDeleteNote, us
 import { generatePDF, noteToPDFSections } from "@/lib/pdf-generator";
 import { StyledMarkdown } from "@/components/ui/styled-markdown";
 import { useLanguage } from "@/i18n/context";
+import { InlineLanguageButton } from "@/components/inline-language-button";
 import {
   Select,
   SelectContent,
@@ -640,6 +641,9 @@ export default function NotesPage() {
       <Sidebar />
       {hasNotesAccess ? (
         <main className="flex-1 overflow-y-auto">
+          <div className="hidden md:flex justify-end px-4 pt-3">
+            <InlineLanguageButton />
+          </div>
           <div className="px-4 sm:px-6 py-6 sm:py-10">
             {view === "list" && renderListView()}
             {view === "detail" && renderDetailView()}

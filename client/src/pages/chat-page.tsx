@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { generatePDF, chatToPDFSections } from "@/lib/pdf-generator";
 import { useLanguage } from "@/i18n/context";
+import { InlineLanguageButton } from "@/components/inline-language-button";
 
 const TOPIC_SUGGESTIONS = [
   { text: "Create 5 Prelims MCQs on this topic", icon: ListChecks },
@@ -138,6 +139,9 @@ export default function ChatPage() {
       <Sidebar />
       
       <main className="flex-1 flex flex-col min-h-0 relative">
+        <div className="hidden md:flex justify-end px-4 py-2 border-b">
+          <InlineLanguageButton />
+        </div>
         <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto scroll-smooth">
           {!conversationId || (!isChatLoading && !hasMessages && !isStreaming) ? (
             <div className="flex flex-col items-center justify-center h-full animate-in fade-in duration-500">

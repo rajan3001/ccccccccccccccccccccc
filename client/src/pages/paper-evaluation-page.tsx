@@ -11,6 +11,7 @@ import { useUpload } from "@/hooks/use-upload";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/i18n/context";
+import { InlineLanguageButton } from "@/components/inline-language-button";
 import {
   Dialog,
   DialogContent,
@@ -1110,6 +1111,9 @@ export default function PaperEvaluationPage() {
     <div className="flex flex-col md:flex-row h-[100dvh] bg-background overflow-hidden">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
+        <div className="hidden md:flex justify-end px-4 pt-3">
+          <InlineLanguageButton />
+        </div>
         <div className="px-4 sm:px-6 py-6 sm:py-10">
           {view === "upload" && renderUploadView()}
           {view === "result" && renderResultView()}
