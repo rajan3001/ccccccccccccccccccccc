@@ -22,6 +22,7 @@ import TermsOfServicePage from "@/pages/terms-of-service-page";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/use-auth";
 import { LanguageProvider } from "@/i18n/context";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 function Router() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -62,6 +63,7 @@ function App() {
       <TooltipProvider>
         <LanguageProvider>
           <Toaster />
+          <LanguageSwitcher />
           <Router />
         </LanguageProvider>
       </TooltipProvider>

@@ -3,7 +3,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useConversations, useDeleteConversation } from "@/hooks/use-chat";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useLanguage } from "@/i18n/context";
-import { SUPPORTED_LANGUAGES } from "@/i18n/languages";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -24,8 +23,6 @@ import {
   User,
   Phone,
   ChevronRight,
-  Globe,
-  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
@@ -54,10 +51,9 @@ export function Sidebar() {
   const { data: conversations, isLoading } = useConversations();
   const deleteMutation = useDeleteConversation();
   const { data: subData } = useSubscription();
-  const { language, setLanguage, t } = useLanguage();
+  const { t } = useLanguage();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-  const [showLangPicker, setShowLangPicker] = useState(false);
 
   const currentId = location.startsWith("/chat/") 
     ? parseInt(location.split("/")[2]) 
@@ -307,38 +303,6 @@ export function Sidebar() {
                 </div>
               </div>
               <div className="p-1.5">
-                <button
-                  onClick={(e) => { e.stopPropagation(); setShowLangPicker(!showLangPicker); }}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-md text-sm text-foreground hover-elevate"
-                  data-testid="button-language-picker"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    {t.settings.language}
-                  </div>
-                  <span className="text-xs text-muted-foreground">{SUPPORTED_LANGUAGES.find(l => l.code === language)?.nativeLabel}</span>
-                </button>
-                {showLangPicker && (
-                  <div className="max-h-48 overflow-y-auto rounded-md border border-border bg-popover p-1 mt-1">
-                    {SUPPORTED_LANGUAGES.map((lang) => (
-                      <button
-                        key={lang.code}
-                        onClick={(e) => { e.stopPropagation(); setLanguage(lang.code); setShowLangPicker(false); }}
-                        className={cn(
-                          "w-full flex items-center justify-between px-3 py-1.5 rounded-md text-sm hover-elevate",
-                          language === lang.code ? "text-primary font-semibold" : "text-foreground"
-                        )}
-                        data-testid={`button-lang-${lang.code}`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm">{lang.nativeLabel}</span>
-                          <span className="text-xs text-muted-foreground">{lang.label}</span>
-                        </div>
-                        {language === lang.code && <Check className="h-4 w-4 text-primary" />}
-                      </button>
-                    ))}
-                  </div>
-                )}
                 <Link href="/settings" onClick={() => setIsMobileOpen(false)}>
                   <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-foreground hover-elevate" data-testid="link-settings">
                     <Settings className="h-4 w-4 text-muted-foreground" />
