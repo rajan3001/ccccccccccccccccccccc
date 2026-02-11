@@ -148,7 +148,7 @@ function VerticalMarquee({ compact }: { compact?: boolean }) {
   return (
     <div
       className="relative overflow-hidden"
-      style={{ height: compact ? "320px" : "450px" }}
+      style={{ height: compact ? "280px" : "360px" }}
       data-testid="testimonials-scroll-container"
     >
       <div
@@ -190,23 +190,23 @@ export function IndiaTestimonialsSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-10 sm:py-14 overflow-hidden" data-testid="section-india-testimonials">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-6 sm:mb-10">
-          <p className="text-xs sm:text-sm font-semibold tracking-widest uppercase text-primary/70 mb-2">
+    <section ref={sectionRef} className="py-8 sm:py-10 overflow-hidden" data-testid="section-india-testimonials">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-4 sm:mb-6">
+          <p className="text-xs sm:text-sm font-semibold tracking-widest uppercase text-primary/70 mb-1">
             Trusted Across India
           </p>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-foreground" data-testid="text-india-heading">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-foreground" data-testid="text-india-heading">
             India's Smartest <span className="text-primary">UPSC Community</span>
           </h2>
-          <p className="text-sm sm:text-base text-muted-foreground mt-2">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             Join aspirants from every state preparing smarter with AI
           </p>
         </div>
 
-        <div className="grid grid-cols-[1.2fr_1fr] sm:grid-cols-[1fr_1fr] lg:grid-cols-[3fr_2fr] gap-3 sm:gap-6 lg:gap-8 items-center">
+        <div className="grid grid-cols-[1.2fr_1fr] sm:grid-cols-[1fr_1fr] lg:grid-cols-[3fr_2fr] gap-3 sm:gap-5 lg:gap-6 items-center">
           <div className="relative" data-testid="india-map-container">
-            <div className="relative mx-auto">
+            <div className="relative mx-auto max-w-sm lg:max-w-md">
               <img
                 src={indiaMapImg}
                 alt="Map of India"
