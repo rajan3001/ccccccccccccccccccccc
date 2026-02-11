@@ -112,8 +112,9 @@ export default function ChatPage() {
   const showSuggestions = hasMessages && lastMessage?.role === "assistant" && !isStreaming && hasTopic;
 
   const lastMsgId = lastMessage?.id;
+  const suggestionsUrl = `/api/conversations/${conversationId}/suggestions?v=${lastMsgId || 0}`;
   const { data: suggestionsData, isLoading: suggestionsLoading } = useQuery<{ suggestions: string[] }>({
-    queryKey: [`/api/conversations/${conversationId}/suggestions`, lastMsgId],
+    queryKey: [suggestionsUrl],
     enabled: showSuggestions && !!conversationId,
     staleTime: Infinity,
     gcTime: 5 * 60 * 1000,

@@ -292,6 +292,18 @@ MCQ GENERATION RULES:
     }
   });
 
+  function getDefaultSuggestions(messages: any[]): string[] {
+    const lastAssistant = [...messages].reverse().find((m: any) => m.role === "assistant");
+    const lastUser = [...messages].reverse().find((m: any) => m.role === "user");
+    const topic = lastUser?.content?.slice(0, 50) || "this topic";
+    return [
+      `Explain ${topic} in more detail`,
+      `Create 5 MCQs on ${topic}`,
+      `What are the key points to remember?`,
+      `How is this relevant for UPSC Mains?`
+    ].map(s => s.length > 60 ? s.slice(0, 57) + "..." : s);
+  }
+
   app.get("/api/conversations/:id/suggestions", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const conversationId = parseInt(req.params.id as string);
@@ -352,10 +364,20 @@ Example: ["How does Article 21 differ from Article 19?","What are landmark cases
         suggestions = [];
       }
 
+      if (suggestions.length === 0) {
+        suggestions = getDefaultSuggestions(recentMessages);
+      }
+
       res.json({ suggestions });
     } catch (error) {
       console.error("Error generating suggestions:", error);
-      res.json({ suggestions: [] });
+      const fallback = [
+        "Explain this topic in more detail",
+        "Create practice MCQs on this",
+        "What are the key points to remember?",
+        "How is this relevant for UPSC Mains?"
+      ];
+      res.json({ suggestions: fallback });
     }
   });
 }
