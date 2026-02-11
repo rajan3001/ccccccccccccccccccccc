@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, lazy, Suspense } from "react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/i18n/context";
 import { Redirect } from "wouter";
@@ -47,6 +46,8 @@ import { IndiaTestimonialsSection } from "@/components/landing/india-testimonial
 import { SUPPORTED_LANGUAGES } from "@/i18n/languages";
 import { MobileAppSection } from "@/components/landing/mobile-app-section";
 import { HowItWorksTour } from "@/components/landing/how-it-works-tour";
+
+const DotLottieReact = lazy(() => import("@lottiefiles/dotlottie-react").then(m => ({ default: m.DotLottieReact })));
 
 function AnimatedCounter({ target, suffix = "+" }: { target: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -950,12 +951,14 @@ export default function LandingPage() {
                 className="relative w-52 h-52 sm:w-64 sm:h-64 md:w-80 md:h-80 flex-shrink-0"
                 data-testid="trophy-animation"
               >
-                <DotLottieReact
-                  src="https://assets-v2.lottiefiles.com/a/58030746-1151-11ee-86f5-f7bad2893c55/MIaDhJ2ars.lottie"
-                  loop
-                  autoplay
-                  style={{ width: "100%", height: "100%" }}
-                />
+                <Suspense fallback={<div className="w-full h-full" />}>
+                  <DotLottieReact
+                    src="https://assets-v2.lottiefiles.com/a/58030746-1151-11ee-86f5-f7bad2893c55/MIaDhJ2ars.lottie"
+                    loop
+                    autoplay
+                    style={{ width: "100%", height: "100%" }}
+                  />
+                </Suspense>
                 <style>{`
                   @keyframes sparkle-spin {
                     0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; }
