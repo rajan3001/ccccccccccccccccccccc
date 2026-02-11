@@ -637,17 +637,17 @@ function LanguageShowcaseSection({ t }: { t: any }) {
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4 border border-primary/20"
           >
             <Languages className="h-3 w-3" />
-            Not Google Translate
+            {t.landing.notGoogleTranslate}
           </motion.div>
 
           <h2 className="text-2xl sm:text-4xl font-display font-bold mb-3" data-testid="text-language-heading">
-            Study in Your{" "}
+            {t.landing.studyInYour}{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-amber-600">
-              Mother Tongue
+              {t.landing.motherTongue}
             </span>
           </h2>
           <p className="text-muted-foreground text-sm sm:text-base max-w-lg mx-auto">
-            Every word fully transliterated in native script. 13 Indian languages, zero mixed English.
+            {t.landing.motherTongueDesc}
           </p>
         </motion.div>
 
@@ -682,7 +682,7 @@ function LanguageShowcaseSection({ t }: { t: any }) {
           viewport={{ once: true }}
           className="text-center text-xs text-muted-foreground mt-5"
         >
-          Currently viewing in <span className="font-bold text-primary">{currentLabel}</span>
+          {t.landing.currentlyViewingIn} <span className="font-bold text-primary">{currentLabel}</span>
         </motion.p>
       </div>
     </section>

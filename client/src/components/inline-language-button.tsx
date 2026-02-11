@@ -5,6 +5,7 @@ import { Check, ChevronDown, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { translations } from "@/i18n/translations";
 
 export function InlineLanguageButton() {
   const { language, setLanguage } = useLanguage();
@@ -12,6 +13,7 @@ export function InlineLanguageButton() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const currentLang = SUPPORTED_LANGUAGES.find(l => l.code === language);
+  const t = translations[language] || translations.en;
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -56,11 +58,11 @@ export function InlineLanguageButton() {
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                 <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary/80">
-                  Select Language
+                  {t.settings.changeLanguage}
                 </span>
               </div>
             </div>
-            <ScrollArea className="max-h-[min(400px,60vh)]">
+            <ScrollArea className="max-h-[min(400px,70vh)]">
               <div className="p-1.5">
                 {SUPPORTED_LANGUAGES.map((lang, i) => (
                   <button

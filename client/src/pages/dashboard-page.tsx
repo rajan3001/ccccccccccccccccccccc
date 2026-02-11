@@ -106,11 +106,11 @@ function getQuickActions(t: any) {
   ];
 }
 
-function getGreeting() {
+function getGreeting(t: any) {
   const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
+  if (hour < 12) return t.dashboard.goodMorning;
+  if (hour < 17) return t.dashboard.goodAfternoon;
+  return t.dashboard.goodEvening;
 }
 
 function getMotivationalTip(userType: string | null) {
@@ -591,7 +591,7 @@ export default function DashboardPage() {
           >
             <div className="flex items-center gap-2 min-w-0">
               <h1 className="text-sm sm:text-lg font-semibold truncate" data-testid="text-dashboard-greeting">
-                {getGreeting()}, <span className="text-primary">{displayName}</span>
+                {getGreeting(t)}, <span className="text-primary">{displayName}</span>
               </h1>
               {examLabels.length > 0 && (
                 <Badge variant="outline" className="text-[10px] hidden sm:inline-flex flex-shrink-0">
