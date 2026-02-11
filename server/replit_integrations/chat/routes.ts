@@ -328,6 +328,14 @@ MCQ GENERATION RULES:
       const userLang = getUserLanguage(req);
       const langNote = userLang !== "en" ? `\nIMPORTANT: Write all suggestions in the user's language (${userLang}). Transliterate fully into native script.` : "";
 
+      const lastAssistantMsg = recentMessages.filter((m: any) => m.role === "assistant").pop();
+      const lastContent = (lastAssistantMsg?.content || "").toLowerCase();
+      const hasMCQs = lastContent.includes("mcq") || lastContent.includes("quiz") || lastContent.includes("correct answer") || /\(a\).*\(b\).*\(c\)/i.test(lastContent);
+
+      const mcqRule = hasMCQs
+        ? `- The last response already contains MCQs/quiz questions, so do NOT suggest creating more MCQs. Instead, the 4th suggestion should be about a related but different subtopic to study next (e.g. "Explain Gupta Empire next" or "Move to Mughal administration").`
+        : `- The 4th suggestion MUST ALWAYS be exactly in the format "Create MCQs on [specific topic]" - this triggers our quiz feature. Replace [specific topic] with the actual topic from the conversation.`;
+
       const prompt = `Based on this UPSC/PSC study conversation, generate exactly 4 smart follow-up questions the student would likely want to ask next.
 
 CONVERSATION:
@@ -335,7 +343,7 @@ ${context}
 
 RULES:
 - Questions must be specific to the actual topic being discussed, NOT generic
-- The 4th suggestion MUST ALWAYS be exactly in the format "Create MCQs on [specific topic]" - this triggers our quiz feature. Replace [specific topic] with the actual topic from the conversation.
+${mcqRule}
 - The other 3 questions should explore different angles: deeper explanation, comparison, and application/relevance
 - Keep each question under 60 characters
 - Make questions feel natural and conversational
