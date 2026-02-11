@@ -889,10 +889,10 @@ export default function LandingPage() {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
               {[
-                { value: 10000, label: t.landing.aspirantsTrust, icon: Users, suffix: "+", glowDelay: 0.5 },
-                { value: 50000, label: t.landing.questionsPracticed, icon: Target, suffix: "+", glowDelay: 1.5 },
-                { value: 15000, label: t.landing.answersEvaluated, icon: FileText, suffix: "+", glowDelay: 2.5 },
-                { value: 60, label: t.landing.examsCovered, icon: BarChart3, suffix: "+", glowDelay: 3.5 },
+                { value: 10000, label: t.landing.aspirantsTrust, icon: Users, suffix: "+", color: "hsl(200, 75%, 50%)", bgFrom: "rgba(59,130,246,0.15)", bgTo: "rgba(59,130,246,0.03)", border: "rgba(59,130,246,0.25)", glowDelay: 0.5 },
+                { value: 50000, label: t.landing.questionsPracticed, icon: Target, suffix: "+", color: "hsl(150, 65%, 42%)", bgFrom: "rgba(34,197,94,0.15)", bgTo: "rgba(34,197,94,0.03)", border: "rgba(34,197,94,0.25)", glowDelay: 1.5 },
+                { value: 15000, label: t.landing.answersEvaluated, icon: FileText, suffix: "+", color: "hsl(280, 65%, 55%)", bgFrom: "rgba(168,85,247,0.15)", bgTo: "rgba(168,85,247,0.03)", border: "rgba(168,85,247,0.25)", glowDelay: 2.5 },
+                { value: 60, label: t.landing.examsCovered, icon: BarChart3, suffix: "+", color: "hsl(35, 90%, 50%)", bgFrom: "rgba(245,158,11,0.15)", bgTo: "rgba(245,158,11,0.03)", border: "rgba(245,158,11,0.25)", glowDelay: 3.5 },
               ].map((stat, i) => (
                 <motion.div
                   key={i}
@@ -902,26 +902,47 @@ export default function LandingPage() {
                   transition={{ delay: i * 0.1, duration: 0.5, ease: "easeOut" }}
                   data-testid={`stat-${i}`}
                 >
-                  <div className="stats-card-glow rounded-2xl">
-                    <div className="relative rounded-2xl bg-card dark:bg-card py-6 sm:py-8 px-4 flex flex-col items-center overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.04] to-transparent pointer-events-none" />
+                  <div className="relative rounded-2xl bg-card dark:bg-card py-6 sm:py-8 px-4 flex flex-col items-center overflow-hidden border" style={{ borderColor: stat.border }}>
+                    <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(to bottom, ${stat.bgFrom}, ${stat.bgTo})` }} />
 
-                      <div className="relative mb-4">
-                        <motion.div
-                          className="absolute -inset-3 rounded-full bg-primary/10 blur-md"
-                          animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.5, 0.3] }}
-                          transition={{ duration: 3, repeat: Infinity, delay: stat.glowDelay, ease: "easeInOut" }}
-                        />
-                        <div className="relative h-12 w-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center">
-                          <stat.icon className="h-5 w-5 text-primary" />
-                        </div>
+                    <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M10 50 Q40 30, 70 55" stroke={stat.color} strokeWidth="1.5" strokeLinecap="round" opacity="0.25">
+                        <animate attributeName="d" values="M10 50 Q40 30, 70 55;M10 45 Q45 25, 70 50;M10 50 Q40 30, 70 55" dur={`${4 + i * 0.5}s`} repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.15;0.35;0.15" dur={`${3 + i * 0.3}s`} repeatCount="indefinite" />
+                      </path>
+                      <path d="M130 160 Q160 140, 190 165" stroke={stat.color} strokeWidth="1.5" strokeLinecap="round" opacity="0.25">
+                        <animate attributeName="d" values="M130 160 Q160 140, 190 165;M130 155 Q165 135, 190 160;M130 160 Q160 140, 190 165" dur={`${5 + i * 0.4}s`} repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.15;0.35;0.15" dur={`${4 + i * 0.5}s`} repeatCount="indefinite" />
+                      </path>
+                      <path d="M155 25 Q175 45, 185 30" stroke={stat.color} strokeWidth="1" strokeLinecap="round" opacity="0.2">
+                        <animate attributeName="d" values="M155 25 Q175 45, 185 30;M150 20 Q170 40, 190 28;M155 25 Q175 45, 185 30" dur={`${6 + i * 0.3}s`} repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.1;0.3;0.1" dur={`${3.5 + i * 0.4}s`} repeatCount="indefinite" />
+                      </path>
+                      <circle cx="25" cy="170" r="2" fill={stat.color} opacity="0.2">
+                        <animate attributeName="opacity" values="0.1;0.3;0.1" dur={`${2.5 + i * 0.5}s`} repeatCount="indefinite" />
+                        <animate attributeName="r" values="1.5;3;1.5" dur={`${3 + i * 0.5}s`} repeatCount="indefinite" />
+                      </circle>
+                      <circle cx="175" cy="85" r="1.5" fill={stat.color} opacity="0.15">
+                        <animate attributeName="opacity" values="0.1;0.25;0.1" dur={`${3.5 + i * 0.3}s`} repeatCount="indefinite" />
+                      </circle>
+                    </svg>
+
+                    <div className="relative mb-4">
+                      <motion.div
+                        className="absolute -inset-3 rounded-full blur-md"
+                        style={{ backgroundColor: stat.color }}
+                        animate={{ scale: [1, 1.3, 1], opacity: [0.15, 0.3, 0.15] }}
+                        transition={{ duration: 3, repeat: Infinity, delay: stat.glowDelay, ease: "easeInOut" }}
+                      />
+                      <div className="relative h-12 w-12 rounded-full flex items-center justify-center border" style={{ background: `linear-gradient(135deg, ${stat.bgFrom}, ${stat.bgTo})`, borderColor: stat.border }}>
+                        <stat.icon className="h-5 w-5" style={{ color: stat.color }} />
                       </div>
-
-                      <span className="relative text-3xl sm:text-4xl font-display font-extrabold tracking-tight text-foreground">
-                        <AnimatedCounter target={stat.value} suffix={stat.suffix} />
-                      </span>
-                      <span className="relative text-[10px] sm:text-[11px] text-muted-foreground mt-2 font-medium tracking-[0.12em] uppercase">{stat.label}</span>
                     </div>
+
+                    <span className="relative text-3xl sm:text-4xl font-display font-extrabold tracking-tight text-foreground">
+                      <AnimatedCounter target={stat.value} suffix={stat.suffix} />
+                    </span>
+                    <span className="relative text-[10px] sm:text-[11px] text-muted-foreground mt-2 font-medium tracking-[0.12em] uppercase">{stat.label}</span>
                   </div>
                 </motion.div>
               ))}
