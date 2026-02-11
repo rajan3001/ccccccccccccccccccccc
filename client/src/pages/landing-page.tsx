@@ -806,7 +806,7 @@ export default function LandingPage() {
                     <Button
                       size="lg"
                       onClick={openLogin}
-                      className="w-full sm:w-auto rounded-full shadow-xl shadow-primary/30"
+                      className="w-full sm:w-auto rounded-full shadow-xl shadow-blue-500/30 bg-blue-600 border-blue-700 text-white"
                       data-testid="button-get-started"
                     >
                       {t.landing.beginJourney}
