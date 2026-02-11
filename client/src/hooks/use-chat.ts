@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 export interface Conversation {
@@ -93,10 +93,23 @@ export function useChatStream(conversationId: number) {
   const [isStreaming, setIsStreaming] = useState(false);
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const contentRef = useRef("");
+  const rafRef = useRef<number | null>(null);
+  const pendingUpdateRef = useRef(false);
+
+  const scheduleUpdate = useCallback(() => {
+    if (pendingUpdateRef.current) return;
+    pendingUpdateRef.current = true;
+    rafRef.current = requestAnimationFrame(() => {
+      setStreamedContent(contentRef.current);
+      pendingUpdateRef.current = false;
+    });
+  }, []);
 
   const sendMessage = async (content: string, attachments?: MessageAttachment[]) => {
     try {
       setIsStreaming(true);
+      contentRef.current = "";
       setStreamedContent("");
       setPendingUserMessage(content);
       abortControllerRef.current = new AbortController();
@@ -118,36 +131,49 @@ export function useChatStream(conversationId: number) {
       if (!reader) throw new Error("No reader available");
 
       const decoder = new TextDecoder();
+      let buffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n\n");
+        buffer += decoder.decode(value, { stream: true });
 
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              
-              if (data.error) {
-                throw new Error(data.error);
-              }
-              
-              if (data.done) {
-                break;
-              }
-              
-              if (data.content) {
-                setStreamedContent((prev) => prev + data.content);
-              }
-            } catch (e) {
-              console.warn("Failed to parse chunk", e);
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() || "";
+
+        for (const part of parts) {
+          const trimmed = part.trim();
+          if (!trimmed.startsWith("data: ")) continue;
+
+          try {
+            const data = JSON.parse(trimmed.slice(6));
+
+            if (data.error) {
+              throw new Error(data.error);
+            }
+
+            if (data.done) {
+              break;
+            }
+
+            if (data.content) {
+              contentRef.current += data.content;
+              scheduleUpdate();
+            }
+          } catch (e: any) {
+            if (e.message && !e.message.includes("JSON")) {
+              throw e;
             }
           }
         }
       }
+
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      setStreamedContent(contentRef.current);
+
     } catch (error: any) {
       if (error.name !== "AbortError") {
         toast({
@@ -157,12 +183,20 @@ export function useChatStream(conversationId: number) {
         });
       }
     } finally {
+      pendingUpdateRef.current = false;
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/conversations"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/chat/query-status"] }),
+      ]);
       setIsStreaming(false);
       setStreamedContent("");
+      contentRef.current = "";
       setPendingUserMessage(null);
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/chat/query-status"] });
     }
   };
 

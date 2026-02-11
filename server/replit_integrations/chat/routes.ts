@@ -208,8 +208,10 @@ export function registerChatRoutes(app: Express): void {
       }
 
       res.setHeader("Content-Type", "text/event-stream");
-      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Cache-Control", "no-cache, no-transform");
       res.setHeader("Connection", "keep-alive");
+      res.setHeader("X-Accel-Buffering", "no");
+      res.flushHeaders();
 
       const userLang = getUserLanguage(req);
       const langInstruction = getLanguageInstruction(userLang);
@@ -269,6 +271,9 @@ MCQ GENERATION RULES:
         if (content) {
           fullResponse += content;
           res.write(`data: ${JSON.stringify({ content })}\n\n`);
+          if (typeof (res as any).flush === "function") {
+            (res as any).flush();
+          }
         }
       }
 

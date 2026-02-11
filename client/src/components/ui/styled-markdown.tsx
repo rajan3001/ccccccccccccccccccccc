@@ -125,4 +125,69 @@ export function StyledMarkdown({ children, className }: StyledMarkdownProps) {
   );
 }
 
+function renderLightMarkdown(text: string): (string | JSX.Element)[] {
+  const result: (string | JSX.Element)[] = [];
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  let key = 0;
+  for (const part of parts) {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      result.push(<strong key={key++} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>);
+    } else {
+      result.push(part);
+    }
+  }
+  return result;
+}
+
+interface StreamingMarkdownProps {
+  content: string;
+  className?: string;
+}
+
+export function StreamingMarkdown({ content, className }: StreamingMarkdownProps) {
+  const lines = content.split("\n");
+
+  return (
+    <div className={cn("max-w-none text-sm sm:text-base leading-relaxed", className)}>
+      {lines.map((line, i) => {
+        const trimmed = line.trimStart();
+        const isHeading = trimmed.startsWith("# ") || trimmed.startsWith("## ") || trimmed.startsWith("### ");
+        const isBullet = trimmed.startsWith("- ") || trimmed.startsWith("* ") || /^\d+\.\s/.test(trimmed);
+
+        if (isHeading) {
+          const level = trimmed.startsWith("### ") ? 3 : trimmed.startsWith("## ") ? 2 : 1;
+          const text = trimmed.replace(/^#{1,3}\s+/, "");
+          const Tag = level === 1 ? "h2" : level === 2 ? "h3" : "h4";
+          const cls = level === 1
+            ? "text-lg font-bold mt-5 mb-2 text-foreground"
+            : level === 2
+            ? "text-base font-semibold mt-4 mb-2 text-foreground"
+            : "text-sm font-semibold mt-3 mb-1 text-foreground";
+          return <Tag key={i} className={cls}>{renderLightMarkdown(text)}</Tag>;
+        }
+
+        if (isBullet) {
+          const bulletText = trimmed.replace(/^[-*]\s+/, "").replace(/^\d+\.\s+/, "");
+          return (
+            <div key={i} className="flex gap-2 ml-4 mb-1 text-foreground/90">
+              <span className="text-foreground/50 flex-shrink-0">{/^\d+\./.test(trimmed) ? trimmed.match(/^\d+/)?.[0] + "." : "\u2022"}</span>
+              <span>{renderLightMarkdown(bulletText)}</span>
+            </div>
+          );
+        }
+
+        if (trimmed === "") {
+          return <div key={i} className="h-3" />;
+        }
+
+        return (
+          <p key={i} className="mb-2 text-foreground/90">
+            {renderLightMarkdown(line)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 export { markdownComponents, remarkGfm };

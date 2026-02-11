@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Message } from "@/hooks/use-chat";
 import { Logo } from "@/components/ui/logo";
-import { StyledMarkdown } from "@/components/ui/styled-markdown";
+import { StyledMarkdown, StreamingMarkdown } from "@/components/ui/styled-markdown";
 import { detectMCQContent } from "@/components/chat/chat-quiz-panel";
 import { User, Copy, Check, FileText, Image as ImageIcon, File, BookmarkPlus, FolderPlus, Download, Play, Target } from "lucide-react";
 import { useState } from "react";
@@ -249,7 +249,12 @@ export function MessageBubble({ message, isStreaming, conversationId, userQuery,
 
           <div className="max-w-none text-sm sm:text-base">
             {message.content ? (
-              hasMCQ ? (
+              isStreaming ? (
+                <div className="streaming-text">
+                  <StreamingMarkdown content={message.content} />
+                  <span className="inline-block w-1.5 h-5 ml-0.5 bg-primary rounded-sm align-middle streaming-cursor" />
+                </div>
+              ) : hasMCQ ? (
                 <div>
                   <StyledMarkdown>{mcqIntroText}</StyledMarkdown>
                   <div className="mt-4 p-4 rounded-md border-2 border-primary/20 bg-primary/5">
@@ -276,10 +281,13 @@ export function MessageBubble({ message, isStreaming, conversationId, userQuery,
                 <StyledMarkdown>{message.content}</StyledMarkdown>
               )
             ) : (
-               isStreaming && <span className="animate-pulse inline-block w-2 h-4 bg-primary rounded-sm align-middle" />
-            )}
-            {isStreaming && message.content && (
-              <span className="inline-block w-1.5 h-4 ml-1 bg-primary animate-pulse" />
+              isStreaming && (
+                <div className="flex items-center gap-1.5">
+                  <span className="streaming-dot" style={{ animationDelay: "0ms" }} />
+                  <span className="streaming-dot" style={{ animationDelay: "150ms" }} />
+                  <span className="streaming-dot" style={{ animationDelay: "300ms" }} />
+                </div>
+              )
             )}
           </div>
 
