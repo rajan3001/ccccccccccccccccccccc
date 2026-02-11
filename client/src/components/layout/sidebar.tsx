@@ -379,47 +379,39 @@ export function Sidebar() {
             onClick={() => setShowMobileLang(!showMobileLang)}
             data-testid="button-mobile-language"
             className={cn(
-              "relative flex items-center justify-center h-9 w-9 rounded-xl transition-all duration-300",
-              "bg-gradient-to-br from-primary/15 via-primary/5 to-transparent",
-              "border border-primary/20",
-              showMobileLang && "ring-2 ring-primary/30 shadow-[0_0_12px_rgba(var(--primary-rgb),0.2)]"
+              "flex items-center gap-1 px-2 h-8 rounded-lg transition-all duration-200",
+              "bg-background/80 backdrop-blur-md",
+              "border border-border/60",
+              "shadow-sm",
+              showMobileLang && "border-primary/40 shadow-md"
             )}
           >
-            <svg viewBox="0 0 24 24" fill="none" className={cn("h-5 w-5 transition-transform duration-500", showMobileLang && "rotate-180")}>
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" className="text-primary/40" />
-              <ellipse cx="12" cy="12" rx="4" ry="10" stroke="currentColor" strokeWidth="1.5" className="text-primary">
-                <animateTransform attributeName="transform" type="rotate" values="0 12 12;360 12 12" dur="8s" repeatCount="indefinite" />
-              </ellipse>
-              <path d="M2 12h20" stroke="currentColor" strokeWidth="1" className="text-primary/50" />
-              <path d="M4 7h16" stroke="currentColor" strokeWidth="0.75" className="text-primary/30" />
-              <path d="M4 17h16" stroke="currentColor" strokeWidth="0.75" className="text-primary/30" />
-              <circle cx="12" cy="12" r="1.5" fill="currentColor" className="text-primary">
-                <animate attributeName="r" values="1.2;2;1.2" dur="2s" repeatCount="indefinite" />
-                <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite" />
-              </circle>
+            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 flex-shrink-0">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" className="text-primary/50" />
+              <ellipse cx="12" cy="12" rx="4" ry="10" stroke="currentColor" strokeWidth="1.5" className="text-primary" />
+              <path d="M2 12h20" stroke="currentColor" strokeWidth="1" className="text-primary/40" />
             </svg>
-            <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary border-2 border-background">
-              <span className="absolute inset-0 rounded-full bg-primary animate-ping opacity-40" />
+            <span className="text-xs font-semibold text-foreground">
+              {language.toUpperCase()}
             </span>
+            <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform duration-200", showMobileLang && "rotate-180")} />
           </button>
           {showMobileLang && (
             <>
-              <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px] animate-in fade-in duration-200" onClick={() => setShowMobileLang(false)} />
+              <div className="fixed inset-0 z-40" onClick={() => setShowMobileLang(false)} />
               <div className={cn(
-                "absolute right-0 top-full mt-2 z-50 w-64 rounded-2xl overflow-hidden",
-                "border border-primary/20 shadow-xl shadow-primary/5",
-                "bg-popover/95 backdrop-blur-xl",
-                "animate-in slide-in-from-top-2 fade-in zoom-in-95 duration-300"
-              )}>
-                <div className="px-4 py-3 border-b border-primary/10 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
-                  <div className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                    <p className="text-xs font-bold text-primary uppercase tracking-[0.2em]">Select Language</p>
-                  </div>
+                "absolute right-0 top-full mt-1 z-50 w-56 rounded-lg overflow-hidden",
+                "border border-border",
+                "bg-popover shadow-lg"
+              )}
+              style={{ animation: "mobileLangIn 0.15s ease-out both" }}
+              >
+                <div className="px-3 py-2 border-b border-border/50">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Select Language</span>
                 </div>
-                <ScrollArea className="max-h-[320px]">
-                  <div className="p-1.5">
-                    {SUPPORTED_LANGUAGES.map((lang, i) => (
+                <ScrollArea className="max-h-[280px]">
+                  <div className="p-1">
+                    {SUPPORTED_LANGUAGES.map((lang) => (
                       <button
                         key={lang.code}
                         onClick={() => {
@@ -427,39 +419,32 @@ export function Sidebar() {
                           setShowMobileLang(false);
                         }}
                         className={cn(
-                          "flex items-center gap-3 w-full rounded-xl px-3 py-2.5 text-sm transition-all duration-200",
-                          "animate-in slide-in-from-right-3 fade-in",
+                          "flex items-center justify-between w-full rounded-md px-2.5 py-2 text-sm transition-colors",
+                          "hover-elevate",
                           language === lang.code
-                            ? "bg-gradient-to-r from-primary/15 to-primary/5 text-primary font-semibold shadow-sm shadow-primary/10"
-                            : "hover-elevate text-foreground"
+                            ? "bg-primary/10 text-primary font-semibold"
+                            : "text-foreground"
                         )}
-                        style={{ animationDelay: `${i * 30}ms`, animationFillMode: "backwards" }}
                         data-testid={`button-mobile-lang-${lang.code}`}
                       >
-                        <div className={cn(
-                          "flex items-center justify-center h-7 w-7 rounded-lg text-xs font-bold flex-shrink-0",
-                          language === lang.code
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-muted-foreground"
-                        )}>
-                          {lang.code.toUpperCase()}
+                        <div className="flex items-center gap-2">
+                          <span className={cn("text-sm", language === lang.code ? "font-bold" : "font-medium")}>
+                            {lang.nativeLabel}
+                          </span>
+                          <span className="text-xs text-muted-foreground">{lang.label}</span>
                         </div>
-                        <div className="flex-1 text-left">
-                          <div className="leading-tight">{lang.nativeLabel}</div>
-                          <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">{lang.label}</div>
-                        </div>
-                        {language === lang.code && (
-                          <div className="relative flex items-center justify-center h-5 w-5">
-                            <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
-                            <Check className="h-3.5 w-3.5 text-primary relative z-10" />
-                          </div>
-                        )}
+                        {language === lang.code && <Check className="h-3.5 w-3.5 text-primary" />}
                       </button>
                     ))}
                   </div>
                 </ScrollArea>
-                <div className="h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
               </div>
+              <style>{`
+                @keyframes mobileLangIn {
+                  from { opacity: 0; transform: translateY(-4px); }
+                  to { opacity: 1; transform: translateY(0); }
+                }
+              `}</style>
             </>
           )}
         </div>
