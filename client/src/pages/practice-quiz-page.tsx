@@ -35,7 +35,6 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { InlineLanguageButton } from "@/components/inline-language-button";
 
 function renderQuizText(text: string) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
@@ -363,7 +362,6 @@ export default function PracticeQuizPage() {
               <BarChart3 className="h-4 w-4 sm:mr-1" />
               <span className="hidden sm:inline">Analytics</span>
             </Button>
-            <InlineLanguageButton />
           </div>
         </div>
 
