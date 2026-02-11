@@ -787,9 +787,21 @@ export default function LandingPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <span className="inline-flex items-center gap-1.5 py-1.5 px-4 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-semibold mb-6 sm:mb-8 border border-primary/20" data-testid="badge-hero">
-                    <Heart className="h-3.5 w-3.5" />
+                  <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-primary/80 font-medium tracking-wide mb-5 sm:mb-6" data-testid="badge-hero">
+                    <svg className="h-3 w-3 flex-shrink-0" viewBox="0 0 24 24" fill="#f59e0b" style={{ animation: "sparkle-spin 2.5s ease-in-out infinite" }}>
+                      <path d="M12 0L14.59 8.41L23 11L14.59 13.59L12 22L9.41 13.59L1 11L9.41 8.41Z" />
+                    </svg>
                     {t.landing.trustedByAspirants}
+                    <svg className="h-3 w-3 flex-shrink-0" viewBox="0 0 24 24" fill="#f59e0b" style={{ animation: "sparkle-spin 3s 0.5s ease-in-out infinite" }}>
+                      <path d="M12 0L14.59 8.41L23 11L14.59 13.59L12 22L9.41 13.59L1 11L9.41 8.41Z" />
+                    </svg>
+                    <style>{`
+                      @keyframes sparkle-spin {
+                        0% { transform: scale(0.6) rotate(0deg); opacity: 0.4; }
+                        50% { transform: scale(1.1) rotate(180deg); opacity: 1; }
+                        100% { transform: scale(0.6) rotate(360deg); opacity: 0.4; }
+                      }
+                    `}</style>
                   </span>
                   <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-foreground mb-4 sm:mb-5 leading-[1.15]" data-testid="text-hero-heading">
                     {t.landing.heroHeadingPart1}{" "}
