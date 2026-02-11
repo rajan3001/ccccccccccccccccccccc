@@ -190,9 +190,9 @@ export function IndiaTestimonialsSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-14 sm:py-20 overflow-hidden" data-testid="section-india-testimonials">
+    <section ref={sectionRef} className="py-10 sm:py-14 overflow-hidden" data-testid="section-india-testimonials">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10 sm:mb-14">
+        <div className="text-center mb-6 sm:mb-10">
           <p className="text-xs sm:text-sm font-semibold tracking-widest uppercase text-primary/70 mb-2">
             Trusted Across India
           </p>
@@ -206,7 +206,7 @@ export function IndiaTestimonialsSection() {
 
         <div className="grid grid-cols-[1.2fr_1fr] sm:grid-cols-[1fr_1fr] lg:grid-cols-[3fr_2fr] gap-3 sm:gap-6 lg:gap-8 items-center">
           <div className="relative" data-testid="india-map-container">
-            <div className="relative max-w-md lg:max-w-lg mx-auto">
+            <div className="relative mx-auto">
               <img
                 src={indiaMapImg}
                 alt="Map of India"
