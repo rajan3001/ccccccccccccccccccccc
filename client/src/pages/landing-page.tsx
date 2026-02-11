@@ -881,107 +881,202 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 15 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-center mb-8 sm:mb-10"
+              className="text-center mb-6 sm:mb-8"
             >
               <span className="text-xs font-semibold tracking-[0.2em] uppercase text-primary">{t.landing.trustedNationwide}</span>
               <div className="mt-1.5 h-px w-16 mx-auto bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
             </motion.div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
-              {[
-                { value: 10000, label: t.landing.aspirantsTrust, icon: Users, suffix: "+", color: "hsl(200, 75%, 50%)", bgFrom: "rgba(59,130,246,0.15)", bgTo: "rgba(59,130,246,0.03)", border: "rgba(59,130,246,0.25)", glowDelay: 0.5 },
-                { value: 50000, label: t.landing.questionsPracticed, icon: Target, suffix: "+", color: "hsl(150, 65%, 42%)", bgFrom: "rgba(34,197,94,0.15)", bgTo: "rgba(34,197,94,0.03)", border: "rgba(34,197,94,0.25)", glowDelay: 1.5 },
-                { value: 15000, label: t.landing.answersEvaluated, icon: FileText, suffix: "+", color: "hsl(280, 65%, 55%)", bgFrom: "rgba(168,85,247,0.15)", bgTo: "rgba(168,85,247,0.03)", border: "rgba(168,85,247,0.25)", glowDelay: 2.5 },
-                { value: 60, label: t.landing.examsCovered, icon: BarChart3, suffix: "+", color: "hsl(35, 90%, 50%)", bgFrom: "rgba(245,158,11,0.15)", bgTo: "rgba(245,158,11,0.03)", border: "rgba(245,158,11,0.25)", glowDelay: 3.5 },
-              ].map((stat, i) => (
+            <div className="flex flex-col-reverse md:flex-row items-center gap-6 md:gap-10 max-w-4xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="relative w-48 h-48 sm:w-64 sm:h-64 md:w-72 md:h-72 flex-shrink-0"
+                data-testid="trophy-animation"
+              >
+                <svg viewBox="0 0 300 300" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="trophy-gold" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#f59e0b" />
+                      <stop offset="50%" stopColor="#fbbf24" />
+                      <stop offset="100%" stopColor="#d97706" />
+                    </linearGradient>
+                    <linearGradient id="trophy-shine" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#fef3c7" stopOpacity="0.8" />
+                      <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+                    </linearGradient>
+                    <linearGradient id="ribbon-red" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#ef4444" />
+                      <stop offset="100%" stopColor="#dc2626" />
+                    </linearGradient>
+                    <linearGradient id="ribbon-blue" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#3b82f6" />
+                      <stop offset="100%" stopColor="#2563eb" />
+                    </linearGradient>
+                    <filter id="trophy-shadow">
+                      <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="#d97706" floodOpacity="0.3" />
+                    </filter>
+                  </defs>
+
+                  <g filter="url(#trophy-shadow)">
+                    <g>
+                      <animateTransform attributeName="transform" type="rotate" values="-2,150,150;2,150,150;-2,150,150" dur="4s" repeatCount="indefinite" />
+
+                      <rect x="120" y="210" width="60" height="12" rx="3" fill="url(#trophy-gold)" />
+                      <rect x="110" y="222" width="80" height="14" rx="4" fill="url(#trophy-gold)" />
+                      <rect x="135" y="190" width="30" height="22" rx="4" fill="url(#trophy-gold)" />
+
+                      <path d="M105 100 C105 60, 120 50, 150 48 C180 50, 195 60, 195 100 L195 155 C195 175, 180 190, 150 192 C120 190, 105 175, 105 155 Z" fill="url(#trophy-gold)" />
+                      <path d="M115 100 C115 70, 128 60, 150 58 C172 60, 185 70, 185 100 L185 145 C185 165, 172 178, 150 180 C128 178, 115 165, 115 145 Z" fill="url(#trophy-shine)" opacity="0.4" />
+
+                      <path d="M105 100 C105 95, 95 90, 80 95 C65 100, 60 120, 70 135 C78 145, 95 148, 105 140" fill="url(#trophy-gold)" stroke="#d97706" strokeWidth="1" />
+                      <path d="M195 100 C195 95, 205 90, 220 95 C235 100, 240 120, 230 135 C222 145, 205 148, 195 140" fill="url(#trophy-gold)" stroke="#d97706" strokeWidth="1" />
+
+                      <text x="150" y="140" textAnchor="middle" fill="#92400e" fontSize="18" fontWeight="bold" fontFamily="serif" opacity="0.6">
+                        <tspan x="150" dy="0">&#9733;</tspan>
+                      </text>
+                    </g>
+                  </g>
+
+                  <g opacity="0.9">
+                    <path d="M100 190 Q80 220, 60 260 Q55 270, 65 268 Q80 260, 95 245" fill="url(#ribbon-red)">
+                      <animate attributeName="d" values="M100 190 Q80 220, 60 260 Q55 270, 65 268 Q80 260, 95 245;M100 190 Q75 225, 55 265 Q50 275, 60 272 Q75 262, 95 245;M100 190 Q80 220, 60 260 Q55 270, 65 268 Q80 260, 95 245" dur="3s" repeatCount="indefinite" />
+                    </path>
+                    <path d="M108 190 Q88 218, 68 255 Q63 265, 73 263 Q88 255, 103 242" fill="#f87171" opacity="0.6">
+                      <animate attributeName="d" values="M108 190 Q88 218, 68 255 Q63 265, 73 263 Q88 255, 103 242;M108 190 Q83 223, 63 260 Q58 270, 68 267 Q83 258, 103 242;M108 190 Q88 218, 68 255 Q63 265, 73 263 Q88 255, 103 242" dur="3.2s" repeatCount="indefinite" />
+                    </path>
+                  </g>
+
+                  <g opacity="0.9">
+                    <path d="M200 190 Q220 220, 240 260 Q245 270, 235 268 Q220 260, 205 245" fill="url(#ribbon-blue)">
+                      <animate attributeName="d" values="M200 190 Q220 220, 240 260 Q245 270, 235 268 Q220 260, 205 245;M200 190 Q225 225, 245 265 Q250 275, 240 272 Q225 262, 205 245;M200 190 Q220 220, 240 260 Q245 270, 235 268 Q220 260, 205 245" dur="3.5s" repeatCount="indefinite" />
+                    </path>
+                    <path d="M192 190 Q212 218, 232 255 Q237 265, 227 263 Q212 255, 197 242" fill="#60a5fa" opacity="0.6">
+                      <animate attributeName="d" values="M192 190 Q212 218, 232 255 Q237 265, 227 263 Q212 255, 197 242;M192 190 Q217 223, 237 260 Q242 270, 232 267 Q217 258, 197 242;M192 190 Q212 218, 232 255 Q237 265, 227 263 Q212 255, 197 242" dur="3.7s" repeatCount="indefinite" />
+                    </path>
+                  </g>
+
+                  {[
+                    { cx: 70, cy: 60, size: 8, dur: "2.5s", delay: "0s", color: "#f59e0b" },
+                    { cx: 230, cy: 55, size: 7, dur: "3s", delay: "0.5s", color: "#fbbf24" },
+                    { cx: 55, cy: 130, size: 5, dur: "2.8s", delay: "1s", color: "#ef4444" },
+                    { cx: 245, cy: 125, size: 6, dur: "2.3s", delay: "0.3s", color: "#3b82f6" },
+                    { cx: 150, cy: 30, size: 9, dur: "3.2s", delay: "0.8s", color: "#f59e0b" },
+                    { cx: 85, cy: 40, size: 4, dur: "2s", delay: "1.5s", color: "#a855f7" },
+                    { cx: 215, cy: 38, size: 5, dur: "2.7s", delay: "0.7s", color: "#22c55e" },
+                    { cx: 260, cy: 85, size: 4, dur: "3.5s", delay: "1.2s", color: "#fbbf24" },
+                    { cx: 40, cy: 90, size: 3, dur: "2.2s", delay: "0.4s", color: "#ef4444" },
+                    { cx: 120, cy: 25, size: 6, dur: "2.6s", delay: "1.8s", color: "#3b82f6" },
+                    { cx: 180, cy: 28, size: 5, dur: "3.1s", delay: "0.2s", color: "#22c55e" },
+                  ].map((star, si) => (
+                    <g key={si}>
+                      <path
+                        d={`M${star.cx} ${star.cy - star.size} L${star.cx + star.size * 0.3} ${star.cy - star.size * 0.3} L${star.cx + star.size} ${star.cy - star.size * 0.2} L${star.cx + star.size * 0.4} ${star.cy + star.size * 0.2} L${star.cx + star.size * 0.6} ${star.cy + star.size} L${star.cx} ${star.cy + star.size * 0.5} L${star.cx - star.size * 0.6} ${star.cy + star.size} L${star.cx - star.size * 0.4} ${star.cy + star.size * 0.2} L${star.cx - star.size} ${star.cy - star.size * 0.2} L${star.cx - star.size * 0.3} ${star.cy - star.size * 0.3} Z`}
+                        fill={star.color}
+                      >
+                        <animate attributeName="opacity" values="0;1;0" dur={star.dur} begin={star.delay} repeatCount="indefinite" />
+                        <animateTransform attributeName="transform" type="scale" values="0.3;1.2;0.3" dur={star.dur} begin={star.delay} repeatCount="indefinite" additive="sum" />
+                      </path>
+                    </g>
+                  ))}
+
+                  {[
+                    { x1: 150, y1: 20, x2: 150, y2: 5, color: "#f59e0b", dur: "1.8s", delay: "0s" },
+                    { x1: 130, y1: 25, x2: 115, y2: 12, color: "#fbbf24", dur: "2s", delay: "0.3s" },
+                    { x1: 170, y1: 25, x2: 185, y2: 12, color: "#fbbf24", dur: "2.2s", delay: "0.6s" },
+                    { x1: 70, y1: 50, x2: 50, y2: 35, color: "#ef4444", dur: "2.5s", delay: "0.2s" },
+                    { x1: 230, y1: 50, x2: 250, y2: 35, color: "#3b82f6", dur: "2.3s", delay: "0.5s" },
+                  ].map((ray, ri) => (
+                    <line key={ri} x1={ray.x1} y1={ray.y1} x2={ray.x2} y2={ray.y2} stroke={ray.color} strokeWidth="1.5" strokeLinecap="round">
+                      <animate attributeName="opacity" values="0;0.6;0" dur={ray.dur} begin={ray.delay} repeatCount="indefinite" />
+                    </line>
+                  ))}
+                </svg>
+              </motion.div>
+
+              <div className="flex-1 min-w-0">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  {[
+                    { value: 10000, label: t.landing.aspirantsTrust, icon: Users, suffix: "+", color: "hsl(200, 75%, 50%)", bgFrom: "rgba(59,130,246,0.12)", bgTo: "rgba(59,130,246,0.02)", border: "rgba(59,130,246,0.2)" },
+                    { value: 50000, label: t.landing.questionsPracticed, icon: Target, suffix: "+", color: "hsl(150, 65%, 42%)", bgFrom: "rgba(34,197,94,0.12)", bgTo: "rgba(34,197,94,0.02)", border: "rgba(34,197,94,0.2)" },
+                    { value: 15000, label: t.landing.answersEvaluated, icon: FileText, suffix: "+", color: "hsl(280, 65%, 55%)", bgFrom: "rgba(168,85,247,0.12)", bgTo: "rgba(168,85,247,0.02)", border: "rgba(168,85,247,0.2)" },
+                    { value: 60, label: t.landing.examsCovered, icon: BarChart3, suffix: "+", color: "hsl(35, 90%, 50%)", bgFrom: "rgba(245,158,11,0.12)", bgTo: "rgba(245,158,11,0.02)", border: "rgba(245,158,11,0.2)" },
+                  ].map((stat, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.1, duration: 0.5, ease: "easeOut" }}
+                      data-testid={`stat-${i}`}
+                    >
+                      <div className="relative rounded-xl bg-card py-4 sm:py-5 px-3 flex flex-col items-center overflow-hidden border" style={{ borderColor: stat.border }}>
+                        <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(to bottom, ${stat.bgFrom}, ${stat.bgTo})` }} />
+
+                        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 200 200" fill="none">
+                          <path d="M10 50 Q40 30, 70 55" stroke={stat.color} strokeWidth="1.5" strokeLinecap="round" opacity="0.2">
+                            <animate attributeName="d" values="M10 50 Q40 30, 70 55;M10 45 Q45 25, 70 50;M10 50 Q40 30, 70 55" dur={`${4 + i * 0.5}s`} repeatCount="indefinite" />
+                            <animate attributeName="opacity" values="0.1;0.3;0.1" dur={`${3 + i * 0.3}s`} repeatCount="indefinite" />
+                          </path>
+                          <path d="M130 160 Q160 140, 190 165" stroke={stat.color} strokeWidth="1.5" strokeLinecap="round" opacity="0.2">
+                            <animate attributeName="d" values="M130 160 Q160 140, 190 165;M130 155 Q165 135, 190 160;M130 160 Q160 140, 190 165" dur={`${5 + i * 0.4}s`} repeatCount="indefinite" />
+                            <animate attributeName="opacity" values="0.1;0.3;0.1" dur={`${4 + i * 0.5}s`} repeatCount="indefinite" />
+                          </path>
+                        </svg>
+
+                        <div className="relative mb-2">
+                          <div className="relative h-9 w-9 rounded-full flex items-center justify-center border" style={{ background: `linear-gradient(135deg, ${stat.bgFrom}, ${stat.bgTo})`, borderColor: stat.border }}>
+                            <stat.icon className="h-4 w-4" style={{ color: stat.color }} />
+                          </div>
+                        </div>
+
+                        <span className="relative text-2xl sm:text-3xl font-display font-extrabold tracking-tight text-foreground">
+                          <AnimatedCounter target={stat.value} suffix={stat.suffix} />
+                        </span>
+                        <span className="relative text-[9px] sm:text-[10px] text-muted-foreground mt-1 font-medium tracking-[0.1em] uppercase text-center leading-tight">{stat.label}</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+
                 <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 25, scale: 0.95 }}
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.1, duration: 0.5, ease: "easeOut" }}
-                  data-testid={`stat-${i}`}
+                  transition={{ delay: 0.5 }}
+                  className="mt-4 flex justify-center"
                 >
-                  <div className="relative rounded-2xl bg-card dark:bg-card py-6 sm:py-8 px-4 flex flex-col items-center overflow-hidden border" style={{ borderColor: stat.border }}>
-                    <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(to bottom, ${stat.bgFrom}, ${stat.bgTo})` }} />
-
-                    <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M10 50 Q40 30, 70 55" stroke={stat.color} strokeWidth="1.5" strokeLinecap="round" opacity="0.25">
-                        <animate attributeName="d" values="M10 50 Q40 30, 70 55;M10 45 Q45 25, 70 50;M10 50 Q40 30, 70 55" dur={`${4 + i * 0.5}s`} repeatCount="indefinite" />
-                        <animate attributeName="opacity" values="0.15;0.35;0.15" dur={`${3 + i * 0.3}s`} repeatCount="indefinite" />
-                      </path>
-                      <path d="M130 160 Q160 140, 190 165" stroke={stat.color} strokeWidth="1.5" strokeLinecap="round" opacity="0.25">
-                        <animate attributeName="d" values="M130 160 Q160 140, 190 165;M130 155 Q165 135, 190 160;M130 160 Q160 140, 190 165" dur={`${5 + i * 0.4}s`} repeatCount="indefinite" />
-                        <animate attributeName="opacity" values="0.15;0.35;0.15" dur={`${4 + i * 0.5}s`} repeatCount="indefinite" />
-                      </path>
-                      <path d="M155 25 Q175 45, 185 30" stroke={stat.color} strokeWidth="1" strokeLinecap="round" opacity="0.2">
-                        <animate attributeName="d" values="M155 25 Q175 45, 185 30;M150 20 Q170 40, 190 28;M155 25 Q175 45, 185 30" dur={`${6 + i * 0.3}s`} repeatCount="indefinite" />
-                        <animate attributeName="opacity" values="0.1;0.3;0.1" dur={`${3.5 + i * 0.4}s`} repeatCount="indefinite" />
-                      </path>
-                      <circle cx="25" cy="170" r="2" fill={stat.color} opacity="0.2">
-                        <animate attributeName="opacity" values="0.1;0.3;0.1" dur={`${2.5 + i * 0.5}s`} repeatCount="indefinite" />
-                        <animate attributeName="r" values="1.5;3;1.5" dur={`${3 + i * 0.5}s`} repeatCount="indefinite" />
-                      </circle>
-                      <circle cx="175" cy="85" r="1.5" fill={stat.color} opacity="0.15">
-                        <animate attributeName="opacity" values="0.1;0.25;0.1" dur={`${3.5 + i * 0.3}s`} repeatCount="indefinite" />
-                      </circle>
-                    </svg>
-
-                    <div className="relative mb-4">
-                      <motion.div
-                        className="absolute -inset-3 rounded-full blur-md"
-                        style={{ backgroundColor: stat.color }}
-                        animate={{ scale: [1, 1.3, 1], opacity: [0.15, 0.3, 0.15] }}
-                        transition={{ duration: 3, repeat: Infinity, delay: stat.glowDelay, ease: "easeInOut" }}
-                      />
-                      <div className="relative h-12 w-12 rounded-full flex items-center justify-center border" style={{ background: `linear-gradient(135deg, ${stat.bgFrom}, ${stat.bgTo})`, borderColor: stat.border }}>
-                        <stat.icon className="h-5 w-5" style={{ color: stat.color }} />
+                  <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-card/80 backdrop-blur-sm border border-border/50">
+                    <div className="w-[100px] sm:w-[120px] overflow-hidden relative" style={{ maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)' }}>
+                      <div className="flex gap-1.5 animate-aspirant-scroll w-max">
+                        {[...Array(2)].map((_, setIdx) => (
+                          [
+                            "/images/face-1_1.jpg",
+                            "/images/face-5_1.jpg",
+                            "/images/face-1_2.jpg",
+                            "/images/face-5_2.jpg",
+                            "/images/face-1_3.jpg",
+                            "/images/face-5_3.jpg",
+                            "/images/face-1_4.jpg",
+                            "/images/face-5_4.jpg",
+                          ].map((src, j) => (
+                            <img
+                              key={`${setIdx}-${j}`}
+                              src={src}
+                              alt=""
+                              className="w-7 h-7 rounded-full object-cover border-[1.5px] border-primary/30 flex-shrink-0 brightness-105"
+                            />
+                          ))
+                        ))}
                       </div>
                     </div>
-
-                    <span className="relative text-3xl sm:text-4xl font-display font-extrabold tracking-tight text-foreground">
-                      <AnimatedCounter target={stat.value} suffix={stat.suffix} />
-                    </span>
-                    <span className="relative text-[10px] sm:text-[11px] text-muted-foreground mt-2 font-medium tracking-[0.12em] uppercase">{stat.label}</span>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">{t.landing.joinThousands}</span>
                   </div>
                 </motion.div>
-              ))}
-            </div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.5 }}
-              className="mt-7 sm:mt-9 flex justify-center"
-            >
-              <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-card/80 backdrop-blur-sm border border-border/50">
-                <div className="w-[100px] sm:w-[120px] overflow-hidden relative" style={{ maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)' }}>
-                  <div className="flex gap-1.5 animate-aspirant-scroll w-max">
-                    {[...Array(2)].map((_, setIdx) => (
-                      [
-                        "/images/face-1_1.jpg",
-                        "/images/face-5_1.jpg",
-                        "/images/face-1_2.jpg",
-                        "/images/face-5_2.jpg",
-                        "/images/face-1_3.jpg",
-                        "/images/face-5_3.jpg",
-                        "/images/face-1_4.jpg",
-                        "/images/face-5_4.jpg",
-                      ].map((src, j) => (
-                        <img
-                          key={`${setIdx}-${j}`}
-                          src={src}
-                          alt=""
-                          className="w-7 h-7 rounded-full object-cover border-[1.5px] border-primary/30 flex-shrink-0 brightness-105"
-                        />
-                      ))
-                    ))}
-                  </div>
-                </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">{t.landing.joinThousands}</span>
               </div>
-            </motion.div>
+            </div>
           </div>
         </section>
 
