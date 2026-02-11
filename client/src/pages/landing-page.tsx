@@ -458,76 +458,113 @@ function AutoCyclingFeatures({ openLogin, t }: { openLogin: () => void; t: any }
 
   return (
     <div
-      className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-start"
+      className="flex flex-col gap-6 lg:gap-10"
       data-testid="feature-tabs-container"
     >
-      <div className="flex-1 min-w-0">
-        <div className="space-y-1">
-          {featureItems.map((feature, index) => {
-            const isActive = index === activeIndex;
-            return (
-              <div
-                key={feature.id}
-                onClick={() => selectFeature(index)}
-                className={`w-full text-left rounded-xl px-4 py-2.5 transition-colors cursor-pointer relative ${
-                  isActive ? "bg-primary/5 dark:bg-primary/10" : "bg-transparent"
-                }`}
-                data-testid={`feature-tab-${feature.id}`}
-              >
-                {isActive && (
-                  <div className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full bg-primary" />
-                )}
-                <div className="flex items-center gap-3">
-                  <div className={`h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
-                    isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                  }`}>
-                    <feature.icon className="h-4 w-4" />
-                  </div>
-                  <span className={`text-sm font-semibold ${isActive ? "text-foreground" : "text-foreground/70"}`}>
-                    {feature.title}
-                  </span>
-                </div>
-                {isActive && (
-                  <div className="mt-1.5 ml-12 h-0.5 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full bg-primary rounded-full"
-                      style={{ width: `${progress}%`, transition: "none" }}
-                    />
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-4 pl-4 min-h-[72px]">
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            {active.description}
-          </p>
-          <Button
-            size="sm"
-            className="mt-2 gap-1.5"
-            onClick={openLogin}
-            data-testid={`button-feature-${active.id}`}
-          >
-            {active.cta}
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Button>
-        </div>
+      <div className="flex overflow-x-auto scrollbar-hide gap-2 lg:hidden pb-1 -mx-1 px-1">
+        {featureItems.map((feature, index) => {
+          const isActive = index === activeIndex;
+          return (
+            <button
+              key={feature.id}
+              onClick={() => selectFeature(index)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-full whitespace-nowrap text-xs font-medium transition-all flex-shrink-0 ${
+                isActive
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "bg-muted/60 text-muted-foreground"
+              }`}
+              data-testid={`feature-tab-${feature.id}`}
+            >
+              <feature.icon className="h-3.5 w-3.5" />
+              {feature.title}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="lg:w-[340px] xl:w-[380px] flex-shrink-0">
-        <div className="rounded-2xl border bg-card shadow-sm h-[320px] overflow-hidden relative">
-          <motion.div
-            key={active.id}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.4 }}
-            className="w-full h-full"
-          >
-            <VisualComponent />
-          </motion.div>
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-start">
+        <div className="hidden lg:block flex-1 min-w-0">
+          <div className="space-y-1">
+            {featureItems.map((feature, index) => {
+              const isActive = index === activeIndex;
+              return (
+                <div
+                  key={feature.id}
+                  onClick={() => selectFeature(index)}
+                  className={`w-full text-left rounded-xl px-4 py-2.5 transition-colors cursor-pointer relative ${
+                    isActive ? "bg-primary/5 dark:bg-primary/10" : "bg-transparent"
+                  }`}
+                  data-testid={`feature-tab-desktop-${feature.id}`}
+                >
+                  {isActive && (
+                    <div className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full bg-primary" />
+                  )}
+                  <div className="flex items-center gap-3">
+                    <div className={`h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
+                      isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                    }`}>
+                      <feature.icon className="h-4 w-4" />
+                    </div>
+                    <span className={`text-sm font-semibold ${isActive ? "text-foreground" : "text-foreground/70"}`}>
+                      {feature.title}
+                    </span>
+                  </div>
+                  {isActive && (
+                    <div className="mt-1.5 ml-12 h-0.5 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full bg-primary rounded-full"
+                        style={{ width: `${progress}%`, transition: "none" }}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-4 pl-4 min-h-[72px]">
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {active.description}
+            </p>
+            <Button
+              size="sm"
+              className="mt-2 gap-1.5"
+              onClick={openLogin}
+              data-testid={`button-feature-${active.id}`}
+            >
+              {active.cta}
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="w-full lg:w-[340px] xl:w-[380px] flex-shrink-0">
+          <div className="rounded-2xl border bg-card shadow-sm h-[280px] sm:h-[320px] overflow-hidden relative">
+            <motion.div
+              key={active.id}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.4 }}
+              className="w-full h-full"
+            >
+              <VisualComponent />
+            </motion.div>
+          </div>
+          <div className="lg:hidden mt-3">
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {active.description}
+            </p>
+            <Button
+              size="sm"
+              className="mt-2 gap-1.5"
+              onClick={openLogin}
+              data-testid={`button-feature-mobile-${active.id}`}
+            >
+              {active.cta}
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
