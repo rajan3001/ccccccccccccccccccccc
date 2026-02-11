@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/i18n/context";
 import { Redirect } from "wouter";
@@ -893,16 +894,14 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
-                className="relative w-48 h-48 sm:w-64 sm:h-64 md:w-72 md:h-72 flex-shrink-0"
+                className="relative w-52 h-52 sm:w-64 sm:h-64 md:w-80 md:h-80 flex-shrink-0"
                 data-testid="trophy-animation"
               >
-                <motion.img
-                  src="/images/trophy-3d.png"
-                  alt="Trophy"
-                  className="w-full h-full object-contain drop-shadow-2xl"
-                  animate={{ y: [0, -8, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  draggable={false}
+                <DotLottieReact
+                  src="https://assets-v2.lottiefiles.com/a/58030746-1151-11ee-86f5-f7bad2893c55/MIaDhJ2ars.lottie"
+                  loop
+                  autoplay
+                  style={{ width: "100%", height: "100%" }}
                 />
                 <style>{`
                   @keyframes sparkle-spin {
@@ -912,15 +911,17 @@ export default function LandingPage() {
                   }
                 `}</style>
                 {[
-                  { top: "5%", left: "15%", color: "#f59e0b", size: 10, delay: "0s", dur: "2.5s" },
-                  { top: "8%", left: "80%", color: "#3b82f6", size: 8, delay: "0.6s", dur: "3s" },
-                  { top: "25%", left: "5%", color: "#ef4444", size: 7, delay: "1.2s", dur: "2.8s" },
-                  { top: "20%", left: "90%", color: "#22c55e", size: 9, delay: "0.3s", dur: "3.2s" },
-                  { top: "60%", left: "2%", color: "#a855f7", size: 6, delay: "1.8s", dur: "2.3s" },
-                  { top: "65%", left: "95%", color: "#fbbf24", size: 8, delay: "0.9s", dur: "2.7s" },
-                  { top: "0%", left: "50%", color: "#f59e0b", size: 11, delay: "1.5s", dur: "3.5s" },
-                  { top: "40%", left: "0%", color: "#3b82f6", size: 5, delay: "2s", dur: "2.6s" },
-                  { top: "45%", left: "98%", color: "#ef4444", size: 7, delay: "0.4s", dur: "3s" },
+                  { top: "2%", left: "10%", color: "#f59e0b", size: 12, delay: "0s", dur: "2.5s" },
+                  { top: "5%", left: "85%", color: "#3b82f6", size: 10, delay: "0.6s", dur: "3s" },
+                  { top: "30%", left: "0%", color: "#ef4444", size: 8, delay: "1.2s", dur: "2.8s" },
+                  { top: "25%", left: "95%", color: "#22c55e", size: 10, delay: "0.3s", dur: "3.2s" },
+                  { top: "55%", left: "0%", color: "#a855f7", size: 7, delay: "1.8s", dur: "2.3s" },
+                  { top: "60%", left: "98%", color: "#fbbf24", size: 9, delay: "0.9s", dur: "2.7s" },
+                  { top: "0%", left: "50%", color: "#f59e0b", size: 14, delay: "1.5s", dur: "3.5s" },
+                  { top: "45%", left: "3%", color: "#3b82f6", size: 6, delay: "2s", dur: "2.6s" },
+                  { top: "40%", left: "97%", color: "#ef4444", size: 8, delay: "0.4s", dur: "3s" },
+                  { top: "70%", left: "15%", color: "#22c55e", size: 7, delay: "1s", dur: "2.4s" },
+                  { top: "75%", left: "85%", color: "#a855f7", size: 9, delay: "1.7s", dur: "3.3s" },
                 ].map((s, si) => (
                   <svg
                     key={si}
