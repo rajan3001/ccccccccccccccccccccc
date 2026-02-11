@@ -5,7 +5,7 @@ import { db } from "./db";
 import { dailyDigests, dailyTopics } from "@shared/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import { scrapeNextIAS, type NextIASArticle } from "./nextias-scraper";
-import { getUserLanguage, getLanguageInstruction } from "./language-utils";
+import { getUserLanguage, getLanguageInstruction, getLanguageName } from "./language-utils";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
@@ -14,6 +14,50 @@ const ai = new GoogleGenAI({
     baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
   },
 });
+
+type TopicForTranslation = {
+  id: number;
+  title: string;
+  summary: string;
+  translations?: Record<string, { title: string; summary: string }> | null;
+};
+
+async function translateTopicsBatch(topics: TopicForTranslation[], langCode: string): Promise<void> {
+  const langName = getLanguageName(langCode);
+  const topicEntries = topics.map((t, i) => `[${i}] Title: ${t.title}\nSummary: ${t.summary}`).join("\n\n");
+
+  const prompt = `Translate the following ${topics.length} current affairs topic titles and summaries into ${langName}. Keep proper nouns (names of people, places, organizations, acts, schemes), technical terms, and abbreviations in English. Translate everything else into ${langName}.
+
+Return ONLY a valid JSON array with objects in the same order. Each object must have "title" and "summary" keys with the translated text. No markdown, no explanation.
+
+Topics to translate:
+${topicEntries}`;
+
+  const result = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+  });
+
+  const responseText = result.text?.trim() || "";
+  const jsonStr = responseText.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
+  const parsed = JSON.parse(jsonStr) as Array<{ title: string; summary: string }>;
+
+  if (!Array.isArray(parsed) || parsed.length !== topics.length) {
+    throw new Error(`Translation returned ${parsed?.length} items, expected ${topics.length}`);
+  }
+
+  for (let i = 0; i < topics.length; i++) {
+    const topic = topics[i];
+    const translated = parsed[i];
+    if (translated?.title && translated?.summary) {
+      const existing = (topic.translations as Record<string, { title: string; summary: string }>) || {};
+      const updated = { ...existing, [langCode]: { title: translated.title, summary: translated.summary } };
+      await db.update(dailyTopics)
+        .set({ translations: updated })
+        .where(eq(dailyTopics.id, topic.id));
+    }
+  }
+}
 
 export function registerCurrentAffairsRoutes(app: Express): void {
   app.get("/api/current-affairs/latest", isAuthenticated, async (_req: Request, res: Response) => {
@@ -63,6 +107,46 @@ export function registerCurrentAffairsRoutes(app: Express): void {
         .from(dailyTopics)
         .where(eq(dailyTopics.digestId, digest.id))
         .orderBy(dailyTopics.gsCategory, dailyTopics.id);
+
+      const langCode = getUserLanguage(req);
+      if (langCode && langCode !== "en" && topics.length > 0) {
+        const untranslated = topics.filter(t => {
+          const translations = (t.translations as Record<string, { title: string; summary: string }>) || {};
+          return !translations[langCode];
+        });
+
+        if (untranslated.length > 0) {
+          try {
+            await translateTopicsBatch(untranslated, langCode);
+            const refreshed = await db
+              .select()
+              .from(dailyTopics)
+              .where(eq(dailyTopics.digestId, digest.id))
+              .orderBy(dailyTopics.gsCategory, dailyTopics.id);
+            const translatedTopics = refreshed.map(t => {
+              const translations = (t.translations as Record<string, { title: string; summary: string }>) || {};
+              const tr = translations[langCode];
+              if (tr) {
+                return { ...t, title: tr.title, summary: tr.summary };
+              }
+              return t;
+            });
+            return res.json({ digest, topics: translatedTopics });
+          } catch (translateErr) {
+            console.error("Translation failed, returning English:", translateErr);
+          }
+        } else {
+          const translatedTopics = topics.map(t => {
+            const translations = (t.translations as Record<string, { title: string; summary: string }>) || {};
+            const tr = translations[langCode];
+            if (tr) {
+              return { ...t, title: tr.title, summary: tr.summary };
+            }
+            return t;
+          });
+          return res.json({ digest, topics: translatedTopics });
+        }
+      }
 
       res.json({ digest, topics });
     } catch (error) {
@@ -421,23 +505,40 @@ Write in a professional, analytical tone. Prioritize facts over opinions. Use ma
       }
       const [digest] = await db.select().from(dailyDigests).where(eq(dailyDigests.id, topic.digestId));
 
-      const siblingTopics = await db
-        .select({ id: dailyTopics.id, title: dailyTopics.title })
+      const allSiblings = await db
+        .select()
         .from(dailyTopics)
         .where(eq(dailyTopics.digestId, topic.digestId))
         .orderBy(dailyTopics.gsCategory, dailyTopics.id);
 
-      const currentIndex = siblingTopics.findIndex(t => t.id === topicId);
-      const prevTopic = currentIndex > 0 ? siblingTopics[currentIndex - 1] : null;
-      const nextTopic = currentIndex < siblingTopics.length - 1 ? siblingTopics[currentIndex + 1] : null;
+      const langCode = getUserLanguage(req);
+
+      const applyTranslation = (t: typeof topic) => {
+        if (langCode && langCode !== "en") {
+          const translations = (t.translations as Record<string, { title: string; summary: string }>) || {};
+          const tr = translations[langCode];
+          if (tr) {
+            return { ...t, title: tr.title, summary: tr.summary };
+          }
+        }
+        return t;
+      };
+
+      const currentIndex = allSiblings.findIndex(t => t.id === topicId);
+      const prevSibling = currentIndex > 0 ? allSiblings[currentIndex - 1] : null;
+      const nextSibling = currentIndex < allSiblings.length - 1 ? allSiblings[currentIndex + 1] : null;
+
+      const translatedTopic = applyTranslation(topic);
+      const prevTopic = prevSibling ? { id: prevSibling.id, title: applyTranslation(prevSibling).title } : null;
+      const nextTopic = nextSibling ? { id: nextSibling.id, title: applyTranslation(nextSibling).title } : null;
 
       res.json({
-        topic,
+        topic: translatedTopic,
         date: digest?.date || null,
         prevTopic,
         nextTopic,
         topicIndex: currentIndex + 1,
-        totalTopics: siblingTopics.length,
+        totalTopics: allSiblings.length,
       });
     } catch (error) {
       console.error("Error fetching topic:", error);

@@ -22,6 +22,7 @@ export const dailyTopics = pgTable("daily_topics", {
   revised: boolean("revised").default(false).notNull(),
   detailContent: text("detail_content"),
   detailContentLangs: jsonb("detail_content_langs").$type<Record<string, string>>().default({}),
+  translations: jsonb("translations").$type<Record<string, { title: string; summary: string }>>().default({}),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 

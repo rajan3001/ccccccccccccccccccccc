@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLanguage } from "@/i18n/context";
 
 export interface DailyDigest {
   id: number;
@@ -26,10 +27,11 @@ export interface RevisionStats {
 }
 
 export function useCurrentAffairs(date: string) {
+  const { language } = useLanguage();
   return useQuery<{ digest: DailyDigest | null; topics: DailyTopic[] }>({
-    queryKey: ["/api/current-affairs", date],
+    queryKey: ["/api/current-affairs", date, language],
     queryFn: async () => {
-      const res = await fetch(`/api/current-affairs/${date}`);
+      const res = await fetch(`/api/current-affairs/${date}?language=${language}`);
       if (!res.ok) throw new Error("Failed to fetch current affairs");
       return res.json();
     },
@@ -100,6 +102,7 @@ export interface TopicNavItem {
 }
 
 export function useTopicById(topicId: number) {
+  const { language } = useLanguage();
   return useQuery<{
     topic: DailyTopic;
     date: string;
@@ -108,9 +111,9 @@ export function useTopicById(topicId: number) {
     topicIndex: number;
     totalTopics: number;
   }>({
-    queryKey: ["/api/current-affairs/topic", topicId],
+    queryKey: ["/api/current-affairs/topic", topicId, language],
     queryFn: async () => {
-      const res = await fetch(`/api/current-affairs/topic/${topicId}`);
+      const res = await fetch(`/api/current-affairs/topic/${topicId}?language=${language}`);
       if (!res.ok) throw new Error("Failed to fetch topic");
       return res.json();
     },
