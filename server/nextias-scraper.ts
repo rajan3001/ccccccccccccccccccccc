@@ -241,34 +241,38 @@ export async function scrapeNextIAS(dateStr: string): Promise<NextIASArticle[]> 
     throw new Error(`No articles found for date ${ddmmyyyy}`);
   }
 
+  const filteredLinks = articleLinks.filter(link => !link.slug.startsWith("news-in-short"));
+
+  const BATCH_SIZE = 5;
   const articles: NextIASArticle[] = [];
 
-  for (const link of articleLinks) {
-    try {
-      if (link.slug.startsWith("news-in-short")) {
-        continue;
+  for (let i = 0; i < filteredLinks.length; i += BATCH_SIZE) {
+    const batch = filteredLinks.slice(i, i + BATCH_SIZE);
+    const results = await Promise.allSettled(
+      batch.map(async (link) => {
+        const articleHtml = await fetchPage(link.url);
+        const { summary, syllabusTag, source, fullContent } = extractArticleContent(articleHtml);
+        const { gsCategory, category, pageNumber } = parseGsSyllabus(syllabusTag);
+        return {
+          title: link.title,
+          url: link.url,
+          slug: link.slug,
+          summary: summary || `${link.title} - Read more for detailed analysis.`,
+          gsCategory,
+          category,
+          source,
+          fullContent,
+          pageNumber,
+        } as NextIASArticle;
+      })
+    );
+
+    for (const result of results) {
+      if (result.status === "fulfilled") {
+        articles.push(result.value);
+      } else {
+        console.warn(`[NextIAS Scraper] Failed to fetch article: ${result.reason?.message}`);
       }
-
-      console.log(`[NextIAS Scraper] Fetching article: ${link.title.substring(0, 60)}...`);
-      const articleHtml = await fetchPage(link.url);
-      const { summary, syllabusTag, source, fullContent } = extractArticleContent(articleHtml);
-      const { gsCategory, category, pageNumber } = parseGsSyllabus(syllabusTag);
-
-      articles.push({
-        title: link.title,
-        url: link.url,
-        slug: link.slug,
-        summary: summary || `${link.title} - Read more for detailed analysis.`,
-        gsCategory,
-        category,
-        source,
-        fullContent,
-        pageNumber,
-      });
-
-      await new Promise(resolve => setTimeout(resolve, 300));
-    } catch (err: any) {
-      console.warn(`[NextIAS Scraper] Failed to fetch article "${link.title}": ${err.message}`);
     }
   }
 

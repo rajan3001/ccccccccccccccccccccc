@@ -42,6 +42,10 @@ ${topicEntries}`;
   const result = await ai.models.generateContent({
     model: "gemini-2.5-flash",
     contents: [{ role: "user", parts: [{ text: prompt }] }],
+    config: {
+      thinkingConfig: { thinkingBudget: 0 },
+      temperature: 0.3,
+    },
   });
 
   const responseText = result.text?.trim() || "";
@@ -52,17 +56,18 @@ ${topicEntries}`;
     throw new Error(`Translation returned ${parsed?.length} items, expected ${topics.length}`);
   }
 
-  for (let i = 0; i < topics.length; i++) {
-    const topic = topics[i];
+  const updatePromises = topics.map((topic, i) => {
     const translated = parsed[i];
     if (translated?.title && translated?.summary) {
       const existing = (topic.translations as Record<string, { title: string; summary: string }>) || {};
       const updated = { ...existing, [langCode]: { title: translated.title, summary: translated.summary } };
-      await db.update(dailyTopics)
+      return db.update(dailyTopics)
         .set({ translations: updated })
         .where(eq(dailyTopics.id, topic.id));
     }
-  }
+    return Promise.resolve();
+  });
+  await Promise.all(updatePromises);
 }
 
 export function registerCurrentAffairsRoutes(app: Express): void {
@@ -240,6 +245,10 @@ Return ONLY a valid JSON array. No markdown.`;
             const stateResponse = await ai.models.generateContent({
               model: "gemini-2.5-flash",
               contents: [{ role: "user", parts: [{ text: statePrompt }] }],
+              config: {
+                thinkingConfig: { thinkingBudget: 0 },
+                temperature: 0.5,
+              },
             });
 
             let stateText = stateResponse.text || "";
@@ -302,6 +311,8 @@ No markdown, no explanations, just the JSON array.`;
           contents: [{ role: "user", parts: [{ text: prompt }] }],
           config: {
             tools: [{ googleSearch: {} }],
+            thinkingConfig: { thinkingBudget: 0 },
+            temperature: 0.5,
           },
         });
 
@@ -335,14 +346,9 @@ No markdown, no explanations, just the JSON array.`;
 
       const [newDigest] = await db.insert(dailyDigests).values({ date: dateStr as string }).returning();
 
-      const insertedTopics = [];
-      for (const topic of topicsToInsert) {
-        const [inserted] = await db.insert(dailyTopics).values({
-          digestId: newDigest.id,
-          ...topic,
-        }).returning();
-        insertedTopics.push(inserted);
-      }
+      const insertedTopics = await db.insert(dailyTopics).values(
+        topicsToInsert.map(topic => ({ digestId: newDigest.id, ...topic }))
+      ).returning();
 
       res.json({ digest: newDigest, topics: insertedTopics });
     } catch (error) {
@@ -461,6 +467,10 @@ Write in a professional, analytical tone. Prioritize facts over opinions. Use ma
       const stream = await ai.models.generateContentStream({
         model: "gemini-2.5-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          thinkingConfig: { thinkingBudget: 0 },
+          temperature: 0.4,
+        },
       });
 
       for await (const chunk of stream) {

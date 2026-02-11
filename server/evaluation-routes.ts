@@ -293,6 +293,10 @@ async function processEvaluation(
   const result = await ai.models.generateContent({
     model: "gemini-2.5-flash",
     contents: [{ role: "user", parts }],
+    config: {
+      thinkingConfig: { thinkingBudget: 0 },
+      temperature: 0.3,
+    },
   });
 
   const responseText = (result.text || "").trim();

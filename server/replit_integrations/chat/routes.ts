@@ -56,6 +56,10 @@ async function generateTitle(conversationId: number, firstMessage: string): Prom
           ],
         },
       ],
+      config: {
+        thinkingConfig: { thinkingBudget: 0 },
+        temperature: 0.3,
+      },
     });
     const title = (result.text || "").trim().replace(/^["']|["']$/g, "").substring(0, 100);
     if (title) {
@@ -213,6 +217,7 @@ export function registerChatRoutes(app: Express): void {
       const stream = await ai.models.generateContentStream({
         model: "gemini-2.5-flash",
         config: {
+          thinkingConfig: { thinkingBudget: 0 },
           systemInstruction: `You are Learnpro AI, an expert UPSC and State PSC exam preparation assistant.${langInstruction}
 
 CRITICAL RULES:

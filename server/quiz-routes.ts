@@ -69,6 +69,10 @@ No markdown, no explanations outside the JSON, just the JSON array.`;
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          thinkingConfig: { thinkingBudget: 0 },
+          temperature: 0.5,
+        },
       });
 
       let responseText = response.text || "";
@@ -198,6 +202,10 @@ No markdown, no explanations outside the JSON, just the JSON array.`;
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          thinkingConfig: { thinkingBudget: 0 },
+          temperature: 0.5,
+        },
       });
 
       let responseText = response.text || "";

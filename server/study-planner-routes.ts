@@ -1024,6 +1024,10 @@ Generate 25-30 slots covering the full week with a balanced schedule.`;
       const result = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          thinkingConfig: { thinkingBudget: 0 },
+          temperature: 0.4,
+        },
       });
 
       const responseText = result.text || "";
@@ -1126,6 +1130,10 @@ Example: ["Read NCERT Ch.3 - Indian National Movement","Write 2 GS Paper II answ
       const result = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          thinkingConfig: { thinkingBudget: 0 },
+          temperature: 0.4,
+        },
       });
 
       const responseText = result.text || "";
