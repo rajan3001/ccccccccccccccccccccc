@@ -1,10 +1,9 @@
 import { Link } from "wouter";
 import { Logo } from "@/components/ui/logo";
-import { Mail, Phone, ExternalLink, Brain, Newspaper, Target, PenTool, Calendar, ArrowRight, Star, Quote } from "lucide-react";
+import { Mail, Phone, ExternalLink, Brain, Newspaper, Target, PenTool, Calendar, ArrowRight } from "lucide-react";
 import { SiInstagram, SiFacebook, SiYoutube, SiWhatsapp } from "react-icons/si";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 
 const socialLinks = [
   { Icon: SiFacebook, label: "Facebook", href: "https://www.facebook.com/people/LearnPro/61555794337756/", testId: "social-facebook" },
@@ -13,31 +12,6 @@ const socialLinks = [
   { Icon: SiYoutube, label: "YouTube PCS", href: "https://www.youtube.com/@learnproPCS", testId: "social-youtube-pcs" },
   { Icon: SiWhatsapp, label: "WhatsApp", href: "https://wa.me/919102557680", testId: "social-whatsapp" },
 ];
-
-const testimonials = [
-  { name: "Aarav Sharma", initials: "AS", quote: "It feels like having a patient mentor who never gets tired of my questions. The AI understands exactly how UPSC wants you to frame answers.", rating: 5 },
-  { name: "Priya Verma", initials: "PV", quote: "The daily current affairs mapped to GS papers saved me hours every morning. The state-specific filtering for JPSC is something I couldn't find anywhere else.", rating: 5 },
-  { name: "Rohit Kumar", initials: "RK", quote: "I used to feel overwhelmed by the syllabus. Learnpro made it manageable. The practice MCQs with explanations genuinely helped me improve my accuracy.", rating: 5 },
-  { name: "Sneha Patel", initials: "SP", quote: "The answer evaluation feature is a game-changer. Getting instant UPSC-standard feedback on my answers without waiting days for a mentor review.", rating: 5 },
-  { name: "Vikash Singh", initials: "VS", quote: "Study planner + streak tracking keeps me accountable. I've maintained a 45-day streak and my mock scores have improved by 30%.", rating: 5 },
-  { name: "Meera Nair", initials: "MN", quote: "Being able to study in Malayalam without losing technical accuracy is incredible. No other platform offers this quality of transliteration.", rating: 5 },
-];
-
-function useCountUp(end: number, duration: number, trigger: boolean) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (!trigger) return;
-    let start = 0;
-    const step = Math.ceil(end / (duration / 16));
-    const timer = setInterval(() => {
-      start += step;
-      if (start >= end) { setCount(end); clearInterval(timer); }
-      else setCount(start);
-    }, 16);
-    return () => clearInterval(timer);
-  }, [trigger, end, duration]);
-  return count;
-}
 
 function NetworkCanvas({ className }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -125,35 +99,9 @@ function NetworkCanvas({ className }: { className?: string }) {
   return <canvas ref={canvasRef} className={`absolute inset-0 w-full h-full pointer-events-none ${className || ""}`} aria-hidden="true" />;
 }
 
-function StarRating() {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map(i => (
-        <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-      ))}
-    </div>
-  );
-}
-
 function AnimatedCTASection({ onLoginClick }: { onLoginClick?: () => void }) {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const el = sectionRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setVisible(true); }, { threshold: 0.15 });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
-  const aspirants = useCountUp(10000, 1500, visible);
-  const questions = useCountUp(50000, 1800, visible);
-  const languages = useCountUp(13, 800, visible);
-
   return (
     <section
-      ref={sectionRef}
       className="relative overflow-hidden"
       style={{ background: "linear-gradient(160deg, #18140f 0%, #0e0c09 50%, #151210 100%)" }}
       data-testid="section-prefooter-cta"
@@ -165,67 +113,7 @@ function AnimatedCTASection({ onLoginClick }: { onLoginClick?: () => void }) {
         <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] rounded-full" style={{ background: "radial-gradient(circle, rgba(217,161,50,0.05) 0%, transparent 70%)" }} />
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-5 sm:px-8">
-        <div className="py-16 sm:py-24">
-
-          <div className="grid grid-cols-3 gap-4 sm:gap-8 max-w-md mx-auto mb-12 sm:mb-16">
-            {[
-              { value: aspirants, suffix: "+", label: "Aspirants" },
-              { value: questions, suffix: "+", label: "Questions Practiced" },
-              { value: languages, suffix: "", label: "Languages" },
-            ].map((stat, i) => (
-              <div key={i} className="text-center">
-                <p className="text-2xl sm:text-4xl font-display font-bold" style={{ color: "#d9a132" }} data-testid={`stat-${stat.label.toLowerCase().replace(/\s+/g, "-")}`}>
-                  {stat.value.toLocaleString()}{stat.suffix}
-                </p>
-                <p className="text-[10px] sm:text-xs mt-1 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.35)" }}>{stat.label}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center mb-10 sm:mb-14">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold leading-tight mb-3" style={{ color: "rgba(255,255,255,0.95)" }}>
-              From aspirants who've been{" "}
-              <span style={{ color: "#d9a132" }}>where you are</span>
-            </h2>
-            <p className="text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>Real stories from real learners</p>
-          </div>
-
-          <div className="relative mb-14 sm:mb-18">
-            <div
-              className="flex gap-4 sm:gap-5 overflow-hidden"
-              style={{
-                maskImage: "linear-gradient(to right, transparent, black 5%, black 95%, transparent)",
-                WebkitMaskImage: "linear-gradient(to right, transparent, black 5%, black 95%, transparent)",
-              }}
-            >
-              <div className="flex gap-4 sm:gap-5 animate-testimonial-scroll">
-                {[...testimonials, ...testimonials].map((t, i) => (
-                  <div
-                    key={i}
-                    className="shrink-0 w-[280px] sm:w-[320px] rounded-xl p-5"
-                    style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
-                    data-testid={`testimonial-card-${i}`}
-                  >
-                    <StarRating />
-                    <p className="text-[13px] leading-relaxed mt-3 mb-4" style={{ color: "rgba(255,255,255,0.55)" }}>
-                      "{t.quote}"
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
-                        style={{ background: "rgba(217,161,50,0.15)", color: "#d9a132" }}
-                      >
-                        {t.initials}
-                      </div>
-                      <span className="text-[13px] font-semibold" style={{ color: "rgba(255,255,255,0.7)" }}>{t.name}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
+      <div className="relative z-10 max-w-3xl mx-auto px-6 py-20 sm:py-28">
           <div className="text-center">
             <p className="text-xs sm:text-sm font-semibold tracking-[0.2em] uppercase mb-5" style={{ color: "rgba(217,161,50,0.6)" }}>
               Start your journey today
@@ -252,7 +140,6 @@ function AnimatedCTASection({ onLoginClick }: { onLoginClick?: () => void }) {
               </a>
             </div>
           </div>
-        </div>
       </div>
     </section>
   );
