@@ -1051,14 +1051,14 @@ export default function LandingPage() {
                       <div className="flex gap-1.5 animate-aspirant-scroll w-max">
                         {[...Array(2)].map((_, setIdx) => (
                           [
-                            "/images/face-1_1.jpg",
-                            "/images/face-5_1.jpg",
-                            "/images/face-1_2.jpg",
-                            "/images/face-5_2.jpg",
-                            "/images/face-1_3.jpg",
-                            "/images/face-5_3.jpg",
-                            "/images/face-1_4.jpg",
-                            "/images/face-5_4.jpg",
+                            "/images/face-1_1.webp",
+                            "/images/face-5_1.webp",
+                            "/images/face-1_2.webp",
+                            "/images/face-5_2.webp",
+                            "/images/face-1_3.webp",
+                            "/images/face-5_3.webp",
+                            "/images/face-1_4.webp",
+                            "/images/face-5_4.webp",
                           ].map((src, j) => (
                             <img
                               key={`${setIdx}-${j}`}
