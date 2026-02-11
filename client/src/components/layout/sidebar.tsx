@@ -404,8 +404,8 @@ export function Sidebar() {
                         )}
                         data-testid={`button-mobile-lang-${lang.code}`}
                       >
-                        <span className="text-base">{lang.flag}</span>
-                        <span className="flex-1 text-left">{lang.nativeName}</span>
+                        <span className="flex-1 text-left">{lang.nativeLabel}</span>
+                        <span className="text-xs text-muted-foreground">{lang.label}</span>
                         {language === lang.code && <Check className="h-4 w-4 text-primary" />}
                       </button>
                     ))}
