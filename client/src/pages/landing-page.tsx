@@ -842,11 +842,11 @@ export default function LandingPage() {
                     {t.landing.heroDescription}
                   </p>
 
-                  <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start flex-wrap gap-4">
+                  <div className="flex flex-row items-center justify-center lg:justify-start flex-wrap gap-3 sm:gap-4">
                     <Button
                       size="lg"
                       onClick={openLogin}
-                      className="w-full sm:w-auto rounded-full shadow-xl shadow-blue-500/30"
+                      className="rounded-full shadow-xl shadow-blue-500/30"
                       style={{ backgroundColor: '#2563eb', borderColor: '#1d4ed8', color: 'white' }}
                       data-testid="button-get-started"
                     >
@@ -856,7 +856,7 @@ export default function LandingPage() {
                     <Button
                       size="lg"
                       variant="outline"
-                      className="w-full sm:w-auto rounded-full"
+                      className="rounded-full"
                       onClick={() => setTourOpen(true)}
                       data-testid="button-view-demo"
                     >
@@ -880,7 +880,7 @@ export default function LandingPage() {
               </div>
 
               <div
-                className="flex-shrink-0 w-full max-w-md lg:max-w-lg xl:max-w-xl"
+                className="flex-shrink-0 w-full max-w-[280px] sm:max-w-md lg:max-w-lg xl:max-w-xl mx-auto lg:mx-0"
               >
                 <HeroDashboardAnimation />
               </div>
