@@ -286,15 +286,14 @@
   animation-play-state: paused;
 }
 
-@keyframes testimonial-scroll-vertical {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-50%); }
+@keyframes testimonial-slide-up {
+  0% { opacity: 0; transform: translateY(20px); }
+  15% { opacity: 1; transform: translateY(0); }
+  85% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
 }
-.animate-testimonial-scroll-vertical {
-  animation: testimonial-scroll-vertical 35s linear infinite;
-}
-.animate-testimonial-scroll-vertical:hover {
-  animation-play-state: paused;
+.testimonial-slide-up {
+  animation: testimonial-slide-up 3.5s ease-in-out forwards;
 }
 
 @keyframes avatar-float {

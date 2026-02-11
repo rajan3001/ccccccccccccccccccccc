@@ -21,7 +21,19 @@ const testimonials = [
   { name: "Priya Verma", city: "Patna", hue: 280, quote: "The daily current affairs mapped to GS papers saved me hours every morning. The state-specific filtering for JPSC is something I couldn't find anywhere else." },
   { name: "Rohit Kumar", city: "Lucknow", hue: 200, quote: "Learnpro made the syllabus manageable. The practice MCQs with explanations genuinely helped me improve my accuracy." },
   { name: "Sneha Patel", city: "Ahmedabad", hue: 340, quote: "The answer evaluation feature is a game-changer. Instant UPSC-standard feedback without waiting days for a mentor review." },
+  { name: "Vikash Singh", city: "Ranchi", hue: 120, quote: "Study planner and streak tracking keeps me accountable. My mock scores improved by 30% in just two months of consistent practice." },
+  { name: "Meera Nair", city: "Kochi", hue: 160, quote: "Being able to study in Malayalam without losing technical accuracy is incredible. No other platform offers this level of transliteration." },
 ];
+
+function SmallStars() {
+  return (
+    <div className="flex items-center gap-px mb-2">
+      {[1, 2, 3, 4, 5].map(j => (
+        <Star key={j} className="h-2.5 w-2.5 fill-amber-500 text-amber-500" />
+      ))}
+    </div>
+  );
+}
 
 function AvatarPin({ x, y, name, delay, hue }: typeof avatarSpots[0]) {
   const [show, setShow] = useState(false);
@@ -55,9 +67,8 @@ function AvatarPin({ x, y, name, delay, hue }: typeof avatarSpots[0]) {
         >
           {initials}
         </div>
-        <div className="absolute -top-1.5 -right-1.5 bg-white rounded-full shadow-md px-1 py-px flex items-center gap-px" style={{ border: "1.5px solid #fde68a" }}>
-          <span className="text-[8px] font-extrabold" style={{ color: "#d97706" }}>5</span>
-          <Star className="w-[8px] h-[8px] fill-amber-500 text-amber-500" />
+        <div className="absolute -top-1 -right-1 bg-white rounded-full shadow-md flex items-center justify-center w-4 h-4" style={{ border: "1.5px solid #fde68a" }}>
+          <Star className="w-[9px] h-[9px] fill-amber-500 text-amber-500" />
         </div>
       </div>
     </div>
@@ -67,23 +78,17 @@ function AvatarPin({ x, y, name, delay, hue }: typeof avatarSpots[0]) {
 function TestimonialCard({ t, i }: { t: typeof testimonials[0]; i: number }) {
   const bg = `hsl(${t.hue}, 70%, 96%)`;
   const accent = `hsl(${t.hue}, 65%, 50%)`;
-  const darkBg = `hsl(${t.hue}, 30%, 18%)`;
-  const darkAccent = `hsl(${t.hue}, 55%, 65%)`;
 
   return (
     <div
-      className="rounded-xl p-4 sm:p-5 shadow-sm"
+      className="rounded-xl p-4 sm:p-5 shadow-sm shrink-0"
       style={{
         background: bg,
         borderLeft: `3px solid ${accent}`,
       }}
       data-testid={`testimonial-card-${i}`}
     >
-      <div className="flex items-center gap-0.5 mb-2">
-        {[1, 2, 3, 4, 5].map(j => (
-          <Star key={j} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-        ))}
-      </div>
+      <SmallStars />
       <p className="text-[13px] leading-relaxed mb-3" style={{ color: `hsl(${t.hue}, 20%, 30%)` }}>
         "{t.quote}"
       </p>
@@ -106,6 +111,7 @@ function TestimonialCard({ t, i }: { t: typeof testimonials[0]; i: number }) {
 export function IndiaTestimonialsSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -116,6 +122,19 @@ export function IndiaTestimonialsSection() {
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (!inView) return;
+    const interval = setInterval(() => {
+      setActiveIndex(prev => (prev + 1) % testimonials.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [inView]);
+
+  const visibleCards = [0, 1, 2].map(offset => {
+    const idx = (activeIndex + offset) % testimonials.length;
+    return { testimonial: testimonials[idx], idx };
+  });
 
   return (
     <section ref={sectionRef} className="py-14 sm:py-20 overflow-hidden" data-testid="section-india-testimonials">
@@ -132,7 +151,7 @@ export function IndiaTestimonialsSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8 items-center">
           <div className="lg:col-span-3 relative w-full max-w-lg mx-auto lg:max-w-none" data-testid="india-map-container">
             <div className="relative">
               <img
@@ -148,19 +167,16 @@ export function IndiaTestimonialsSection() {
             </div>
           </div>
 
-          <div className="lg:col-span-2 relative h-[380px] sm:h-[450px] lg:h-[520px] overflow-hidden" data-testid="testimonials-scroll-container">
-            <div
-              className="absolute inset-x-0 top-0 h-10 z-10 pointer-events-none"
-              style={{ background: "linear-gradient(to bottom, hsl(var(--background)), transparent)" }}
-            />
-            <div
-              className="absolute inset-x-0 bottom-0 h-10 z-10 pointer-events-none"
-              style={{ background: "linear-gradient(to top, hsl(var(--background)), transparent)" }}
-            />
-
-            <div className="flex flex-col gap-4 animate-testimonial-scroll-vertical">
-              {[...testimonials, ...testimonials].map((t, i) => (
-                <TestimonialCard key={i} t={t} i={i} />
+          <div className="lg:col-span-2 relative" data-testid="testimonials-scroll-container">
+            <div className="relative flex flex-col gap-4" style={{ minHeight: "420px" }}>
+              {visibleCards.map(({ testimonial, idx }, position) => (
+                <div
+                  key={`${activeIndex}-${position}`}
+                  className="testimonial-slide-up"
+                  style={{ animationDelay: `${position * 80}ms` }}
+                >
+                  <TestimonialCard t={testimonial} i={idx} />
+                </div>
               ))}
             </div>
           </div>
