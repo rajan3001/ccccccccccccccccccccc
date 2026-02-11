@@ -591,15 +591,18 @@ const LANGUAGE_SAMPLES = [
 ];
 
 function LanguageShowcaseSection({ t }: { t: any }) {
+  const { language, setLanguage } = useLanguage();
   const [activeIdx, setActiveIdx] = useState(0);
+  const [autoPlay, setAutoPlay] = useState(true);
   const activeLang = LANGUAGE_SAMPLES[activeIdx];
 
   useEffect(() => {
+    if (!autoPlay) return;
     const timer = setInterval(() => {
       setActiveIdx((prev) => (prev + 1) % LANGUAGE_SAMPLES.length);
     }, 3000);
     return () => clearInterval(timer);
-  }, []);
+  }, [autoPlay]);
 
   return (
     <section className="py-14 sm:py-20 bg-background overflow-hidden" data-testid="section-languages">
@@ -706,43 +709,78 @@ function LanguageShowcaseSection({ t }: { t: any }) {
             className="flex-shrink-0 w-full lg:w-auto"
           >
             <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-3 gap-2">
-              {LANGUAGE_SAMPLES.map((lang, i) => (
-                <motion.button
-                  key={lang.code}
-                  onClick={() => setActiveIdx(i)}
-                  whileTap={{ scale: 0.95 }}
-                  className={`relative px-3 py-2.5 rounded-lg text-center transition-all duration-300 border ${
-                    activeIdx === i
-                      ? "bg-primary/10 border-primary/40 shadow-sm"
-                      : "bg-card border-border/40 hover-elevate"
-                  }`}
-                  data-testid={`button-lang-${lang.code}`}
-                >
-                  {activeIdx === i && (
-                    <motion.div
-                      layoutId="lang-active-glow"
-                      className="absolute inset-0 rounded-lg bg-primary/5 border border-primary/20"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                  <span className={`relative block text-base font-bold ${
-                    activeIdx === i ? "text-primary" : "text-foreground/80"
-                  }`}>
-                    {lang.native}
-                  </span>
-                  <span className="relative block text-[10px] text-muted-foreground mt-0.5 capitalize">
-                    {SUPPORTED_LANGUAGES.find(l => l.code === lang.code)?.label || lang.code}
-                  </span>
-                </motion.button>
-              ))}
+              {LANGUAGE_SAMPLES.map((lang, i) => {
+                const isActive = activeIdx === i;
+                const isCurrentLang = language === lang.code;
+                return (
+                  <motion.button
+                    key={lang.code}
+                    onClick={() => {
+                      setAutoPlay(false);
+                      setActiveIdx(i);
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`relative px-3 py-2.5 rounded-lg text-center transition-all duration-300 border ${
+                      isActive
+                        ? "bg-primary/10 border-primary/40 shadow-sm"
+                        : isCurrentLang
+                        ? "bg-emerald-500/10 border-emerald-500/30"
+                        : "bg-card border-border/40 hover-elevate"
+                    }`}
+                    data-testid={`button-lang-${lang.code}`}
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="lang-active-glow"
+                        className="absolute inset-0 rounded-lg bg-primary/5 border border-primary/20"
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                    <span className={`relative block text-base font-bold ${
+                      isActive ? "text-primary" : isCurrentLang ? "text-emerald-600 dark:text-emerald-400" : "text-foreground/80"
+                    }`}>
+                      {lang.native}
+                    </span>
+                    <span className="relative block text-[10px] text-muted-foreground mt-0.5 capitalize">
+                      {SUPPORTED_LANGUAGES.find(l => l.code === lang.code)?.label || lang.code}
+                    </span>
+                    {isCurrentLang && (
+                      <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center">
+                        <CheckCircle2 className="h-3 w-3 text-white" />
+                      </span>
+                    )}
+                  </motion.button>
+                );
+              })}
             </div>
 
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="mt-5"
+            >
+              <Button
+                onClick={() => setLanguage(activeLang.code as any)}
+                className="w-full rounded-full gap-2 shadow-lg shadow-primary/20"
+                disabled={language === activeLang.code}
+                data-testid="button-switch-language"
+              >
+                <Languages className="h-4 w-4" />
+                {language === activeLang.code
+                  ? `Currently using ${activeLang.native}`
+                  : `Switch to ${activeLang.native}`
+                }
+              </Button>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
               transition={{ delay: 0.3 }}
-              className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground"
+              className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground"
             >
               <Globe className="h-3.5 w-3.5 text-primary" />
               <span>+ English = <span className="font-bold text-foreground">13 languages</span> supported</span>
