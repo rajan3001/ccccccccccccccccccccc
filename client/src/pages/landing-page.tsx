@@ -791,14 +791,14 @@ export default function LandingPage() {
                     <Heart className="h-3.5 w-3.5" />
                     {t.landing.trustedByAspirants}
                   </span>
-                  <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-bold text-foreground mb-5 sm:mb-6 leading-[1.1]" data-testid="text-hero-heading">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-foreground mb-4 sm:mb-5 leading-[1.15]" data-testid="text-hero-heading">
                     {t.landing.heroHeadingPart1}{" "}
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-amber-600">
                       {t.landing.heroHeadingHighlight}
                     </span>{" "}
                     {t.landing.heroHeadingPart2}
                   </h1>
-                  <p className="text-base sm:text-lg text-muted-foreground mb-8 sm:mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0" data-testid="text-hero-subtitle">
+                  <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0" data-testid="text-hero-subtitle">
                     {t.landing.heroDescription}
                   </p>
 
