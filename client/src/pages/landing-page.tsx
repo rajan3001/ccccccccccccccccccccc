@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, lazy, Suspense } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/i18n/context";
@@ -47,7 +47,28 @@ import { SUPPORTED_LANGUAGES } from "@/i18n/languages";
 import { MobileAppSection } from "@/components/landing/mobile-app-section";
 import { HowItWorksTour } from "@/components/landing/how-it-works-tour";
 
-const DotLottieReact = lazy(() => import("@lottiefiles/dotlottie-react").then(m => ({ default: m.DotLottieReact })));
+function LazyLottie({ src, ...props }: { src: string; loop?: boolean; autoplay?: boolean; style?: React.CSSProperties }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [Component, setComponent] = useState<any>(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          observer.disconnect();
+          import("@lottiefiles/dotlottie-react").then(m => {
+            setComponent(() => m.DotLottieReact);
+          });
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  if (!Component) return <div ref={ref} style={props.style} />;
+  return <Component src={src} {...props} />;
+}
 
 function AnimatedCounter({ target, suffix = "+" }: { target: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -779,55 +800,21 @@ export default function LandingPage() {
             <rect width="100%" height="100%" fill="url(#hero-grid)" />
           </svg>
 
-          <motion.div
-            className="absolute top-[15%] left-[8%] w-2 h-2 rounded-full bg-primary/15"
-            animate={{ y: [0, -20, 0], opacity: [0.15, 0.4, 0.15] }}
-            transition={{ duration: 4, repeat: Infinity }}
-          />
-          <motion.div
-            className="absolute top-[25%] right-[12%] w-3 h-3 rounded-full bg-primary/10"
-            animate={{ y: [0, -15, 0], opacity: [0.1, 0.3, 0.1] }}
-            transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-          />
-          <motion.div
-            className="absolute bottom-[20%] left-[15%] w-1.5 h-1.5 rounded-full bg-primary/20"
-            animate={{ y: [0, -12, 0], opacity: [0.2, 0.5, 0.2] }}
-            transition={{ duration: 3.5, repeat: Infinity, delay: 0.5 }}
-          />
-          <motion.div
-            className="absolute top-[60%] right-[5%] w-2.5 h-2.5 rounded-full bg-primary/10"
-            animate={{ y: [0, -18, 0], opacity: [0.1, 0.35, 0.1] }}
-            transition={{ duration: 4.5, repeat: Infinity, delay: 2 }}
-          />
-          <motion.div
-            className="absolute top-[40%] left-[3%] w-1 h-16 bg-gradient-to-b from-primary/10 to-transparent rounded-full"
-            animate={{ opacity: [0.1, 0.25, 0.1], scaleY: [1, 1.2, 1] }}
-            transition={{ duration: 5, repeat: Infinity }}
-          />
-          <motion.div
-            className="absolute top-[10%] right-[20%] w-1 h-12 bg-gradient-to-b from-primary/8 to-transparent rounded-full rotate-45"
-            animate={{ opacity: [0.08, 0.2, 0.08] }}
-            transition={{ duration: 6, repeat: Infinity, delay: 1.5 }}
-          />
-          <motion.div
-            className="absolute bottom-[30%] right-[25%] w-8 h-8 rounded-full border border-primary/8"
-            animate={{ scale: [1, 1.3, 1], opacity: [0.08, 0.18, 0.08] }}
-            transition={{ duration: 5, repeat: Infinity, delay: 0.8 }}
-          />
-          <motion.div
-            className="absolute top-[70%] left-[25%] w-5 h-5 rounded-full border border-primary/6"
-            animate={{ scale: [1, 1.4, 1], opacity: [0.06, 0.15, 0.06] }}
-            transition={{ duration: 4, repeat: Infinity, delay: 2.5 }}
-          />
+          <style>{`
+            @keyframes hero-float { 0%,100% { transform: translateY(0); opacity: 0.15; } 50% { transform: translateY(-20px); opacity: 0.4; } }
+            @keyframes hero-pulse { 0%,100% { transform: scale(1); opacity: 0.08; } 50% { transform: scale(1.3); opacity: 0.18; } }
+          `}</style>
+          <div className="absolute top-[15%] left-[8%] w-2 h-2 rounded-full bg-primary/15" style={{ animation: "hero-float 4s ease-in-out infinite" }} />
+          <div className="absolute top-[25%] right-[12%] w-3 h-3 rounded-full bg-primary/10" style={{ animation: "hero-float 5s ease-in-out 1s infinite" }} />
+          <div className="absolute bottom-[20%] left-[15%] w-1.5 h-1.5 rounded-full bg-primary/20" style={{ animation: "hero-float 3.5s ease-in-out 0.5s infinite" }} />
+          <div className="absolute top-[60%] right-[5%] w-2.5 h-2.5 rounded-full bg-primary/10" style={{ animation: "hero-float 4.5s ease-in-out 2s infinite" }} />
+          <div className="absolute bottom-[30%] right-[25%] w-8 h-8 rounded-full border border-primary/8" style={{ animation: "hero-pulse 5s ease-in-out 0.8s infinite" }} />
+          <div className="absolute top-[70%] left-[25%] w-5 h-5 rounded-full border border-primary/6" style={{ animation: "hero-pulse 4s ease-in-out 2.5s infinite" }} />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
               <div className="flex-1 text-center lg:text-left max-w-2xl">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
+                <div>
                   <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-primary/80 font-medium tracking-wide mb-5 sm:mb-6" data-testid="badge-hero">
                     <svg className="h-3 w-3 flex-shrink-0" viewBox="0 0 24 24" fill="#f59e0b" style={{ animation: "sparkle-spin 2.5s ease-in-out infinite" }}>
                       <path d="M12 0L14.59 8.41L23 11L14.59 13.59L12 22L9.41 13.59L1 11L9.41 8.41Z" />
@@ -889,17 +876,14 @@ export default function LandingPage() {
                       </div>
                     ))}
                   </div>
-                </motion.div>
+                </div>
               </div>
 
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
+              <div
                 className="flex-shrink-0 w-full max-w-md lg:max-w-lg xl:max-w-xl"
               >
                 <HeroDashboardAnimation />
-              </motion.div>
+              </div>
             </div>
           </div>
         </section>
@@ -951,14 +935,12 @@ export default function LandingPage() {
                 className="relative w-52 h-52 sm:w-64 sm:h-64 md:w-80 md:h-80 flex-shrink-0"
                 data-testid="trophy-animation"
               >
-                <Suspense fallback={<div className="w-full h-full" />}>
-                  <DotLottieReact
-                    src="https://assets-v2.lottiefiles.com/a/58030746-1151-11ee-86f5-f7bad2893c55/MIaDhJ2ars.lottie"
-                    loop
-                    autoplay
-                    style={{ width: "100%", height: "100%" }}
-                  />
-                </Suspense>
+                <LazyLottie
+                  src="https://assets-v2.lottiefiles.com/a/58030746-1151-11ee-86f5-f7bad2893c55/MIaDhJ2ars.lottie"
+                  loop
+                  autoplay
+                  style={{ width: "100%", height: "100%" }}
+                />
                 <style>{`
                   @keyframes sparkle-spin {
                     0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; }

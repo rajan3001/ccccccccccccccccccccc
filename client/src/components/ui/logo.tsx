@@ -1,4 +1,4 @@
-import logoUrl from "@assets/favicon_final_1770477519331.png";
+import logoUrl from "@assets/favicon_final.webp";
 
 interface LogoProps {
   className?: string;
