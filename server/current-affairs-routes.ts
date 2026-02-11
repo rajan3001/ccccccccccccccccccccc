@@ -296,7 +296,23 @@ No markdown, no explanations, just the JSON array.`;
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
 
-      if (topic.detailContent) {
+      const langCode = getUserLanguage(req);
+      const langKey = langCode || "en";
+      const langContentMap = (topic.detailContentLangs as Record<string, string>) || {};
+
+      if (langContentMap[langKey]) {
+        const cached = langContentMap[langKey];
+        const chunkSize = 80;
+        for (let i = 0; i < cached.length; i += chunkSize) {
+          const text = cached.slice(i, i + chunkSize);
+          res.write(`data: ${JSON.stringify({ text })}\n\n`);
+        }
+        res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+        res.end();
+        return;
+      }
+
+      if (langKey === "en" && topic.detailContent) {
         const chunkSize = 80;
         for (let i = 0; i < topic.detailContent.length; i += chunkSize) {
           const text = topic.detailContent.slice(i, i + chunkSize);
@@ -308,8 +324,7 @@ No markdown, no explanations, just the JSON array.`;
       }
 
       const sourceInfo = topic.source ? ` (Source: ${topic.source})` : "";
-      const caLangCode = getUserLanguage(req);
-      const caLangInst = getLanguageInstruction(caLangCode);
+      const caLangInst = getLanguageInstruction(langKey);
       const prompt = `You are an expert UPSC/State PSC current affairs analyst. Write a concise, exam-focused analysis of this topic:
 
 **${topic.title}**${sourceInfo}
@@ -369,9 +384,16 @@ Write in a professional, analytical tone. Prioritize facts over opinions. Use ma
 
       if (fullContent && !clientClosed) {
         try {
-          await db.update(dailyTopics)
-            .set({ detailContent: fullContent })
-            .where(eq(dailyTopics.id, topicId));
+          if (langKey === "en") {
+            await db.update(dailyTopics)
+              .set({ detailContent: fullContent })
+              .where(eq(dailyTopics.id, topicId));
+          } else {
+            const updatedLangs = { ...langContentMap, [langKey]: fullContent };
+            await db.update(dailyTopics)
+              .set({ detailContentLangs: updatedLangs })
+              .where(eq(dailyTopics.id, topicId));
+          }
         } catch (saveErr) {
           console.error("Error saving detail content:", saveErr);
         }

@@ -21,6 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 import { generatePDF } from "@/lib/pdf-generator";
 import { useLanguage } from "@/i18n/context";
+import { InlineLanguageButton } from "@/components/inline-language-button";
 
 const GS_BADGE_COLORS: Record<string, string> = {
   "GS-I": "border-amber-400 text-amber-600 dark:border-amber-500 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30",
@@ -58,7 +59,7 @@ function formatDisplayDate(dateStr: string): string {
 }
 
 export default function CurrentAffairsTopicPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const params = useParams<{ id: string }>();
   const topicId = parseInt(params.id || "0");
   const [detailContent, setDetailContent] = useState("");
@@ -66,6 +67,7 @@ export default function CurrentAffairsTopicPage() {
   const [streamStarted, setStreamStarted] = useState(false);
   const [generatingQuiz, setGeneratingQuiz] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const prevLangRef = useRef<string>(language);
   const { toast } = useToast();
   const toggleRevision = useToggleRevision();
   const [, setLocation] = useLocation();
@@ -77,6 +79,19 @@ export default function CurrentAffairsTopicPage() {
   const nextTopic = topicData?.nextTopic;
   const topicIndex = topicData?.topicIndex || 0;
   const totalTopics = topicData?.totalTopics || 0;
+
+  useEffect(() => {
+    if (prevLangRef.current !== language) {
+      prevLangRef.current = language;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+      setDetailContent("");
+      setIsStreaming(false);
+      setStreamStarted(false);
+    }
+  }, [language]);
 
   useEffect(() => {
     if (abortControllerRef.current) {
@@ -96,7 +111,7 @@ export default function CurrentAffairsTopicPage() {
     setIsStreaming(true);
     setStreamStarted(true);
 
-    fetch(`/api/current-affairs/topics/${topicId}/detail`, {
+    fetch(`/api/current-affairs/topics/${topicId}/detail?language=${language}`, {
       signal: controller.signal,
       credentials: "include",
     })
@@ -146,7 +161,7 @@ export default function CurrentAffairsTopicPage() {
         setIsStreaming(false);
         abortControllerRef.current = null;
       });
-  }, [topicId, streamStarted, isStreaming, toast]);
+  }, [topicId, streamStarted, isStreaming, toast, language]);
 
   useEffect(() => {
     if (topic && !streamStarted) {
@@ -201,6 +216,9 @@ export default function CurrentAffairsTopicPage() {
       <Sidebar />
 
       <main className="flex-1 overflow-y-auto min-h-0">
+        <div className="hidden md:flex justify-end px-4 pt-3">
+          <InlineLanguageButton />
+        </div>
         <div className="max-w-3xl mx-auto px-4 py-4 sm:px-6 sm:py-5 pb-20">
           <div className="flex items-center gap-2 mb-5">
             <Link href="/current-affairs">

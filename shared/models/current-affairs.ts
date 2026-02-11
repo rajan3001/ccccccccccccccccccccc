@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp, boolean, date } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, boolean, date, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { sql } from "drizzle-orm";
@@ -21,6 +21,7 @@ export const dailyTopics = pgTable("daily_topics", {
   pageNumber: integer("page_number"),
   revised: boolean("revised").default(false).notNull(),
   detailContent: text("detail_content"),
+  detailContentLangs: jsonb("detail_content_langs").$type<Record<string, string>>().default({}),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
