@@ -379,39 +379,50 @@ export function Sidebar() {
             onClick={() => setShowMobileLang(!showMobileLang)}
             data-testid="button-mobile-language"
             className={cn(
-              "flex items-center gap-1 px-2 h-8 rounded-lg transition-all duration-200",
-              "bg-background/80 backdrop-blur-md",
-              "border border-border/60",
-              "shadow-sm",
-              showMobileLang && "border-primary/40 shadow-md"
+              "flex items-center gap-1.5 px-2 h-8 rounded-xl transition-all duration-300",
+              "bg-gradient-to-r from-primary/12 via-primary/6 to-transparent",
+              "dark:from-primary/20 dark:via-primary/10 dark:to-transparent",
+              "border border-primary/25 dark:border-primary/35",
+              "shadow-sm backdrop-blur-md",
+              "hover:shadow-md hover:border-primary/40",
+              showMobileLang && "shadow-md border-primary/50 from-primary/15"
             )}
           >
             <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 flex-shrink-0">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" className="text-primary/50" />
-              <ellipse cx="12" cy="12" rx="4" ry="10" stroke="currentColor" strokeWidth="1.5" className="text-primary" />
-              <path d="M2 12h20" stroke="currentColor" strokeWidth="1" className="text-primary/40" />
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" className="text-primary/40" />
+              <ellipse cx="12" cy="12" rx="4" ry="10" stroke="currentColor" strokeWidth="1.5" className="text-primary">
+                <animateTransform attributeName="transform" type="rotate" values="0 12 12;360 12 12" dur="8s" repeatCount="indefinite" />
+              </ellipse>
+              <path d="M2 12h20" stroke="currentColor" strokeWidth="1" className="text-primary/50" />
+              <circle cx="12" cy="12" r="1.5" fill="currentColor" className="text-primary">
+                <animate attributeName="r" values="1.2;1.8;1.2" dur="2s" repeatCount="indefinite" />
+              </circle>
             </svg>
-            <span className="text-xs font-semibold text-foreground">
-              {language.toUpperCase()}
+            <span className="text-xs font-bold text-foreground tracking-wide">
+              {(SUPPORTED_LANGUAGES.find(l => l.code === language)?.nativeLabel || "EN")}
             </span>
-            <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform duration-200", showMobileLang && "rotate-180")} />
+            <ChevronDown className={cn("h-3 w-3 text-primary/60 transition-transform duration-300", showMobileLang && "rotate-180")} />
           </button>
           {showMobileLang && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowMobileLang(false)} />
               <div className={cn(
-                "absolute right-0 top-full mt-1 z-50 w-56 rounded-lg overflow-hidden",
-                "border border-border",
-                "bg-popover shadow-lg"
+                "absolute right-0 top-full mt-1.5 z-50 w-60 rounded-xl overflow-hidden",
+                "border border-primary/20 dark:border-primary/30",
+                "bg-popover dark:bg-popover",
+                "shadow-lg shadow-primary/10 dark:shadow-primary/20"
               )}
-              style={{ animation: "mobileLangIn 0.15s ease-out both" }}
+              style={{ animation: "mobileLangIn 0.2s cubic-bezier(0.16,1,0.3,1) both" }}
               >
-                <div className="px-3 py-2 border-b border-border/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Select Language</span>
+                <div className="px-3.5 py-2 border-b border-border/60 bg-gradient-to-r from-primary/8 to-transparent">
+                  <div className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary/80">Select Language</span>
+                  </div>
                 </div>
-                <ScrollArea className="max-h-[280px]">
-                  <div className="p-1">
-                    {SUPPORTED_LANGUAGES.map((lang) => (
+                <ScrollArea className="max-h-[min(400px,65vh)]">
+                  <div className="p-1.5">
+                    {SUPPORTED_LANGUAGES.map((lang, i) => (
                       <button
                         key={lang.code}
                         onClick={() => {
@@ -419,21 +430,35 @@ export function Sidebar() {
                           setShowMobileLang(false);
                         }}
                         className={cn(
-                          "flex items-center justify-between w-full rounded-md px-2.5 py-2 text-sm transition-colors",
+                          "flex items-center justify-between w-full rounded-lg px-2.5 py-2.5 text-sm transition-all duration-150",
                           "hover-elevate",
                           language === lang.code
-                            ? "bg-primary/10 text-primary font-semibold"
-                            : "text-foreground"
+                            ? "bg-primary/10 dark:bg-primary/15 text-primary font-bold border border-primary/20"
+                            : "text-foreground border border-transparent"
                         )}
+                        style={{ animation: `mobileLangRowIn ${0.06 + i * 0.02}s cubic-bezier(0.16,1,0.3,1) both` }}
                         data-testid={`button-mobile-lang-${lang.code}`}
                       >
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2.5">
+                          <div className={cn(
+                            "flex items-center justify-center h-6 w-6 rounded-md text-[10px] font-bold flex-shrink-0",
+                            language === lang.code
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-muted-foreground"
+                          )}>
+                            {lang.code.toUpperCase()}
+                          </div>
                           <span className={cn("text-sm", language === lang.code ? "font-bold" : "font-medium")}>
                             {lang.nativeLabel}
                           </span>
                           <span className="text-xs text-muted-foreground">{lang.label}</span>
                         </div>
-                        {language === lang.code && <Check className="h-3.5 w-3.5 text-primary" />}
+                        {language === lang.code && (
+                          <div className="flex items-center gap-1">
+                            <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                            <Check className="h-3.5 w-3.5 text-primary" />
+                          </div>
+                        )}
                       </button>
                     ))}
                   </div>
@@ -441,8 +466,12 @@ export function Sidebar() {
               </div>
               <style>{`
                 @keyframes mobileLangIn {
-                  from { opacity: 0; transform: translateY(-4px); }
-                  to { opacity: 1; transform: translateY(0); }
+                  from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+                  to { opacity: 1; transform: translateY(0) scale(1); }
+                }
+                @keyframes mobileLangRowIn {
+                  from { opacity: 0; transform: translateX(-6px); }
+                  to { opacity: 1; transform: translateX(0); }
                 }
               `}</style>
             </>
