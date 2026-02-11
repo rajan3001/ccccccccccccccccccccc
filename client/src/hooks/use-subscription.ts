@@ -1,9 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
+import type { PlanTier } from "@shared/schema";
+
 type SubscriptionResponse = {
   isPro: boolean;
   isAdmin?: boolean;
+  tier: PlanTier | null;
   subscription: {
     id: number;
     plan: string;
@@ -31,7 +34,7 @@ export function useSubscription() {
     queryKey: ["/api/subscription"],
     queryFn: async () => {
       const res = await fetch("/api/subscription");
-      if (res.status === 401) return { isPro: false, subscription: null };
+      if (res.status === 401) return { isPro: false, tier: null, subscription: null };
       if (!res.ok) throw new Error("Failed to fetch subscription");
       return res.json();
     },

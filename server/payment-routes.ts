@@ -50,8 +50,15 @@ async function getOrCreateRazorpayPlan(planCode: PlanCode): Promise<string> {
   return created.id;
 }
 
+const validPlanCodes = [
+  "starter_monthly", "starter_6months", "starter_yearly",
+  "pro_monthly", "pro_6months", "pro_yearly",
+  "ultimate_monthly", "ultimate_6months", "ultimate_yearly",
+  "monthly", "6months", "yearly",
+] as const;
+
 const createOrderSchema = z.object({
-  planCode: z.enum(["monthly", "6months", "yearly"]),
+  planCode: z.enum(validPlanCodes),
 });
 
 const verifyPaymentSchema = z.object({
@@ -80,9 +87,15 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
 
       const razorpayPlanId = await getOrCreateRazorpayPlan(planCode as PlanCode);
 
+      const duration = (plan as any).duration || "monthly";
+      let totalCount = 12;
+      if (duration === "monthly") totalCount = 12;
+      else if (duration === "6months") totalCount = 2;
+      else totalCount = 1;
+
       const subscription = await razorpay.subscriptions.create({
         plan_id: razorpayPlanId,
-        total_count: planCode === "monthly" ? 12 : planCode === "6months" ? 2 : 1,
+        total_count: totalCount,
         quantity: 1,
         customer_notify: 0,
         notes: {

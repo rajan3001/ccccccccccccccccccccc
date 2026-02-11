@@ -81,6 +81,8 @@ export function Sidebar() {
   };
 
   const isPro = subData?.isPro;
+  const userTier = subData?.tier || null;
+  const tierLabel = userTier ? (userTier === "starter" ? "Starter" : userTier === "pro" ? "Pro" : "Ultimate") : null;
   const displayName = user?.displayName || user?.firstName || "User";
   const phoneDisplay = user?.phone ? user.phone.replace("+91", "") : "";
   const initials = displayName.charAt(0).toUpperCase();
@@ -242,10 +244,12 @@ export function Sidebar() {
       <div className="p-4 border-t border-border/50 bg-background/50">
         <div className="space-y-2">
           {isPro ? (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 text-primary text-sm font-semibold border border-primary/20">
-              <Crown className="h-4 w-4" />
-              <span>{t.nav.proActive}</span>
-            </div>
+            <Link href="/subscription" className="block" onClick={() => setIsMobileOpen(false)}>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 text-primary text-sm font-semibold border border-primary/20 cursor-pointer hover:shadow-sm transition-all">
+                <Crown className="h-4 w-4" />
+                <span>{tierLabel} Plan Active</span>
+              </div>
+            </Link>
           ) : (
             <Link href="/subscription" className="block" onClick={() => setIsMobileOpen(false)}>
               <div className="group flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 border border-amber-200 dark:border-amber-700/50 text-amber-900 dark:text-amber-300 text-sm font-semibold cursor-pointer hover:shadow-md transition-all">
@@ -267,7 +271,7 @@ export function Sidebar() {
                       variant="secondary"
                       className="absolute -bottom-1 -right-1 text-[8px] px-1 py-0 leading-tight font-bold no-default-hover-elevate no-default-active-elevate"
                     >
-                      {isPro ? t.common.pro : t.common.free}
+                      {tierLabel || t.common.free}
                     </Badge>
                   </div>
                   <div className="flex flex-col min-w-0">
@@ -291,7 +295,7 @@ export function Sidebar() {
                       variant="secondary"
                       className="absolute -bottom-1 -right-1 text-[8px] px-1 py-0 leading-tight font-bold no-default-hover-elevate no-default-active-elevate"
                     >
-                      {isPro ? t.common.pro : t.common.free}
+                      {tierLabel || t.common.free}
                     </Badge>
                   </div>
                   <div className="min-w-0">

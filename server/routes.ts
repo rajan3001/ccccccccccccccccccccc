@@ -38,8 +38,11 @@ export async function registerRoutes(
     const userId = req.user.claims.sub;
     const isAdmin = req.user?.dbUser?.isAdmin === true;
     const sub = await storage.getActiveSubscription(userId);
-    const isPro = isAdmin || (sub?.status === 'active' && sub?.currentPeriodEnd && new Date(sub.currentPeriodEnd) > new Date());
-    res.json({ isPro, isAdmin, subscription: sub || null });
+    const isActive = sub?.status === 'active' && sub?.currentPeriodEnd && new Date(sub.currentPeriodEnd) > new Date();
+    const { getTierFromPlan } = await import("@shared/schema");
+    const tier = isActive && sub ? getTierFromPlan(sub.plan) : null;
+    const isPro = isAdmin || (tier !== null);
+    res.json({ isPro, isAdmin, tier: isAdmin ? "ultimate" : tier, subscription: sub || null });
   });
 
   app.get("/api/dashboard/stats", isAuthenticated, async (req: any, res) => {
