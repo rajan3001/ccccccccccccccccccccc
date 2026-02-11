@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/i18n/context";
@@ -1201,6 +1202,98 @@ export default function LandingPage() {
         <LanguageShowcaseSection t={t} />
 
         <IndiaTestimonialsSection />
+
+        <section id="faq" className="py-14 sm:py-20 bg-secondary/20">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8 sm:mb-10"
+            >
+              <h2 className="text-2xl sm:text-4xl font-display font-bold" data-testid="text-faq-heading">
+                Frequently Asked Questions
+              </h2>
+              <p className="text-muted-foreground mt-2 sm:mt-3 text-sm sm:text-base">
+                Everything you need to know about UPSC & State PSC preparation with Learnpro AI
+              </p>
+            </motion.div>
+
+            <Accordion type="single" collapsible className="space-y-2" data-testid="faq-accordion">
+              <AccordionItem value="what-is" className="border rounded-xl px-4 bg-card">
+                <AccordionTrigger className="text-left text-sm sm:text-base hover:no-underline" data-testid="faq-trigger-what-is">
+                  What is Learnpro AI and how does it help in UPSC preparation?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm leading-relaxed" data-testid="faq-content-what-is">
+                  Learnpro AI is India's leading AI-powered online coaching platform built specifically for UPSC Civil Services Examination (IAS/IPS/IFS) and State PSC preparation. It combines an intelligent AI mentor powered by advanced AI with daily current affairs digests, topic-wise MCQ practice, AI answer sheet evaluation, a smart study planner with syllabus tracking, and spaced repetition notes — providing a complete ecosystem for competitive exam preparation, accessible 24/7 from any device.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="free" className="border rounded-xl px-4 bg-card">
+                <AccordionTrigger className="text-left text-sm sm:text-base hover:no-underline" data-testid="faq-trigger-free">
+                  Is Learnpro AI free for UPSC and State PSC coaching?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm leading-relaxed" data-testid="faq-content-free">
+                  Yes! Learnpro AI offers a generous free Starter plan that includes AI chat mentoring for UPSC doubts, daily current affairs, practice quizzes, and study planning features. For aspirants seeking unlimited access, the Pro plan starts at just ₹299/month — a fraction of traditional IAS coaching fees that can cost ₹1-3 lakhs. Premium plans unlock unlimited AI interactions, advanced performance analytics, and priority features.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="exams" className="border rounded-xl px-4 bg-card">
+                <AccordionTrigger className="text-left text-sm sm:text-base hover:no-underline" data-testid="faq-trigger-exams">
+                  Which civil services exams does Learnpro AI cover?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm leading-relaxed" data-testid="faq-content-exams">
+                  Learnpro AI covers UPSC CSE (IAS, IPS, IFS — Prelims, Mains & Interview) and 15 State Public Service Commission exams: UPPSC (Uttar Pradesh), BPSC (Bihar), MPPSC (Madhya Pradesh), RPSC (Rajasthan), JPSC (Jharkhand), WBPSC (West Bengal), OPSC (Odisha), CGPSC (Chhattisgarh), UKPSC (Uttarakhand), HPSC (Haryana), KPSC (Karnataka), TNPSC (Tamil Nadu), APPSC (Andhra Pradesh), GPSC (Gujarat), and NE States PSC exams. The AI adapts content and quizzes to each specific exam's syllabus and pattern.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="ai-mentor" className="border rounded-xl px-4 bg-card">
+                <AccordionTrigger className="text-left text-sm sm:text-base hover:no-underline" data-testid="faq-trigger-ai-mentor">
+                  How does the AI mentor work for UPSC coaching?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm leading-relaxed" data-testid="faq-content-ai-mentor">
+                  Learnpro AI's mentor uses advanced AI to provide instant, detailed answers to any UPSC or State PSC query. Whether it's Indian Polity, Economy, Geography, History, Environment, Science & Technology, International Relations, or Ethics — the AI provides structured responses with previous year question references, concept clarity, and real-time explanations. It's like having a personal IAS coaching teacher available 24/7, in 14 Indian languages including Hindi, Bengali, Tamil, Telugu, Marathi, and more.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="answer-eval" className="border rounded-xl px-4 bg-card">
+                <AccordionTrigger className="text-left text-sm sm:text-base hover:no-underline" data-testid="faq-trigger-answer-eval">
+                  Can Learnpro AI evaluate my UPSC Mains answer sheets?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm leading-relaxed" data-testid="faq-content-answer-eval">
+                  Absolutely! Learnpro AI provides AI-powered answer sheet evaluation designed specifically for UPSC Mains and State PSC written exams. Simply upload your handwritten answer sheets and receive detailed scoring across 7 competency parameters (content accuracy, structure, analytical depth, examples, conclusion, presentation, and relevance), per-question feedback, and actionable improvement suggestions — all evaluated as per UPSC and State PSC marking norms.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="current-affairs" className="border rounded-xl px-4 bg-card">
+                <AccordionTrigger className="text-left text-sm sm:text-base hover:no-underline" data-testid="faq-trigger-current-affairs">
+                  How does the daily current affairs feature work?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm leading-relaxed" data-testid="faq-content-current-affairs">
+                  Learnpro AI provides daily current affairs digests curated specifically for UPSC Prelims and Mains preparation. Each topic is categorized by GS papers (Polity, Economy, Geography, Environment, S&T, International Relations), sourced from reliable outlets, and includes revision tracking so you never miss important developments. State-specific current affairs are also available for State PSC aspirants. The 14-day date navigation ensures you stay on top of all recent developments.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="languages" className="border rounded-xl px-4 bg-card">
+                <AccordionTrigger className="text-left text-sm sm:text-base hover:no-underline" data-testid="faq-trigger-languages">
+                  In how many Indian languages is UPSC coaching available on Learnpro AI?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm leading-relaxed" data-testid="faq-content-languages">
+                  Learnpro AI supports 14 Indian languages: English, Hindi, Bengali, Gujarati, Marathi, Tamil, Telugu, Kannada, Malayalam, Punjabi, Odia, Assamese, Urdu, and Maithili. This makes quality UPSC and State PSC coaching accessible to aspirants from every corner of India, in their preferred language — breaking the barrier that traditional English-only coaching institutes create.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="vs-traditional" className="border rounded-xl px-4 bg-card">
+                <AccordionTrigger className="text-left text-sm sm:text-base hover:no-underline" data-testid="faq-trigger-vs-traditional">
+                  How is Learnpro AI better than traditional UPSC coaching institutes?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm leading-relaxed" data-testid="faq-content-vs-traditional">
+                  Traditional UPSC coaching in cities like Delhi, Bangalore, or Hyderabad costs ₹1-3 lakhs with fixed schedules and requires relocation. Learnpro AI provides 24/7 AI-powered mentoring, personalized study plans, instant doubt resolution, daily current affairs, MCQ practice across all GS papers and CSAT, and answer writing evaluation — all from your phone or laptop, starting completely free. No fixed schedules, no commuting, no expensive fees. It's like having Vajiram, Vision IAS, or Unacademy's best features powered by AI, available anytime.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        </section>
 
         <section className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-primary/[0.03] to-background" />

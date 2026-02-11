@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /chat
+Disallow: /quiz
+Disallow: /notes
+Disallow: /study-planner
+Disallow: /study-progress
+Disallow: /evaluation
+Disallow: /settings
+Disallow: /billing
+
+Sitemap: https://learnproai.in/sitemap.xml
+
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 2
