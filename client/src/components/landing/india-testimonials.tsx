@@ -213,6 +213,8 @@ export function IndiaTestimonialsSection() {
                 src={indiaMapImg}
                 alt="Map of India"
                 loading="lazy"
+                width={500}
+                height={580}
                 className="w-full h-auto opacity-80 dark:opacity-70"
                 style={{ filter: "hue-rotate(0deg) saturate(1.3) brightness(0.95) contrast(1.05)" }}
                 draggable={false}

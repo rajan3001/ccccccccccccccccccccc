@@ -33,14 +33,17 @@ function PageLoader() {
   );
 }
 
+function AuthGate({ children, fallback }: { children: React.ReactNode; fallback?: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return <>{fallback || <PageLoader />}</>;
+  if (!isAuthenticated) return <Redirect to="/login" />;
+  return <>{children}</>;
+}
+
 function Router() {
   const { user, isAuthenticated, isLoading } = useAuth();
 
-  if (isLoading) return null;
-
-  const needsOnboarding = isAuthenticated && !user?.onboardingCompleted;
-
-  if (needsOnboarding) {
+  if (!isLoading && isAuthenticated && !user?.onboardingCompleted) {
     return (
       <Suspense fallback={<PageLoader />}>
         <OnboardingPage />
@@ -51,18 +54,20 @@ function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Switch>
-        <Route path="/" component={isAuthenticated ? DashboardPage : LandingPage} />
+        <Route path="/">
+          {isLoading ? <LandingPage /> : isAuthenticated ? <DashboardPage /> : <LandingPage />}
+        </Route>
         <Route path="/login" component={LoginPage} />
-        <Route path="/chat/new">{isAuthenticated ? <ChatPage /> : <Redirect to="/login" />}</Route>
-        <Route path="/chat/:id" component={isAuthenticated ? ChatPage : LoginPage} />
-        <Route path="/current-affairs" component={isAuthenticated ? CurrentAffairsPage : LoginPage} />
-        <Route path="/current-affairs/topic/:id" component={isAuthenticated ? CurrentAffairsTopicPage : LoginPage} />
-        <Route path="/practice-quiz" component={isAuthenticated ? PracticeQuizPage : LoginPage} />
-        <Route path="/paper-evaluation" component={isAuthenticated ? PaperEvaluationPage : LoginPage} />
-        <Route path="/notes" component={isAuthenticated ? NotesPage : LoginPage} />
-        <Route path="/study-planner" component={isAuthenticated ? StudyPlannerPage : LoginPage} />
-        <Route path="/study-progress" component={isAuthenticated ? StudyProgressPage : LoginPage} />
-        <Route path="/settings" component={isAuthenticated ? SettingsPage : LoginPage} />
+        <Route path="/chat/new"><AuthGate><ChatPage /></AuthGate></Route>
+        <Route path="/chat/:id"><AuthGate><ChatPage /></AuthGate></Route>
+        <Route path="/current-affairs"><AuthGate><CurrentAffairsPage /></AuthGate></Route>
+        <Route path="/current-affairs/topic/:id"><AuthGate><CurrentAffairsTopicPage /></AuthGate></Route>
+        <Route path="/practice-quiz"><AuthGate><PracticeQuizPage /></AuthGate></Route>
+        <Route path="/paper-evaluation"><AuthGate><PaperEvaluationPage /></AuthGate></Route>
+        <Route path="/notes"><AuthGate><NotesPage /></AuthGate></Route>
+        <Route path="/study-planner"><AuthGate><StudyPlannerPage /></AuthGate></Route>
+        <Route path="/study-progress"><AuthGate><StudyProgressPage /></AuthGate></Route>
+        <Route path="/settings"><AuthGate><SettingsPage /></AuthGate></Route>
         <Route path="/subscription" component={SubscriptionPage} />
         <Route path="/privacy-policy" component={PrivacyPolicyPage} />
         <Route path="/terms-of-service" component={TermsOfServicePage} />
