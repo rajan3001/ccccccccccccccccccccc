@@ -10,7 +10,7 @@ import { registerEvaluationRoutes } from "./evaluation-routes";
 import { registerNotesRoutes } from "./notes-routes";
 import { registerStudyPlannerRoutes } from "./study-planner-routes";
 import { registerStudyProgressRoutes } from "./study-progress-routes";
-import { registerPaymentRoutes } from "./payment-routes";
+import { registerPaymentRoutes, reconcilePendingSubscription } from "./payment-routes";
 import { api } from "@shared/routes";
 import { db } from "./db";
 import { quizAttempts, conversations, messages, dailyTopics, notes } from "@shared/schema";
@@ -37,7 +37,15 @@ export async function registerRoutes(
   app.get(api.subscription.get.path, isAuthenticated, async (req: any, res) => {
     const userId = req.user.claims.sub;
     const isAdmin = req.user?.dbUser?.isAdmin === true;
-    const sub = await storage.getActiveSubscription(userId);
+    let sub = await storage.getActiveSubscription(userId);
+
+    if (!sub) {
+      const reconciled = await reconcilePendingSubscription(userId);
+      if (reconciled) {
+        sub = await storage.getActiveSubscription(userId);
+      }
+    }
+
     const isActive = sub?.status === 'active' && sub?.currentPeriodEnd && new Date(sub.currentPeriodEnd) > new Date();
     const { getTierFromPlan } = await import("@shared/schema");
     const tier = isActive && sub ? getTierFromPlan(sub.plan) : null;

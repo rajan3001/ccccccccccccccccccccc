@@ -67,6 +67,76 @@ const verifyPaymentSchema = z.object({
   razorpay_signature: z.string(),
 });
 
+const reconcileThrottle = new Map<string, number>();
+
+export async function reconcilePendingSubscription(userId: string): Promise<boolean> {
+  try {
+    const lastAttempt = reconcileThrottle.get(userId) || 0;
+    if (Date.now() - lastAttempt < 60_000) {
+      return false;
+    }
+    reconcileThrottle.set(userId, Date.now());
+
+    const sub = await storage.getSubscription(userId);
+    if (!sub || sub.status !== "pending" || !sub.razorpaySubscriptionId) {
+      return false;
+    }
+
+    const createdAt = sub.createdAt ? new Date(sub.createdAt).getTime() : 0;
+    const hoursSinceCreation = (Date.now() - createdAt) / (1000 * 60 * 60);
+    if (hoursSinceCreation > 72) {
+      return false;
+    }
+
+    const razorpaySub = await razorpay.subscriptions.fetch(sub.razorpaySubscriptionId);
+    const subStatus = (razorpaySub as any).status;
+    const paidCount = (razorpaySub as any).paid_count || 0;
+
+    if (subStatus === "active" && paidCount > 0) {
+      const planCode = sub.plan as PlanCode;
+      const plan = PLAN_CATALOG[planCode];
+      const periodEnd = new Date();
+      periodEnd.setDate(periodEnd.getDate() + (plan?.durationDays || 30));
+
+      let realPaymentId = "";
+      try {
+        const payments = await (razorpay.subscriptions as any).fetchPayments(sub.razorpaySubscriptionId);
+        const items = payments?.items || payments || [];
+        const captured = items.find((p: any) => p.status === "captured");
+        if (captured) {
+          realPaymentId = captured.id;
+        }
+      } catch (e) {
+      }
+
+      if (!realPaymentId) {
+        console.log(`[RECONCILE] Razorpay sub ${sub.razorpaySubscriptionId} active but no captured payment found`);
+        return false;
+      }
+
+      const realSignature = crypto
+        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
+        .update(`${realPaymentId}|${sub.razorpaySubscriptionId}`)
+        .digest("hex");
+
+      await storage.activateByRazorpaySub(
+        sub.razorpaySubscriptionId,
+        realPaymentId,
+        realSignature,
+        periodEnd
+      );
+
+      console.log(`[RECONCILE] Activated subscription for user ${userId}, payment: ${realPaymentId}, razorpay sub: ${sub.razorpaySubscriptionId}`);
+      return true;
+    }
+
+    return false;
+  } catch (error: any) {
+    console.error("[RECONCILE] Error reconciling subscription:", error.message);
+    return false;
+  }
+}
+
 export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
   app.post("/api/payments/razorpay/subscribe", isAuthenticated, async (req: any, res) => {
     try {
