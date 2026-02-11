@@ -111,7 +111,6 @@ function TestimonialCard({ t, i }: { t: typeof testimonials[0]; i: number }) {
 export function IndiaTestimonialsSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -123,18 +122,7 @@ export function IndiaTestimonialsSection() {
     return () => obs.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (!inView) return;
-    const interval = setInterval(() => {
-      setActiveIndex(prev => (prev + 1) % testimonials.length);
-    }, 3500);
-    return () => clearInterval(interval);
-  }, [inView]);
-
-  const visibleCards = [0, 1, 2].map(offset => {
-    const idx = (activeIndex + offset) % testimonials.length;
-    return { testimonial: testimonials[idx], idx };
-  });
+  const allCards = [...testimonials, ...testimonials];
 
   return (
     <section ref={sectionRef} className="py-14 sm:py-20 overflow-hidden" data-testid="section-india-testimonials">
@@ -167,17 +155,30 @@ export function IndiaTestimonialsSection() {
             </div>
           </div>
 
-          <div className="lg:col-span-2 relative" data-testid="testimonials-scroll-container">
-            <div className="relative flex flex-col gap-4" style={{ minHeight: "420px" }}>
-              {visibleCards.map(({ testimonial, idx }, position) => (
-                <div
-                  key={`${activeIndex}-${position}`}
-                  className="testimonial-slide-up"
-                  style={{ animationDelay: `${position * 80}ms` }}
-                >
-                  <TestimonialCard t={testimonial} i={idx} />
-                </div>
-              ))}
+          <div
+            className="lg:col-span-2 relative overflow-hidden"
+            style={{ height: "450px" }}
+            data-testid="testimonials-scroll-container"
+          >
+            <div
+              className="absolute inset-x-0 top-0 h-16 z-10 pointer-events-none"
+              style={{ background: "linear-gradient(to bottom, hsl(var(--background)), transparent)" }}
+            />
+            <div
+              className="absolute inset-x-0 bottom-0 h-16 z-10 pointer-events-none"
+              style={{ background: "linear-gradient(to top, hsl(var(--background)), transparent)" }}
+            />
+            <div className="testimonial-marquee-vertical">
+              <div className="flex flex-col gap-4 pb-4">
+                {allCards.map((t, i) => (
+                  <TestimonialCard key={`a-${i}`} t={t} i={i} />
+                ))}
+              </div>
+              <div className="flex flex-col gap-4">
+                {allCards.map((t, i) => (
+                  <TestimonialCard key={`b-${i}`} t={t} i={i} />
+                ))}
+              </div>
             </div>
           </div>
         </div>
