@@ -6,6 +6,7 @@ export * from "./models/evaluation";
 export * from "./models/notes";
 export * from "./models/study-planner";
 export * from "./models/study-progress";
+export * from "./models/blog";
 
 import { pgTable, text, serial, boolean, timestamp, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
