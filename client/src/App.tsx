@@ -27,8 +27,21 @@ const NotFound = lazy(() => import("@/pages/not-found"));
 
 function PageLoader() {
   return (
-    <div className="flex items-center justify-center min-h-screen" data-testid="page-loader">
-      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+    <div className="flex flex-col items-center justify-center min-h-screen gap-5" data-testid="page-loader" style={{ background: 'linear-gradient(160deg, #0c0a08 0%, #1a1410 40%, #0f0d0a 100%)' }}>
+      <img src="/favicon.png" alt="" width={40} height={40} style={{ borderRadius: 8, filter: 'drop-shadow(0 0 12px rgba(196,127,23,0.4))', animation: 'lp-pulse 2.4s ease-in-out infinite' }} />
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontFamily: "'Plus Jakarta Sans',system-ui,sans-serif", fontSize: 20, fontWeight: 700, letterSpacing: 3, color: '#c97a0a', textTransform: 'uppercase' as const }}>
+          Learnpro <span style={{ color: '#e8d5b0', fontWeight: 300 }}>AI</span>
+        </div>
+        <div style={{ marginTop: 4, fontFamily: "'Inter',system-ui,sans-serif", fontSize: 9, letterSpacing: 4, color: 'rgba(232,213,176,0.35)', textTransform: 'uppercase' as const, fontWeight: 500 }}>
+          Intelligence Redefined
+        </div>
+      </div>
+      <div className="flex items-center gap-1.5">
+        {[0, 1, 2].map(i => (
+          <div key={i} className="w-1 h-1 rounded-full" style={{ background: '#c97a0a', animation: `lp-dots 1.4s ease-in-out ${i * 0.2}s infinite` }} />
+        ))}
+      </div>
     </div>
   );
 }
