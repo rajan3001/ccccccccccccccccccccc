@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/i18n/context";
@@ -46,6 +46,7 @@ import { IndiaTestimonialsSection } from "@/components/landing/india-testimonial
 import { SUPPORTED_LANGUAGES } from "@/i18n/languages";
 import { MobileAppSection } from "@/components/landing/mobile-app-section";
 import { HowItWorksTour } from "@/components/landing/how-it-works-tour";
+import { useQuery } from "@tanstack/react-query";
 
 function LazyLottie({ src, ...props }: { src: string; loop?: boolean; autoplay?: boolean; style?: React.CSSProperties }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -738,6 +739,93 @@ function PrepareForExamsSection({ t }: { t: any }) {
   );
 }
 
+function BlogSection() {
+  const { data } = useQuery<{ posts: Array<{ id: number; slug: string; title: string; excerpt: string; coverImageUrl: string | null; category: string; readingTimeMinutes: number; publishedAt: string }> }>({
+    queryKey: ["/api/blog/posts", { limit: 3 }],
+    queryFn: () => fetch("/api/blog/posts?limit=3").then(r => r.json()),
+    staleTime: 1000 * 60 * 10,
+  });
+
+  const posts = data?.posts || [];
+  if (posts.length === 0) return null;
+
+  return (
+    <section className="py-14 sm:py-20 bg-secondary/20" id="blog">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-8 sm:mb-12"
+        >
+          <h2 className="text-2xl sm:text-4xl font-display font-bold" data-testid="text-blog-heading">
+            UPSC Preparation Blog
+          </h2>
+          <p className="text-muted-foreground mt-2 sm:mt-3 text-sm sm:text-base">
+            Expert strategies, study tips, and current affairs analysis for Civil Services aspirants
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {posts.map((post, i) => (
+            <motion.div
+              key={post.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+            >
+              <a href={`/blog/${post.slug}`} className="block" data-testid={`blog-card-${post.id}`}>
+                <Card className="h-full overflow-visible">
+                  {post.coverImageUrl && (
+                    <div className="aspect-video overflow-hidden">
+                      <img
+                        src={post.coverImageUrl}
+                        alt={post.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
+                  <div className="p-4 sm:p-5">
+                    <span className="text-[10px] font-semibold tracking-wider uppercase text-primary">
+                      {post.category.replace(/-/g, " ")}
+                    </span>
+                    <h3 className="font-semibold text-sm sm:text-base mt-1.5 mb-2 line-clamp-2 text-foreground">
+                      {post.title}
+                    </h3>
+                    <p className="text-muted-foreground text-xs sm:text-sm line-clamp-2 mb-3">
+                      {post.excerpt}
+                    </p>
+                    <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                      <time dateTime={post.publishedAt}>
+                        {new Date(post.publishedAt).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
+                      </time>
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {post.readingTimeMinutes} min
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              </a>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="text-center mt-8">
+          <a href="/blog">
+            <Button variant="outline" className="rounded-full" data-testid="link-view-all-blog">
+              View All Articles
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function LandingPage() {
   const { isAuthenticated, isLoading } = useAuth();
   const { t } = useLanguage();
@@ -1193,6 +1281,8 @@ export default function LandingPage() {
         <LanguageShowcaseSection t={t} />
 
         <IndiaTestimonialsSection />
+
+        <BlogSection />
 
         <section id="faq" className="py-14 sm:py-20 bg-secondary/20">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
