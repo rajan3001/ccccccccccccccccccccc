@@ -244,10 +244,10 @@ function TodayAchievements({ stats, t }: { stats: DashboardStats; t: any }) {
             style={{ animation: `ach-pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1) ${idx * 0.08}s both` }}
           >
             <div
-              className="ach-orb-border absolute -inset-[2px] rounded-lg pointer-events-none z-0"
+              className="ach-orb-border absolute -inset-px rounded-lg pointer-events-none z-0"
               style={{
-                background: `conic-gradient(from ${idx * 90}deg, ${item.color}, transparent 40%, transparent 60%, ${item.color})`,
-                animation: `ach-border-spin 3s linear ${idx * 0.5}s infinite`,
+                background: `conic-gradient(from ${idx * 90}deg, ${item.color}90, transparent 30%, transparent 70%, ${item.color}90)`,
+                animation: `ach-border-spin 4s linear ${idx * 0.5}s infinite`,
               }}
             />
             <div
@@ -302,7 +302,7 @@ function TodayAchievements({ stats, t }: { stats: DashboardStats; t: any }) {
           isolation: isolate;
         }
         .ach-orb-border {
-          filter: blur(3px);
+          filter: blur(1px);
         }
       `}</style>
     </div>
