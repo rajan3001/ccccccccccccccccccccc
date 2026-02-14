@@ -658,7 +658,7 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     @keyframes gridPulse{0%,100%{opacity:0.03}50%{opacity:0.06}}
 
     .top-bar{background:hsla(0,0%,100%,0.92);backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2);border-bottom:1px solid var(--border);padding:0 max(1rem,calc((100% - 1200px)/2 + 1.5rem));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;height:var(--header-h);gap:0.5rem}
-    .top-bar-logo{display:flex;align-items:center;gap:0.5rem;text-decoration:none;font-weight:700;font-size:1.15rem;color:var(--text);flex-shrink:0}
+    .top-bar-logo{display:flex;align-items:center;gap:0.3rem;text-decoration:none;font-weight:700;font-size:1.15rem;color:var(--text);flex-shrink:0}
     .top-bar-logo img{width:28px;height:28px;object-fit:contain}
     .top-bar-logo .ai-text{color:#2563eb}
     .top-bar-right{display:flex;align-items:center;gap:0.25rem;flex-shrink:0}
@@ -768,8 +768,7 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     </a>
     <div class="top-bar-right">
       <nav class="top-bar-nav" data-testid="top-nav">
-        ${isLoggedIn ? '' : `<a href="/" data-testid="nav-home">Home</a>
-        <a href="/#features" class="hidden-mobile" data-testid="nav-features">Features</a>
+        ${isLoggedIn ? '' : `<a href="/#features" class="hidden-mobile" data-testid="nav-features">Features</a>
         <a href="/#exams" class="hidden-mobile" data-testid="nav-exams">Exams</a>`}
         <a href="/blog" class="nav-active" data-testid="nav-articles">Articles</a>
       </nav>
@@ -985,7 +984,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     ::selection{background:rgba(37,99,235,0.15);color:var(--text)}
 
     .top-bar{background:hsla(0,0%,100%,0.92);backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2);border-bottom:1px solid var(--border);padding:0 max(1rem,calc((100% - 1180px)/2 + 1.5rem));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;height:var(--header-h);gap:0.5rem}
-    .top-bar-logo{display:flex;align-items:center;gap:0.5rem;text-decoration:none;font-weight:700;font-size:1.1rem;color:var(--text);flex-shrink:0}
+    .top-bar-logo{display:flex;align-items:center;gap:0.3rem;text-decoration:none;font-weight:700;font-size:1.1rem;color:var(--text);flex-shrink:0}
     .top-bar-logo img{width:28px;height:28px;object-fit:contain}
     .top-bar-logo .ai-text{color:var(--blue)}
     .top-bar-right{display:flex;align-items:center;gap:0.25rem;flex-shrink:0}
@@ -1194,8 +1193,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     </a>
     <div class="top-bar-right">
       <nav class="top-bar-nav" data-testid="top-nav">
-        ${isLoggedIn ? '' : `<a href="/" data-testid="nav-home">Home</a>
-        <a href="/#features" class="hidden-mobile" data-testid="nav-features">Features</a>
+        ${isLoggedIn ? '' : `<a href="/#features" class="hidden-mobile" data-testid="nav-features">Features</a>
         <a href="/#exams" class="hidden-mobile" data-testid="nav-exams">Exams</a>`}
         <a href="/blog" data-testid="nav-blog">Articles</a>
       </nav>
