@@ -674,9 +674,23 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
 </html>`;
 }
 
-function renderBlogPostHtml(post: any): string {
+function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any = null, nextPost: any = null): string {
   const publishedDate = new Date(post.publishedAt).toISOString();
   const readableDate = new Date(post.publishedAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+  const catInfo = CATEGORY_DISPLAY[post.category] || CATEGORY_DISPLAY["general"];
+  const wordCount = post.content ? post.content.split(/\s+/).length : 0;
+  const escapedTitle = (post.title || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  const escapedDesc = (post.metaDescription || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+  const relatedHtml = relatedPosts.map(rp => {
+    const rpDate = new Date(rp.publishedAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
+    const rpCat = CATEGORY_DISPLAY[rp.category] || CATEGORY_DISPLAY["general"];
+    return `<a href="/blog/${rp.slug}" class="sb-related-item" data-testid="related-post-${rp.slug}">
+      <div class="sb-related-meta"><span class="sb-related-cat">${rpCat.label}</span><span>${rpDate}</span></div>
+      <h4>${rp.title}</h4>
+      <span class="sb-related-read">${rp.readingTimeMinutes} min read</span>
+    </a>`;
+  }).join('');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -684,189 +698,332 @@ function renderBlogPostHtml(post: any): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${post.metaTitle}</title>
-  <meta name="description" content="${post.metaDescription}">
+  <meta name="description" content="${escapedDesc}">
   <meta name="keywords" content="${(post.tags || []).join(', ')}">
   <link rel="canonical" href="https://learnproai.in/blog/${post.slug}">
   <meta property="og:type" content="article">
-  <meta property="og:title" content="${post.metaTitle}">
-  <meta property="og:description" content="${post.metaDescription}">
+  <meta property="og:title" content="${escapedTitle}">
+  <meta property="og:description" content="${escapedDesc}">
   <meta property="og:url" content="https://learnproai.in/blog/${post.slug}">
   <meta property="og:site_name" content="Learnpro AI">
-  ${post.coverImageUrl ? `<meta property="og:image" content="https://learnproai.in${post.coverImageUrl}">` : ''}
+  ${post.coverImageUrl ? `<meta property="og:image" content="https://learnproai.in${post.coverImageUrl}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">` : ''}
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="${post.metaTitle}">
-  <meta name="twitter:description" content="${post.metaDescription}">
+  <meta name="twitter:title" content="${escapedTitle}">
+  <meta name="twitter:description" content="${escapedDesc}">
+  ${post.coverImageUrl ? `<meta name="twitter:image" content="https://learnproai.in${post.coverImageUrl}">` : ''}
   <meta property="article:published_time" content="${publishedDate}">
-  <meta property="article:section" content="${post.category}">
+  <meta property="article:modified_time" content="${new Date(post.updatedAt).toISOString()}">
+  <meta property="article:author" content="https://learnproai.in">
+  <meta property="article:section" content="${catInfo.label}">
   ${(post.tags || []).map((t: string) => `<meta property="article:tag" content="${t}">`).join('\n  ')}
-  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="author" content="Learnpro AI">
+  <link rel="icon" href="/favicon_final.webp" type="image/webp">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "${post.title}",
-    "description": "${post.metaDescription}",
+    "headline": "${escapedTitle}",
+    "description": "${escapedDesc}",
     "datePublished": "${publishedDate}",
     "dateModified": "${new Date(post.updatedAt).toISOString()}",
-    ${post.coverImageUrl ? `"image": "https://learnproai.in${post.coverImageUrl}",` : ''}
-    "author": {
-      "@type": "Organization",
-      "name": "Learnpro AI"
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "Learnpro AI",
-      "url": "https://learnproai.in"
-    },
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": "https://learnproai.in/blog/${post.slug}"
-    },
-    "articleSection": "${post.category}",
-    "wordCount": ${post.content.split(/\s+/).length},
+    ${post.coverImageUrl ? `"image": {"@type":"ImageObject","url":"https://learnproai.in${post.coverImageUrl}","width":1200,"height":630},` : ''}
+    "author": {"@type": "Organization","name": "Learnpro AI","url": "https://learnproai.in"},
+    "publisher": {"@type": "Organization","name": "Learnpro AI","url": "https://learnproai.in","logo":{"@type":"ImageObject","url":"https://learnproai.in/favicon_final.webp","width":64,"height":64}},
+    "mainEntityOfPage": {"@type": "WebPage","@id": "https://learnproai.in/blog/${post.slug}"},
+    "articleSection": "${catInfo.label}",
+    "wordCount": ${wordCount},
+    "inLanguage": "en-IN",
     "keywords": "${(post.tags || []).join(', ')}"
   }
   </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type":"ListItem","position":1,"name":"Home","item":"https://learnproai.in/"},
+      {"@type":"ListItem","position":2,"name":"Blog","item":"https://learnproai.in/blog"},
+      {"@type":"ListItem","position":3,"name":"${catInfo.label}","item":"https://learnproai.in/blog?category=${post.category}"},
+      {"@type":"ListItem","position":4,"name":"${escapedTitle}"}
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" href="/favicon_final.webp" type="image/webp">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    :root{--gold:hsl(35,90%,45%);--gold-rgb:196,130,20;--gold-light:hsl(35,85%,50%);--gold-dark:hsl(35,90%,32%);--gold-dim:hsla(35,90%,45%,0.08);--bg:hsl(40,33%,98%);--bg-card:#ffffff;--border:hsl(35,15%,90%);--border-hover:hsl(35,15%,82%);--text:hsl(30,15%,15%);--text-secondary:hsl(30,8%,45%);--text-muted:hsl(30,8%,60%);--radius:0.75rem;--header-h:56px;--font-display:'Plus Jakarta Sans',sans-serif}
+    :root{--blue:#2563eb;--blue-dark:#1d4ed8;--blue-light:#3b82f6;--blue-bg:rgba(37,99,235,0.06);--blue-border:rgba(37,99,235,0.15);--bg:hsl(40,33%,98%);--bg-card:#ffffff;--border:#e5e7eb;--border-hover:#d1d5db;--text:#1a1a2e;--text-secondary:#4b5563;--text-muted:#9ca3af;--radius:0.5rem;--header-h:56px;--sidebar-w:320px;--content-max:740px;--font-display:'Plus Jakarta Sans',sans-serif;--font-body:'Inter',system-ui,sans-serif;--font-serif:'Merriweather','Georgia',serif}
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.8;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+    body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+    ::selection{background:rgba(37,99,235,0.15);color:var(--text)}
 
-    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes glow{0%,100%{opacity:0.5}50%{opacity:1}}
-    @keyframes gridPulse{0%,100%{opacity:0.03}50%{opacity:0.06}}
-    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-    @keyframes readProgress{from{width:0}to{width:100%}}
-
-    .top-bar{background:hsla(40,33%,98%,0.9);backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;height:var(--header-h)}
-    .top-bar-logo{display:flex;align-items:center;gap:0.6rem;text-decoration:none;font-weight:700;font-size:1.15rem;color:var(--text)}
+    .top-bar{background:#fff;border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;height:var(--header-h)}
+    .top-bar-logo{display:flex;align-items:center;gap:0.6rem;text-decoration:none;font-weight:700;font-size:1.1rem;color:var(--text)}
     .top-bar-logo img{width:32px;height:32px;object-fit:contain}
-    .top-bar-logo .ai-text{color:var(--gold-dark)}
-    .top-bar-nav{display:flex;gap:0.5rem;align-items:center}
-    .top-bar-nav a{color:var(--text-secondary);text-decoration:none;font-size:0.85rem;font-weight:500;transition:all 0.25s;padding:0.45rem 0.9rem;border-radius:0.5rem;border:1px solid transparent}
-    .top-bar-nav a:hover{color:var(--text);background:hsl(35,15%,93%);border-color:var(--border)}
-    .read-bar{position:fixed;top:var(--header-h);left:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold-light));z-index:49;transition:width 0.15s linear;width:0}
+    .top-bar-logo .ai-text{color:var(--blue)}
+    .top-bar-nav{display:flex;gap:0.25rem;align-items:center}
+    .top-bar-nav a{color:var(--text-secondary);text-decoration:none;font-size:0.85rem;font-weight:500;padding:0.4rem 0.85rem;border-radius:var(--radius);transition:all 0.2s}
+    .top-bar-nav a:hover{color:var(--blue);background:var(--blue-bg)}
+    .read-bar{position:fixed;top:var(--header-h);left:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--blue-light),#8b5cf6);z-index:99;transition:width 0.1s linear;width:0;border-radius:0 2px 2px 0}
 
-    .post-hero{max-width:800px;margin:0 auto;padding:2.5rem 1.5rem 0;position:relative;animation:fadeUp 0.5s ease-out both}
-    .post-hero::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:300px;height:200px;background:radial-gradient(ellipse,hsla(35,90%,45%,0.05),transparent 70%);pointer-events:none}
-    .post-breadcrumb{display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text-muted);margin-bottom:1.5rem;flex-wrap:wrap}
-    .post-breadcrumb a{color:var(--gold-dark);text-decoration:none;font-weight:500;transition:opacity 0.2s}
-    .post-breadcrumb a:hover{opacity:0.8}
-    .post-breadcrumb span{opacity:0.4}
-    .post-category{display:inline-flex;align-items:center;gap:0.35rem;background:var(--gold-dim);border:1px solid hsla(35,90%,45%,0.18);color:var(--gold-dark);font-size:0.72rem;font-weight:600;padding:0.3rem 0.8rem;border-radius:9999px;margin-bottom:1rem;letter-spacing:0.05em;text-decoration:none;transition:all 0.25s;text-transform:uppercase}
-    .post-category::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--gold);animation:glow 2s ease-in-out infinite}
-    .post-category:hover{background:hsla(35,90%,45%,0.12)}
-    .post-hero h1{font-family:var(--font-display);font-size:2.3rem;color:var(--text);line-height:1.2;margin-bottom:1rem;font-weight:800;letter-spacing:-0.02em}
-    .post-meta{display:flex;align-items:center;gap:1rem;color:var(--text-muted);font-size:0.84rem;flex-wrap:wrap;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
-    .post-meta-item{display:flex;align-items:center;gap:0.35rem}
-    .post-meta-dot{width:3px;height:3px;border-radius:50%;background:var(--text-muted);opacity:0.5}
+    .page-wrapper{max-width:1180px;margin:0 auto;padding:0 1.5rem;display:flex;gap:2rem;align-items:flex-start}
+    .main-col{flex:1;min-width:0;max-width:var(--content-max);padding-bottom:3rem}
+    .sidebar-col{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:calc(var(--header-h) + 1.5rem);max-height:calc(100vh - var(--header-h) - 2rem);overflow-y:auto;padding:1.5rem 0 2rem;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+    .sidebar-col::-webkit-scrollbar{width:4px}
+    .sidebar-col::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
 
-    .post-cover{max-width:800px;margin:1.5rem auto 0;padding:0 1.5rem;animation:fadeUp 0.5s 0.1s ease-out both}
-    .post-cover img{width:100%;border-radius:var(--radius);max-height:420px;object-fit:cover;border:1px solid var(--border)}
+    .breadcrumb{display:flex;align-items:center;gap:0.35rem;font-size:0.8rem;color:var(--text-muted);padding:1.25rem 0 0;flex-wrap:wrap}
+    .breadcrumb a{color:var(--text-secondary);text-decoration:none;transition:color 0.2s}
+    .breadcrumb a:hover{color:var(--blue)}
+    .breadcrumb svg{width:12px;height:12px;opacity:0.4}
 
-    .post-content{max-width:800px;margin:0 auto;padding:2rem 1.5rem;font-family:'Source Serif 4','Georgia',serif;font-size:1rem;line-height:1.9;color:hsl(30,10%,30%);animation:fadeUp 0.5s 0.15s ease-out both}
-    .post-content h1{font-family:var(--font-display);font-size:1.7rem;color:var(--text);margin:2.5rem 0 1rem;line-height:1.3;font-weight:700;letter-spacing:-0.01em}
-    .post-content h2{font-family:var(--font-display);font-size:1.4rem;color:var(--text);margin:2.25rem 0 0.85rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);line-height:1.35;font-weight:700}
-    .post-content h3{font-family:var(--font-display);font-size:1.15rem;color:hsl(30,12%,25%);margin:1.75rem 0 0.65rem;font-weight:600}
-    .post-content p{margin-bottom:1.35rem}
-    .post-content ul,.post-content ol{margin:1rem 0 1.5rem 1.5rem}
-    .post-content li{margin-bottom:0.5rem}
-    .post-content strong{color:var(--text);font-weight:700}
-    .post-content a{color:var(--gold-dark);text-decoration:underline;text-underline-offset:3px;text-decoration-color:hsla(35,90%,45%,0.35);transition:text-decoration-color 0.2s}
-    .post-content a:hover{text-decoration-color:var(--gold-dark)}
-    .post-content blockquote{border-left:3px solid var(--gold);padding:0.75rem 1.25rem;margin:1.5rem 0;background:hsl(35,20%,95%);border-radius:0 var(--radius) var(--radius) 0;font-style:italic;color:var(--text-secondary)}
+    .article-header{padding:1.25rem 0 1.5rem;border-bottom:1px solid var(--border)}
+    .article-header .cat-row{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.85rem;flex-wrap:wrap}
+    .cat-badge{display:inline-flex;align-items:center;gap:0.3rem;font-size:0.72rem;font-weight:600;padding:0.25rem 0.7rem;border-radius:var(--radius);text-decoration:none;text-transform:uppercase;letter-spacing:0.04em;color:#fff;background:var(--blue);transition:background 0.2s}
+    .cat-badge:hover{background:var(--blue-dark)}
+    .gs-tag{display:inline-flex;align-items:center;gap:0.25rem;font-size:0.7rem;font-weight:600;padding:0.2rem 0.6rem;border-radius:var(--radius);border:1px solid var(--blue-border);color:var(--blue);background:var(--blue-bg);text-decoration:none;transition:all 0.2s}
+    .gs-tag:hover{background:rgba(37,99,235,0.12)}
+    .article-header h1{font-family:var(--font-display);font-size:2rem;color:var(--text);line-height:1.25;font-weight:800;letter-spacing:-0.02em;margin-bottom:1rem}
+    .meta-row{display:flex;align-items:center;gap:0.75rem;color:var(--text-muted);font-size:0.82rem;flex-wrap:wrap}
+    .meta-row svg{width:14px;height:14px;opacity:0.55}
+    .meta-item{display:flex;align-items:center;gap:0.3rem}
+    .meta-sep{width:3px;height:3px;border-radius:50%;background:var(--text-muted);opacity:0.45}
 
-    .post-tags{max-width:800px;margin:1.5rem auto;padding:0 1.5rem;display:flex;flex-wrap:wrap;gap:0.5rem;animation:fadeUp 0.5s 0.2s ease-out both}
-    .post-tags a{background:var(--bg-card);color:var(--text-secondary);padding:0.3rem 0.8rem;border-radius:9999px;font-size:0.78rem;border:1px solid var(--border);text-decoration:none;transition:all 0.25s;font-weight:500;font-family:'Inter',sans-serif}
-    .post-tags a:hover{border-color:hsla(35,90%,45%,0.35);color:var(--gold-dark)}
+    .cover-img{margin:1.5rem 0;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
+    .cover-img img{width:100%;display:block;max-height:400px;object-fit:cover}
 
-    .post-cta{max-width:800px;margin:2.5rem auto;padding:0 1.5rem;animation:fadeUp 0.5s 0.25s ease-out both}
-    .post-cta-inner{position:relative;overflow:hidden;background:linear-gradient(135deg,hsl(35,40%,95%),hsl(40,30%,97%));border:1px solid hsla(35,90%,45%,0.15);padding:2.5rem 2rem;border-radius:var(--radius);text-align:center}
-    .post-cta-inner::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,hsla(35,90%,45%,0.06),transparent 60%);pointer-events:none}
-    .post-cta-grid{position:absolute;inset:0;background-image:linear-gradient(hsla(35,90%,45%,0.04) 1px,transparent 1px),linear-gradient(90deg,hsla(35,90%,45%,0.04) 1px,transparent 1px);background-size:32px 32px;animation:gridPulse 4s ease-in-out infinite;pointer-events:none}
-    .post-cta-inner h3{font-family:var(--font-display);font-size:1.3rem;color:var(--text);margin-bottom:0.5rem;position:relative;font-weight:700}
-    .post-cta-inner p{color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.25rem;max-width:500px;margin-left:auto;margin-right:auto;position:relative}
-    .post-cta-inner a{display:inline-block;background:var(--gold);color:#fff;padding:0.65rem 1.75rem;border-radius:0.5rem;text-decoration:none;font-weight:700;font-size:0.9rem;transition:all 0.25s;position:relative;box-shadow:0 4px 16px hsla(35,90%,45%,0.2)}
-    .post-cta-inner a:hover{box-shadow:0 6px 24px hsla(35,90%,45%,0.3);transform:translateY(-1px)}
+    .article-body{padding:1.5rem 0;font-family:var(--font-serif);font-size:1.02rem;line-height:1.95;color:#374151}
+    .article-body h1{font-family:var(--font-display);font-size:1.55rem;color:var(--text);margin:2.25rem 0 0.85rem;line-height:1.3;font-weight:700}
+    .article-body h2{font-family:var(--font-display);font-size:1.3rem;color:var(--text);margin:2rem 0 0.75rem;padding-left:0.85rem;line-height:1.35;font-weight:700;border-left:3px solid var(--blue);position:relative}
+    .article-body h3{font-family:var(--font-display);font-size:1.1rem;color:var(--text);margin:1.5rem 0 0.6rem;font-weight:600}
+    .article-body p{margin-bottom:1.25rem}
+    .article-body ul,.article-body ol{margin:0.75rem 0 1.25rem 1.5rem}
+    .article-body li{margin-bottom:0.45rem}
+    .article-body li::marker{color:var(--blue)}
+    .article-body strong{color:var(--text);font-weight:700}
+    .article-body a{color:var(--blue);text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(37,99,235,0.3);transition:text-decoration-color 0.2s}
+    .article-body a:hover{text-decoration-color:var(--blue)}
+    .article-body blockquote{border-left:3px solid var(--blue);padding:0.85rem 1.25rem;margin:1.5rem 0;background:var(--blue-bg);border-radius:0 var(--radius) var(--radius) 0;font-style:italic;color:var(--text-secondary)}
+    .article-body table{width:100%;border-collapse:collapse;margin:1.25rem 0;font-family:var(--font-body);font-size:0.88rem}
+    .article-body th{background:var(--blue);color:#fff;padding:0.6rem 0.85rem;text-align:left;font-weight:600;font-size:0.82rem}
+    .article-body td{padding:0.55rem 0.85rem;border-bottom:1px solid var(--border)}
+    .article-body tr:nth-child(even) td{background:rgba(37,99,235,0.03)}
+    .article-body code{background:rgba(37,99,235,0.06);padding:0.15rem 0.4rem;border-radius:4px;font-size:0.88em}
+    .article-body pre{background:#1e293b;color:#e2e8f0;padding:1rem 1.25rem;border-radius:var(--radius);overflow-x:auto;margin:1.25rem 0;font-size:0.85rem}
+    .article-body img{max-width:100%;border-radius:var(--radius);margin:1rem 0}
+    .article-body hr{border:none;height:1px;background:var(--border);margin:2rem 0}
 
-    .site-footer{border-top:1px solid var(--border);padding:2rem 1.5rem;margin-top:1rem;position:relative}
-    .site-footer::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
-    .footer-inner{max-width:800px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+    .tags-section{padding:1.5rem 0;border-top:1px solid var(--border)}
+    .tags-section h3{font-family:var(--font-display);font-size:0.82rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.65rem}
+    .tags-list{display:flex;flex-wrap:wrap;gap:0.4rem}
+    .tags-list a{display:inline-block;background:var(--blue-bg);color:var(--blue);padding:0.25rem 0.65rem;border-radius:var(--radius);font-size:0.78rem;border:1px solid var(--blue-border);text-decoration:none;transition:all 0.2s;font-weight:500}
+    .tags-list a:hover{background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.3)}
+
+    .nav-posts{display:flex;gap:1rem;padding:1.5rem 0;border-top:1px solid var(--border)}
+    .nav-post{flex:1;padding:0.85rem;border-radius:var(--radius);border:1px solid var(--border);text-decoration:none;transition:all 0.2s;background:#fff;min-width:0}
+    .nav-post:hover{border-color:var(--blue-border);background:var(--blue-bg)}
+    .nav-post-label{font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--blue);margin-bottom:0.3rem;display:flex;align-items:center;gap:0.3rem}
+    .nav-post-label svg{width:12px;height:12px}
+    .nav-post-title{font-size:0.85rem;font-weight:600;color:var(--text);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .nav-post.next{text-align:right}
+    .nav-post.next .nav-post-label{justify-content:flex-end}
+
+    .cta-box{margin:1.5rem 0;padding:1.75rem;border-radius:var(--radius);background:linear-gradient(135deg,#1e40af,var(--blue),#3b82f6);color:#fff;text-align:center;position:relative;overflow:hidden}
+    .cta-box::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='g' patternUnits='userSpaceOnUse' width='40' height='40'%3E%3Cpath d='M0 40L40 0H20L0 20zM40 40V20L20 40z' fill='rgba(255,255,255,0.04)'/%3E%3C/pattern%3E%3C/defs%3E%3Crect fill='url(%23g)' width='40' height='40'/%3E%3C/svg%3E");pointer-events:none}
+    .cta-box h3{font-family:var(--font-display);font-size:1.2rem;font-weight:700;margin-bottom:0.4rem;position:relative}
+    .cta-box p{font-size:0.88rem;opacity:0.9;margin-bottom:1rem;max-width:420px;margin-left:auto;margin-right:auto;position:relative}
+    .cta-btn{display:inline-block;background:#fff;color:var(--blue);padding:0.6rem 1.5rem;border-radius:var(--radius);text-decoration:none;font-weight:700;font-size:0.88rem;transition:all 0.2s;position:relative;box-shadow:0 2px 12px rgba(0,0,0,0.1)}
+    .cta-btn:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,0.15)}
+
+    /* Sidebar */
+    .sb-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1rem;overflow:hidden}
+    .sb-card-head{padding:0.7rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.5rem;background:linear-gradient(135deg,var(--blue-bg),rgba(37,99,235,0.02))}
+    .sb-card-head svg{width:16px;height:16px;color:var(--blue);flex-shrink:0}
+    .sb-card-head h3{font-family:var(--font-display);font-size:0.82rem;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.04em}
+    .sb-card-body{padding:0.65rem 0}
+
+    .toc-list{list-style:none}
+    .toc-item{position:relative}
+    .toc-item a{display:block;padding:0.35rem 1rem;font-size:0.8rem;color:var(--text-secondary);text-decoration:none;transition:all 0.2s;border-left:2px solid transparent;line-height:1.4}
+    .toc-item a:hover,.toc-item a.toc-active{color:var(--blue);background:var(--blue-bg);border-left-color:var(--blue)}
+    .toc-item.toc-h3 a{padding-left:1.75rem;font-size:0.77rem}
+
+    .sb-related-item{display:block;padding:0.65rem 1rem;text-decoration:none;border-bottom:1px solid var(--border);transition:background 0.2s}
+    .sb-related-item:last-child{border-bottom:none}
+    .sb-related-item:hover{background:var(--blue-bg)}
+    .sb-related-item h4{font-size:0.82rem;color:var(--text);font-weight:600;line-height:1.35;margin-bottom:0.2rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .sb-related-meta{display:flex;align-items:center;gap:0.5rem;font-size:0.7rem;color:var(--text-muted);margin-bottom:0.25rem}
+    .sb-related-cat{color:var(--blue);font-weight:600}
+    .sb-related-read{font-size:0.7rem;color:var(--text-muted)}
+
+    .sb-tags-wrap{padding:0.65rem 1rem;display:flex;flex-wrap:wrap;gap:0.35rem}
+    .sb-tag{display:inline-block;padding:0.2rem 0.55rem;font-size:0.72rem;border-radius:var(--radius);background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border);text-decoration:none;font-weight:500;transition:all 0.2s}
+    .sb-tag:hover{background:rgba(37,99,235,0.12)}
+
+    .sb-cta{padding:1rem;text-align:center}
+    .sb-cta p{font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.65rem;line-height:1.4}
+    .sb-cta a{display:block;background:var(--blue);color:#fff;padding:0.55rem 1rem;border-radius:var(--radius);text-decoration:none;font-weight:600;font-size:0.82rem;transition:background 0.2s}
+    .sb-cta a:hover{background:var(--blue-dark)}
+
+    .site-footer{border-top:1px solid var(--border);padding:2rem 1.5rem;background:#fff}
+    .footer-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
     .footer-brand{display:flex;align-items:center;gap:0.5rem;color:var(--text);font-weight:700;font-size:0.95rem;text-decoration:none}
     .footer-brand img{width:24px;height:24px;object-fit:contain}
-    .footer-brand .ai-text{color:var(--gold-dark)}
-    .footer-copy{font-size:0.82rem;color:var(--text-muted)}
+    .footer-brand .ai-text{color:var(--blue)}
+    .footer-copy{font-size:0.8rem;color:var(--text-muted)}
     .footer-links{display:flex;gap:1.5rem}
-    .footer-links a{color:var(--text-secondary);text-decoration:none;font-size:0.82rem;transition:color 0.25s}
-    .footer-links a:hover{color:var(--gold-dark)}
+    .footer-links a{color:var(--text-secondary);text-decoration:none;font-size:0.8rem;transition:color 0.2s}
+    .footer-links a:hover{color:var(--blue)}
 
+    @media(max-width:960px){
+      .sidebar-col{display:none}
+      .page-wrapper{max-width:var(--content-max);gap:0}
+    }
     @media(max-width:640px){
-      .post-hero h1{font-size:1.6rem}
-      .post-hero{padding:1.5rem 1rem 0}
-      .post-content{padding:1.5rem 1rem;font-size:0.92rem}
-      .post-cover{padding:0 1rem}
-      .post-tags{padding:0 1rem}
-      .post-cta{padding:0 1rem}
+      .article-header h1{font-size:1.5rem}
+      .page-wrapper{padding:0 1rem}
       .top-bar{padding:0 1rem}
       .footer-inner{flex-direction:column;text-align:center}
+      .nav-posts{flex-direction:column}
     }
   </style>
 </head>
 <body>
   <div class="read-bar" id="readBar"></div>
-  <header class="top-bar">
-    <a href="/" class="top-bar-logo">
-      <img src="/favicon_final.webp" alt="Learnpro AI" />
+  <header class="top-bar" data-testid="blog-header">
+    <a href="/" class="top-bar-logo" data-testid="logo-link">
+      <img src="/favicon_final.webp" alt="Learnpro AI" width="32" height="32" />
       Learnpro <span class="ai-text">AI</span>
     </a>
-    <nav class="top-bar-nav">
-      <a href="/">Home</a>
-      <a href="/blog">Blog</a>
+    <nav class="top-bar-nav" data-testid="top-nav">
+      <a href="/" data-testid="nav-home">Home</a>
+      <a href="/blog" data-testid="nav-blog">Blog</a>
     </nav>
   </header>
 
-  <div class="post-hero">
-    <div class="post-breadcrumb">
-      <a href="/">Home</a><span>/</span>
-      <a href="/blog">Blog</a><span>/</span>
-      <a href="/blog?category=${post.category}">${(CATEGORY_DISPLAY[post.category] || CATEGORY_DISPLAY["general"]).label}</a>
-    </div>
-    <a href="/blog?category=${post.category}" class="post-category">${(CATEGORY_DISPLAY[post.category] || CATEGORY_DISPLAY["general"]).label}</a>
-    <h1>${post.title}</h1>
-    <div class="post-meta">
-      <span class="post-meta-item"><time datetime="${publishedDate}">${readableDate}</time></span>
-      <span class="post-meta-dot"></span>
-      <span class="post-meta-item">${post.readingTimeMinutes} min read</span>
-      <span class="post-meta-dot"></span>
-      <span class="post-meta-item">By Learnpro AI</span>
-    </div>
+  <div class="page-wrapper">
+    <main class="main-col">
+      <nav class="breadcrumb" aria-label="Breadcrumb" data-testid="breadcrumb">
+        <a href="/">Home</a>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        <a href="/blog">Blog</a>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        <a href="/blog?category=${post.category}">${catInfo.label}</a>
+      </nav>
+
+      <header class="article-header" data-testid="article-header">
+        <div class="cat-row">
+          <a href="/blog?category=${post.category}" class="cat-badge" data-testid="category-badge">${catInfo.label}</a>
+          <a href="/blog?category=${post.category}" class="gs-tag">${post.category.startsWith('gs-paper') ? post.category.replace('gs-paper-', 'GS Paper ') : catInfo.label}</a>
+        </div>
+        <h1 data-testid="article-title">${post.title}</h1>
+        <div class="meta-row" data-testid="article-meta">
+          <span class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <time datetime="${publishedDate}">${readableDate}</time>
+          </span>
+          <span class="meta-sep"></span>
+          <span class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            ${post.readingTimeMinutes} min read
+          </span>
+          <span class="meta-sep"></span>
+          <span class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Learnpro AI Editorial
+          </span>
+        </div>
+      </header>
+
+      ${post.coverImageUrl ? `<div class="cover-img" data-testid="cover-image"><img src="${post.coverImageUrl}" alt="${post.coverImageAlt || post.title}" width="800" height="400" loading="eager" /></div>` : ''}
+
+      <article class="article-body" id="articleBody" itemprop="articleBody" data-testid="article-body">
+        ${post.htmlContent}
+      </article>
+
+      ${(post.tags && post.tags.length > 0) ? `
+      <section class="tags-section" data-testid="tags-section">
+        <h3>Tags</h3>
+        <div class="tags-list">
+          ${post.tags.map((t: string) => `<a href="/blog" data-testid="tag-${t}">${t}</a>`).join('')}
+        </div>
+      </section>` : ''}
+
+      <div class="cta-box" data-testid="cta-box">
+        <h3>Supercharge Your UPSC Preparation</h3>
+        <p>AI-powered study tools, daily current affairs, quizzes, and personalized study plans.</p>
+        <a href="/" class="cta-btn" data-testid="cta-button">Start Free on Learnpro AI</a>
+      </div>
+
+      ${(prevPost || nextPost) ? `
+      <nav class="nav-posts" data-testid="post-navigation">
+        ${prevPost ? `<a href="/blog/${prevPost.slug}" class="nav-post prev" data-testid="prev-post">
+          <div class="nav-post-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg> Previous</div>
+          <div class="nav-post-title">${prevPost.title}</div>
+        </a>` : '<div></div>'}
+        ${nextPost ? `<a href="/blog/${nextPost.slug}" class="nav-post next" data-testid="next-post">
+          <div class="nav-post-label">Next <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+          <div class="nav-post-title">${nextPost.title}</div>
+        </a>` : '<div></div>'}
+      </nav>` : ''}
+    </main>
+
+    <aside class="sidebar-col" data-testid="sidebar">
+      <div class="sb-card" id="tocCard" data-testid="toc-card">
+        <div class="sb-card-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
+          <h3>Table of Contents</h3>
+        </div>
+        <div class="sb-card-body">
+          <ul class="toc-list" id="tocList" data-testid="toc-list"></ul>
+        </div>
+      </div>
+
+      ${relatedPosts.length > 0 ? `
+      <div class="sb-card" data-testid="related-posts-card">
+        <div class="sb-card-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+          <h3>Related Articles</h3>
+        </div>
+        <div class="sb-card-body" style="padding:0">
+          ${relatedHtml}
+        </div>
+      </div>` : ''}
+
+      ${(post.tags && post.tags.length > 0) ? `
+      <div class="sb-card" data-testid="sidebar-tags-card">
+        <div class="sb-card-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7" cy="7" r="1"/></svg>
+          <h3>Tags</h3>
+        </div>
+        <div class="sb-tags-wrap">
+          ${post.tags.map((t: string) => `<a href="/blog" class="sb-tag">${t}</a>`).join('')}
+        </div>
+      </div>` : ''}
+
+      <div class="sb-card" data-testid="sidebar-cta">
+        <div class="sb-card-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <h3>Start Preparing</h3>
+        </div>
+        <div class="sb-cta">
+          <p>Join aspirants using AI-powered tools for UPSC and State PSC prep.</p>
+          <a href="/" data-testid="sidebar-cta-btn">Try Learnpro AI Free</a>
+        </div>
+      </div>
+    </aside>
   </div>
-  ${post.coverImageUrl ? `<div class="post-cover"><img src="${post.coverImageUrl}" alt="${post.coverImageAlt || post.title}" width="800" height="420" /></div>` : ''}
-  <article class="post-content" itemprop="articleBody">
-    ${post.htmlContent}
-  </article>
-  ${(post.tags && post.tags.length > 0) ? `
-  <div class="post-tags">
-    ${post.tags.map((t: string) => `<a href="/blog">#${t}</a>`).join('')}
-  </div>` : ''}
-  <div class="post-cta">
-    <div class="post-cta-inner">
-      <div class="post-cta-grid"></div>
-      <h3>Supercharge Your UPSC Preparation</h3>
-      <p>Join thousands of aspirants using AI-powered study tools, daily current affairs, practice quizzes, and personalized study plans.</p>
-      <a href="/">Start Free on Learnpro AI</a>
-    </div>
-  </div>
-  <footer class="site-footer">
+
+  <footer class="site-footer" data-testid="blog-footer">
     <div class="footer-inner">
       <a href="/" class="footer-brand">
-        <img src="/favicon_final.webp" alt="Learnpro AI" />
+        <img src="/favicon_final.webp" alt="Learnpro AI" width="24" height="24" />
         Learnpro <span class="ai-text">AI</span>
       </a>
-      <span class="footer-copy">&copy; ${new Date().getFullYear()} Learnpro AI. All rights reserved.</span>
+      <span class="footer-copy">&#169; ${new Date().getFullYear()} Learnpro AI. All rights reserved.</span>
       <nav class="footer-links">
         <a href="/">Home</a>
         <a href="/blog">Blog</a>
@@ -874,15 +1031,57 @@ function renderBlogPostHtml(post: any): string {
     </div>
   </footer>
   <script>
-    (function(){
-      var bar=document.getElementById('readBar');
-      if(!bar)return;
+  (function(){
+    var bar=document.getElementById('readBar');
+    if(bar){
       window.addEventListener('scroll',function(){
         var h=document.documentElement;
         var pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;
         bar.style.width=Math.min(100,Math.max(0,pct))+'%';
       },{passive:true});
-    })();
+    }
+
+    var body=document.getElementById('articleBody');
+    var tocList=document.getElementById('tocList');
+    var tocCard=document.getElementById('tocCard');
+    if(body && tocList){
+      var headings=body.querySelectorAll('h1,h2,h3');
+      if(headings.length===0){tocCard.style.display='none';}
+      else{
+        var ids=[];
+        headings.forEach(function(h,i){
+          var id='s'+i;
+          h.setAttribute('id',id);
+          ids.push({id:id,tag:h.tagName,text:h.textContent||''});
+          var li=document.createElement('li');
+          li.className='toc-item'+(h.tagName==='H3'?' toc-h3':'');
+          var a=document.createElement('a');
+          a.href='#'+id;
+          a.textContent=h.textContent||'';
+          a.addEventListener('click',function(e){
+            e.preventDefault();
+            h.scrollIntoView({behavior:'smooth',block:'start'});
+            history.replaceState(null,'',a.href);
+          });
+          li.appendChild(a);
+          tocList.appendChild(li);
+        });
+
+        var tocLinks=tocList.querySelectorAll('a');
+        var observer=new IntersectionObserver(function(entries){
+          entries.forEach(function(en){
+            if(en.isIntersecting){
+              var activeId=en.target.id;
+              tocLinks.forEach(function(l){
+                l.classList.toggle('toc-active',l.getAttribute('href')==='#'+activeId);
+              });
+            }
+          });
+        },{rootMargin:'-80px 0px -70% 0px',threshold:0});
+        headings.forEach(function(h){observer.observe(h);});
+      }
+    }
+  })();
   </script>
 </body>
 </html>`;
@@ -1037,8 +1236,36 @@ export function registerBlogRoutes(app: any) {
         return res.status(404).send("Post not found");
       }
 
+      const [relatedPosts, allPublished] = await Promise.all([
+        db
+          .select({
+            slug: blogPosts.slug,
+            title: blogPosts.title,
+            category: blogPosts.category,
+            readingTimeMinutes: blogPosts.readingTimeMinutes,
+            publishedAt: blogPosts.publishedAt,
+            coverImageUrl: blogPosts.coverImageUrl,
+            excerpt: blogPosts.excerpt,
+          })
+          .from(blogPosts)
+          .where(sql`${blogPosts.published} = true AND ${blogPosts.slug} != ${req.params.slug}`)
+          .orderBy(desc(blogPosts.publishedAt))
+          .limit(5),
+        db
+          .select({ slug: blogPosts.slug, title: blogPosts.title, publishedAt: blogPosts.publishedAt })
+          .from(blogPosts)
+          .where(eq(blogPosts.published, true))
+          .orderBy(desc(blogPosts.publishedAt)),
+      ]);
+
+      let prevPost = null;
+      let nextPost = null;
+      const idx = allPublished.findIndex(p => p.slug === post.slug);
+      if (idx > 0) nextPost = allPublished[idx - 1];
+      if (idx < allPublished.length - 1) prevPost = allPublished[idx + 1];
+
       res.set("Content-Type", "text/html");
-      res.send(renderBlogPostHtml(post));
+      res.send(renderBlogPostHtml(post, relatedPosts, prevPost, nextPost));
     } catch (e) {
       console.error("Error rendering blog post:", e);
       res.status(500).send("Error loading post");
