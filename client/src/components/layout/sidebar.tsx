@@ -90,102 +90,111 @@ export function Sidebar() {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-secondary/30 border-r border-border">
-      <div className="p-6">
+      <div className="px-4 pt-4 pb-2 flex-shrink-0">
         <Link href="/" onClick={() => setIsMobileOpen(false)}>
-           <div className="cursor-pointer hover:opacity-90 transition-opacity">
+           <div className="cursor-pointer hover:opacity-90 transition-opacity px-2">
              <Logo size="md" />
            </div>
         </Link>
         <Button 
           onClick={handleNewChat}
-          className="w-full mt-6 justify-start gap-2 h-12 text-base font-medium shadow-sm hover:shadow-md transition-all bg-background hover:bg-background border-2 border-primary/20 text-foreground hover:border-primary/50"
+          className="w-full mt-4 justify-start gap-2 h-10 text-sm font-medium shadow-sm hover:shadow-md transition-all bg-background hover:bg-background border-2 border-primary/20 text-foreground hover:border-primary/50"
           variant="outline"
           data-testid="button-new-chat"
         >
-          <Plus className="h-5 w-5 text-primary" />
+          <Plus className="h-4 w-4 text-primary" />
           {t.nav.newChat}
         </Button>
 
-        <Link href="/current-affairs" onClick={() => setIsMobileOpen(false)}>
-          <Button
-            variant={location.startsWith("/current-affairs") ? "default" : "ghost"}
-            className="w-full mt-2 justify-start gap-2"
-            data-testid="link-current-affairs"
-          >
-            <Newspaper className="h-5 w-5" />
-            {t.nav.currentAffairs}
-          </Button>
-        </Link>
+        <div className="mt-1 space-y-0.5">
+          <Link href="/current-affairs" onClick={() => setIsMobileOpen(false)}>
+            <Button
+              variant={location.startsWith("/current-affairs") ? "default" : "ghost"}
+              className="w-full justify-start gap-2"
+              size="sm"
+              data-testid="link-current-affairs"
+            >
+              <Newspaper className="h-4 w-4" />
+              {t.nav.currentAffairs}
+            </Button>
+          </Link>
 
-        <Link href="/practice-quiz" onClick={() => setIsMobileOpen(false)}>
-          <Button
-            variant={location === "/practice-quiz" ? "default" : "ghost"}
-            className="w-full mt-2 justify-start gap-2"
-            data-testid="link-practice-quiz"
-          >
-            <Brain className="h-5 w-5" />
-            {t.nav.practiceQuiz}
-          </Button>
-        </Link>
+          <Link href="/practice-quiz" onClick={() => setIsMobileOpen(false)}>
+            <Button
+              variant={location === "/practice-quiz" ? "default" : "ghost"}
+              className="w-full justify-start gap-2"
+              size="sm"
+              data-testid="link-practice-quiz"
+            >
+              <Brain className="h-4 w-4" />
+              {t.nav.practiceQuiz}
+            </Button>
+          </Link>
 
-        <Link href="/paper-evaluation" onClick={() => setIsMobileOpen(false)}>
-          <Button
-            variant={location === "/paper-evaluation" ? "default" : "ghost"}
-            className="w-full mt-2 justify-start gap-2"
-            data-testid="link-paper-evaluation"
-          >
-            <FileCheck className="h-5 w-5" />
-            {t.nav.answerEvaluation}
-          </Button>
-        </Link>
+          <Link href="/paper-evaluation" onClick={() => setIsMobileOpen(false)}>
+            <Button
+              variant={location === "/paper-evaluation" ? "default" : "ghost"}
+              className="w-full justify-start gap-2"
+              size="sm"
+              data-testid="link-paper-evaluation"
+            >
+              <FileCheck className="h-4 w-4" />
+              {t.nav.answerEvaluation}
+            </Button>
+          </Link>
 
-        <Link href="/notes" onClick={() => setIsMobileOpen(false)}>
-          <Button
-            variant={location === "/notes" ? "default" : "ghost"}
-            className="w-full mt-2 justify-start gap-2"
-            data-testid="link-my-notes"
-          >
-            <StickyNote className="h-5 w-5" />
-            {t.nav.myNotes}
-          </Button>
-        </Link>
+          <Link href="/notes" onClick={() => setIsMobileOpen(false)}>
+            <Button
+              variant={location === "/notes" ? "default" : "ghost"}
+              className="w-full justify-start gap-2"
+              size="sm"
+              data-testid="link-my-notes"
+            >
+              <StickyNote className="h-4 w-4" />
+              {t.nav.myNotes}
+            </Button>
+          </Link>
 
-        <Link href="/study-planner" onClick={() => setIsMobileOpen(false)}>
-          <Button
-            variant={location === "/study-planner" ? "default" : "ghost"}
-            className="w-full mt-2 justify-start gap-2"
-            data-testid="link-study-planner"
-          >
-            <CalendarCheck className="h-5 w-5" />
-            {t.nav.studyPlanner}
-          </Button>
-        </Link>
+          <Link href="/study-planner" onClick={() => setIsMobileOpen(false)}>
+            <Button
+              variant={location === "/study-planner" ? "default" : "ghost"}
+              className="w-full justify-start gap-2"
+              size="sm"
+              data-testid="link-study-planner"
+            >
+              <CalendarCheck className="h-4 w-4" />
+              {t.nav.studyPlanner}
+            </Button>
+          </Link>
 
-        <Link href="/study-progress" onClick={() => setIsMobileOpen(false)}>
-          <Button
-            variant={location === "/study-progress" ? "default" : "ghost"}
-            className="w-full mt-2 justify-start gap-2"
-            data-testid="link-study-progress"
-          >
-            <BarChart3 className="h-5 w-5" />
-            {t.nav.studyProgress}
-          </Button>
-        </Link>
+          <Link href="/study-progress" onClick={() => setIsMobileOpen(false)}>
+            <Button
+              variant={location === "/study-progress" ? "default" : "ghost"}
+              className="w-full justify-start gap-2"
+              size="sm"
+              data-testid="link-study-progress"
+            >
+              <BarChart3 className="h-4 w-4" />
+              {t.nav.studyProgress}
+            </Button>
+          </Link>
 
-        <a href="/blog" onClick={() => setIsMobileOpen(false)}>
-          <Button
-            variant="ghost"
-            className="w-full mt-2 justify-start gap-2"
-            data-testid="link-blog"
-          >
-            <BookOpen className="h-5 w-5" />
-            {t.nav?.blog || "Articles"}
-          </Button>
-        </a>
+          <a href="/blog" onClick={() => setIsMobileOpen(false)}>
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-2"
+              size="sm"
+              data-testid="link-blog"
+            >
+              <BookOpen className="h-4 w-4" />
+              {t.nav?.blog || "Articles"}
+            </Button>
+          </a>
+        </div>
       </div>
 
       <div className="flex-1 min-h-0 flex flex-col px-4">
-        <div className="text-xs font-semibold text-muted-foreground mb-3 px-2 uppercase tracking-wider flex-shrink-0">
+        <div className="text-xs font-semibold text-muted-foreground mb-2 px-2 uppercase tracking-wider flex-shrink-0">
           {t.nav.history}
         </div>
         <ScrollArea className="flex-1 min-h-0">
@@ -253,18 +262,18 @@ export function Sidebar() {
         </ScrollArea>
       </div>
 
-      <div className="p-4 border-t border-border/50 bg-background/50">
-        <div className="space-y-2">
+      <div className="px-4 py-3 border-t border-border/50 bg-background/50 flex-shrink-0">
+        <div className="space-y-1.5">
           {isPro ? (
             <Link href="/subscription" className="block" onClick={() => setIsMobileOpen(false)}>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 text-primary text-sm font-semibold border border-primary/20 cursor-pointer hover:shadow-sm transition-all">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-sm font-semibold border border-primary/20 cursor-pointer hover:shadow-sm transition-all">
                 <Crown className="h-4 w-4" />
                 <span>{tierLabel} Plan Active</span>
               </div>
             </Link>
           ) : (
             <Link href="/subscription" className="block" onClick={() => setIsMobileOpen(false)}>
-              <div className="group flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 border border-amber-200 dark:border-amber-700/50 text-amber-900 dark:text-amber-300 text-sm font-semibold cursor-pointer hover:shadow-md transition-all">
+              <div className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 border border-amber-200 dark:border-amber-700/50 text-amber-900 dark:text-amber-300 text-sm font-semibold cursor-pointer hover:shadow-md transition-all">
                 <Crown className="h-4 w-4 group-hover:scale-110 transition-transform" />
                 <span>{t.nav.upgradePro}</span>
               </div>
@@ -273,7 +282,7 @@ export function Sidebar() {
 
           <Popover>
             <PopoverTrigger asChild>
-              <div className="pt-2 flex items-center justify-between px-2 cursor-pointer rounded-md hover-elevate py-2" data-testid="button-profile-menu">
+              <div className="flex items-center justify-between px-2 cursor-pointer rounded-md hover-elevate py-1.5" data-testid="button-profile-menu">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <div className="relative">
                     <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold border border-primary/20">
