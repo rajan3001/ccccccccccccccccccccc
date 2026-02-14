@@ -383,13 +383,11 @@ const CATEGORY_DISPLAY: Record<string, { label: string; description: string }> =
 
 function renderBlogListHtml(posts: any[], page: number, totalPages: number, activeCategory: string, categoryCounts: Record<string, number>): string {
   const catInfo = CATEGORY_DISPLAY[activeCategory] || CATEGORY_DISPLAY["all"];
-  const categoryParam = activeCategory !== "all" ? `&category=${activeCategory}` : '';
-  const categoryParamFirst = activeCategory !== "all" ? `?category=${activeCategory}` : '';
 
   const postCards = posts.length > 0 ? posts.map(post => {
     const postCatInfo = CATEGORY_DISPLAY[post.category] || CATEGORY_DISPLAY["general"];
     return `
-    <article class="blog-card" itemscope itemtype="https://schema.org/Article">
+    <article class="blog-card" data-category="${post.category}" itemscope itemtype="https://schema.org/Article">
       <a href="/blog/${post.slug}" class="blog-card-link">
         <div class="blog-card-image">
           ${post.coverImageUrl ? `<img src="${post.coverImageUrl}" alt="${post.coverImageAlt || post.title}" loading="lazy" width="800" height="450" />` : `<div class="blog-card-placeholder"><span class="placeholder-label">${postCatInfo.label}</span></div>`}
@@ -405,29 +403,16 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
         </div>
       </a>
     </article>`;
-  }).join('') : `<div class="blog-empty"><p>No articles found in this category yet. Check back soon!</p><a href="/blog" class="blog-back-link">View All Articles</a></div>`;
-
-  const pagination = totalPages > 1 ? `
-    <nav class="pagination" aria-label="Blog pagination">
-      ${page > 1 ? `<a href="/blog?page=${page - 1}${categoryParam}" class="pg-arrow">&larr; Previous</a>` : ''}
-      <div class="pg-numbers">
-        ${Array.from({ length: totalPages }, (_, i) => i + 1).map(p =>
-          `<a href="/blog?page=${p}${categoryParam}" ${p === page ? 'class="active"' : ''}>${p}</a>`
-        ).join('')}
-      </div>
-      ${page < totalPages ? `<a href="/blog?page=${page + 1}${categoryParam}" class="pg-arrow">Next &rarr;</a>` : ''}
-    </nav>
-  ` : '';
+  }).join('') : '';
 
   const categoryTabs = Object.entries(CATEGORY_DISPLAY).map(([key, val]) => {
     const count = key === "all" ? Object.values(categoryCounts).reduce((a, b) => a + b, 0) : (categoryCounts[key] || 0);
     if (key !== "all" && count === 0) return '';
     const isActive = key === activeCategory;
-    const href = key === "all" ? "/blog" : `/blog?category=${key}`;
-    return `<a href="${href}" class="cat-tab${isActive ? ' cat-active' : ''}" data-testid="blog-category-${key}">
+    return `<button type="button" class="cat-tab${isActive ? ' cat-active' : ''}" data-testid="blog-category-${key}" data-cat="${key}">
       <span class="cat-label">${val.label}</span>
       <span class="cat-count">${count}</span>
-    </a>`;
+    </button>`;
   }).filter(Boolean).join('');
 
   return `<!DOCTYPE html>
@@ -438,17 +423,17 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
   <title>${activeCategory !== 'all' ? `${catInfo.label} - ` : ''}UPSC Preparation Blog | Learnpro AI</title>
   <meta name="description" content="${activeCategory !== 'all' ? catInfo.description + ' - ' : ''}Expert UPSC preparation tips, IAS study strategies, current affairs analysis, and exam guidance. Free resources for Civil Services aspirants by Learnpro AI.">
   <meta name="keywords" content="UPSC blog, IAS preparation tips, Civil Services strategy, UPSC study plan, current affairs UPSC, UPSC topper strategy${activeCategory !== 'all' ? ', ' + catInfo.label : ''}">
-  <link rel="canonical" href="https://learnproai.in/blog${page > 1 ? `?page=${page}${categoryParam}` : categoryParamFirst}">
+  <link rel="canonical" href="https://learnproai.in/blog">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="${activeCategory !== 'all' ? `${catInfo.label} - ` : ''}UPSC Blog | Learnpro AI">
-  <meta property="og:description" content="${activeCategory !== 'all' ? catInfo.description : 'Expert UPSC preparation tips, IAS study strategies, and free resources for Civil Services aspirants.'}">
-  <meta property="og:url" content="https://learnproai.in/blog${categoryParamFirst}">
+  <meta property="og:title" content="UPSC Blog | Learnpro AI">
+  <meta property="og:description" content="Expert UPSC preparation tips, IAS study strategies, and free resources for Civil Services aspirants.">
+  <meta property="og:url" content="https://learnproai.in/blog">
   <meta property="og:site_name" content="Learnpro AI">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="icon" href="/attached_assets/favicon_final.webp" type="image/webp">
+  <link rel="icon" href="/favicon_final.webp" type="image/webp">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -501,7 +486,7 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     .cat-strip{padding:0.65rem 1.5rem;border-bottom:1px solid var(--border);position:sticky;top:var(--header-h);z-index:40;background:hsla(40,33%,98%,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
     .cat-strip::-webkit-scrollbar{display:none}
     .cat-strip-inner{display:flex;gap:0.4rem;max-width:1200px;margin:0 auto;min-width:max-content}
-    .cat-tab{display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 0.9rem;border-radius:9999px;font-size:0.8rem;font-weight:500;color:var(--text-secondary);text-decoration:none;border:1px solid transparent;transition:all 0.25s;white-space:nowrap;flex-shrink:0}
+    .cat-tab{display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 0.9rem;border-radius:9999px;font-size:0.8rem;font-weight:500;color:var(--text-secondary);background:none;border:1px solid transparent;transition:all 0.25s;white-space:nowrap;flex-shrink:0;cursor:pointer;font-family:inherit}
     .cat-tab:hover{color:var(--text);background:hsl(35,15%,93%);border-color:var(--border)}
     .cat-active{background:var(--gold-dim)!important;color:var(--gold-dark)!important;border-color:hsla(35,90%,45%,0.2)!important;font-weight:600}
     .cat-count{background:hsla(30,10%,50%,0.08);padding:0.1rem 0.4rem;border-radius:9999px;font-size:0.68rem;font-weight:600;color:var(--text-muted)}
@@ -509,12 +494,12 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
 
     .main{max-width:1200px;margin:0 auto;padding:2rem 1.5rem 3rem}
     .section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.75rem;animation:fadeUp 0.5s 0.3s ease-out both}
-    .section-title h2{font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:var(--text);letter-spacing:-0.01em}
+    .section-title h2{font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:var(--text);letter-spacing:-0.01em;transition:opacity 0.25s,transform 0.25s}
     .section-title .post-count{font-size:0.85rem;color:var(--text-muted)}
 
     .blog-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
-    .blog-card{background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;transition:border-color 0.3s,transform 0.3s,box-shadow 0.3s;animation:fadeUp 0.5s ease-out both;position:relative}
-    .blog-card:hover{border-color:var(--border-hover);transform:translateY(-4px);box-shadow:0 12px 40px hsla(30,15%,30%,0.08),0 0 0 1px hsla(35,90%,45%,0.06)}
+    .blog-card{background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;transition:opacity 0.35s cubic-bezier(0.4,0,0.2,1),transform 0.35s cubic-bezier(0.4,0,0.2,1),border-color 0.3s,box-shadow 0.3s;animation:fadeUp 0.5s ease-out both;position:relative}
+    .blog-card:hover{border-color:var(--border-hover);transform:translateY(-4px) scale(1)!important;box-shadow:0 12px 40px hsla(30,15%,30%,0.08),0 0 0 1px hsla(35,90%,45%,0.06)}
     .blog-card:nth-child(1){animation-delay:0.1s}.blog-card:nth-child(2){animation-delay:0.15s}.blog-card:nth-child(3){animation-delay:0.2s}
     .blog-card:nth-child(4){animation-delay:0.25s}.blog-card:nth-child(5){animation-delay:0.3s}.blog-card:nth-child(6){animation-delay:0.35s}
     .blog-card-link{display:flex;flex-direction:column;text-decoration:none;color:inherit;height:100%;position:relative;z-index:1}
@@ -569,7 +554,7 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
 <body>
   <header class="top-bar">
     <a href="/" class="top-bar-logo">
-      <img src="/attached_assets/favicon_final.webp" alt="Learnpro AI" />
+      <img src="/favicon_final.webp" alt="Learnpro AI" />
       Learnpro <span class="ai-text">AI</span>
     </a>
     <nav class="top-bar-nav">
@@ -589,23 +574,25 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     <p>${activeCategory !== 'all' ? catInfo.description : 'In-depth articles on strategy, current affairs, subject guides, and answer writing to accelerate your preparation.'}</p>
   </section>
 
-  <div class="cat-strip"><div class="cat-strip-inner">${categoryTabs}</div></div>
+  <div class="cat-strip"><div class="cat-strip-inner" id="catTabs">${categoryTabs}</div></div>
 
   <main class="main">
     <div class="section-title">
-      <h2>${catInfo.label}</h2>
-      <span class="post-count">${posts.length > 0 ? `Page ${page} of ${totalPages}` : ''}</span>
+      <h2 id="sectionLabel">${catInfo.label}</h2>
+      <span class="post-count" id="postCount">${posts.length} article${posts.length !== 1 ? 's' : ''}</span>
     </div>
-    <div class="blog-grid">
+    <div class="blog-grid" id="blogGrid">
       ${postCards}
     </div>
-    ${pagination}
+    <div class="blog-empty" id="blogEmpty" style="display:none">
+      <p>No articles found in this category yet. Check back soon!</p>
+    </div>
   </main>
 
   <footer class="site-footer">
     <div class="footer-inner">
       <a href="/" class="footer-brand">
-        <img src="/attached_assets/favicon_final.webp" alt="Learnpro AI" />
+        <img src="/favicon_final.webp" alt="Learnpro AI" />
         Learnpro <span class="ai-text">AI</span>
       </a>
       <span class="footer-copy">&copy; ${new Date().getFullYear()} Learnpro AI. All rights reserved.</span>
@@ -615,6 +602,74 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
       </nav>
     </div>
   </footer>
+  <script>
+  (function(){
+    var catLabels=${JSON.stringify(Object.fromEntries(Object.entries(CATEGORY_DISPLAY).map(([k,v])=>[k,v.label])))};
+    var catDescs=${JSON.stringify(Object.fromEntries(Object.entries(CATEGORY_DISPLAY).map(([k,v])=>[k,v.description])))};
+    var tabs=document.getElementById('catTabs');
+    var grid=document.getElementById('blogGrid');
+    var label=document.getElementById('sectionLabel');
+    var count=document.getElementById('postCount');
+    var empty=document.getElementById('blogEmpty');
+    var heroP=document.querySelector('.hero p');
+    var current='all';
+    var params=new URLSearchParams(window.location.search);
+    var initCat=params.get('category');
+
+    function filterCards(cat){
+      if(cat===current)return;
+      current=cat;
+      var cards=grid.querySelectorAll('.blog-card');
+      var visible=0;
+
+      cards.forEach(function(c){c.style.opacity='0';c.style.transform='translateY(12px) scale(0.97)'});
+
+      setTimeout(function(){
+        var delay=0;
+        cards.forEach(function(c){
+          var show=cat==='all'||c.getAttribute('data-category')===cat;
+          if(show){
+            c.style.display='';
+            visible++;
+            var d=delay;
+            setTimeout(function(){
+              c.style.opacity='1';
+              c.style.transform='translateY(0) scale(1)';
+            },50+d*60);
+            delay++;
+          } else {
+            c.style.display='none';
+          }
+        });
+
+        label.style.opacity='0';label.style.transform='translateY(-8px)';
+        setTimeout(function(){
+          label.textContent=catLabels[cat]||'All Articles';
+          count.textContent=visible+' article'+(visible!==1?'s':'');
+          if(heroP)heroP.textContent=cat!=='all'?(catDescs[cat]||''):'In-depth articles on strategy, current affairs, subject guides, and answer writing to accelerate your preparation.';
+          label.style.opacity='1';label.style.transform='translateY(0)';
+        },150);
+
+        empty.style.display=visible===0?'':'none';
+      },200);
+
+      tabs.querySelectorAll('.cat-tab').forEach(function(t){
+        t.classList.toggle('cat-active',t.getAttribute('data-cat')===cat);
+      });
+    }
+
+    tabs.addEventListener('click',function(e){
+      var btn=e.target.closest('.cat-tab');
+      if(!btn)return;
+      e.preventDefault();
+      filterCards(btn.getAttribute('data-cat'));
+    });
+
+    if(initCat && catLabels[initCat]){
+      filterCards(initCat);
+    }
+  })();
+  </script>
 </body>
 </html>`;
 }
@@ -674,7 +729,7 @@ function renderBlogPostHtml(post: any): string {
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" href="/attached_assets/favicon_final.webp" type="image/webp">
+  <link rel="icon" href="/favicon_final.webp" type="image/webp">
   <style>
     :root{--gold:hsl(35,90%,45%);--gold-rgb:196,130,20;--gold-light:hsl(35,85%,50%);--gold-dark:hsl(35,90%,32%);--gold-dim:hsla(35,90%,45%,0.08);--bg:hsl(40,33%,98%);--bg-card:#ffffff;--border:hsl(35,15%,90%);--border-hover:hsl(35,15%,82%);--text:hsl(30,15%,15%);--text-secondary:hsl(30,8%,45%);--text-muted:hsl(30,8%,60%);--radius:0.75rem;--header-h:56px;--font-display:'Plus Jakarta Sans',sans-serif}
     *{margin:0;padding:0;box-sizing:border-box}
@@ -764,7 +819,7 @@ function renderBlogPostHtml(post: any): string {
   <div class="read-bar" id="readBar"></div>
   <header class="top-bar">
     <a href="/" class="top-bar-logo">
-      <img src="/attached_assets/favicon_final.webp" alt="Learnpro AI" />
+      <img src="/favicon_final.webp" alt="Learnpro AI" />
       Learnpro <span class="ai-text">AI</span>
     </a>
     <nav class="top-bar-nav">
@@ -808,7 +863,7 @@ function renderBlogPostHtml(post: any): string {
   <footer class="site-footer">
     <div class="footer-inner">
       <a href="/" class="footer-brand">
-        <img src="/attached_assets/favicon_final.webp" alt="Learnpro AI" />
+        <img src="/favicon_final.webp" alt="Learnpro AI" />
         Learnpro <span class="ai-text">AI</span>
       </a>
       <span class="footer-copy">&copy; ${new Date().getFullYear()} Learnpro AI. All rights reserved.</span>
@@ -945,30 +1000,12 @@ export function registerBlogRoutes(app: any) {
 
   router.get("/blog", async (req: Request, res: Response) => {
     try {
-      const page = Math.max(1, parseInt(req.query.page as string) || 1);
-      const limit = 12;
-      const offset = (page - 1) * limit;
-      const category = req.query.category as string;
-      const activeCategory = category && BLOG_CATEGORIES.includes(category as any) ? category : "all";
-
-      const conditions = [eq(blogPosts.published, true)];
-      if (activeCategory !== "all") {
-        conditions.push(eq(blogPosts.category, activeCategory));
-      }
-      const where = conditions.length === 1 ? conditions[0] : and(...conditions);
-
-      const [posts, [{ total }], categoryCountsRaw] = await Promise.all([
+      const [allPosts, categoryCountsRaw] = await Promise.all([
         db
           .select()
           .from(blogPosts)
-          .where(where)
-          .orderBy(desc(blogPosts.publishedAt))
-          .limit(limit)
-          .offset(offset),
-        db
-          .select({ total: sql<number>`count(*)::int` })
-          .from(blogPosts)
-          .where(where),
+          .where(eq(blogPosts.published, true))
+          .orderBy(desc(blogPosts.publishedAt)),
         db
           .select({ category: blogPosts.category, count: sql<number>`count(*)::int` })
           .from(blogPosts)
@@ -981,9 +1018,8 @@ export function registerBlogRoutes(app: any) {
         categoryCounts[row.category] = row.count;
       }
 
-      const totalPages = Math.ceil(total / limit);
       res.set("Content-Type", "text/html");
-      res.send(renderBlogListHtml(posts, page, totalPages, activeCategory, categoryCounts));
+      res.send(renderBlogListHtml(allPosts, 1, 1, "all", categoryCounts));
     } catch (e) {
       console.error("Error rendering blog:", e);
       res.status(500).send("Error loading blog");
