@@ -220,76 +220,35 @@ function TodayAchievements({ stats, t }: { stats: DashboardStats; t: any }) {
     : 0;
 
   return (
-    <div className="mb-3" data-testid="section-today-achievements">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          <Trophy className="h-3 w-3 text-amber-500" style={{ animation: "ach-bounce 2s ease-in-out infinite" }} />
-          <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground" data-testid="text-achievements-heading">
-            {t.dashboard.todayAchievements}
+    <div className="flex items-center gap-2 mb-3" data-testid="section-today-achievements">
+      {achievements.map((item, idx) => (
+        <div
+          key={item.label}
+          className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
+          data-testid={`card-achievement-${idx}`}
+          style={{
+            background: item.color,
+            animation: `ach-pop-in 0.3s cubic-bezier(0.34,1.56,0.64,1) ${idx * 0.06}s both`,
+          }}
+        >
+          <item.icon className="h-3 w-3 text-white" style={{ animation: `ach-icon-pulse 2.5s ease-in-out ${idx * 0.3}s infinite` }} />
+          <span className="text-xs font-bold text-white tabular-nums" data-testid={`text-achievement-value-${idx}`}>
+            <AnimatedCounter target={item.value} />
+          </span>
+          <span className="text-[8px] font-semibold text-white/80 uppercase tracking-wide hidden sm:inline">
+            {item.label}
           </span>
         </div>
-        <div className="flex gap-1.5 sm:gap-2">
-          {achievements.map((item, idx) => (
-            <div
-              key={item.label}
-              className="relative w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-md cursor-default"
-              data-testid={`card-achievement-${idx}`}
-              style={{
-                background: `linear-gradient(145deg, ${item.color}15, ${item.color}08)`,
-                border: `1px solid ${item.color}30`,
-                animation: `ach-pop-in 0.35s cubic-bezier(0.34,1.56,0.64,1) ${idx * 0.06}s both`,
-              }}
-            >
-              <div className="flex flex-col items-center justify-center h-full gap-0.5">
-                <item.icon
-                  className="h-3.5 w-3.5"
-                  style={{ color: item.color, animation: `ach-icon-pulse 2.5s ease-in-out ${idx * 0.3}s infinite` }}
-                />
-                <span
-                  className="text-sm sm:text-base font-extrabold leading-none tabular-nums"
-                  style={{ color: item.color }}
-                  data-testid={`text-achievement-value-${idx}`}
-                >
-                  <AnimatedCounter target={item.value} />
-                </span>
-                <span className="text-[6px] sm:text-[7px] font-bold uppercase tracking-wider text-muted-foreground text-center leading-none">
-                  {item.label}
-                </span>
-              </div>
-              <div
-                className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full"
-                style={{
-                  background: `linear-gradient(90deg, transparent, ${item.color}, transparent)`,
-                  animation: `ach-shimmer 2s ease-in-out ${idx * 0.4}s infinite`,
-                }}
-              />
-            </div>
-          ))}
-        </div>
-        {stats.today.mcqsSolved > 0 && (
-          <Badge variant="secondary" className="text-[9px] ml-auto flex-shrink-0">
-            <Zap className="h-2.5 w-2.5 mr-0.5 text-amber-500" />
-            <AnimatedCounter target={accuracy} suffix="%" /> accuracy
-          </Badge>
-        )}
-      </div>
+      ))}
 
       <style>{`
-        @keyframes ach-bounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-2px); }
-        }
         @keyframes ach-pop-in {
-          from { opacity: 0; transform: scale(0.8); }
-          to { opacity: 1; transform: scale(1); }
+          from { opacity: 0; transform: scale(0.8) translateY(4px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
         }
         @keyframes ach-icon-pulse {
           0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.2); }
-        }
-        @keyframes ach-shimmer {
-          0%, 100% { opacity: 0.15; }
-          50% { opacity: 0.85; }
+          50% { transform: scale(1.15); }
         }
       `}</style>
     </div>
