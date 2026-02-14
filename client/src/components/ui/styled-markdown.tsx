@@ -5,19 +5,19 @@ import { cn } from "@/lib/utils";
 
 const markdownComponents: Components = {
   h1: ({ children }) => (
-    <h1 className="text-xl font-bold mt-6 mb-3 pb-2 border-b border-border text-foreground">{children}</h1>
+    <h1 className="text-2xl font-bold mt-6 mb-3 pb-2 border-b border-border text-foreground">{children}</h1>
   ),
   h2: ({ children }) => (
-    <h2 className="text-lg font-bold mt-5 mb-2 text-foreground">{children}</h2>
+    <h2 className="text-xl font-bold mt-5 mb-2 text-foreground">{children}</h2>
   ),
   h3: ({ children }) => (
-    <h3 className="text-base font-semibold mt-4 mb-2 text-foreground">{children}</h3>
+    <h3 className="text-lg font-semibold mt-4 mb-2 text-foreground">{children}</h3>
   ),
   h4: ({ children }) => (
-    <h4 className="text-sm font-semibold mt-3 mb-1 text-foreground">{children}</h4>
+    <h4 className="text-base font-semibold mt-3 mb-1.5 text-foreground">{children}</h4>
   ),
   p: ({ children }) => (
-    <p className="mb-3 leading-relaxed text-foreground/90">{children}</p>
+    <p className="mb-3 leading-relaxed text-sm sm:text-[15px] text-foreground/90">{children}</p>
   ),
   strong: ({ children }) => (
     <strong className="font-semibold text-foreground">{children}</strong>
@@ -29,7 +29,7 @@ const markdownComponents: Components = {
     <ol className="mb-3 ml-5 space-y-1 list-decimal marker:text-foreground/60 marker:font-medium">{children}</ol>
   ),
   li: ({ children }) => (
-    <li className="pl-1 text-foreground/90 leading-relaxed">{children}</li>
+    <li className="pl-1 text-sm sm:text-[15px] text-foreground/90 leading-relaxed">{children}</li>
   ),
   blockquote: ({ children }) => (
     <blockquote className="my-3 pl-4 border-l-4 border-primary/40 bg-primary/5 rounded-r-md py-2 pr-3 text-foreground/80 italic">
@@ -117,7 +117,7 @@ interface StyledMarkdownProps {
 export function StyledMarkdown({ children, className }: StyledMarkdownProps) {
   const processed = preprocessMarkdown(children);
   return (
-    <div className={cn("max-w-none text-sm sm:text-base", className)}>
+    <div className={cn("max-w-none", className)}>
       <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={markdownComponents}>
         {processed}
       </ReactMarkdown>
@@ -159,10 +159,10 @@ export function StreamingMarkdown({ content, className }: StreamingMarkdownProps
           const text = trimmed.replace(/^#{1,3}\s+/, "");
           const Tag = level === 1 ? "h2" : level === 2 ? "h3" : "h4";
           const cls = level === 1
-            ? "text-lg font-bold mt-5 mb-2 text-foreground"
+            ? "text-xl font-bold mt-5 mb-2 text-foreground"
             : level === 2
-            ? "text-base font-semibold mt-4 mb-2 text-foreground"
-            : "text-sm font-semibold mt-3 mb-1 text-foreground";
+            ? "text-lg font-semibold mt-4 mb-2 text-foreground"
+            : "text-base font-semibold mt-3 mb-1.5 text-foreground";
           return <Tag key={i} className={cls}>{renderLightMarkdown(text)}</Tag>;
         }
 
@@ -181,7 +181,7 @@ export function StreamingMarkdown({ content, className }: StreamingMarkdownProps
         }
 
         return (
-          <p key={i} className="mb-2 text-foreground/90">
+          <p key={i} className="mb-2 text-sm sm:text-[15px] text-foreground/90">
             {renderLightMarkdown(line)}
           </p>
         );
