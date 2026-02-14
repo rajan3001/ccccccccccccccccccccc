@@ -577,7 +577,7 @@ const CATEGORY_DISPLAY: Record<string, { label: string; description: string }> =
   "general": { label: "General", description: "Miscellaneous preparation resources" },
 };
 
-function renderBlogListHtml(posts: any[], page: number, totalPages: number, activeCategory: string, categoryCounts: Record<string, number>): string {
+function renderBlogListHtml(posts: any[], page: number, totalPages: number, activeCategory: string, categoryCounts: Record<string, number>, isLoggedIn: boolean = false): string {
   const catInfo = CATEGORY_DISPLAY[activeCategory] || CATEGORY_DISPLAY["all"];
 
   const postCards = posts.length > 0 ? posts.map(post => {
@@ -656,14 +656,18 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     @keyframes glow{0%,100%{opacity:0.5}50%{opacity:1}}
     @keyframes gridPulse{0%,100%{opacity:0.03}50%{opacity:0.06}}
 
-    .top-bar{background:hsla(40,33%,98%,0.9);backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;height:var(--header-h)}
+    .top-bar{background:hsla(0,0%,100%,0.92);backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2);border-bottom:1px solid var(--border);padding:0 max(1.5rem,calc((100% - 1200px)/2 + 1.5rem));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;height:var(--header-h)}
     .top-bar-logo{display:flex;align-items:center;gap:0.6rem;text-decoration:none;font-weight:700;font-size:1.15rem;color:var(--text)}
     .top-bar-logo img{width:32px;height:32px;object-fit:contain}
-    .top-bar-logo .ai-text{color:var(--gold-dark)}
-    .top-bar-nav{display:flex;gap:0.5rem;align-items:center}
-    .top-bar-nav a{color:var(--text-secondary);text-decoration:none;font-size:0.85rem;font-weight:500;transition:all 0.25s;padding:0.45rem 0.9rem;border-radius:0.5rem;border:1px solid transparent}
-    .top-bar-nav a:hover{color:var(--text);background:hsl(35,15%,93%);border-color:var(--border)}
-    .top-bar-nav a.nav-active{color:var(--gold-dark);background:var(--gold-dim);border-color:hsla(35,90%,45%,0.2)}
+    .top-bar-logo .ai-text{color:#2563eb}
+    .top-bar-right{display:flex;align-items:center;gap:0.25rem}
+    .top-bar-nav{display:flex;gap:0.25rem;align-items:center}
+    .top-bar-nav a{color:var(--text-secondary);text-decoration:none;font-size:0.85rem;font-weight:500;transition:all 0.2s;padding:0.45rem 0.85rem;border-radius:0.5rem}
+    .top-bar-nav a:hover{color:#2563eb;background:rgba(37,99,235,0.06)}
+    .top-bar-nav a.nav-active{color:#1d4ed8;font-weight:600}
+    .nav-cta{display:inline-flex;align-items:center;gap:0.35rem;background:#2563eb;color:#fff!important;font-size:0.82rem;font-weight:600;padding:0.45rem 1rem;border-radius:0.5rem;text-decoration:none;transition:background 0.2s;margin-left:0.5rem;border:none;cursor:pointer}
+    .nav-cta:hover{background:#1d4ed8}
+    .nav-cta svg{width:15px;height:15px}
 
     .hero{position:relative;padding:3.5rem 1.5rem 2.5rem;text-align:center;overflow:hidden;background:linear-gradient(180deg,hsla(35,50%,95%,0.6),transparent)}
     .hero-bg{position:absolute;inset:0;pointer-events:none}
@@ -732,9 +736,12 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     .footer-copy{font-size:0.82rem;color:var(--text-muted)}
     .footer-links{display:flex;gap:1.5rem}
     .footer-links a{color:var(--text-secondary);text-decoration:none;font-size:0.82rem;transition:color 0.25s}
-    .footer-links a:hover{color:var(--gold-dark)}
+    .footer-links a:hover{color:#2563eb}
 
     @media(max-width:1024px){.blog-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:768px){
+      .hidden-mobile{display:none!important}
+    }
     @media(max-width:640px){
       .hero h1{font-size:1.8rem}
       .hero p{font-size:0.92rem}
@@ -744,19 +751,33 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
       .main{padding:1.25rem 1rem 2rem}
       .footer-inner{flex-direction:column;text-align:center}
       .hero-orb{display:none}
+      .nav-cta span{display:none}
     }
   </style>
 </head>
 <body>
-  <header class="top-bar">
-    <a href="/" class="top-bar-logo">
+  <header class="top-bar" data-testid="blog-list-header">
+    <a href="/" class="top-bar-logo" data-testid="logo-link">
       <img src="/favicon_final.webp" alt="Learnpro AI" />
       Learnpro <span class="ai-text">AI</span>
     </a>
-    <nav class="top-bar-nav">
-      <a href="/">Home</a>
-      <a href="/blog" class="nav-active">Articles</a>
-    </nav>
+    <div class="top-bar-right">
+      <nav class="top-bar-nav" data-testid="top-nav">
+        <a href="/" data-testid="nav-home">Home</a>
+        <a href="/#features" class="hidden-mobile" data-testid="nav-features">Features</a>
+        <a href="/#exams" class="hidden-mobile" data-testid="nav-exams">Exams</a>
+        <a href="/blog" class="nav-active" data-testid="nav-articles">Articles</a>
+      </nav>
+      ${isLoggedIn ? `
+      <a href="/dashboard" class="nav-cta" data-testid="nav-dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>` : `
+      <a href="/login" class="nav-cta" data-testid="nav-login">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Login
+      </a>`}
+    </div>
   </header>
 
   <section class="hero">
@@ -794,7 +815,9 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
       <span class="footer-copy">&copy; ${new Date().getFullYear()} Learnpro AI. All rights reserved.</span>
       <nav class="footer-links">
         <a href="/">Home</a>
+        <a href="/#features">Features</a>
         <a href="/blog">Articles</a>
+        ${isLoggedIn ? '<a href="/dashboard">Dashboard</a>' : '<a href="/login">Login</a>'}
       </nav>
     </div>
   </footer>
@@ -870,7 +893,7 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
 </html>`;
 }
 
-function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any = null, nextPost: any = null): string {
+function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any = null, nextPost: any = null, isLoggedIn: boolean = false): string {
   const publishedDate = new Date(post.publishedAt).toISOString();
   const readableDate = new Date(post.publishedAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
   const catInfo = CATEGORY_DISPLAY[post.category] || CATEGORY_DISPLAY["general"];
@@ -956,13 +979,17 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
     ::selection{background:rgba(37,99,235,0.15);color:var(--text)}
 
-    .top-bar{background:#fff;border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;height:var(--header-h)}
+    .top-bar{background:hsla(0,0%,100%,0.92);backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2);border-bottom:1px solid var(--border);padding:0 max(1.5rem,calc((100% - 1180px)/2 + 1.5rem));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;height:var(--header-h)}
     .top-bar-logo{display:flex;align-items:center;gap:0.6rem;text-decoration:none;font-weight:700;font-size:1.1rem;color:var(--text)}
     .top-bar-logo img{width:32px;height:32px;object-fit:contain}
     .top-bar-logo .ai-text{color:var(--blue)}
+    .top-bar-right{display:flex;align-items:center;gap:0.25rem}
     .top-bar-nav{display:flex;gap:0.25rem;align-items:center}
     .top-bar-nav a{color:var(--text-secondary);text-decoration:none;font-size:0.85rem;font-weight:500;padding:0.4rem 0.85rem;border-radius:var(--radius);transition:all 0.2s}
     .top-bar-nav a:hover{color:var(--blue);background:var(--blue-bg)}
+    .nav-cta{display:inline-flex;align-items:center;gap:0.35rem;background:var(--blue);color:#fff!important;font-size:0.82rem;font-weight:600;padding:0.45rem 1rem;border-radius:var(--radius);text-decoration:none;transition:background 0.2s;margin-left:0.5rem}
+    .nav-cta:hover{background:var(--blue-dark)}
+    .nav-cta svg{width:15px;height:15px}
     .read-bar{position:fixed;top:var(--header-h);left:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--blue-light),#8b5cf6);z-index:99;transition:width 0.1s linear;width:0;border-radius:0 2px 2px 0}
 
     .page-wrapper{max-width:1180px;margin:0 auto;padding:0 1.5rem;display:flex;gap:2rem;align-items:flex-start}
@@ -1131,6 +1158,9 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
       .sidebar-col{display:none}
       .page-wrapper{max-width:var(--content-max);gap:0}
     }
+    @media(max-width:768px){
+      .hidden-mobile{display:none!important}
+    }
     @media(max-width:640px){
       .article-header h1{font-size:1.5rem}
       .page-wrapper{padding:0 1rem}
@@ -1152,10 +1182,23 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
       <img src="/favicon_final.webp" alt="Learnpro AI" width="32" height="32" />
       Learnpro <span class="ai-text">AI</span>
     </a>
-    <nav class="top-bar-nav" data-testid="top-nav">
-      <a href="/" data-testid="nav-home">Home</a>
-      <a href="/blog" data-testid="nav-blog">Articles</a>
-    </nav>
+    <div class="top-bar-right">
+      <nav class="top-bar-nav" data-testid="top-nav">
+        <a href="/" data-testid="nav-home">Home</a>
+        <a href="/#features" class="hidden-mobile" data-testid="nav-features">Features</a>
+        <a href="/#exams" class="hidden-mobile" data-testid="nav-exams">Exams</a>
+        <a href="/blog" data-testid="nav-blog">Articles</a>
+      </nav>
+      ${isLoggedIn ? `
+      <a href="/dashboard" class="nav-cta" data-testid="nav-dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>` : `
+      <a href="/login" class="nav-cta" data-testid="nav-login">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Login
+      </a>`}
+    </div>
   </header>
 
   <div class="page-wrapper">
@@ -1304,7 +1347,9 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
       <span class="footer-copy">&#169; ${new Date().getFullYear()} Learnpro AI. All rights reserved.</span>
       <nav class="footer-links">
         <a href="/">Home</a>
+        <a href="/#features">Features</a>
         <a href="/blog">Articles</a>
+        ${isLoggedIn ? '<a href="/dashboard">Dashboard</a>' : '<a href="/login">Login</a>'}
       </nav>
     </div>
   </footer>
@@ -1674,6 +1719,7 @@ export function registerBlogRoutes(app: any) {
 
   router.get("/blog", async (req: Request, res: Response) => {
     try {
+      const isLoggedIn = !!(req.session as any)?.userId;
       const [allPosts, categoryCountsRaw] = await Promise.all([
         db
           .select()
@@ -1693,7 +1739,7 @@ export function registerBlogRoutes(app: any) {
       }
 
       res.set("Content-Type", "text/html");
-      res.send(renderBlogListHtml(allPosts, 1, 1, "all", categoryCounts));
+      res.send(renderBlogListHtml(allPosts, 1, 1, "all", categoryCounts, isLoggedIn));
     } catch (e) {
       console.error("Error rendering blog:", e);
       res.status(500).send("Error loading blog");
@@ -1702,6 +1748,7 @@ export function registerBlogRoutes(app: any) {
 
   router.get("/blog/:slug", async (req: Request, res: Response) => {
     try {
+      const isLoggedIn = !!(req.session as any)?.userId;
       const [post] = await db
         .select()
         .from(blogPosts)
@@ -1740,7 +1787,7 @@ export function registerBlogRoutes(app: any) {
       if (idx < allPublished.length - 1) prevPost = allPublished[idx + 1];
 
       res.set("Content-Type", "text/html");
-      res.send(renderBlogPostHtml(post, relatedPosts, prevPost, nextPost));
+      res.send(renderBlogPostHtml(post, relatedPosts, prevPost, nextPost, isLoggedIn));
     } catch (e) {
       console.error("Error rendering blog post:", e);
       res.status(500).send("Error loading post");
