@@ -249,7 +249,7 @@ function TodayAchievements({ stats, t }: { stats: DashboardStats; t: any }) {
           >
             <div
               className="relative rounded-lg flex items-center gap-2 px-3 py-2.5 sm:py-3"
-              style={{ background: "hsl(var(--card))" }}
+              style={{ background: `linear-gradient(180deg, ${item.color}08 0%, hsl(var(--card)) 40%)` }}
             >
               <div
                 className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg flex items-center justify-center flex-shrink-0"
