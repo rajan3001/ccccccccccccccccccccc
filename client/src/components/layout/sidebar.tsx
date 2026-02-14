@@ -20,6 +20,7 @@ import {
   StickyNote,
   CalendarCheck,
   BarChart3,
+  BookOpen,
   Settings,
   User,
   Phone,
@@ -170,6 +171,17 @@ export function Sidebar() {
             {t.nav.studyProgress}
           </Button>
         </Link>
+
+        <a href="/blog" onClick={() => setIsMobileOpen(false)}>
+          <Button
+            variant="ghost"
+            className="w-full mt-2 justify-start gap-2"
+            data-testid="link-blog"
+          >
+            <BookOpen className="h-5 w-5" />
+            {t.nav?.blog || "Blog"}
+          </Button>
+        </a>
       </div>
 
       <div className="flex-1 overflow-hidden px-4">
