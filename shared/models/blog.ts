@@ -18,6 +18,7 @@ export const blogPosts = pgTable("blog_posts", {
   readingTimeMinutes: integer("reading_time_minutes").default(5),
   published: boolean("published").notNull().default(false),
   featured: boolean("featured").notNull().default(false),
+  sourceUrl: text("source_url"),
   publishedAt: timestamp("published_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
