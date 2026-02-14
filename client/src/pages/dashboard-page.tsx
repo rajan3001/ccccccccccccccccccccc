@@ -220,7 +220,13 @@ function TodayAchievements({ stats, t }: { stats: DashboardStats; t: any }) {
     : 0;
 
   return (
-    <div className="mb-3 sm:mb-4" data-testid="section-today-achievements">
+    <div
+      className="mb-3 sm:mb-4 rounded-lg px-3 py-3 sm:px-4 sm:py-3.5"
+      data-testid="section-today-achievements"
+      style={{
+        background: "linear-gradient(180deg, hsl(var(--muted) / 0.5) 0%, transparent 100%)",
+      }}
+    >
       <div className="flex items-center gap-2 mb-2">
         <div style={{ animation: "ach-trophy-bob 2.5s ease-in-out infinite" }}>
           <Trophy className="h-4 w-4 text-amber-500" style={{ filter: "drop-shadow(0 0 4px rgba(245,158,11,0.5))" }} />
@@ -249,7 +255,7 @@ function TodayAchievements({ stats, t }: { stats: DashboardStats; t: any }) {
           >
             <div
               className="relative rounded-lg flex items-center gap-2 px-3 py-2.5 sm:py-3"
-              style={{ background: `linear-gradient(180deg, ${item.color}08 0%, hsl(var(--card)) 40%)` }}
+              style={{ background: "hsl(var(--card))" }}
             >
               <div
                 className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg flex items-center justify-center flex-shrink-0"
