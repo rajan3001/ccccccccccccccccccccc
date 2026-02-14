@@ -364,48 +364,90 @@ export async function generateBlogPosts(count: number = 5): Promise<number> {
   return generated;
 }
 
-function renderBlogListHtml(posts: any[], page: number, totalPages: number): string {
-  const postCards = posts.map(post => `
+const CATEGORY_DISPLAY: Record<string, { label: string; description: string }> = {
+  "all": { label: "All Articles", description: "Browse all UPSC preparation articles" },
+  "upsc-strategy": { label: "UPSC Strategy", description: "Exam strategy, preparation roadmaps & topper insights" },
+  "current-affairs": { label: "Current Affairs", description: "Daily current affairs analysis for Prelims & Mains" },
+  "gs-paper-1": { label: "History & Geography", description: "Indian History, World History, Geography & Culture" },
+  "gs-paper-2": { label: "Polity & Governance", description: "Indian Polity, Constitution, Governance & IR" },
+  "gs-paper-3": { label: "Economy & Environment", description: "Indian Economy, Science & Technology, Environment" },
+  "gs-paper-4": { label: "Ethics & Integrity", description: "Ethics, Integrity, Aptitude & Case Studies" },
+  "essay": { label: "Essay Writing", description: "Essay writing techniques, frameworks & practice" },
+  "answer-writing": { label: "Answer Writing", description: "Mains answer writing skills & structuring techniques" },
+  "csat": { label: "CSAT", description: "Aptitude, reasoning & comprehension for Paper II" },
+  "state-psc": { label: "State PSC", description: "State-level Civil Services exam preparation" },
+  "booklist": { label: "Book Recommendations", description: "Best books & resources for each subject" },
+  "motivation": { label: "Motivation", description: "Inspirational stories, tips & mental wellness" },
+  "general": { label: "General", description: "Miscellaneous preparation resources" },
+};
+
+function renderBlogListHtml(posts: any[], page: number, totalPages: number, activeCategory: string, categoryCounts: Record<string, number>): string {
+  const catInfo = CATEGORY_DISPLAY[activeCategory] || CATEGORY_DISPLAY["all"];
+  const categoryParam = activeCategory !== "all" ? `&category=${activeCategory}` : '';
+  const categoryParamFirst = activeCategory !== "all" ? `?category=${activeCategory}` : '';
+
+  const postCards = posts.length > 0 ? posts.map(post => {
+    const postCatInfo = CATEGORY_DISPLAY[post.category] || CATEGORY_DISPLAY["general"];
+    return `
     <article class="blog-card" itemscope itemtype="https://schema.org/Article">
-      ${post.coverImageUrl ? `<a href="/blog/${post.slug}"><img src="${post.coverImageUrl}" alt="${post.coverImageAlt || post.title}" loading="lazy" width="800" height="450" /></a>` : ''}
-      <div class="blog-card-content">
-        <span class="blog-category">${post.category.replace(/-/g, ' ').toUpperCase()}</span>
-        <h2 itemprop="headline"><a href="/blog/${post.slug}">${post.title}</a></h2>
-        <p itemprop="description">${post.excerpt}</p>
-        <div class="blog-meta">
-          <time datetime="${new Date(post.publishedAt).toISOString()}" itemprop="datePublished">${new Date(post.publishedAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
-          <span>${post.readingTimeMinutes} min read</span>
+      <a href="/blog/${post.slug}" class="blog-card-link">
+        <div class="blog-card-image">
+          ${post.coverImageUrl ? `<img src="${post.coverImageUrl}" alt="${post.coverImageAlt || post.title}" loading="lazy" width="800" height="450" />` : `<div class="blog-card-placeholder"><span class="placeholder-label">${postCatInfo.label}</span></div>`}
+          <span class="blog-card-badge">${postCatInfo.label}</span>
         </div>
-      </div>
-    </article>
-  `).join('');
+        <div class="blog-card-body">
+          <h2 itemprop="headline">${post.title}</h2>
+          <p itemprop="description">${post.excerpt}</p>
+          <div class="blog-card-footer">
+            <time datetime="${new Date(post.publishedAt).toISOString()}" itemprop="datePublished">${new Date(post.publishedAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}</time>
+            <span class="blog-read-time">${post.readingTimeMinutes} min read</span>
+          </div>
+        </div>
+      </a>
+    </article>`;
+  }).join('') : `<div class="blog-empty"><p>No articles found in this category yet. Check back soon!</p><a href="/blog" class="blog-back-link">View All Articles</a></div>`;
 
   const pagination = totalPages > 1 ? `
     <nav class="pagination" aria-label="Blog pagination">
-      ${page > 1 ? `<a href="/blog?page=${page - 1}">Previous</a>` : ''}
-      ${Array.from({ length: totalPages }, (_, i) => i + 1).map(p =>
-        `<a href="/blog?page=${p}" ${p === page ? 'class="active"' : ''}>${p}</a>`
-      ).join('')}
-      ${page < totalPages ? `<a href="/blog?page=${page + 1}">Next</a>` : ''}
+      ${page > 1 ? `<a href="/blog?page=${page - 1}${categoryParam}" class="pg-arrow">&larr; Previous</a>` : ''}
+      <div class="pg-numbers">
+        ${Array.from({ length: totalPages }, (_, i) => i + 1).map(p =>
+          `<a href="/blog?page=${p}${categoryParam}" ${p === page ? 'class="active"' : ''}>${p}</a>`
+        ).join('')}
+      </div>
+      ${page < totalPages ? `<a href="/blog?page=${page + 1}${categoryParam}" class="pg-arrow">Next &rarr;</a>` : ''}
     </nav>
   ` : '';
+
+  const categoryTabs = Object.entries(CATEGORY_DISPLAY).map(([key, val]) => {
+    const count = key === "all" ? Object.values(categoryCounts).reduce((a, b) => a + b, 0) : (categoryCounts[key] || 0);
+    if (key !== "all" && count === 0) return '';
+    const isActive = key === activeCategory;
+    const href = key === "all" ? "/blog" : `/blog?category=${key}`;
+    return `<a href="${href}" class="cat-tab${isActive ? ' cat-active' : ''}" data-testid="blog-category-${key}">
+      <span class="cat-label">${val.label}</span>
+      <span class="cat-count">${count}</span>
+    </a>`;
+  }).filter(Boolean).join('');
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UPSC Preparation Blog | Learnpro AI - IAS Study Tips & Strategy</title>
-  <meta name="description" content="Expert UPSC preparation tips, IAS study strategies, current affairs analysis, and exam guidance. Free resources for Civil Services aspirants by Learnpro AI.">
-  <meta name="keywords" content="UPSC blog, IAS preparation tips, Civil Services strategy, UPSC study plan, current affairs UPSC, UPSC topper strategy">
-  <link rel="canonical" href="https://learnproai.in/blog${page > 1 ? `?page=${page}` : ''}">
+  <title>${activeCategory !== 'all' ? `${catInfo.label} - ` : ''}UPSC Preparation Blog | Learnpro AI</title>
+  <meta name="description" content="${activeCategory !== 'all' ? catInfo.description + ' - ' : ''}Expert UPSC preparation tips, IAS study strategies, current affairs analysis, and exam guidance. Free resources for Civil Services aspirants by Learnpro AI.">
+  <meta name="keywords" content="UPSC blog, IAS preparation tips, Civil Services strategy, UPSC study plan, current affairs UPSC, UPSC topper strategy${activeCategory !== 'all' ? ', ' + catInfo.label : ''}">
+  <link rel="canonical" href="https://learnproai.in/blog${page > 1 ? `?page=${page}${categoryParam}` : categoryParamFirst}">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="UPSC Preparation Blog | Learnpro AI">
-  <meta property="og:description" content="Expert UPSC preparation tips, IAS study strategies, and free resources for Civil Services aspirants.">
-  <meta property="og:url" content="https://learnproai.in/blog">
+  <meta property="og:title" content="${activeCategory !== 'all' ? `${catInfo.label} - ` : ''}UPSC Blog | Learnpro AI">
+  <meta property="og:description" content="${activeCategory !== 'all' ? catInfo.description : 'Expert UPSC preparation tips, IAS study strategies, and free resources for Civil Services aspirants.'}">
+  <meta property="og:url" content="https://learnproai.in/blog${categoryParamFirst}">
   <meta property="og:site_name" content="Learnpro AI">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -421,52 +463,128 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number): str
   }
   </script>
   <style>
+    :root{--gold:#d4a634;--gold-light:#e8c547;--gold-dim:rgba(212,166,52,0.12);--bg:#09090b;--bg-card:#141419;--bg-card-hover:#1a1a22;--border:#1f1f2a;--border-hover:#2a2a3a;--text:#ececef;--text-secondary:#9ca3af;--text-muted:#6b7280;--radius:10px;--header-h:49px}
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f0f0f;color:#e0e0e0;line-height:1.6}
-    .blog-header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#1a1a2e 100%);border-bottom:2px solid #d4a634;padding:2rem;text-align:center}
-    .blog-header h1{font-size:2rem;color:#d4a634;margin-bottom:0.5rem}
-    .blog-header p{color:#9ca3af;font-size:1.1rem}
-    .blog-header nav{margin-top:1rem}
-    .blog-header nav a{color:#d4a634;text-decoration:none;margin:0 1rem;font-weight:500}
-    .blog-header nav a:hover{text-decoration:underline}
-    .blog-container{max-width:1200px;margin:0 auto;padding:2rem 1rem}
-    .blog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:2rem}
-    .blog-card{background:#1a1a2e;border-radius:12px;overflow:hidden;border:1px solid #2a2a4a;transition:transform 0.2s,box-shadow 0.2s}
-    .blog-card:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(212,166,52,0.15)}
-    .blog-card img{width:100%;height:200px;object-fit:cover}
-    .blog-card-content{padding:1.5rem}
-    .blog-category{display:inline-block;background:rgba(212,166,52,0.15);color:#d4a634;font-size:0.75rem;font-weight:600;padding:0.25rem 0.75rem;border-radius:9999px;margin-bottom:0.75rem;letter-spacing:0.05em}
-    .blog-card h2{font-size:1.2rem;margin-bottom:0.75rem;line-height:1.4}
-    .blog-card h2 a{color:#fff;text-decoration:none}
-    .blog-card h2 a:hover{color:#d4a634}
-    .blog-card p{color:#9ca3af;font-size:0.9rem;margin-bottom:1rem}
-    .blog-meta{display:flex;justify-content:space-between;color:#6b7280;font-size:0.85rem}
-    .pagination{display:flex;justify-content:center;gap:0.5rem;margin-top:3rem;flex-wrap:wrap}
-    .pagination a{padding:0.5rem 1rem;background:#1a1a2e;color:#d4a634;text-decoration:none;border-radius:8px;border:1px solid #2a2a4a}
-    .pagination a.active{background:#d4a634;color:#0f0f0f;font-weight:700}
-    .pagination a:hover{background:#2a2a4a}
-    .blog-footer{text-align:center;padding:2rem;border-top:1px solid #2a2a4a;margin-top:3rem;color:#6b7280}
-    .blog-footer a{color:#d4a634;text-decoration:none}
-    @media(max-width:768px){.blog-grid{grid-template-columns:1fr}.blog-header h1{font-size:1.5rem}}
+    body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+
+    .top-bar{background:var(--bg-card);border-bottom:1px solid var(--border);padding:0.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;height:var(--header-h)}
+    .top-bar-logo{display:flex;align-items:center;gap:0.5rem;text-decoration:none;color:var(--gold);font-weight:700;font-size:1.1rem}
+    .top-bar-logo svg{width:28px;height:28px}
+    .top-bar-nav{display:flex;gap:1.5rem;align-items:center}
+    .top-bar-nav a{color:var(--text-secondary);text-decoration:none;font-size:0.9rem;font-weight:500;transition:color 0.2s}
+    .top-bar-nav a:hover{color:var(--gold)}
+
+    .hero{position:relative;padding:3.5rem 1.5rem 3rem;text-align:center;overflow:hidden}
+    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(212,166,52,0.08),transparent 70%)}
+    .hero-badge{display:inline-flex;align-items:center;gap:0.4rem;background:var(--gold-dim);border:1px solid rgba(212,166,52,0.2);color:var(--gold);font-size:0.75rem;font-weight:600;padding:0.35rem 0.9rem;border-radius:9999px;margin-bottom:1.25rem;letter-spacing:0.04em}
+    .hero h1{font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:0.75rem;position:relative}
+    .hero h1 span{color:var(--gold)}
+    .hero p{color:var(--text-secondary);font-size:1.05rem;max-width:600px;margin:0 auto;position:relative}
+
+    .cat-strip{padding:0.75rem 1.5rem;border-bottom:1px solid var(--border);position:sticky;top:var(--header-h);z-index:40;background:var(--bg);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .cat-strip::-webkit-scrollbar{display:none}
+    .cat-strip-inner{display:flex;gap:0.5rem;max-width:1200px;margin:0 auto;min-width:max-content}
+    .cat-tab{display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border-radius:9999px;font-size:0.82rem;font-weight:500;color:var(--text-secondary);text-decoration:none;border:1px solid transparent;transition:all 0.2s;white-space:nowrap;flex-shrink:0}
+    .cat-tab:hover{color:var(--text);background:var(--bg-card);border-color:var(--border)}
+    .cat-active{background:var(--gold-dim)!important;color:var(--gold)!important;border-color:rgba(212,166,52,0.25)!important;font-weight:600}
+    .cat-count{background:rgba(255,255,255,0.06);padding:0.1rem 0.45rem;border-radius:9999px;font-size:0.7rem;font-weight:600;color:var(--text-muted)}
+    .cat-active .cat-count{background:rgba(212,166,52,0.18);color:var(--gold)}
+
+    .main{max-width:1200px;margin:0 auto;padding:2rem 1.5rem 3rem}
+    .section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.75rem}
+    .section-title h2{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:600;color:var(--text)}
+    .section-title .post-count{font-size:0.85rem;color:var(--text-muted)}
+
+    .blog-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+    .blog-card{background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;transition:border-color 0.25s,transform 0.25s,box-shadow 0.25s}
+    .blog-card:hover{border-color:var(--border-hover);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,0.3),0 0 0 1px rgba(212,166,52,0.06)}
+    .blog-card-link{display:block;text-decoration:none;color:inherit;height:100%;display:flex;flex-direction:column}
+    .blog-card-image{position:relative;aspect-ratio:16/9;overflow:hidden;background:#111118}
+    .blog-card-image img{width:100%;height:100%;object-fit:cover;transition:transform 0.4s}
+    .blog-card:hover .blog-card-image img{transform:scale(1.04)}
+    .blog-card-placeholder{display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#141419,#1a1a2e)}
+    .placeholder-label{font-size:0.85rem;font-weight:600;color:var(--text-muted);letter-spacing:0.04em;opacity:0.5}
+    .blog-card-badge{position:absolute;top:0.75rem;left:0.75rem;background:rgba(9,9,11,0.75);backdrop-filter:blur(8px);color:var(--gold);font-size:0.7rem;font-weight:600;padding:0.25rem 0.65rem;border-radius:6px;letter-spacing:0.03em;border:1px solid rgba(212,166,52,0.15)}
+    .blog-card-body{padding:1.25rem 1.25rem 1rem;flex:1;display:flex;flex-direction:column}
+    .blog-card-body h2{font-size:1.05rem;font-weight:600;line-height:1.4;margin-bottom:0.6rem;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .blog-card-body p{font-size:0.85rem;color:var(--text-secondary);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex:1}
+    .blog-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:0.85rem;padding-top:0.75rem;border-top:1px solid var(--border);font-size:0.78rem;color:var(--text-muted);gap:0.5rem}
+    .blog-read-time{display:flex;align-items:center;gap:0.3rem}
+
+    .blog-empty{text-align:center;padding:4rem 1rem;grid-column:1/-1}
+    .blog-empty p{color:var(--text-secondary);font-size:1rem;margin-bottom:1rem}
+    .blog-back-link{display:inline-block;color:var(--gold);text-decoration:none;font-weight:500;border:1px solid rgba(212,166,52,0.3);padding:0.5rem 1.25rem;border-radius:8px;transition:background 0.2s}
+    .blog-back-link:hover{background:var(--gold-dim)}
+
+    .pagination{display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-top:2.5rem;flex-wrap:wrap}
+    .pagination a{padding:0.45rem 0.85rem;color:var(--text-secondary);text-decoration:none;border-radius:8px;font-size:0.85rem;font-weight:500;transition:all 0.2s;border:1px solid var(--border)}
+    .pagination a.active{background:var(--gold);color:var(--bg);font-weight:700;border-color:var(--gold)}
+    .pagination a:hover:not(.active){background:var(--bg-card);border-color:var(--border-hover)}
+    .pg-arrow{font-weight:500!important}
+    .pg-numbers{display:flex;gap:0.35rem}
+
+    .site-footer{border-top:1px solid var(--border);padding:2.5rem 1.5rem;margin-top:1rem}
+    .footer-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+    .footer-brand{display:flex;align-items:center;gap:0.5rem;color:var(--gold);font-weight:600;font-size:0.95rem}
+    .footer-copy{font-size:0.82rem;color:var(--text-muted)}
+    .footer-links{display:flex;gap:1.5rem}
+    .footer-links a{color:var(--text-secondary);text-decoration:none;font-size:0.82rem;transition:color 0.2s}
+    .footer-links a:hover{color:var(--gold)}
+
+    @media(max-width:1024px){.blog-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:640px){
+      .hero h1{font-size:1.75rem}
+      .hero p{font-size:0.92rem}
+      .blog-grid{grid-template-columns:1fr;gap:1rem}
+      .top-bar{padding:0.65rem 1rem}
+      .main{padding:1.25rem 1rem 2rem}
+      .footer-inner{flex-direction:column;text-align:center}
+    }
   </style>
 </head>
 <body>
-  <header class="blog-header">
-    <h1>Learnpro AI Blog</h1>
-    <p>Expert UPSC & Civil Services Preparation Resources</p>
-    <nav>
+  <header class="top-bar">
+    <a href="/" class="top-bar-logo">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#d4a634"/><path d="M8 22V10l8 6-8 6z" fill="#09090b"/><path d="M16 22V10l8 6-8 6z" fill="#09090b" opacity="0.6"/></svg>
+      Learnpro AI
+    </a>
+    <nav class="top-bar-nav">
       <a href="/">Home</a>
-      <a href="/blog">All Posts</a>
+      <a href="/blog">Blog</a>
     </nav>
   </header>
-  <main class="blog-container">
+
+  <section class="hero">
+    <div class="hero-badge">UPSC &amp; State PSC Preparation</div>
+    <h1>Expert Insights for <span>Civil Services</span></h1>
+    <p>${activeCategory !== 'all' ? catInfo.description : 'In-depth articles on strategy, current affairs, subject guides, and answer writing to accelerate your preparation.'}</p>
+  </section>
+
+  <div class="cat-strip"><div class="cat-strip-inner">${categoryTabs}</div></div>
+
+  <main class="main">
+    <div class="section-title">
+      <h2>${catInfo.label}</h2>
+      <span class="post-count">${posts.length > 0 ? `Page ${page} of ${totalPages}` : ''}</span>
+    </div>
     <div class="blog-grid">
       ${postCards}
     </div>
     ${pagination}
   </main>
-  <footer class="blog-footer">
-    <p>&copy; ${new Date().getFullYear()} <a href="/">Learnpro AI</a> - AI-Powered UPSC Preparation Platform</p>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <svg viewBox="0 0 32 32" fill="none" width="22" height="22"><rect width="32" height="32" rx="8" fill="#d4a634"/><path d="M8 22V10l8 6-8 6z" fill="#09090b"/><path d="M16 22V10l8 6-8 6z" fill="#09090b" opacity="0.6"/></svg>
+        Learnpro AI
+      </div>
+      <span class="footer-copy">&copy; ${new Date().getFullYear()} Learnpro AI. All rights reserved.</span>
+      <nav class="footer-links">
+        <a href="/">Home</a>
+        <a href="/blog">Blog</a>
+      </nav>
+    </div>
   </footer>
 </body>
 </html>`;
@@ -525,70 +643,129 @@ function renderBlogPostHtml(post: any): string {
     "keywords": "${(post.tags || []).join(', ')}"
   }
   </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
   <style>
+    :root{--gold:#d4a634;--gold-light:#e8c547;--gold-dim:rgba(212,166,52,0.12);--bg:#09090b;--bg-card:#141419;--border:#1f1f2a;--border-hover:#2a2a3a;--text:#ececef;--text-secondary:#9ca3af;--text-muted:#6b7280;--radius:10px}
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f0f0f;color:#e0e0e0;line-height:1.8}
-    .post-header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#1a1a2e 100%);border-bottom:2px solid #d4a634;padding:2rem}
-    .post-header-inner{max-width:800px;margin:0 auto}
-    .post-header nav{margin-bottom:1.5rem}
-    .post-header nav a{color:#d4a634;text-decoration:none;font-size:0.9rem}
-    .post-header nav a:hover{text-decoration:underline}
-    .post-category{display:inline-block;background:rgba(212,166,52,0.15);color:#d4a634;font-size:0.75rem;font-weight:600;padding:0.25rem 0.75rem;border-radius:9999px;margin-bottom:1rem;letter-spacing:0.05em}
-    .post-header h1{font-size:2rem;color:#fff;margin-bottom:1rem;line-height:1.3}
-    .post-meta{color:#9ca3af;font-size:0.9rem;display:flex;gap:1.5rem;flex-wrap:wrap}
-    .post-cover{max-width:800px;margin:2rem auto 0;padding:0 1rem}
-    .post-cover img{width:100%;border-radius:12px;max-height:400px;object-fit:cover}
-    .post-content{max-width:800px;margin:0 auto;padding:2rem 1rem}
-    .post-content h1{font-size:1.8rem;color:#d4a634;margin:2rem 0 1rem}
-    .post-content h2{font-size:1.5rem;color:#d4a634;margin:2rem 0 1rem;border-bottom:1px solid #2a2a4a;padding-bottom:0.5rem}
-    .post-content h3{font-size:1.25rem;color:#e8c547;margin:1.5rem 0 0.75rem}
-    .post-content p{margin-bottom:1.25rem;color:#d0d0d0}
+    body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.8;-webkit-font-smoothing:antialiased}
+
+    .top-bar{background:var(--bg-card);border-bottom:1px solid var(--border);padding:0.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+    .top-bar-logo{display:flex;align-items:center;gap:0.5rem;text-decoration:none;color:var(--gold);font-weight:700;font-size:1.1rem}
+    .top-bar-logo svg{width:28px;height:28px}
+    .top-bar-nav{display:flex;gap:1.5rem;align-items:center}
+    .top-bar-nav a{color:var(--text-secondary);text-decoration:none;font-size:0.9rem;font-weight:500;transition:color 0.2s}
+    .top-bar-nav a:hover{color:var(--gold)}
+
+    .post-hero{max-width:800px;margin:0 auto;padding:2.5rem 1.5rem 0}
+    .post-breadcrumb{display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text-muted);margin-bottom:1.5rem}
+    .post-breadcrumb a{color:var(--gold);text-decoration:none;font-weight:500}
+    .post-breadcrumb a:hover{text-decoration:underline}
+    .post-breadcrumb span{opacity:0.5}
+    .post-category{display:inline-block;background:var(--gold-dim);border:1px solid rgba(212,166,52,0.2);color:var(--gold);font-size:0.72rem;font-weight:600;padding:0.3rem 0.8rem;border-radius:9999px;margin-bottom:1rem;letter-spacing:0.04em;text-decoration:none;transition:background 0.2s}
+    .post-category:hover{background:rgba(212,166,52,0.2)}
+    .post-hero h1{font-family:'Playfair Display',serif;font-size:2.2rem;color:var(--text);line-height:1.25;margin-bottom:1rem}
+    .post-meta{display:flex;align-items:center;gap:1.25rem;color:var(--text-muted);font-size:0.85rem;flex-wrap:wrap;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+    .post-meta-item{display:flex;align-items:center;gap:0.35rem}
+
+    .post-cover{max-width:800px;margin:1.5rem auto 0;padding:0 1.5rem}
+    .post-cover img{width:100%;border-radius:var(--radius);max-height:420px;object-fit:cover;border:1px solid var(--border)}
+
+    .post-content{max-width:800px;margin:0 auto;padding:2rem 1.5rem;font-family:'Merriweather','Georgia',serif;font-size:0.95rem;line-height:1.9;color:#d0d0d5}
+    .post-content h1{font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--gold);margin:2.5rem 0 1rem;line-height:1.3}
+    .post-content h2{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--gold);margin:2.25rem 0 0.85rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);line-height:1.35}
+    .post-content h3{font-family:'Inter',sans-serif;font-size:1.15rem;color:var(--gold-light);margin:1.75rem 0 0.65rem;font-weight:600}
+    .post-content p{margin-bottom:1.35rem}
     .post-content ul,.post-content ol{margin:1rem 0 1.5rem 1.5rem}
-    .post-content li{margin-bottom:0.5rem;color:#d0d0d0}
-    .post-content strong{color:#fff}
-    .post-content a{color:#d4a634;text-decoration:underline}
-    .post-tags{max-width:800px;margin:2rem auto;padding:0 1rem;display:flex;flex-wrap:wrap;gap:0.5rem}
-    .post-tags span{background:#1a1a2e;color:#9ca3af;padding:0.25rem 0.75rem;border-radius:9999px;font-size:0.8rem;border:1px solid #2a2a4a}
-    .post-footer{max-width:800px;margin:0 auto;padding:2rem 1rem;border-top:1px solid #2a2a4a}
-    .post-footer .cta{background:linear-gradient(135deg,#d4a634,#e8c547);color:#0f0f0f;padding:2rem;border-radius:12px;text-align:center}
-    .post-footer .cta h3{font-size:1.3rem;margin-bottom:0.5rem}
-    .post-footer .cta p{margin-bottom:1rem;color:#333}
-    .post-footer .cta a{display:inline-block;background:#0f0f0f;color:#d4a634;padding:0.75rem 2rem;border-radius:8px;text-decoration:none;font-weight:600}
-    .blog-footer{text-align:center;padding:2rem;border-top:1px solid #2a2a4a;margin-top:2rem;color:#6b7280}
-    .blog-footer a{color:#d4a634;text-decoration:none}
-    @media(max-width:768px){.post-header h1{font-size:1.5rem}.post-content{padding:1.5rem 1rem}}
+    .post-content li{margin-bottom:0.5rem}
+    .post-content strong{color:var(--text);font-weight:700}
+    .post-content a{color:var(--gold);text-decoration:underline;text-underline-offset:2px}
+    .post-content blockquote{border-left:3px solid var(--gold);padding:0.75rem 1.25rem;margin:1.5rem 0;background:var(--bg-card);border-radius:0 var(--radius) var(--radius) 0;font-style:italic;color:var(--text-secondary)}
+
+    .post-tags{max-width:800px;margin:1.5rem auto;padding:0 1.5rem;display:flex;flex-wrap:wrap;gap:0.5rem}
+    .post-tags a{background:var(--bg-card);color:var(--text-secondary);padding:0.3rem 0.8rem;border-radius:9999px;font-size:0.78rem;border:1px solid var(--border);text-decoration:none;transition:all 0.2s;font-weight:500}
+    .post-tags a:hover{border-color:var(--gold);color:var(--gold)}
+
+    .post-cta{max-width:800px;margin:2rem auto;padding:0 1.5rem}
+    .post-cta-inner{background:linear-gradient(135deg,rgba(212,166,52,0.15),rgba(232,197,71,0.08));border:1px solid rgba(212,166,52,0.2);padding:2rem;border-radius:var(--radius);text-align:center}
+    .post-cta-inner h3{font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--text);margin-bottom:0.5rem}
+    .post-cta-inner p{color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.25rem;max-width:500px;margin-left:auto;margin-right:auto}
+    .post-cta-inner a{display:inline-block;background:var(--gold);color:var(--bg);padding:0.65rem 1.75rem;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.9rem;transition:opacity 0.2s}
+    .post-cta-inner a:hover{opacity:0.9}
+
+    .site-footer{border-top:1px solid var(--border);padding:2rem 1.5rem;margin-top:1rem}
+    .footer-inner{max-width:800px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+    .footer-brand{display:flex;align-items:center;gap:0.5rem;color:var(--gold);font-weight:600;font-size:0.95rem}
+    .footer-copy{font-size:0.82rem;color:var(--text-muted)}
+    .footer-links{display:flex;gap:1.5rem}
+    .footer-links a{color:var(--text-secondary);text-decoration:none;font-size:0.82rem;transition:color 0.2s}
+    .footer-links a:hover{color:var(--gold)}
+
+    @media(max-width:640px){
+      .post-hero h1{font-size:1.6rem}
+      .post-hero{padding:1.5rem 1rem 0}
+      .post-content{padding:1.5rem 1rem;font-size:0.9rem}
+      .post-cover{padding:0 1rem}
+      .post-tags{padding:0 1rem}
+      .post-cta{padding:0 1rem}
+      .top-bar{padding:0.65rem 1rem}
+      .footer-inner{flex-direction:column;text-align:center}
+    }
   </style>
 </head>
 <body>
-  <header class="post-header">
-    <div class="post-header-inner">
-      <nav><a href="/blog">&larr; Back to Blog</a> &nbsp;|&nbsp; <a href="/">Learnpro AI Home</a></nav>
-      <span class="post-category">${post.category.replace(/-/g, ' ').toUpperCase()}</span>
-      <h1>${post.title}</h1>
-      <div class="post-meta">
-        <time datetime="${publishedDate}">${readableDate}</time>
-        <span>${post.readingTimeMinutes} min read</span>
-        <span>By Learnpro AI</span>
-      </div>
-    </div>
+  <header class="top-bar">
+    <a href="/" class="top-bar-logo">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#d4a634"/><path d="M8 22V10l8 6-8 6z" fill="#09090b"/><path d="M16 22V10l8 6-8 6z" fill="#09090b" opacity="0.6"/></svg>
+      Learnpro AI
+    </a>
+    <nav class="top-bar-nav">
+      <a href="/">Home</a>
+      <a href="/blog">Blog</a>
+    </nav>
   </header>
-  ${post.coverImageUrl ? `<div class="post-cover"><img src="${post.coverImageUrl}" alt="${post.coverImageAlt || post.title}" width="800" height="400" /></div>` : ''}
+
+  <div class="post-hero">
+    <div class="post-breadcrumb">
+      <a href="/">Home</a><span>/</span>
+      <a href="/blog">Blog</a><span>/</span>
+      <a href="/blog?category=${post.category}">${(CATEGORY_DISPLAY[post.category] || CATEGORY_DISPLAY["general"]).label}</a>
+    </div>
+    <a href="/blog?category=${post.category}" class="post-category">${(CATEGORY_DISPLAY[post.category] || CATEGORY_DISPLAY["general"]).label}</a>
+    <h1>${post.title}</h1>
+    <div class="post-meta">
+      <span class="post-meta-item"><time datetime="${publishedDate}">${readableDate}</time></span>
+      <span class="post-meta-item">${post.readingTimeMinutes} min read</span>
+      <span class="post-meta-item">By Learnpro AI</span>
+    </div>
+  </div>
+  ${post.coverImageUrl ? `<div class="post-cover"><img src="${post.coverImageUrl}" alt="${post.coverImageAlt || post.title}" width="800" height="420" /></div>` : ''}
   <article class="post-content" itemprop="articleBody">
     ${post.htmlContent}
   </article>
   ${(post.tags && post.tags.length > 0) ? `
   <div class="post-tags">
-    ${post.tags.map((t: string) => `<span>#${t}</span>`).join('')}
+    ${post.tags.map((t: string) => `<a href="/blog">#${t}</a>`).join('')}
   </div>` : ''}
-  <div class="post-footer">
-    <div class="cta">
+  <div class="post-cta">
+    <div class="post-cta-inner">
       <h3>Supercharge Your UPSC Preparation</h3>
       <p>Join thousands of aspirants using AI-powered study tools, daily current affairs, practice quizzes, and personalized study plans.</p>
       <a href="/">Start Free on Learnpro AI</a>
     </div>
   </div>
-  <footer class="blog-footer">
-    <p>&copy; ${new Date().getFullYear()} <a href="/">Learnpro AI</a> - AI-Powered UPSC Preparation Platform</p>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <svg viewBox="0 0 32 32" fill="none" width="22" height="22"><rect width="32" height="32" rx="8" fill="#d4a634"/><path d="M8 22V10l8 6-8 6z" fill="#09090b"/><path d="M16 22V10l8 6-8 6z" fill="#09090b" opacity="0.6"/></svg>
+        Learnpro AI
+      </div>
+      <span class="footer-copy">&copy; ${new Date().getFullYear()} Learnpro AI. All rights reserved.</span>
+      <nav class="footer-links">
+        <a href="/">Home</a>
+        <a href="/blog">Blog</a>
+      </nav>
+    </div>
   </footer>
 </body>
 </html>`;
@@ -709,24 +886,42 @@ export function registerBlogRoutes(app: any) {
       const page = Math.max(1, parseInt(req.query.page as string) || 1);
       const limit = 12;
       const offset = (page - 1) * limit;
+      const category = req.query.category as string;
+      const activeCategory = category && BLOG_CATEGORIES.includes(category as any) ? category : "all";
 
-      const [posts, [{ total }]] = await Promise.all([
+      const conditions = [eq(blogPosts.published, true)];
+      if (activeCategory !== "all") {
+        conditions.push(eq(blogPosts.category, activeCategory));
+      }
+      const where = conditions.length === 1 ? conditions[0] : and(...conditions);
+
+      const [posts, [{ total }], categoryCountsRaw] = await Promise.all([
         db
           .select()
           .from(blogPosts)
-          .where(eq(blogPosts.published, true))
+          .where(where)
           .orderBy(desc(blogPosts.publishedAt))
           .limit(limit)
           .offset(offset),
         db
           .select({ total: sql<number>`count(*)::int` })
           .from(blogPosts)
-          .where(eq(blogPosts.published, true)),
+          .where(where),
+        db
+          .select({ category: blogPosts.category, count: sql<number>`count(*)::int` })
+          .from(blogPosts)
+          .where(eq(blogPosts.published, true))
+          .groupBy(blogPosts.category),
       ]);
+
+      const categoryCounts: Record<string, number> = {};
+      for (const row of categoryCountsRaw) {
+        categoryCounts[row.category] = row.count;
+      }
 
       const totalPages = Math.ceil(total / limit);
       res.set("Content-Type", "text/html");
-      res.send(renderBlogListHtml(posts, page, totalPages));
+      res.send(renderBlogListHtml(posts, page, totalPages, activeCategory, categoryCounts));
     } catch (e) {
       console.error("Error rendering blog:", e);
       res.status(500).send("Error loading blog");
