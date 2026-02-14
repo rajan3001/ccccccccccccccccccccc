@@ -777,6 +777,11 @@ export default function LandingPage() {
                 {t.landing.navExams}
               </Button>
             </a>
+            <a href="/blog">
+              <Button variant="ghost" className="hidden sm:inline-flex text-muted-foreground" data-testid="link-blog-nav">
+                {t.nav?.blog || "Blog"}
+              </Button>
+            </a>
             <Button
               onClick={openLogin}
               data-testid="button-login-nav"
