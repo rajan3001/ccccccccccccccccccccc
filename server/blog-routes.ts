@@ -1072,7 +1072,9 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     .relevance-box{background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin:1.5rem 0;overflow:hidden}
     .relevance-head{padding:0.6rem 1rem;background:linear-gradient(135deg,rgba(37,99,235,0.08),rgba(37,99,235,0.03));border-bottom:1px solid var(--border);font-family:var(--font-display);font-size:0.82rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.05em;display:flex;align-items:center;gap:0.45rem}
     .relevance-head svg{width:15px;height:15px}
-    .relevance-body{padding:0.85rem 1rem;font-family:var(--font-body);font-size:0.88rem;line-height:1.6;color:var(--text-secondary)}
+    .relevance-body{padding:0.85rem 1rem;font-family:var(--font-body);font-size:0.88rem;line-height:1.6;color:var(--text-secondary);display:flex;flex-direction:column;gap:0.5rem}
+    .relevance-row{display:flex;gap:0.4rem}
+    .relevance-row strong{color:var(--blue);flex-shrink:0}
     .relevance-body a{color:var(--blue);text-decoration:none;font-weight:500}
     .relevance-body a:hover{text-decoration:underline}
 
@@ -1251,8 +1253,8 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
           For Prelims &amp; Mains
         </div>
         <div class="relevance-body">
-          <strong>Prelims:</strong> ${(post.tags || []).slice(0, 5).join(', ') || catInfo.label} |
-          <strong>Mains:</strong> ${catInfo.label} - ${catInfo.description}
+          <div class="relevance-row"><strong>Prelims:</strong> <span>${(post.tags || []).slice(0, 5).join(', ') || catInfo.label}</span></div>
+          <div class="relevance-row"><strong>Mains:</strong> <span>${catInfo.label} - ${catInfo.description}</span></div>
         </div>
       </div>
 
