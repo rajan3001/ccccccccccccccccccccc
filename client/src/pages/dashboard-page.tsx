@@ -220,35 +220,97 @@ function TodayAchievements({ stats, t }: { stats: DashboardStats; t: any }) {
     : 0;
 
   return (
-    <div className="flex items-center gap-2 mb-3" data-testid="section-today-achievements">
-      {achievements.map((item, idx) => (
-        <div
-          key={item.label}
-          className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
-          data-testid={`card-achievement-${idx}`}
-          style={{
-            background: item.color,
-            animation: `ach-pop-in 0.3s cubic-bezier(0.34,1.56,0.64,1) ${idx * 0.06}s both`,
-          }}
-        >
-          <item.icon className="h-3 w-3 text-white" style={{ animation: `ach-icon-pulse 2.5s ease-in-out ${idx * 0.3}s infinite` }} />
-          <span className="text-xs font-bold text-white tabular-nums" data-testid={`text-achievement-value-${idx}`}>
-            <AnimatedCounter target={item.value} />
-          </span>
-          <span className="text-[8px] font-semibold text-white/80 uppercase tracking-wide hidden sm:inline">
-            {item.label}
-          </span>
+    <div className="mb-3 sm:mb-4" data-testid="section-today-achievements">
+      <div className="flex items-center gap-2 mb-2">
+        <div style={{ animation: "ach-trophy-bob 2.5s ease-in-out infinite" }}>
+          <Trophy className="h-4 w-4 text-amber-500" style={{ filter: "drop-shadow(0 0 4px rgba(245,158,11,0.5))" }} />
         </div>
-      ))}
+        <span className="text-xs sm:text-sm font-bold text-foreground" data-testid="text-achievements-heading">
+          {t.dashboard.todayAchievements}
+        </span>
+        {stats.today.mcqsSolved > 0 && (
+          <Badge variant="secondary" className="text-[9px] ml-auto">
+            <Zap className="h-2.5 w-2.5 mr-0.5 text-amber-500" />
+            <AnimatedCounter target={accuracy} suffix="%" /> accuracy
+          </Badge>
+        )}
+      </div>
+      <div className="grid grid-cols-4 gap-2">
+        {achievements.map((item, idx) => (
+          <div
+            key={item.label}
+            className="ach-card relative rounded-xl overflow-hidden cursor-default"
+            data-testid={`card-achievement-${idx}`}
+            style={{
+              background: item.color,
+              aspectRatio: "1",
+              animation: `ach-pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1) ${idx * 0.08}s both`,
+            }}
+          >
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 z-10">
+              <item.icon
+                className="h-5 w-5 sm:h-6 sm:w-6 text-white drop-shadow-md"
+                style={{ animation: `ach-icon-pulse 2.5s ease-in-out ${idx * 0.3}s infinite` }}
+              />
+              <span
+                className="text-xl sm:text-2xl font-black text-white leading-none tabular-nums drop-shadow-md"
+                data-testid={`text-achievement-value-${idx}`}
+              >
+                <AnimatedCounter target={item.value} />
+              </span>
+              <span className="text-[7px] sm:text-[9px] font-bold text-white/85 uppercase tracking-widest text-center leading-tight">
+                {item.label}
+              </span>
+            </div>
+            <div
+              className="ach-glare absolute inset-0 z-20 pointer-events-none"
+              style={{ animationDelay: `${idx * 0.6}s` }}
+            />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: "linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 40%, rgba(0,0,0,0.1) 100%)",
+              }}
+            />
+          </div>
+        ))}
+      </div>
 
       <style>{`
+        @keyframes ach-trophy-bob {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          30% { transform: translateY(-3px) rotate(-5deg); }
+          60% { transform: translateY(-1px) rotate(4deg); }
+        }
         @keyframes ach-pop-in {
-          from { opacity: 0; transform: scale(0.8) translateY(4px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
+          from { opacity: 0; transform: scale(0.7) rotateX(15deg); }
+          to { opacity: 1; transform: scale(1) rotateX(0deg); }
         }
         @keyframes ach-icon-pulse {
           0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.15); }
+          50% { transform: scale(1.18); }
+        }
+        @keyframes ach-glare-sweep {
+          0% { transform: translateX(-120%) rotate(25deg); }
+          100% { transform: translateX(220%) rotate(25deg); }
+        }
+        .ach-glare::after {
+          content: '';
+          position: absolute;
+          top: -50%;
+          left: -50%;
+          width: 40%;
+          height: 200%;
+          background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(255,255,255,0.08) 30%,
+            rgba(255,255,255,0.25) 50%,
+            rgba(255,255,255,0.08) 70%,
+            transparent 100%
+          );
+          transform: translateX(-120%) rotate(25deg);
+          animation: ach-glare-sweep 3s ease-in-out infinite;
         }
       `}</style>
     </div>
