@@ -184,11 +184,11 @@ export function Sidebar() {
         </a>
       </div>
 
-      <div className="flex-1 overflow-hidden px-4">
-        <div className="text-xs font-semibold text-muted-foreground mb-3 px-2 uppercase tracking-wider">
+      <div className="flex-1 min-h-0 flex flex-col px-4">
+        <div className="text-xs font-semibold text-muted-foreground mb-3 px-2 uppercase tracking-wider flex-shrink-0">
           {t.nav.history}
         </div>
-        <ScrollArea className="h-full">
+        <ScrollArea className="flex-1 min-h-0">
           <div className="space-y-1 pr-2 pb-4">
             {isLoading ? (
               <div className="px-2 text-sm text-muted-foreground animate-pulse">{t.nav.loadingChats}</div>
