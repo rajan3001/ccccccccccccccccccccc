@@ -1,0 +1,144 @@
+Write a deeply researched, search-intent optimized, long-form blog post designed to rank on Google Page 1.
+
+Primary Keyword: [INSERT PRIMARY KEYWORD]
+Secondary Keywords: [INSERT SECONDARY KEYWORDS]
+Target Audience: [BEGINNER / INTERMEDIATE / EXPERT]
+Search Intent: [INFORMATIONAL / COMMERCIAL / TRANSACTIONAL / NAVIGATIONAL]
+
+Follow these rules strictly:
+
+1. Search Intent Optimization
+
+Analyze and satisfy the dominant search intent.
+
+Answer the main query clearly within the first 100 words.
+
+Include a 40–60 word featured snippet paragraph immediately after introduction.
+
+2. SEO Structure Requirements
+
+Create an SEO title under 60 characters.
+
+Write a 150–160 character meta description with primary keyword.
+
+Suggest a short, clean URL slug.
+
+Use proper heading hierarchy (H1 once, structured H2, H3, H4).
+
+Keep paragraphs under 3 lines.
+
+Use bullet lists, comparison tables, and numbered steps.
+
+3. Semantic SEO Optimization
+
+Naturally include:
+
+LSI keywords
+
+Related entities
+
+NLP-rich terms
+
+Synonyms of primary keyword
+
+Avoid keyword stuffing.
+
+Maintain natural keyword density (around 1.5–2%).
+
+4. Topical Authority Depth
+
+Cover:
+
+Definition
+
+How it works
+
+Benefits
+
+Disadvantages
+
+Use cases
+
+Comparison with alternatives
+
+Case examples or data
+
+Expert insights
+
+Make it more comprehensive than top 5 Google results.
+
+5. Content Length
+
+Minimum 2000 words (unless topic requires less).
+
+No fluff.
+
+No repetitive phrasing.
+
+No generic AI filler sentences.
+
+6. Readability + Engagement
+
+Use simple but authoritative tone.
+
+Use transition words.
+
+Add engaging subheadings.
+
+Add “People Also Ask” style FAQs (minimum 6).
+
+Include one summary table if applicable.
+
+7. EEAT Enhancement
+
+Add credibility signals:
+
+Data
+
+Statistics
+
+Expert insights
+
+Industry references
+
+Add a short author expertise paragraph.
+
+8. CTR Optimization
+
+Make title emotionally compelling.
+
+Use numbers or strong words if relevant.
+
+Add a call-to-action at the end.
+
+9. Technical SEO Enhancements
+
+Suggest:
+
+3 internal linking anchor texts
+
+2 high authority external reference types
+
+Optimized image filenames
+
+Image alt text examples
+
+10. Output Format (Strict Order)
+
+SEO Title
+
+Meta Description
+
+URL Slug
+
+Full Blog Content
+
+FAQ Section
+
+Internal Link Suggestions
+
+External Reference Suggestions
+
+Image SEO Suggestions
+
+Do not mention SEO score. Do not explain the process. Deliver ready-to-publish content.

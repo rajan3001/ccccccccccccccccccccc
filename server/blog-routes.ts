@@ -796,18 +796,15 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     .cover-img img{width:100%;display:block;max-height:400px;object-fit:cover}
 
     .article-body{padding:1.5rem 0;font-family:var(--font-serif);font-size:1.02rem;line-height:1.95;color:#374151}
-    .article-body h1{font-family:var(--font-display);font-size:1.55rem;color:var(--text);margin:2.25rem 0 0.85rem;line-height:1.3;font-weight:700}
-    .article-body h2{font-family:var(--font-display);font-size:1.3rem;color:var(--text);margin:2rem 0 0.75rem;padding-left:0.85rem;line-height:1.35;font-weight:700;border-left:3px solid var(--blue);position:relative}
-    .article-body h3{font-family:var(--font-display);font-size:1.1rem;color:var(--text);margin:1.5rem 0 0.6rem;font-weight:600}
     .article-body p{margin-bottom:1.25rem}
     .article-body ul,.article-body ol{margin:0.75rem 0 1.25rem 1.5rem}
-    .article-body li{margin-bottom:0.45rem}
+    .article-body li{margin-bottom:0.45rem;line-height:1.7}
     .article-body li::marker{color:var(--blue)}
     .article-body strong{color:var(--text);font-weight:700}
     .article-body a{color:var(--blue);text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(37,99,235,0.3);transition:text-decoration-color 0.2s}
     .article-body a:hover{text-decoration-color:var(--blue)}
     .article-body blockquote{border-left:3px solid var(--blue);padding:0.85rem 1.25rem;margin:1.5rem 0;background:var(--blue-bg);border-radius:0 var(--radius) var(--radius) 0;font-style:italic;color:var(--text-secondary)}
-    .article-body table{width:100%;border-collapse:collapse;margin:1.25rem 0;font-family:var(--font-body);font-size:0.88rem}
+    .article-body table{width:100%;border-collapse:collapse;margin:1.25rem 0;font-family:var(--font-body);font-size:0.88rem;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
     .article-body th{background:var(--blue);color:#fff;padding:0.6rem 0.85rem;text-align:left;font-weight:600;font-size:0.82rem}
     .article-body td{padding:0.55rem 0.85rem;border-bottom:1px solid var(--border)}
     .article-body tr:nth-child(even) td{background:rgba(37,99,235,0.03)}
@@ -815,6 +812,63 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     .article-body pre{background:#1e293b;color:#e2e8f0;padding:1rem 1.25rem;border-radius:var(--radius);overflow-x:auto;margin:1.25rem 0;font-size:0.85rem}
     .article-body img{max-width:100%;border-radius:var(--radius);margin:1rem 0}
     .article-body hr{border:none;height:1px;background:var(--border);margin:2rem 0}
+
+    /* Section boxes - Drishti/Vajirao style */
+    .section-box{background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin:1.75rem 0;overflow:hidden}
+    .section-head{display:flex;align-items:center;gap:0.65rem;padding:0.75rem 1.1rem;background:linear-gradient(135deg,#1e3a5f,#1e40af);color:#fff;font-family:var(--font-display);font-size:1.05rem;font-weight:700;line-height:1.35}
+    .section-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.2);font-size:0.82rem;font-weight:700;flex-shrink:0}
+    .section-body{padding:1.1rem 1.25rem}
+    .section-body>p:last-child,.section-body>ul:last-child,.section-body>ol:last-child{margin-bottom:0}
+
+    /* Sub-section h3 inside section boxes */
+    .article-body .section-body h3{font-family:var(--font-display);font-size:1.05rem;color:var(--text);margin:1.35rem 0 0.5rem;font-weight:600;padding-left:0.6rem;border-left:2px solid var(--blue-light)}
+    .article-body h3{font-family:var(--font-display);font-size:1.1rem;color:var(--text);margin:1.5rem 0 0.6rem;font-weight:600}
+
+    /* Info boxes for key concepts, background, etc. */
+    .info-box{border-radius:var(--radius);padding:1rem 1.15rem;margin:1.25rem 0;font-family:var(--font-body);font-size:0.9rem;line-height:1.65;position:relative;overflow:hidden}
+    .info-box::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%}
+    .info-box-blue{background:rgba(37,99,235,0.05);border:1px solid rgba(37,99,235,0.12)}
+    .info-box-blue::before{background:var(--blue)}
+    .info-box-green{background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.15)}
+    .info-box-green::before{background:#10b981}
+    .info-box-amber{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15)}
+    .info-box-amber::before{background:#f59e0b}
+    .info-box-purple{background:rgba(139,92,246,0.05);border:1px solid rgba(139,92,246,0.12)}
+    .info-box-purple::before{background:#8b5cf6}
+    .info-box-head{display:flex;align-items:center;gap:0.45rem;font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.5rem}
+    .info-box-head svg{width:16px;height:16px;flex-shrink:0}
+    .info-box p{margin-bottom:0.6rem}
+    .info-box p:last-child{margin-bottom:0}
+    .info-box ul{margin:0.5rem 0 0.5rem 1.25rem}
+    .info-box li{margin-bottom:0.3rem;font-size:0.88rem}
+
+    /* Prelims / Mains relevance box */
+    .relevance-box{background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin:1.5rem 0;overflow:hidden}
+    .relevance-head{padding:0.6rem 1rem;background:linear-gradient(135deg,rgba(37,99,235,0.08),rgba(37,99,235,0.03));border-bottom:1px solid var(--border);font-family:var(--font-display);font-size:0.82rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.05em;display:flex;align-items:center;gap:0.45rem}
+    .relevance-head svg{width:15px;height:15px}
+    .relevance-body{padding:0.85rem 1rem;font-family:var(--font-body);font-size:0.88rem;line-height:1.6;color:var(--text-secondary)}
+    .relevance-body a{color:var(--blue);text-decoration:none;font-weight:500}
+    .relevance-body a:hover{text-decoration:underline}
+
+    /* FAQ Accordion */
+    .faq-section{margin:2rem 0;border-top:1px solid var(--border);padding-top:1.5rem}
+    .faq-title{font-family:var(--font-display);font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem}
+    .faq-title svg{width:20px;height:20px;color:var(--blue)}
+    .faq-item{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0.6rem;overflow:hidden;background:#fff;transition:border-color 0.2s}
+    .faq-item.faq-open{border-color:rgba(37,99,235,0.25)}
+    .faq-q{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:0.85rem 1.1rem;cursor:pointer;font-family:var(--font-body);font-size:0.92rem;font-weight:600;color:var(--text);transition:background 0.2s;user-select:none}
+    .faq-q:hover{background:rgba(37,99,235,0.03)}
+    .faq-q svg{width:18px;height:18px;flex-shrink:0;color:var(--blue);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1)}
+    .faq-open .faq-q svg{transform:rotate(180deg)}
+    .faq-a{max-height:0;overflow:hidden;transition:max-height 0.35s cubic-bezier(0.4,0,0.2,1),padding 0.35s}
+    .faq-open .faq-a{max-height:500px}
+    .faq-a-inner{padding:0 1.1rem 1rem;font-family:var(--font-body);font-size:0.88rem;line-height:1.7;color:var(--text-secondary);border-top:1px solid var(--border)}
+    .faq-a-inner p{margin:0.65rem 0 0}
+
+    /* Source attribution */
+    .source-box{display:flex;align-items:center;gap:0.5rem;padding:0.65rem 1rem;background:rgba(37,99,235,0.04);border:1px solid rgba(37,99,235,0.1);border-radius:var(--radius);margin:1.25rem 0;font-family:var(--font-body);font-size:0.82rem;color:var(--text-secondary)}
+    .source-box svg{width:14px;height:14px;color:var(--blue);flex-shrink:0}
+    .source-box strong{color:var(--text);font-weight:600}
 
     .tags-section{padding:1.5rem 0;border-top:1px solid var(--border)}
     .tags-section h3{font-family:var(--font-display);font-size:0.82rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.65rem}
@@ -888,6 +942,11 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
       .top-bar{padding:0 1rem}
       .footer-inner{flex-direction:column;text-align:center}
       .nav-posts{flex-direction:column}
+      .section-head{font-size:0.92rem;padding:0.65rem 0.85rem}
+      .section-body{padding:0.85rem 1rem}
+      .info-box{padding:0.85rem 0.95rem}
+      .relevance-body{font-size:0.82rem}
+      .faq-q{font-size:0.85rem;padding:0.75rem 0.9rem}
     }
   </style>
 </head>
@@ -940,9 +999,33 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
 
       ${post.coverImageUrl ? `<div class="cover-img" data-testid="cover-image"><img src="${post.coverImageUrl}" alt="${post.coverImageAlt || post.title}" width="800" height="400" loading="eager" /></div>` : ''}
 
+      <div class="relevance-box" data-testid="relevance-prelims">
+        <div class="relevance-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+          For Prelims &amp; Mains
+        </div>
+        <div class="relevance-body">
+          <strong>Prelims:</strong> ${(post.tags || []).slice(0, 5).join(', ') || catInfo.label} |
+          <strong>Mains:</strong> ${catInfo.label} - ${catInfo.description}
+        </div>
+      </div>
+
       <article class="article-body" id="articleBody" itemprop="articleBody" data-testid="article-body">
         ${post.htmlContent}
       </article>
+
+      <div class="source-box" data-testid="source-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        <span><strong>Source:</strong> Learnpro AI Editorial | ${catInfo.label} | Published: ${readableDate}</span>
+      </div>
+
+      <section class="faq-section" id="faqSection" data-testid="faq-section">
+        <h2 class="faq-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+          Frequently Asked Questions
+        </h2>
+        <div id="faqList" data-testid="faq-list"></div>
+      </section>
 
       ${(post.tags && post.tags.length > 0) ? `
       <section class="tags-section" data-testid="tags-section">
@@ -1042,25 +1125,179 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     }
 
     var body=document.getElementById('articleBody');
+    if(!body)return;
+
+    /* === AUTO-STRUCTURE: Wrap H2 sections in bordered boxes === */
+    var children=Array.from(body.childNodes);
+    var sections=[];
+    var currentSection=null;
+    var sectionNum=0;
+    children.forEach(function(node){
+      if(node.nodeType===1 && (node.tagName==='H2'||node.tagName==='H1')){
+        if(currentSection){sections.push(currentSection);}
+        sectionNum++;
+        currentSection={heading:node,num:sectionNum,nodes:[]};
+      } else if(currentSection){
+        currentSection.nodes.push(node);
+      }
+    });
+    if(currentSection){sections.push(currentSection);}
+
+    if(sections.length>=2){
+      sections.forEach(function(sec){
+        var box=document.createElement('div');
+        box.className='section-box';
+        var head=document.createElement('div');
+        head.className='section-head';
+        var numSpan=document.createElement('span');
+        numSpan.className='section-num';
+        numSpan.textContent=sec.num;
+        head.appendChild(numSpan);
+        var titleSpan=document.createElement('span');
+        titleSpan.textContent=sec.heading.textContent||'';
+        head.appendChild(titleSpan);
+        box.appendChild(head);
+        var bodyDiv=document.createElement('div');
+        bodyDiv.className='section-body';
+        sec.nodes.forEach(function(n){bodyDiv.appendChild(n);});
+        box.appendChild(bodyDiv);
+        sec.heading.parentNode.insertBefore(box,sec.heading);
+        sec.heading.remove();
+      });
+    }
+
+    /* === Detect and wrap special patterns in info boxes === */
+    var allPs=body.querySelectorAll('.section-body p, .article-body > p');
+    allPs.forEach(function(p){
+      var txt=(p.textContent||'').toLowerCase();
+      var firstStrong=p.querySelector('strong');
+      if(!firstStrong)return;
+      var strongTxt=(firstStrong.textContent||'').toLowerCase();
+      var boxType=null;
+      var boxLabel='';
+      var iconSvg='';
+      if(/upsc tip|upsc note|exam tip|important note/i.test(strongTxt)){
+        boxType='info-box-amber';
+        boxLabel='UPSC TIP';
+        iconSvg='<svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>';
+      } else if(/key (features?|highlights?|points?|takeaways?)|salient features/i.test(strongTxt)){
+        boxType='info-box-blue';
+        boxLabel='KEY POINTS';
+        iconSvg='<svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>';
+      } else if(/background|context|overview/i.test(strongTxt) && txt.length<100){
+        boxType='info-box-purple';
+        boxLabel='BACKGROUND';
+        iconSvg='<svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
+      }
+      if(boxType){
+        var infoBox=document.createElement('div');
+        infoBox.className='info-box '+boxType;
+        var headDiv=document.createElement('div');
+        headDiv.className='info-box-head';
+        headDiv.innerHTML=iconSvg+' '+boxLabel;
+        infoBox.appendChild(headDiv);
+        var nextSib=p.nextElementSibling;
+        infoBox.appendChild(p.cloneNode(true));
+        while(nextSib && nextSib.tagName!=='H2' && nextSib.tagName!=='H3' && nextSib.tagName!=='H1' && !nextSib.classList.contains('section-box')){
+          var ns=nextSib.nextElementSibling;
+          if(nextSib.tagName==='UL'||nextSib.tagName==='OL'){
+            infoBox.appendChild(nextSib.cloneNode(true));
+            nextSib.remove();
+            nextSib=ns;
+          } else {break;}
+        }
+        p.parentNode.replaceChild(infoBox,p);
+      }
+    });
+
+    /* === Convert blockquotes to styled info boxes === */
+    body.querySelectorAll('blockquote').forEach(function(bq){
+      var box=document.createElement('div');
+      box.className='info-box info-box-green';
+      var headDiv=document.createElement('div');
+      headDiv.className='info-box-head';
+      headDiv.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> NOTE';
+      box.appendChild(headDiv);
+      box.innerHTML+=bq.innerHTML;
+      bq.parentNode.replaceChild(box,bq);
+    });
+
+    /* === Generate FAQ section from article content === */
+    var faqList=document.getElementById('faqList');
+    var faqSection=document.getElementById('faqSection');
+    if(faqList){
+      var faqs=[];
+      var sectionBoxes=body.querySelectorAll('.section-box');
+      sectionBoxes.forEach(function(sb){
+        var headEl=sb.querySelector('.section-head');
+        var bodyEl=sb.querySelector('.section-body');
+        if(!headEl||!bodyEl)return;
+        var headText=headEl.textContent.replace(/^\d+/,'').trim();
+        var firstP=bodyEl.querySelector('p');
+        var answer=firstP?(firstP.textContent||'').substring(0,300):'';
+        if(answer.length>280)answer=answer.substring(0,answer.lastIndexOf(' '))+'...';
+        if(headText && answer){
+          var q='What is '+headText+'?';
+          if(/why|how|what|role|impact|significance|importance|challenges/i.test(headText.toLowerCase())){
+            q=headText+'?';
+          } else if(/key|features|highlights/i.test(headText.toLowerCase())){
+            q='What are the '+headText+'?';
+          }
+          faqs.push({q:q,a:answer});
+        }
+      });
+      if(faqs.length<3){
+        var hdsLeft=body.querySelectorAll('h3');
+        hdsLeft.forEach(function(h3){
+          if(faqs.length>=6)return;
+          var txt=h3.textContent||'';
+          var nextP=h3.nextElementSibling;
+          var ans=nextP?(nextP.textContent||'').substring(0,250):'';
+          if(txt && ans){
+            faqs.push({q:'Explain '+txt,a:ans.length>230?ans.substring(0,ans.lastIndexOf(' '))+'...':ans});
+          }
+        });
+      }
+      if(faqs.length>0){
+        faqs.slice(0,6).forEach(function(faq,i){
+          var item=document.createElement('div');
+          item.className='faq-item';
+          item.setAttribute('data-testid','faq-item-'+i);
+          item.innerHTML='<div class="faq-q" role="button" tabindex="0" aria-expanded="false"><span>'+faq.q+'</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a"><div class="faq-a-inner"><p>'+faq.a+'</p></div></div>';
+          item.querySelector('.faq-q').addEventListener('click',function(){
+            var isOpen=item.classList.contains('faq-open');
+            item.classList.toggle('faq-open');
+            this.setAttribute('aria-expanded',!isOpen);
+          });
+          faqList.appendChild(item);
+        });
+      } else {
+        faqSection.style.display='none';
+      }
+    }
+
+    /* === TOC generation === */
     var tocList=document.getElementById('tocList');
     var tocCard=document.getElementById('tocCard');
-    if(body && tocList){
-      var headings=body.querySelectorAll('h1,h2,h3');
-      if(headings.length===0){tocCard.style.display='none';}
+    if(tocList){
+      var headings=body.querySelectorAll('.section-head, h3');
+      if(headings.length===0){if(tocCard)tocCard.style.display='none';}
       else{
-        var ids=[];
         headings.forEach(function(h,i){
           var id='s'+i;
-          h.setAttribute('id',id);
-          ids.push({id:id,tag:h.tagName,text:h.textContent||''});
+          var parent=h.closest('.section-box')||h;
+          parent.setAttribute('id',id);
           var li=document.createElement('li');
-          li.className='toc-item'+(h.tagName==='H3'?' toc-h3':'');
+          var isH3=h.tagName==='H3';
+          li.className='toc-item'+(isH3?' toc-h3':'');
           var a=document.createElement('a');
           a.href='#'+id;
-          a.textContent=h.textContent||'';
+          var numEl=h.querySelector('.section-num');
+          var label=numEl?(h.textContent||'').replace(numEl.textContent,'').trim():(h.textContent||'');
+          a.textContent=label;
           a.addEventListener('click',function(e){
             e.preventDefault();
-            h.scrollIntoView({behavior:'smooth',block:'start'});
+            parent.scrollIntoView({behavior:'smooth',block:'start'});
             history.replaceState(null,'',a.href);
           });
           li.appendChild(a);
@@ -1068,18 +1305,44 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
         });
 
         var tocLinks=tocList.querySelectorAll('a');
-        var observer=new IntersectionObserver(function(entries){
+        var targets=[];
+        tocLinks.forEach(function(l){
+          var t=document.querySelector(l.getAttribute('href'));
+          if(t)targets.push({link:l,el:t});
+        });
+        var obs=new IntersectionObserver(function(entries){
           entries.forEach(function(en){
             if(en.isIntersecting){
-              var activeId=en.target.id;
-              tocLinks.forEach(function(l){
-                l.classList.toggle('toc-active',l.getAttribute('href')==='#'+activeId);
+              tocLinks.forEach(function(l){l.classList.remove('toc-active');});
+              targets.forEach(function(t){
+                if(t.el===en.target)t.link.classList.add('toc-active');
               });
             }
           });
         },{rootMargin:'-80px 0px -70% 0px',threshold:0});
-        headings.forEach(function(h){observer.observe(h);});
+        targets.forEach(function(t){obs.observe(t.el);});
       }
+    }
+
+    /* === Inject FAQ Schema JSON-LD for SEO === */
+    if(faqList && faqList.children.length>0){
+      var faqSchema={"@context":"https://schema.org","@type":"FAQPage","mainEntity":[]};
+      var faqItems=faqList.querySelectorAll('.faq-item');
+      faqItems.forEach(function(item){
+        var qEl=item.querySelector('.faq-q span');
+        var aEl=item.querySelector('.faq-a-inner');
+        if(qEl && aEl){
+          faqSchema.mainEntity.push({
+            "@type":"Question",
+            "name":qEl.textContent,
+            "acceptedAnswer":{"@type":"Answer","text":aEl.textContent.trim()}
+          });
+        }
+      });
+      var script=document.createElement('script');
+      script.type='application/ld+json';
+      script.textContent=JSON.stringify(faqSchema);
+      document.head.appendChild(script);
     }
   })();
   </script>
