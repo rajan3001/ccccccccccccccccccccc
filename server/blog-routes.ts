@@ -36,6 +36,11 @@ function markdownToHtml(md: string): string {
   let inTable = false;
   let tableHeaders = false;
 
+  function closeLists() {
+    if (inUl) { result.push('</ul>'); inUl = false; }
+    if (inOl) { result.push('</ol>'); inOl = false; }
+  }
+
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i];
 
@@ -48,9 +53,7 @@ function markdownToHtml(md: string): string {
     // Table rows
     if (/^\|(.+)\|$/.test(line)) {
       if (!inTable) {
-        // Close any open lists
-        if (inUl) { result.push('</ul>'); inUl = false; }
-        if (inOl) { result.push('</ol>'); inOl = false; }
+        closeLists();
         result.push('<table>');
         inTable = true;
         tableHeaders = false;
@@ -66,28 +69,18 @@ function markdownToHtml(md: string): string {
       tableHeaders = false;
     }
 
-    // Headings
-    if (/^### (.+)$/.test(line)) {
-      if (inUl) { result.push('</ul>'); inUl = false; }
-      if (inOl) { result.push('</ol>'); inOl = false; }
-      result.push(`<h3>${inlineFormat(line.replace(/^### /, ''))}</h3>`);
-      continue;
-    }
-    if (/^## (.+)$/.test(line)) {
-      if (inUl) { result.push('</ul>'); inUl = false; }
-      if (inOl) { result.push('</ol>'); inOl = false; }
-      result.push(`<h2>${inlineFormat(line.replace(/^## /, ''))}</h2>`);
-      continue;
-    }
-    if (/^# (.+)$/.test(line)) {
-      if (inUl) { result.push('</ul>'); inUl = false; }
-      if (inOl) { result.push('</ol>'); inOl = false; }
-      result.push(`<h1>${inlineFormat(line.replace(/^# /, ''))}</h1>`);
+    // Headings - MUST check longest prefix first (H6 down to H1) to avoid partial matches
+    const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
+    if (headingMatch) {
+      closeLists();
+      const level = Math.min(headingMatch[1].length, 4);
+      const tag = level <= 3 ? `h${level}` : 'h3';
+      result.push(`<${tag}>${inlineFormat(headingMatch[2])}</${tag}>`);
       continue;
     }
 
-    // Unordered list items (dash OR asterisk)
-    const ulMatch = line.match(/^[\-\*]\s+(.+)$/);
+    // Unordered list items (dash OR asterisk, with optional indentation)
+    const ulMatch = line.match(/^\s*[\-\*]\s+(.+)$/);
     if (ulMatch) {
       if (inOl) { result.push('</ol>'); inOl = false; }
       if (!inUl) { result.push('<ul>'); inUl = true; }
@@ -96,7 +89,7 @@ function markdownToHtml(md: string): string {
     }
 
     // Ordered list items
-    const olMatch = line.match(/^\d+[\.\)]\s+(.+)$/);
+    const olMatch = line.match(/^\s*\d+[\.\)]\s+(.+)$/);
     if (olMatch) {
       if (inUl) { result.push('</ul>'); inUl = false; }
       if (!inOl) { result.push('<ol>'); inOl = true; }
@@ -106,38 +99,35 @@ function markdownToHtml(md: string): string {
 
     // Blockquote
     if (/^>\s*(.+)$/.test(line)) {
-      if (inUl) { result.push('</ul>'); inUl = false; }
-      if (inOl) { result.push('</ol>'); inOl = false; }
+      closeLists();
       result.push(`<blockquote><p>${inlineFormat(line.replace(/^>\s*/, ''))}</p></blockquote>`);
       continue;
     }
 
     // Empty line - close lists
     if (line.trim() === '') {
-      if (inUl) { result.push('</ul>'); inUl = false; }
-      if (inOl) { result.push('</ol>'); inOl = false; }
+      closeLists();
       continue;
     }
 
     // Regular paragraph
-    if (inUl) { result.push('</ul>'); inUl = false; }
-    if (inOl) { result.push('</ol>'); inOl = false; }
+    closeLists();
     result.push(`<p>${inlineFormat(line)}</p>`);
   }
 
-  // Close any remaining open tags
-  if (inUl) result.push('</ul>');
-  if (inOl) result.push('</ol>');
+  closeLists();
   if (inTable) result.push('</table>');
 
   return result.join('\n');
 }
 
 function inlineFormat(text: string): string {
-  // Bold (must come before italic)
-  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Bold - handle both **text** and __text__ (must come before italic)
+  text = text.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/__([^_]+?)__/g, '<strong>$1</strong>');
   // Italic
-  text = text.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>');
+  text = text.replace(/(?<!\*)\*(?!\*)([^*]+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>');
+  text = text.replace(/(?<!_)_(?!_)([^_]+?)(?<!_)_(?!_)/g, '<em>$1</em>');
   // Inline code
   text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
   // Links
@@ -300,71 +290,85 @@ Return ONLY the JSON array, no other text.`;
 }
 
 async function generateBlogContent(topic: string, category: string): Promise<InsertBlogPost | null> {
-  const prompt = `You are a senior UPSC content strategist writing a deeply researched, search-intent-optimized, long-form blog post designed to rank on Google Page 1.
+  const prompt = `You are a senior UPSC content strategist. Write a deeply researched, SEO-optimized blog post designed to rank #1 on Google.
 
 TOPIC: "${topic}"
 CATEGORY: ${category}
-TARGET AUDIENCE: Intermediate UPSC/IAS aspirants
-SEARCH INTENT: Informational
 
-STRICT CONTENT RULES:
+=== ABSOLUTE FORMATTING RULES (VIOLATION = REJECTION) ===
 
-1. SEARCH INTENT: Answer the main query clearly within the first 100 words. Include a 40-60 word featured snippet paragraph right after the introduction.
+HEADINGS:
+- Use ONLY ## (H2) and ### (H3). NEVER use #### or ##### or ###### anywhere.
+- Minimum 6 H2 sections. Each H2 must have 2-3 H3 sub-sections inside it.
+- H2 = major topic divisions. H3 = sub-points within each H2.
 
-2. STRUCTURE (CRITICAL - follow exactly):
-   - Use H2 headings (##) for major sections (minimum 6-8 H2s)
-   - Use H3 headings (###) for sub-sections under each H2 (minimum 2-3 H3s per H2)
-   - Keep every paragraph under 3 lines maximum
-   - NEVER use asterisks (*) for lists. ALWAYS use dash (-) for unordered lists
-   - Use numbered lists (1. 2. 3.) for sequential steps
-   - Include at least one comparison or summary table using markdown table syntax (| Header | Header |)
+LISTS (CRITICAL):
+- EVERY H2 section MUST contain at least one bullet list using dash (-) syntax.
+- NEVER use asterisk (*) for bullet points. ONLY use dash (-).
+- Example of CORRECT list:
+  - Point one about the topic
+  - Point two with details
+  - Point three with analysis
+- Use numbered lists (1. 2. 3.) only for sequential steps or rankings.
 
-3. CONTENT DEPTH - Cover ALL of these:
-   - Clear definition and context
-   - How it works / detailed explanation
-   - Key features or components (as bullet list with dash -)
-   - Significance for UPSC Prelims and Mains
-   - Advantages and challenges
-   - Real-world examples, case studies, or recent developments
-   - Expert analysis and critical perspectives
-   - Comparison with alternatives or related concepts
+BOLD TEXT (CRITICAL):
+- Bold ALL important terms, names, acts, articles, dates using **double asterisks**.
+- Example: **Article 356**, **Sarkaria Commission**, **73rd Amendment**, **1991 reforms**
+- Every paragraph should have at least 1-2 bolded key terms.
 
-4. QUALITY REQUIREMENTS:
-   - Minimum 2000 words, maximum 3000 words
-   - ZERO fluff, ZERO repetitive phrasing, ZERO generic filler
-   - Every sentence must add value
-   - Use simple but authoritative tone with transition words
-   - Natural keyword density around 1.5-2% for UPSC, IAS, Civil Services
+TABLES:
+- Include at least ONE comparison or summary table per article.
+- Use markdown pipe table syntax: | Header 1 | Header 2 |
 
-5. FAQ SECTION (MANDATORY):
-   - End with exactly 6 "Frequently Asked Questions" under ## Frequently Asked Questions
-   - Each FAQ as ### question heading followed by a concise 2-3 sentence answer paragraph
-   - Questions should match real "People Also Ask" search queries
+PARAGRAPHS:
+- Maximum 3 lines per paragraph. Break long paragraphs.
+- NO walls of text. Every paragraph must be concise.
 
-6. EEAT SIGNALS:
-   - Include specific data, statistics, year references
-   - Reference Constitutional articles, government reports, committee recommendations
-   - Mention expert opinions or landmark judgments where relevant
+=== CONTENT REQUIREMENTS ===
 
-7. FORMATTING REMINDERS:
-   - Lists MUST use dash (-) prefix, NEVER asterisk (*)
-   - Bold key terms with double asterisks only for **important terms**
-   - Each H2 section should have 150-300 words minimum
-   - Use ### subheadings to break up long sections
-   - Tables use pipe syntax: | Column 1 | Column 2 |
+1. Answer the main query in the first 100 words.
+2. Include a 50-word featured snippet summary right after introduction.
+3. Cover: definition, mechanism, key features (as dash list), UPSC relevance, advantages, challenges, recent developments, expert analysis, comparisons.
+4. Write 2000-2500 words. Zero fluff. Every sentence adds value.
+5. Reference specific data: Constitutional articles, committee reports, year-wise statistics, landmark judgments.
+6. End with ## Frequently Asked Questions containing exactly 6 FAQs as ### question followed by 2-3 sentence answer.
 
-Return a JSON object with these exact fields:
+=== EXAMPLE OF CORRECT SECTION FORMAT ===
+
+## Key Features of the Topic
+
+The topic has several defining characteristics that UPSC aspirants must understand for both **Prelims** and **Mains** examinations.
+
+### Constitutional Provisions
+
+The **Indian Constitution** provides the framework through several articles:
+
+- **Article 245**: Defines the territorial extent of laws made by Parliament and State Legislatures
+- **Article 246**: Distributes legislative powers using the three lists in the **Seventh Schedule**
+- **Article 249**: Allows Parliament to legislate on State List matters in national interest
+
+### Administrative Framework
+
+The administrative structure operates through multiple levels:
+
+- **Union Government**: Central ministries and departments handle national policy
+- **State Government**: State-level administration implements welfare schemes
+- **Local Bodies**: Panchayats and municipalities manage grassroots governance
+
+=== OUTPUT FORMAT ===
+
+Return ONLY a JSON object:
 {
-  "title": "SEO title under 60 characters with primary keyword",
-  "metaTitle": "Meta title 50-60 chars including UPSC/IAS keyword",
-  "metaDescription": "Compelling meta description 150-160 chars with primary keyword and CTA",
-  "excerpt": "2-3 sentence summary under 200 chars for blog listing cards",
-  "content": "Full markdown content following ALL rules above. Use ## and ### headings, dash lists, tables. NO asterisk lists.",
-  "tags": ["5-8 relevant SEO tags"],
-  "coverImageAlt": "Descriptive alt text for cover image with keywords"
+  "title": "SEO title under 60 chars with primary keyword",
+  "metaTitle": "Meta title 50-60 chars with UPSC/IAS keyword",
+  "metaDescription": "150-160 char meta description with keyword and CTA",
+  "excerpt": "2-3 sentence summary under 200 chars",
+  "content": "Full markdown content. ONLY ## and ### headings. Dash lists in EVERY section. Bold key terms. Tables. Short paragraphs.",
+  "tags": ["5-8 relevant tags"],
+  "coverImageAlt": "Descriptive alt text with keywords"
 }
 
-Return ONLY valid JSON. No markdown fencing, no extra text.`;
+No markdown fencing. No extra text. Only valid JSON.`;
 
   try {
     const result = await ai.models.generateContent({
@@ -374,16 +378,49 @@ Return ONLY valid JSON. No markdown fencing, no extra text.`;
     });
 
     const text = result.text?.trim() || "";
-    const jsonStr = text
+    let jsonStr = text
       .replace(/^```json\s*/i, "")
       .replace(/```\s*$/i, "")
-      .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, "")
       .trim();
-    const parsed = JSON.parse(jsonStr);
+    // Remove control characters that break JSON parsing
+    jsonStr = jsonStr.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+    // Fix bad escape sequences: replace \n in middle of strings that aren't actual newlines
+    jsonStr = jsonStr.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonStr);
+    } catch (e1) {
+      // Fallback: try more aggressive cleaning
+      jsonStr = jsonStr.replace(/\t/g, "    ").replace(/\r\n/g, "\n");
+      try {
+        parsed = JSON.parse(jsonStr);
+      } catch (e2) {
+        // Last resort: extract fields manually with regex
+        const titleMatch = jsonStr.match(/"title"\s*:\s*"([^"]+)"/);
+        const contentMatch = jsonStr.match(/"content"\s*:\s*"([\s\S]*?)"\s*,\s*"(?:metaTitle|tags|excerpt)/);
+        if (!titleMatch || !contentMatch) throw e1;
+        const metaTitleMatch = jsonStr.match(/"metaTitle"\s*:\s*"([^"]+)"/);
+        const metaDescMatch = jsonStr.match(/"metaDescription"\s*:\s*"([^"]+)"/);
+        const excerptMatch = jsonStr.match(/"excerpt"\s*:\s*"([^"]+)"/);
+        const coverAltMatch = jsonStr.match(/"coverImageAlt"\s*:\s*"([^"]+)"/);
+        const tagsMatch = jsonStr.match(/"tags"\s*:\s*\[([^\]]+)\]/);
+        parsed = {
+          title: titleMatch[1],
+          content: contentMatch[1].replace(/\\n/g, "\n").replace(/\\"/g, '"'),
+          metaTitle: metaTitleMatch?.[1] || titleMatch[1] + " | Learnpro AI",
+          metaDescription: metaDescMatch?.[1] || excerptMatch?.[1] || "",
+          excerpt: excerptMatch?.[1] || "",
+          coverImageAlt: coverAltMatch?.[1] || titleMatch[1],
+          tags: tagsMatch ? tagsMatch[1].split(",").map((t: string) => t.trim().replace(/"/g, "")) : [],
+        };
+      }
+    }
 
     const slug = slugify(parsed.title) + "-" + Date.now().toString(36);
-    const htmlContent = markdownToHtml(parsed.content);
-    const readingTime = estimateReadingTime(parsed.content);
+    // Strip AI-generated FAQ section from content (we auto-generate a better one client-side)
+    const cleanedContent = parsed.content.replace(/\n## Frequently Asked Questions[\s\S]*$/i, '').trim();
+    const htmlContent = markdownToHtml(cleanedContent);
+    const readingTime = estimateReadingTime(cleanedContent);
 
     return {
       slug,
@@ -409,10 +446,33 @@ Return ONLY valid JSON. No markdown fencing, no extra text.`;
 
 async function generateAndUploadCoverImage(title: string, slug: string): Promise<string | null> {
   try {
-    const prompt = `Create a professional, modern blog cover image for an educational article titled "${title}". 
-The image should be clean, professional, with warm gold/amber tones. 
-Include visual elements related to education, studying, books, or Indian civil services. 
-Style: flat illustration, modern design, warm colors. No text in image.`;
+    const colorSchemes = [
+      "deep royal blue (#1e3a8a) to teal (#0d9488) gradient",
+      "rich indigo (#4338ca) to vibrant magenta (#c026d3) gradient",
+      "emerald green (#047857) to cyan (#06b6d4) gradient",
+      "warm crimson (#dc2626) to amber gold (#f59e0b) gradient",
+      "deep purple (#7c3aed) to ocean blue (#2563eb) gradient",
+      "forest green (#15803d) to lime (#84cc16) gradient",
+      "slate blue (#3b82f6) to rose (#f43f5e) gradient",
+      "burnt orange (#ea580c) to deep red (#b91c1c) gradient",
+    ];
+    const scheme = colorSchemes[Math.floor(Math.random() * colorSchemes.length)];
+
+    const prompt = `Create a PREMIUM, ELEGANT cover image for an educational article. 
+
+TITLE TO DISPLAY: "${title}"
+
+DESIGN REQUIREMENTS:
+- Background: Rich ${scheme} with subtle geometric patterns, abstract shapes, or flowing curves
+- The title "${title}" must be written in large, elegant white or light-colored typography prominently in the center
+- Typography: Clean, modern sans-serif font. Title should be the MAIN FOCAL POINT of the image
+- Add subtle decorative elements: thin geometric lines, abstract circles, dots, or light bokeh effects
+- Include a small "Learnpro AI" watermark/branding in bottom-right corner in smaller text
+- Professional, premium feel like a top-tier magazine or educational platform cover
+- Aspect ratio: landscape (16:9 widescreen)
+- DO NOT include clip art, cartoon illustrations, or cheap-looking icons
+- DO NOT use flat illustration style - use sophisticated gradient-based modern design
+- The overall look should be like premium course thumbnails on Coursera, Udemy, or masterclass platforms`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",
@@ -556,12 +616,12 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${activeCategory !== 'all' ? `${catInfo.label} - ` : ''}UPSC Preparation Blog | Learnpro AI</title>
+  <title>${activeCategory !== 'all' ? `${catInfo.label} - ` : ''}UPSC Preparation Articles | Learnpro AI</title>
   <meta name="description" content="${activeCategory !== 'all' ? catInfo.description + ' - ' : ''}Expert UPSC preparation tips, IAS study strategies, current affairs analysis, and exam guidance. Free resources for Civil Services aspirants by Learnpro AI.">
-  <meta name="keywords" content="UPSC blog, IAS preparation tips, Civil Services strategy, UPSC study plan, current affairs UPSC, UPSC topper strategy${activeCategory !== 'all' ? ', ' + catInfo.label : ''}">
+  <meta name="keywords" content="UPSC articles, IAS preparation tips, Civil Services strategy, UPSC study plan, current affairs UPSC, UPSC topper strategy${activeCategory !== 'all' ? ', ' + catInfo.label : ''}">
   <link rel="canonical" href="https://learnproai.in/blog">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="UPSC Blog | Learnpro AI">
+  <meta property="og:title" content="UPSC Articles | Learnpro AI">
   <meta property="og:description" content="Expert UPSC preparation tips, IAS study strategies, and free resources for Civil Services aspirants.">
   <meta property="og:url" content="https://learnproai.in/blog">
   <meta property="og:site_name" content="Learnpro AI">
@@ -574,7 +634,7 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
   {
     "@context": "https://schema.org",
     "@type": "Blog",
-    "name": "Learnpro AI UPSC Blog",
+    "name": "Learnpro AI UPSC Articles",
     "description": "Expert UPSC and Civil Services preparation resources",
     "url": "https://learnproai.in/blog",
     "publisher": {
@@ -695,7 +755,7 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     </a>
     <nav class="top-bar-nav">
       <a href="/">Home</a>
-      <a href="/blog" class="nav-active">Blog</a>
+      <a href="/blog" class="nav-active">Articles</a>
     </nav>
   </header>
 
@@ -734,7 +794,7 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
       <span class="footer-copy">&copy; ${new Date().getFullYear()} Learnpro AI. All rights reserved.</span>
       <nav class="footer-links">
         <a href="/">Home</a>
-        <a href="/blog">Blog</a>
+        <a href="/blog">Articles</a>
       </nav>
     </div>
   </footer>
@@ -881,7 +941,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     "@type": "BreadcrumbList",
     "itemListElement": [
       {"@type":"ListItem","position":1,"name":"Home","item":"https://learnproai.in/"},
-      {"@type":"ListItem","position":2,"name":"Blog","item":"https://learnproai.in/blog"},
+      {"@type":"ListItem","position":2,"name":"Articles","item":"https://learnproai.in/blog"},
       {"@type":"ListItem","position":3,"name":"${catInfo.label}","item":"https://learnproai.in/blog?category=${post.category}"},
       {"@type":"ListItem","position":4,"name":"${escapedTitle}"}
     ]
@@ -931,7 +991,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     .cover-img{margin:1.5rem 0;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
     .cover-img img{width:100%;display:block;max-height:400px;object-fit:cover}
 
-    .article-body{padding:1.5rem 0;font-family:var(--font-serif);font-size:1.02rem;line-height:1.95;color:#374151}
+    .article-body{padding:1.5rem 0;font-family:var(--font-serif);font-size:0.95rem;line-height:1.85;color:#374151}
     .article-body p{margin-bottom:1.25rem}
     .article-body ul,.article-body ol{margin:0.75rem 0 1.25rem 1.5rem}
     .article-body li{margin-bottom:0.45rem;line-height:1.7}
@@ -950,15 +1010,14 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     .article-body hr{border:none;height:1px;background:var(--border);margin:2rem 0}
 
     /* Section boxes - Drishti/Vajirao style */
-    .section-box{background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin:1.75rem 0;overflow:hidden}
-    .section-head{display:flex;align-items:center;gap:0.65rem;padding:0.75rem 1.1rem;background:linear-gradient(135deg,#1e3a5f,#1e40af);color:#fff;font-family:var(--font-display);font-size:1.05rem;font-weight:700;line-height:1.35}
-    .section-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.2);font-size:0.82rem;font-weight:700;flex-shrink:0}
-    .section-body{padding:1.1rem 1.25rem}
+    .section-box{margin:2rem 0}
+    .section-head{font-family:var(--font-display);font-size:1.55rem;font-weight:800;color:var(--blue-dark);line-height:1.3;margin-bottom:0.85rem;padding-bottom:0.55rem;border-bottom:3px solid var(--blue)}
+    .section-body{padding:0}
     .section-body>p:last-child,.section-body>ul:last-child,.section-body>ol:last-child{margin-bottom:0}
 
     /* Sub-section h3 inside section boxes */
-    .article-body .section-body h3{font-family:var(--font-display);font-size:1.05rem;color:var(--text);margin:1.35rem 0 0.5rem;font-weight:600;padding-left:0.6rem;border-left:2px solid var(--blue-light)}
-    .article-body h3{font-family:var(--font-display);font-size:1.1rem;color:var(--text);margin:1.5rem 0 0.6rem;font-weight:600}
+    .article-body .section-body h3{font-family:var(--font-display);font-size:1.18rem;color:var(--text);margin:1.5rem 0 0.6rem;font-weight:700;padding-left:0.75rem;border-left:3px solid var(--blue-light)}
+    .article-body h3{font-family:var(--font-display);font-size:1.2rem;color:var(--text);margin:1.5rem 0 0.6rem;font-weight:700}
 
     /* Info boxes for key concepts, background, etc. */
     .info-box{border-radius:var(--radius);padding:1rem 1.15rem;margin:1.25rem 0;font-family:var(--font-body);font-size:0.9rem;line-height:1.65;position:relative;overflow:hidden}
@@ -1037,9 +1096,9 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
 
     .toc-list{list-style:none}
     .toc-item{position:relative}
-    .toc-item a{display:block;padding:0.35rem 1rem;font-size:0.8rem;color:var(--text-secondary);text-decoration:none;transition:all 0.2s;border-left:2px solid transparent;line-height:1.4}
+    .toc-item a{display:block;padding:0.4rem 1rem;font-size:0.82rem;color:var(--text);text-decoration:none;transition:all 0.2s;border-left:3px solid transparent;line-height:1.4;font-weight:600}
     .toc-item a:hover,.toc-item a.toc-active{color:var(--blue);background:var(--blue-bg);border-left-color:var(--blue)}
-    .toc-item.toc-h3 a{padding-left:1.75rem;font-size:0.77rem}
+    .toc-item.toc-h3 a{padding-left:2rem;font-size:0.75rem;font-weight:400;color:var(--text-secondary);border-left-color:var(--border)}
 
     .sb-related-item{display:block;padding:0.65rem 1rem;text-decoration:none;border-bottom:1px solid var(--border);transition:background 0.2s}
     .sb-related-item:last-child{border-bottom:none}
@@ -1078,8 +1137,8 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
       .top-bar{padding:0 1rem}
       .footer-inner{flex-direction:column;text-align:center}
       .nav-posts{flex-direction:column}
-      .section-head{font-size:0.92rem;padding:0.65rem 0.85rem}
-      .section-body{padding:0.85rem 1rem}
+      .section-head{font-size:1.25rem}
+      .section-body h3{font-size:1.05rem}
       .info-box{padding:0.85rem 0.95rem}
       .relevance-body{font-size:0.82rem}
       .faq-q{font-size:0.85rem;padding:0.75rem 0.9rem}
@@ -1095,7 +1154,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     </a>
     <nav class="top-bar-nav" data-testid="top-nav">
       <a href="/" data-testid="nav-home">Home</a>
-      <a href="/blog" data-testid="nav-blog">Blog</a>
+      <a href="/blog" data-testid="nav-blog">Articles</a>
     </nav>
   </header>
 
@@ -1104,7 +1163,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
       <nav class="breadcrumb" aria-label="Breadcrumb" data-testid="breadcrumb">
         <a href="/">Home</a>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-        <a href="/blog">Blog</a>
+        <a href="/blog">Articles</a>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
         <a href="/blog?category=${post.category}">${catInfo.label}</a>
       </nav>
@@ -1245,7 +1304,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
       <span class="footer-copy">&#169; ${new Date().getFullYear()} Learnpro AI. All rights reserved.</span>
       <nav class="footer-links">
         <a href="/">Home</a>
-        <a href="/blog">Blog</a>
+        <a href="/blog">Articles</a>
       </nav>
     </div>
   </footer>
@@ -1263,35 +1322,38 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     var body=document.getElementById('articleBody');
     if(!body)return;
 
-    /* === AUTO-STRUCTURE: Wrap H2 sections in bordered boxes === */
+    /* === AUTO-STRUCTURE: Wrap H2 sections in styled boxes (skip FAQ H2) === */
     var children=Array.from(body.childNodes);
     var sections=[];
     var currentSection=null;
-    var sectionNum=0;
     children.forEach(function(node){
       if(node.nodeType===1 && (node.tagName==='H2'||node.tagName==='H1')){
         if(currentSection){sections.push(currentSection);}
-        sectionNum++;
-        currentSection={heading:node,num:sectionNum,nodes:[]};
+        var headingText=(node.textContent||'').toLowerCase();
+        var isFaq=/frequently asked|faq/i.test(headingText);
+        currentSection={heading:node,nodes:[],isFaq:isFaq};
       } else if(currentSection){
         currentSection.nodes.push(node);
       }
     });
     if(currentSection){sections.push(currentSection);}
 
-    if(sections.length>=2){
-      sections.forEach(function(sec){
+    /* Remove the AI-generated FAQ section entirely (we auto-generate a better one) */
+    var nonFaqSections=sections.filter(function(s){return !s.isFaq;});
+    sections.forEach(function(sec){
+      if(sec.isFaq){
+        sec.heading.remove();
+        sec.nodes.forEach(function(n){if(n.parentNode)n.parentNode.removeChild(n);});
+      }
+    });
+
+    if(nonFaqSections.length>=2){
+      nonFaqSections.forEach(function(sec){
         var box=document.createElement('div');
         box.className='section-box';
         var head=document.createElement('div');
         head.className='section-head';
-        var numSpan=document.createElement('span');
-        numSpan.className='section-num';
-        numSpan.textContent=sec.num;
-        head.appendChild(numSpan);
-        var titleSpan=document.createElement('span');
-        titleSpan.textContent=sec.heading.textContent||'';
-        head.appendChild(titleSpan);
+        head.textContent=sec.heading.textContent||'';
         box.appendChild(head);
         var bodyDiv=document.createElement('div');
         bodyDiv.className='section-body';
@@ -1368,16 +1430,21 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
         var headEl=sb.querySelector('.section-head');
         var bodyEl=sb.querySelector('.section-body');
         if(!headEl||!bodyEl)return;
-        var headText=headEl.textContent.replace(/^\d+/,'').trim();
+        var headText=(headEl.textContent||'').trim();
         var firstP=bodyEl.querySelector('p');
         var answer=firstP?(firstP.textContent||'').substring(0,300):'';
         if(answer.length>280)answer=answer.substring(0,answer.lastIndexOf(' '))+'...';
         if(headText && answer){
-          var q='What is '+headText+'?';
-          if(/why|how|what|role|impact|significance|importance|challenges/i.test(headText.toLowerCase())){
-            q=headText+'?';
-          } else if(/key|features|highlights/i.test(headText.toLowerCase())){
+          var lc=headText.toLowerCase();
+          var q;
+          if(/^(why|how|what|when|where|who|which|is |are |do |does |can |should )/i.test(headText)){
+            q=headText+(headText.endsWith('?')?'':'?');
+          } else if(/key|features|highlights|types|components|pillars/i.test(lc)){
             q='What are the '+headText+'?';
+          } else if(/role|impact|significance|importance/i.test(lc)){
+            q='What is the '+headText+'?';
+          } else {
+            q='What is '+headText+'?';
           }
           faqs.push({q:q,a:answer});
         }
@@ -1386,11 +1453,11 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
         var hdsLeft=body.querySelectorAll('h3');
         hdsLeft.forEach(function(h3){
           if(faqs.length>=6)return;
-          var txt=h3.textContent||'';
+          var txt=(h3.textContent||'').trim();
           var nextP=h3.nextElementSibling;
           var ans=nextP?(nextP.textContent||'').substring(0,250):'';
           if(txt && ans){
-            faqs.push({q:'Explain '+txt,a:ans.length>230?ans.substring(0,ans.lastIndexOf(' '))+'...':ans});
+            faqs.push({q:'What is '+txt+'?',a:ans.length>230?ans.substring(0,ans.lastIndexOf(' '))+'...':ans});
           }
         });
       }
@@ -1428,8 +1495,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
           li.className='toc-item'+(isH3?' toc-h3':'');
           var a=document.createElement('a');
           a.href='#'+id;
-          var numEl=h.querySelector('.section-num');
-          var label=numEl?(h.textContent||'').replace(numEl.textContent,'').trim():(h.textContent||'');
+          var label=(h.textContent||'').trim();
           a.textContent=label;
           a.addEventListener('click',function(e){
             e.preventDefault();

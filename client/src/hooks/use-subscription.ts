@@ -127,6 +127,7 @@ export function useRazorpayCheckout() {
         subscription_id: subData.subscriptionId,
         name: "Learnpro AI",
         description: `${subData.planLabel} Plan - Auto Renewal`,
+        callback_url: `${window.location.origin}/subscription`,
         handler: async (response: any) => {
           await verifyMutation.mutateAsync({
             razorpay_payment_id: response.razorpay_payment_id,
@@ -136,7 +137,7 @@ export function useRazorpayCheckout() {
         },
         prefill: {},
         theme: {
-          color: "#C47F17",
+          color: "#2563eb",
         },
         modal: {
           ondismiss: () => {

@@ -147,7 +147,7 @@ function AnimatedCTASection({ onLoginClick }: { onLoginClick?: () => void }) {
 
 const companyLinks = [
   { label: "About Us", href: "#features" },
-  { label: "Blog", href: "/blog" },
+  { label: "Articles", href: "/blog" },
   { label: "Privacy Policy", href: "/privacy-policy", isRoute: true },
   { label: "Terms of Service", href: "/terms-of-service", isRoute: true },
   { label: "Refund Policy", href: "/refund-policy", isRoute: true },

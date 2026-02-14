@@ -179,7 +179,7 @@ export function Sidebar() {
             data-testid="link-blog"
           >
             <BookOpen className="h-5 w-5" />
-            {t.nav?.blog || "Blog"}
+            {t.nav?.blog || "Articles"}
           </Button>
         </a>
       </div>

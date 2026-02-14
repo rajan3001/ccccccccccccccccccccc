@@ -779,7 +779,7 @@ export default function LandingPage() {
             </a>
             <a href="/blog">
               <Button variant="ghost" className="hidden sm:inline-flex text-muted-foreground" data-testid="link-blog-nav">
-                {t.nav?.blog || "Blog"}
+                {t.nav?.blog || "Articles"}
               </Button>
             </a>
             <Button

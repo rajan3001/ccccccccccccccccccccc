@@ -30,7 +30,7 @@ const en = {
     myNotes: "My Notes",
     studyPlanner: "Study Planner",
     studyProgress: "Study Progress",
-    blog: "Blog",
+    blog: "Articles",
     history: "History",
     settings: "Settings",
     logout: "Logout",
@@ -522,7 +522,7 @@ const hi: TranslationKeys = {
     myNotes: "मेरे नोट्स",
     studyPlanner: "अध्ययन योजना",
     studyProgress: "अध्ययन प्रगति",
-    blog: "ब्लॉग",
+    blog: "लेख",
     history: "इतिहास",
     settings: "सेटिंग्स",
     logout: "लॉगआउट",
@@ -1014,7 +1014,7 @@ const bn: TranslationKeys = {
     myNotes: "আমার নোটস",
     studyPlanner: "পড়ার পরিকল্পনা",
     studyProgress: "পড়ার অগ্রগতি",
-    blog: "ব্লগ",
+    blog: "প্রবন্ধ",
     history: "ইতিহাস",
     settings: "সেটিংস",
     logout: "লগআউট",
@@ -1478,7 +1478,7 @@ const bn: TranslationKeys = {
 
 const gu: TranslationKeys = {
   common: { loading: "લોડ થઈ રહ્યું છે...", save: "સેવ કરો", cancel: "રદ કરો", delete: "કાઢી નાખો", edit: "સંપાદિત કરો", back: "પાછળ", next: "આગળ", submit: "સબમિટ કરો", search: "શોધો", close: "બંધ કરો", yes: "હા", no: "ના", comingSoon: "ટૂંક સમયમાં", viewAll: "બધું જુઓ", noData: "કોઈ ડેટા ઉપલબ્ધ નથી", retry: "ફરીથી પ્રયાસ કરો", upgrade: "અપગ્રેડ", free: "મફત", pro: "પ્રો" },
-  nav: { newChat: "નવી ચર્ચા", currentAffairs: "સમસામયિકી", practiceQuiz: "અભ્યાસ ક્વિઝ", answerEvaluation: "ઉત્તર મૂલ્યાંકન", myNotes: "મારી નોંધો", studyPlanner: "અભ્યાસ યોજના", studyProgress: "અભ્યાસ પ્રગતિ", blog: "બ્લોગ", history: "ઇતિહાસ", settings: "સેટિંગ્સ", logout: "લૉગઆઉટ", upgradePro: "પ્રો માં અપગ્રેડ કરો", proActive: "પ્રો પ્લાન સક્રિય", noChatYet: "હજુ કોઈ ચર્ચા નથી.", loadingChats: "ચર્ચાઓ લોડ થઈ રહી છે..." },
+  nav: { newChat: "નવી ચર્ચા", currentAffairs: "સમસામયિકી", practiceQuiz: "અભ્યાસ ક્વિઝ", answerEvaluation: "ઉત્તર મૂલ્યાંકન", myNotes: "મારી નોંધો", studyPlanner: "અભ્યાસ યોજના", studyProgress: "અભ્યાસ પ્રગતિ", blog: "લેખો", history: "ઇતિહાસ", settings: "સેટિંગ્સ", logout: "લૉગઆઉટ", upgradePro: "પ્રો માં અપગ્રેડ કરો", proActive: "પ્રો પ્લાન સક્રિય", noChatYet: "હજુ કોઈ ચર્ચા નથી.", loadingChats: "ચર્ચાઓ લોડ થઈ રહી છે..." },
   dashboard: { greeting: "પાછા આવ્યા, સ્વાગત છે", goodMorning: "શુભ સવાર", goodAfternoon: "શુભ બપોર", goodEvening: "શુભ સાંજ", todayAchievements: "આજની સિદ્ધિઓ", mcqsSolved: "MCQ ઉકેલ્યા", topicsStudied: "વિષયો ભણ્યા", notesSaved: "નોંધો સેવ કરી", caRead: "સમસામયિકી વાંચી", quickActions: "ઝડપી કાર્ય", startChat: "ચર્ચા શરૂ કરો", startChatDesc: "કોઈ પણ UPSC પ્રશ્ન પૂછો", dailyCA: "દૈનિક સમસામયિકી", dailyCADesc: "સમાચારથી અપડેટ રહો", takeQuiz: "ક્વિઝ આપો", takeQuizDesc: "MCQ અભ્યાસ કરો", evaluateAnswer: "ઉત્તર મૂલ્યાંકન", evaluateAnswerDesc: "AI થી ઉત્તર પર પ્રતિક્રિયા", weeklyProgress: "સાપ્તાહિક પ્રગતિ" },
   settings: { title: "સેટિંગ્સ", billingDetails: "બિલિંગ વિગતો", notificationSettings: "સૂચના સેટિંગ્સ", notifComingSoon: "સૂચના પસંદગીઓ", notifComingSoonDesc: "અમે ઈમેલ અને WhatsApp સૂચનાઓ બનાવી રહ્યા છીએ. ટૂંક સમયમાં ઉપલબ્ધ થશે!", upgradePlan: "પ્લાન અપગ્રેડ કરો", upgradeDesc: "તમારી તૈયારી ચાલુ રાખો", unlimitedAccess: "અમર્યાદિત એક્સેસ", ofLearnpro: "Learnpro AI નો", viewPlans: "પ્લાન જુઓ", unlimitedQueries: "અમર્યાદિત પ્રશ્નો / દિવસ", limitedQueries: "2 પ્રશ્નો / દિવસ", unlimitedEvals: "અમર્યાદિત મેઈન્સ મૂલ્યાંકન", limitedEvals: "3 મેઈન્સ મૂલ્યાંકન / મહિનો", fullAccess: "બધી સુવિધાઓ સુધી પૂર્ણ એક્સેસ", limitedAccess: "ડેશબોર્ડમાં મર્યાદિત એક્સેસ", youHave: "તમારી પાસે", accessWith: "એક્સેસ છે -", unlimited: "અમર્યાદિત", limited: "મર્યાદિત", language: "ભાષા", changeLanguage: "ભાષા બદલો" },
   studyProgress: { title: "અભ્યાસ પ્રગતિ", subtitle: "તમારી UPSC તૈયારીની યાત્રા પર નજર રાખો", dayStreak: "દિવસની સતત પઢાઈ", onFire: "શાનદાર!", currentStreak: "વર્તમાન સ્ટ્રીક", longestStreak: "સૌથી લાંબી સ્ટ્રીક", studyDays: "અભ્યાસ દિવસો", quizAccuracy: "ક્વિઝ ચોકસાઈ", days: "દિવસ", outOf90: "90 માંથી", streakCalendar: "અભ્યાસ સ્ટ્રીક (90 દિવસ)", dailyStudyTime: "દૈનિક અભ્યાસ સમય (30 દિવસ)", totalTime: "કુલ", avgPerDay: "સરેરાશ", perDay: "/દિવસ", totalChats: "કુલ ચર્ચાઓ", quizAttempts: "ક્વિઝ પ્રયાસો", notesSaved: "નોંધો સેવ કરી", gsPaperCoverage: "GS પેપર કવરેજ", examPerformance: "પરીક્ષા-વાર પ્રદર્શન", recentTopics: "તાજેતરના અભ્યાસ વિષયો", mcqs: "MCQs", accuracy: "ચોકસાઈ", attempts: "પ્રયાસો", correct: "સાચા", less: "ઓછું", more: "વધુ", studyTime: "અભ્યાસ સમય", min: "મિનિટ" },
@@ -1495,7 +1495,7 @@ const gu: TranslationKeys = {
 
 const mr: TranslationKeys = {
   common: { loading: "लोड होत आहे...", save: "जतन करा", cancel: "रद्द करा", delete: "हटवा", edit: "संपादित करा", back: "मागे", next: "पुढे", submit: "सादर करा", search: "शोधा", close: "बंद करा", yes: "हो", no: "नाही", comingSoon: "लवकरच येत आहे", viewAll: "सर्व पहा", noData: "कोणताही डेटा उपलब्ध नाही", retry: "पुन्हा प्रयत्न करा", upgrade: "अपग्रेड", free: "मोफत", pro: "प्रो" },
-  nav: { newChat: "नवीन चर्चा", currentAffairs: "चालू घडामोडी", practiceQuiz: "सराव प्रश्नमंजुषा", answerEvaluation: "उत्तर मूल्यांकन", myNotes: "माझ्या नोट्स", studyPlanner: "अभ्यास नियोजक", studyProgress: "अभ्यास प्रगती", blog: "ब्लॉग", history: "इतिहास", settings: "सेटिंग्ज", logout: "लॉगआउट", upgradePro: "प्रो मध्ये अपग्रेड करा", proActive: "प्रो प्लॅन सक्रिय", noChatYet: "अजून कोणतीही चर्चा नाही.", loadingChats: "चर्चा लोड होत आहेत..." },
+  nav: { newChat: "नवीन चर्चा", currentAffairs: "चालू घडामोडी", practiceQuiz: "सराव प्रश्नमंजुषा", answerEvaluation: "उत्तर मूल्यांकन", myNotes: "माझ्या नोट्स", studyPlanner: "अभ्यास नियोजक", studyProgress: "अभ्यास प्रगती", blog: "लेख", history: "इतिहास", settings: "सेटिंग्ज", logout: "लॉगआउट", upgradePro: "प्रो मध्ये अपग्रेड करा", proActive: "प्रो प्लॅन सक्रिय", noChatYet: "अजून कोणतीही चर्चा नाही.", loadingChats: "चर्चा लोड होत आहेत..." },
   dashboard: { greeting: "पुन्हा स्वागत आहे", goodMorning: "शुभ सकाळ", goodAfternoon: "शुभ दुपार", goodEvening: "शुभ संध्याकाळ", todayAchievements: "आजची कामगिरी", mcqsSolved: "MCQ सोडवले", topicsStudied: "विषय अभ्यासले", notesSaved: "नोट्स जतन केल्या", caRead: "चालू घडामोडी वाचल्या", quickActions: "जलद कार्य", startChat: "चर्चा सुरू करा", startChatDesc: "कोणताही UPSC प्रश्न विचारा", dailyCA: "दैनिक चालू घडामोडी", dailyCADesc: "बातम्यांसह अपडेट राहा", takeQuiz: "प्रश्नमंजुषा द्या", takeQuizDesc: "MCQ सराव करा", evaluateAnswer: "उत्तर मूल्यांकन", evaluateAnswerDesc: "AI कडून उत्तरावर अभिप्राय", weeklyProgress: "साप्ताहिक प्रगती" },
   settings: { title: "सेटिंग्ज", billingDetails: "बिलिंग तपशील", notificationSettings: "सूचना सेटिंग्ज", notifComingSoon: "सूचना प्राधान्ये", notifComingSoonDesc: "आम्ही ईमेल आणि WhatsApp सूचना तयार करत आहोत. लवकरच उपलब्ध होतील!", upgradePlan: "प्लॅन अपग्रेड करा", upgradeDesc: "तुमची तयारी सुरू ठेवा", unlimitedAccess: "अमर्यादित एक्सेस", ofLearnpro: "Learnpro AI चा", viewPlans: "प्लॅन पहा", unlimitedQueries: "अमर्यादित प्रश्न / दिवस", limitedQueries: "2 प्रश्न / दिवस", unlimitedEvals: "अमर्यादित मेन्स मूल्यांकन", limitedEvals: "3 मेन्स मूल्यांकन / महिना", fullAccess: "सर्व सुविधांमध्ये पूर्ण एक्सेस", limitedAccess: "डॅशबोर्डमध्ये मर्यादित एक्सेस", youHave: "तुम्हाला", accessWith: "एक्सेस आहे -", unlimited: "अमर्यादित", limited: "मर्यादित", language: "भाषा", changeLanguage: "भाषा बदला" },
   studyProgress: { title: "अभ्यास प्रगती", subtitle: "तुमच्या UPSC तयारीच्या प्रवासावर लक्ष ठेवा", dayStreak: "दिवसांची सलग वाचन मालिका", onFire: "उत्कृष्ट!", currentStreak: "सध्याची स्ट्रीक", longestStreak: "सर्वात लांब स्ट्रीक", studyDays: "अभ्यास दिवस", quizAccuracy: "प्रश्नमंजुषा अचूकता", days: "दिवस", outOf90: "90 पैकी", streakCalendar: "अभ्यास स्ट्रीक (90 दिवस)", dailyStudyTime: "दैनिक अभ्यास वेळ (30 दिवस)", totalTime: "एकूण", avgPerDay: "सरासरी", perDay: "/दिवस", totalChats: "एकूण चर्चा", quizAttempts: "प्रश्नमंजुषा प्रयत्न", notesSaved: "नोट्स जतन केल्या", gsPaperCoverage: "GS पेपर कव्हरेज", examPerformance: "परीक्षा-निहाय कामगिरी", recentTopics: "अलीकडचे अभ्यास विषय", mcqs: "MCQs", accuracy: "अचूकता", attempts: "प्रयत्न", correct: "बरोबर", less: "कमी", more: "जास्त", studyTime: "अभ्यास वेळ", min: "मिनिटे" },
