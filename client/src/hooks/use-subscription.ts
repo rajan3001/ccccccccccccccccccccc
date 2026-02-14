@@ -110,6 +110,12 @@ export function useRazorpayCheckout() {
 
   const initiateCheckout = async (planCode: string) => {
     try {
+      const currentHost = window.location.hostname;
+      if (currentHost !== "learnproai.in" && (currentHost.includes("replit") || currentHost.includes("repl.co") || currentHost.includes("worf."))) {
+        window.location.href = `https://learnproai.in/subscription`;
+        return;
+      }
+
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
         toast({

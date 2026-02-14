@@ -5,6 +5,8 @@ import { z } from "zod";
 import { storage } from "./storage";
 import { PLAN_CATALOG, type PlanCode } from "@shared/schema";
 
+const PRODUCTION_URL = "https://learnproai.in";
+
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
   key_secret: process.env.RAZORPAY_KEY_SECRET!,
@@ -216,6 +218,8 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
         razorpayPlanId: razorpayPlanId,
       });
 
+      console.log(`[PAYMENT] Created subscription ${subscription.id} for user ${userId}, plan: ${planCode}`);
+
       res.json({
         subscriptionId: subscription.id,
         keyId: process.env.RAZORPAY_KEY_ID,
@@ -223,8 +227,8 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
         amount: plan.amount,
       });
     } catch (error: any) {
-      console.error("Razorpay subscription creation error:", error);
-      res.status(500).json({ message: "Failed to create subscription" });
+      console.error("Razorpay subscription creation error:", error?.error?.description || error.message || error);
+      res.status(500).json({ message: error?.error?.description || "Failed to create subscription" });
     }
   });
 
@@ -233,7 +237,7 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
       const { razorpay_payment_id, razorpay_subscription_id, razorpay_signature } = req.body;
 
       if (!razorpay_payment_id || !razorpay_subscription_id || !razorpay_signature) {
-        return res.redirect("https://learnproai.in/subscription?status=failed&reason=missing_params");
+        return res.redirect(`${PRODUCTION_URL}/subscription?status=failed&reason=missing_params`);
       }
 
       const expectedSignature = crypto
@@ -242,12 +246,12 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
         .digest("hex");
 
       if (razorpay_signature !== expectedSignature) {
-        return res.redirect("https://learnproai.in/subscription?status=failed&reason=invalid_signature");
+        return res.redirect(`${PRODUCTION_URL}/subscription?status=failed&reason=invalid_signature`);
       }
 
       const sub = await storage.getSubscriptionByRazorpaySubId(razorpay_subscription_id);
       if (!sub) {
-        return res.redirect("https://learnproai.in/subscription?status=failed&reason=not_found");
+        return res.redirect(`${PRODUCTION_URL}/subscription?status=failed&reason=not_found`);
       }
 
       if (sub.status === "pending") {
@@ -265,10 +269,10 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
         console.log(`[CALLBACK] Activated subscription ${razorpay_subscription_id} via redirect callback`);
       }
 
-      return res.redirect("https://learnproai.in/subscription?status=success");
+      return res.redirect(`${PRODUCTION_URL}/subscription?status=success`);
     } catch (error: any) {
       console.error("[CALLBACK] Error:", error.message);
-      return res.redirect("https://learnproai.in/subscription?status=failed&reason=server_error");
+      return res.redirect(`${PRODUCTION_URL}/subscription?status=failed&reason=server_error`);
     }
   });
 
@@ -320,6 +324,7 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
         return res.status(500).json({ message: "Failed to activate subscription" });
       }
 
+      console.log(`[VERIFY] Activated subscription ${razorpay_subscription_id} for user ${userId}`);
       res.json({ success: true, subscription: activated });
     } catch (error: any) {
       console.error("Payment verification error:", error);

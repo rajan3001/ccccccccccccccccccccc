@@ -10,16 +10,14 @@ const httpServer = createServer(app);
 app.use(compression());
 
 const PRODUCTION_DOMAIN = "learnproai.in";
-if (process.env.NODE_ENV === "production") {
-  app.use((req, res, next) => {
-    const host = req.hostname;
-    if (host && host !== PRODUCTION_DOMAIN && host !== "localhost" && !host.startsWith("127.")) {
-      const redirectUrl = `https://${PRODUCTION_DOMAIN}${req.originalUrl}`;
-      return res.redirect(301, redirectUrl);
-    }
-    next();
-  });
-}
+app.use((req, res, next) => {
+  const host = req.hostname;
+  if (host && host !== PRODUCTION_DOMAIN && host !== "localhost" && !host.startsWith("127.") && !host.startsWith("0.0.0.0") && (host.includes("replit") || host.includes("repl.co") || host.includes("worf."))) {
+    const redirectUrl = `https://${PRODUCTION_DOMAIN}${req.originalUrl}`;
+    return res.redirect(301, redirectUrl);
+  }
+  next();
+});
 
 declare module "http" {
   interface IncomingMessage {
