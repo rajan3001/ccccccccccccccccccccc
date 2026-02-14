@@ -127,7 +127,7 @@ export function useRazorpayCheckout() {
         subscription_id: subData.subscriptionId,
         name: "Learnpro AI",
         description: `${subData.planLabel} Plan - Auto Renewal`,
-        callback_url: `${window.location.origin}/subscription`,
+        callback_url: `https://learnproai.in/subscription`,
         handler: async (response: any) => {
           await verifyMutation.mutateAsync({
             razorpay_payment_id: response.razorpay_payment_id,
