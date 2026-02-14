@@ -29,23 +29,120 @@ function estimateReadingTime(text: string): number {
 }
 
 function markdownToHtml(md: string): string {
-  let html = md;
-  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-  html = html.replace(/^\- (.+)$/gm, '<li>$1</li>');
-  html = html.replace(/(<li>.*<\/li>\n?)+/g, (match) => `<ul>${match}</ul>`);
-  html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
-  html = html.replace(/\n\n/g, '</p><p>');
-  html = `<p>${html}</p>`;
-  html = html.replace(/<p>\s*<h([123])>/g, '<h$1>');
-  html = html.replace(/<\/h([123])>\s*<\/p>/g, '</h$1>');
-  html = html.replace(/<p>\s*<ul>/g, '<ul>');
-  html = html.replace(/<\/ul>\s*<\/p>/g, '</ul>');
-  html = html.replace(/<p>\s*<\/p>/g, '');
-  return html;
+  const lines = md.split('\n');
+  const result: string[] = [];
+  let inUl = false;
+  let inOl = false;
+  let inTable = false;
+  let tableHeaders = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+
+    // Skip table separator rows (|---|---|)
+    if (/^\|[\s\-:]+\|/.test(line) && !line.replace(/[\s\-:|]/g, '').length) {
+      tableHeaders = true;
+      continue;
+    }
+
+    // Table rows
+    if (/^\|(.+)\|$/.test(line)) {
+      if (!inTable) {
+        // Close any open lists
+        if (inUl) { result.push('</ul>'); inUl = false; }
+        if (inOl) { result.push('</ol>'); inOl = false; }
+        result.push('<table>');
+        inTable = true;
+        tableHeaders = false;
+      }
+      const cells = line.split('|').filter(c => c.trim() !== '');
+      const cellTag = !tableHeaders && result[result.length - 1] === '<table>' ? 'th' : 'td';
+      const row = cells.map(c => `<${cellTag}>${inlineFormat(c.trim())}</${cellTag}>`).join('');
+      result.push(`<tr>${row}</tr>`);
+      continue;
+    } else if (inTable) {
+      result.push('</table>');
+      inTable = false;
+      tableHeaders = false;
+    }
+
+    // Headings
+    if (/^### (.+)$/.test(line)) {
+      if (inUl) { result.push('</ul>'); inUl = false; }
+      if (inOl) { result.push('</ol>'); inOl = false; }
+      result.push(`<h3>${inlineFormat(line.replace(/^### /, ''))}</h3>`);
+      continue;
+    }
+    if (/^## (.+)$/.test(line)) {
+      if (inUl) { result.push('</ul>'); inUl = false; }
+      if (inOl) { result.push('</ol>'); inOl = false; }
+      result.push(`<h2>${inlineFormat(line.replace(/^## /, ''))}</h2>`);
+      continue;
+    }
+    if (/^# (.+)$/.test(line)) {
+      if (inUl) { result.push('</ul>'); inUl = false; }
+      if (inOl) { result.push('</ol>'); inOl = false; }
+      result.push(`<h1>${inlineFormat(line.replace(/^# /, ''))}</h1>`);
+      continue;
+    }
+
+    // Unordered list items (dash OR asterisk)
+    const ulMatch = line.match(/^[\-\*]\s+(.+)$/);
+    if (ulMatch) {
+      if (inOl) { result.push('</ol>'); inOl = false; }
+      if (!inUl) { result.push('<ul>'); inUl = true; }
+      result.push(`<li>${inlineFormat(ulMatch[1])}</li>`);
+      continue;
+    }
+
+    // Ordered list items
+    const olMatch = line.match(/^\d+[\.\)]\s+(.+)$/);
+    if (olMatch) {
+      if (inUl) { result.push('</ul>'); inUl = false; }
+      if (!inOl) { result.push('<ol>'); inOl = true; }
+      result.push(`<li>${inlineFormat(olMatch[1])}</li>`);
+      continue;
+    }
+
+    // Blockquote
+    if (/^>\s*(.+)$/.test(line)) {
+      if (inUl) { result.push('</ul>'); inUl = false; }
+      if (inOl) { result.push('</ol>'); inOl = false; }
+      result.push(`<blockquote><p>${inlineFormat(line.replace(/^>\s*/, ''))}</p></blockquote>`);
+      continue;
+    }
+
+    // Empty line - close lists
+    if (line.trim() === '') {
+      if (inUl) { result.push('</ul>'); inUl = false; }
+      if (inOl) { result.push('</ol>'); inOl = false; }
+      continue;
+    }
+
+    // Regular paragraph
+    if (inUl) { result.push('</ul>'); inUl = false; }
+    if (inOl) { result.push('</ol>'); inOl = false; }
+    result.push(`<p>${inlineFormat(line)}</p>`);
+  }
+
+  // Close any remaining open tags
+  if (inUl) result.push('</ul>');
+  if (inOl) result.push('</ol>');
+  if (inTable) result.push('</table>');
+
+  return result.join('\n');
+}
+
+function inlineFormat(text: string): string {
+  // Bold (must come before italic)
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Italic
+  text = text.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>');
+  // Inline code
+  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // Links
+  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+  return text;
 }
 
 const UPSC_TOPICS = [
@@ -203,32 +300,71 @@ Return ONLY the JSON array, no other text.`;
 }
 
 async function generateBlogContent(topic: string, category: string): Promise<InsertBlogPost | null> {
-  const prompt = `You are an expert UPSC/Civil Services exam preparation content writer. Write a comprehensive, SEO-optimized blog post.
+  const prompt = `You are a senior UPSC content strategist writing a deeply researched, search-intent-optimized, long-form blog post designed to rank on Google Page 1.
 
 TOPIC: "${topic}"
 CATEGORY: ${category}
+TARGET AUDIENCE: Intermediate UPSC/IAS aspirants
+SEARCH INTENT: Informational
 
-REQUIREMENTS:
-1. Write 1500-2500 words of high-quality, detailed content
-2. Use proper Markdown formatting with headers (##, ###), bullet points, and bold text
-3. Include practical tips, strategies, and actionable advice
-4. Natural keyword density for "UPSC", "IAS", "Civil Services", related terms
-5. Write in an engaging, authoritative, yet approachable tone
-6. Include a compelling introduction and conclusion
-7. Add internal cross-references to topics like current affairs, answer writing, study planning
+STRICT CONTENT RULES:
 
-Return a JSON object with these fields:
+1. SEARCH INTENT: Answer the main query clearly within the first 100 words. Include a 40-60 word featured snippet paragraph right after the introduction.
+
+2. STRUCTURE (CRITICAL - follow exactly):
+   - Use H2 headings (##) for major sections (minimum 6-8 H2s)
+   - Use H3 headings (###) for sub-sections under each H2 (minimum 2-3 H3s per H2)
+   - Keep every paragraph under 3 lines maximum
+   - NEVER use asterisks (*) for lists. ALWAYS use dash (-) for unordered lists
+   - Use numbered lists (1. 2. 3.) for sequential steps
+   - Include at least one comparison or summary table using markdown table syntax (| Header | Header |)
+
+3. CONTENT DEPTH - Cover ALL of these:
+   - Clear definition and context
+   - How it works / detailed explanation
+   - Key features or components (as bullet list with dash -)
+   - Significance for UPSC Prelims and Mains
+   - Advantages and challenges
+   - Real-world examples, case studies, or recent developments
+   - Expert analysis and critical perspectives
+   - Comparison with alternatives or related concepts
+
+4. QUALITY REQUIREMENTS:
+   - Minimum 2000 words, maximum 3000 words
+   - ZERO fluff, ZERO repetitive phrasing, ZERO generic filler
+   - Every sentence must add value
+   - Use simple but authoritative tone with transition words
+   - Natural keyword density around 1.5-2% for UPSC, IAS, Civil Services
+
+5. FAQ SECTION (MANDATORY):
+   - End with exactly 6 "Frequently Asked Questions" under ## Frequently Asked Questions
+   - Each FAQ as ### question heading followed by a concise 2-3 sentence answer paragraph
+   - Questions should match real "People Also Ask" search queries
+
+6. EEAT SIGNALS:
+   - Include specific data, statistics, year references
+   - Reference Constitutional articles, government reports, committee recommendations
+   - Mention expert opinions or landmark judgments where relevant
+
+7. FORMATTING REMINDERS:
+   - Lists MUST use dash (-) prefix, NEVER asterisk (*)
+   - Bold key terms with double asterisks only for **important terms**
+   - Each H2 section should have 150-300 words minimum
+   - Use ### subheadings to break up long sections
+   - Tables use pipe syntax: | Column 1 | Column 2 |
+
+Return a JSON object with these exact fields:
 {
-  "title": "SEO-optimized title (60-70 chars ideally)",
-  "metaTitle": "Meta title for search engines (50-60 chars, include UPSC/IAS)",
-  "metaDescription": "Compelling meta description (150-160 chars, include primary keywords)",
-  "excerpt": "2-3 sentence summary for blog listing cards (under 200 chars)",
-  "content": "Full markdown content of the blog post",
-  "tags": ["array", "of", "relevant", "tags"],
-  "coverImageAlt": "Descriptive alt text for the cover image"
+  "title": "SEO title under 60 characters with primary keyword",
+  "metaTitle": "Meta title 50-60 chars including UPSC/IAS keyword",
+  "metaDescription": "Compelling meta description 150-160 chars with primary keyword and CTA",
+  "excerpt": "2-3 sentence summary under 200 chars for blog listing cards",
+  "content": "Full markdown content following ALL rules above. Use ## and ### headings, dash lists, tables. NO asterisk lists.",
+  "tags": ["5-8 relevant SEO tags"],
+  "coverImageAlt": "Descriptive alt text for cover image with keywords"
 }
 
-Return ONLY the JSON object, no other text or markdown fencing.`;
+Return ONLY valid JSON. No markdown fencing, no extra text.`;
 
   try {
     const result = await ai.models.generateContent({
@@ -1457,6 +1593,16 @@ export function registerBlogRoutes(app: any) {
       generateBlogPosts(count).then(n => console.log(`Blog generation complete: ${n} posts created`));
     } catch (e) {
       res.status(500).json({ error: "Failed to start generation" });
+    }
+  });
+
+  router.post("/api/blog/regenerate-all", async (req: Request, res: Response) => {
+    try {
+      await db.delete(blogPosts);
+      res.json({ message: "Old posts deleted. Regenerating with improved SEO content...", status: "started" });
+      generateBlogPosts(5).then(n => console.log(`Regeneration complete: ${n} posts created with improved SEO`));
+    } catch (e) {
+      res.status(500).json({ error: "Failed to regenerate" });
     }
   });
 
