@@ -239,19 +239,16 @@ function TodayAchievements({ stats, t }: { stats: DashboardStats; t: any }) {
         {achievements.map((item, idx) => (
           <div
             key={item.label}
-            className="ach-orb-wrap relative"
+            className={`ach-card ach-card-${idx} relative rounded-lg`}
             data-testid={`card-achievement-${idx}`}
-            style={{ animation: `ach-pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1) ${idx * 0.08}s both` }}
+            style={{
+              padding: "1.5px",
+              animation: `ach-pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1) ${idx * 0.08}s both`,
+              ["--ach-color" as string]: item.color,
+            }}
           >
             <div
-              className="ach-orb-border absolute -inset-px rounded-lg pointer-events-none z-0"
-              style={{
-                background: `conic-gradient(from ${idx * 90}deg, ${item.color}90, transparent 30%, transparent 70%, ${item.color}90)`,
-                animation: `ach-border-spin 4s linear ${idx * 0.5}s infinite`,
-              }}
-            />
-            <div
-              className="relative rounded-lg z-10 flex items-center gap-2 px-3 py-2.5 sm:py-3"
+              className="relative rounded-lg flex items-center gap-2 px-3 py-2.5 sm:py-3"
               style={{ background: "hsl(var(--card))" }}
             >
               <div
@@ -295,15 +292,21 @@ function TodayAchievements({ stats, t }: { stats: DashboardStats; t: any }) {
           50% { transform: scale(1.15); }
         }
         @keyframes ach-border-spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+          from { --ach-angle: 0deg; }
+          to { --ach-angle: 360deg; }
         }
-        .ach-orb-wrap {
-          isolation: isolate;
+        @property --ach-angle {
+          syntax: '<angle>';
+          initial-value: 0deg;
+          inherits: false;
         }
-        .ach-orb-border {
-          filter: blur(1px);
+        .ach-card {
+          background: conic-gradient(from var(--ach-angle), transparent 0%, transparent 30%, var(--ach-color) 50%, transparent 70%, transparent 100%);
+          animation: ach-border-spin 3s linear infinite, ach-pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1) both !important;
         }
+        .ach-card-1 { animation-delay: 0.5s, 0.08s !important; }
+        .ach-card-2 { animation-delay: 1s, 0.16s !important; }
+        .ach-card-3 { animation-delay: 1.5s, 0.24s !important; }
       `}</style>
     </div>
   );
