@@ -2,11 +2,12 @@
   "name": "Learnpro AI - UPSC & State PSC Prep",
   "short_name": "Learnpro AI",
   "description": "AI-powered learning platform for UPSC and State PSC exam preparation. Practice quizzes, current affairs, answer evaluation, and personalized study plans.",
-  "start_url": "/",
-  "display": "minimal-ui",
-  "background_color": "#0c0a08",
-  "theme_color": "#c97a0a",
-  "orientation": "any",
+  "start_url": "/?source=pwa",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
   "scope": "/",
   "icons": [
     {
@@ -46,7 +47,47 @@
       "purpose": "maskable"
     }
   ],
+  "shortcuts": [
+    {
+      "name": "AI Chat",
+      "short_name": "Chat",
+      "url": "/chat?source=shortcut",
+      "description": "Ask your UPSC AI mentor anything",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Current Affairs",
+      "short_name": "News",
+      "url": "/current-affairs?source=shortcut",
+      "description": "Daily UPSC current affairs digest",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Practice Quiz",
+      "short_name": "Quiz",
+      "url": "/quiz?source=shortcut",
+      "description": "MCQ practice for UPSC & State PSC",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Study Planner",
+      "short_name": "Planner",
+      "url": "/study-planner?source=shortcut",
+      "description": "Plan your study schedule",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
   "categories": ["education", "productivity"],
   "lang": "en-IN",
-  "dir": "ltr"
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "screenshots": [
+    {
+      "src": "/og-cover.png",
+      "sizes": "1200x675",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Learnpro AI - AI-Powered UPSC Coaching Dashboard"
+    }
+  ]
 }
