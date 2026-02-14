@@ -199,12 +199,14 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
         total_count: totalCount,
         quantity: 1,
         customer_notify: 0,
+        callback_url: "https://learnproai.in/api/payments/razorpay/callback",
+        redirect: true,
         notes: {
           userId,
           planCode,
           planLabel: plan.label,
         },
-      });
+      } as any);
 
       await storage.createSubscription({
         userId,
@@ -225,6 +227,50 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
     } catch (error: any) {
       console.error("Razorpay subscription creation error:", error);
       res.status(500).json({ message: "Failed to create subscription" });
+    }
+  });
+
+  app.post("/api/payments/razorpay/callback", async (req: any, res) => {
+    try {
+      const { razorpay_payment_id, razorpay_subscription_id, razorpay_signature } = req.body;
+
+      if (!razorpay_payment_id || !razorpay_subscription_id || !razorpay_signature) {
+        return res.redirect("https://learnproai.in/subscription?status=failed&reason=missing_params");
+      }
+
+      const expectedSignature = crypto
+        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
+        .update(`${razorpay_payment_id}|${razorpay_subscription_id}`)
+        .digest("hex");
+
+      if (razorpay_signature !== expectedSignature) {
+        return res.redirect("https://learnproai.in/subscription?status=failed&reason=invalid_signature");
+      }
+
+      const sub = await storage.getSubscriptionByRazorpaySubId(razorpay_subscription_id);
+      if (!sub) {
+        return res.redirect("https://learnproai.in/subscription?status=failed&reason=not_found");
+      }
+
+      if (sub.status === "pending") {
+        const planCode = sub.plan as PlanCode;
+        const plan = PLAN_CATALOG[planCode];
+        const periodEnd = new Date();
+        periodEnd.setDate(periodEnd.getDate() + (plan?.durationDays || 30));
+
+        await storage.activateByRazorpaySub(
+          razorpay_subscription_id,
+          razorpay_payment_id,
+          razorpay_signature,
+          periodEnd
+        );
+        console.log(`[CALLBACK] Activated subscription ${razorpay_subscription_id} via redirect callback`);
+      }
+
+      return res.redirect("https://learnproai.in/subscription?status=success");
+    } catch (error: any) {
+      console.error("[CALLBACK] Error:", error.message);
+      return res.redirect("https://learnproai.in/subscription?status=failed&reason=server_error");
     }
   });
 
