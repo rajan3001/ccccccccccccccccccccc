@@ -1709,7 +1709,7 @@ export function registerBlogRoutes(app: any) {
 
   router.post("/api/blog/generate", async (req: Request, res: Response) => {
     try {
-      const count = Math.min(10, Math.max(1, parseInt(req.query.count as string) || 5));
+      const count = Math.min(20, Math.max(1, parseInt(req.query.count as string) || 10));
       res.json({ message: `Blog generation started for ${count} posts`, status: "started" });
       generateBlogPosts(count).then(n => console.log(`Blog generation complete: ${n} posts created`));
     } catch (e) {
@@ -1877,30 +1877,55 @@ Allow: /
 }
 
 function scheduleDailyBlogGeneration() {
-  const GENERATION_HOUR = 4;
-  const POSTS_PER_DAY = 5;
+  const GENERATION_HOURS = [4, 10, 16, 22];
+  const POSTS_PER_BATCH = 5;
 
   function scheduleNext() {
     const now = new Date();
-    const nextRun = new Date();
-    nextRun.setHours(GENERATION_HOUR, 0, 0, 0);
-    if (nextRun <= now) {
-      nextRun.setDate(nextRun.getDate() + 1);
+    let nextRun: Date | null = null;
+
+    for (const hour of GENERATION_HOURS) {
+      const candidate = new Date();
+      candidate.setHours(hour, 0, 0, 0);
+      if (candidate > now) {
+        nextRun = candidate;
+        break;
+      }
     }
+
+    if (!nextRun) {
+      nextRun = new Date();
+      nextRun.setDate(nextRun.getDate() + 1);
+      nextRun.setHours(GENERATION_HOURS[0], 0, 0, 0);
+    }
+
     const delay = nextRun.getTime() - now.getTime();
     console.log(`[Blog] Next auto-generation scheduled at ${nextRun.toISOString()} (in ${Math.round(delay / 3600000)}h)`);
 
     setTimeout(async () => {
       try {
-        console.log("[Blog] Starting daily auto-generation...");
-        const count = await generateBlogPosts(POSTS_PER_DAY);
-        console.log(`[Blog] Daily auto-generation complete: ${count} posts created`);
+        console.log("[Blog] Starting batch auto-generation...");
+        const count = await generateBlogPosts(POSTS_PER_BATCH);
+        console.log(`[Blog] Batch auto-generation complete: ${count} posts created`);
       } catch (e) {
-        console.error("[Blog] Daily auto-generation failed:", e);
+        console.error("[Blog] Batch auto-generation failed:", e);
       }
       scheduleNext();
     }, delay);
   }
 
   scheduleNext();
+
+  setTimeout(async () => {
+    try {
+      const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(blogPosts).where(eq(blogPosts.published, true));
+      if (count < 10) {
+        console.log(`[Blog] Only ${count} published articles found — generating initial batch...`);
+        const generated = await generateBlogPosts(10);
+        console.log(`[Blog] Initial batch complete: ${generated} posts created`);
+      }
+    } catch (e) {
+      console.error("[Blog] Initial batch check failed:", e);
+    }
+  }, 15000);
 }
