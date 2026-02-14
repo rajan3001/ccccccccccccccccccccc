@@ -209,241 +209,96 @@ interface DashboardStats {
 
 function TodayAchievements({ stats, t }: { stats: DashboardStats; t: any }) {
   const achievements = [
-    { label: t.dashboard.mcqsSolved, value: stats.today.mcqsSolved, icon: Brain, accent: "#f59e0b", accentRgb: "245,158,11", darkBg: "#1a1400" },
-    { label: t.dashboard.topicsStudied, value: stats.today.topicsStudied, icon: MessageSquare, accent: "#3b82f6", accentRgb: "59,130,246", darkBg: "#001428" },
-    { label: t.dashboard.caRead, value: stats.allTime.currentAffairsRevised, icon: Newspaper, accent: "#10b981", accentRgb: "16,185,129", darkBg: "#001a10" },
-    { label: t.dashboard.notesSaved, value: stats.today.notesSaved, icon: NotebookPen, accent: "#f97316", accentRgb: "249,115,22", darkBg: "#1a0e00" },
+    { label: t.dashboard.mcqsSolved, value: stats.today.mcqsSolved, icon: Brain, color: "#f59e0b", bg: "rgba(245,158,11,0.1)", border: "rgba(245,158,11,0.25)" },
+    { label: t.dashboard.topicsStudied, value: stats.today.topicsStudied, icon: MessageSquare, color: "#3b82f6", bg: "rgba(59,130,246,0.1)", border: "rgba(59,130,246,0.25)" },
+    { label: t.dashboard.caRead, value: stats.allTime.currentAffairsRevised, icon: Newspaper, color: "#10b981", bg: "rgba(16,185,129,0.1)", border: "rgba(16,185,129,0.25)" },
+    { label: t.dashboard.notesSaved, value: stats.today.notesSaved, icon: NotebookPen, color: "#f97316", bg: "rgba(249,115,22,0.1)", border: "rgba(249,115,22,0.25)" },
   ];
 
   const accuracy = stats.today.mcqsSolved > 0
     ? Math.round((stats.today.mcqsCorrect / stats.today.mcqsSolved) * 100)
     : 0;
 
-  const totalToday = stats.today.mcqsSolved + stats.today.topicsStudied + stats.today.notesSaved;
-
   return (
-    <div className="mb-4" data-testid="section-today-achievements">
-      <div
-        className="relative rounded-md overflow-hidden"
-        style={{
-          background: "linear-gradient(160deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%)",
-          border: "1px solid hsl(var(--border))",
-        }}
-      >
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+    <div className="mb-3 sm:mb-4" data-testid="section-today-achievements">
+      <div className="flex items-center gap-2 mb-2">
+        <Trophy className="h-3.5 w-3.5 text-amber-500" style={{ animation: "ach-bounce 2s ease-in-out infinite" }} />
+        <span className="text-[11px] sm:text-xs font-semibold text-foreground" data-testid="text-achievements-heading">
+          {t.dashboard.todayAchievements}
+        </span>
+        {stats.today.mcqsSolved > 0 && (
+          <Badge variant="secondary" className="text-[9px] ml-auto">
+            <Zap className="h-2.5 w-2.5 mr-0.5 text-amber-500" />
+            <AnimatedCounter target={accuracy} suffix="%" /> accuracy
+          </Badge>
+        )}
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" style={{ animation: "ach-fade-in 0.4s ease-out both" }}>
+        {achievements.map((item, idx) => (
           <div
-            className="absolute top-0 left-0 right-0 h-px"
-            style={{ background: "linear-gradient(90deg, transparent, rgba(245,158,11,0.4) 30%, rgba(59,130,246,0.4) 70%, transparent)" }}
-          />
-          <div
-            className="absolute inset-0 opacity-[0.03]"
+            key={item.label}
+            className="relative rounded-md overflow-visible group cursor-default"
+            data-testid={`card-achievement-${idx}`}
             style={{
-              backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 40px, hsl(var(--foreground)) 40px, hsl(var(--foreground)) 41px), repeating-linear-gradient(0deg, transparent, transparent 40px, hsl(var(--foreground)) 40px, hsl(var(--foreground)) 41px)",
+              background: item.bg,
+              border: `1px solid ${item.border}`,
+              animation: `ach-pop-in 0.35s cubic-bezier(0.34,1.56,0.64,1) ${idx * 0.07}s both`,
             }}
-          />
-          <div
-            className="absolute -top-24 -right-24 w-48 h-48 rounded-full"
-            style={{ background: "radial-gradient(circle, rgba(245,158,11,0.08), transparent 65%)" }}
-          />
-          <div
-            className="absolute -bottom-20 -left-20 w-40 h-40 rounded-full"
-            style={{ background: "radial-gradient(circle, rgba(59,130,246,0.06), transparent 65%)" }}
-          />
-        </div>
-
-        <div className="px-4 sm:px-5 pt-3 sm:pt-4 pb-1 relative z-10">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-2.5">
-              <div className="relative" style={{ animation: "ach-trophy-bob 3s ease-in-out infinite" }}>
-                <div
-                  className="h-9 w-9 sm:h-10 sm:w-10 flex items-center justify-center"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(245,158,11,0.05) 100%)",
-                    border: "1px solid rgba(245,158,11,0.4)",
-                    clipPath: "polygon(8% 0%, 92% 0%, 100% 8%, 100% 92%, 92% 100%, 8% 100%, 0% 92%, 0% 8%)",
-                  }}
-                >
-                  <Trophy
-                    className="h-5 w-5"
-                    style={{
-                      color: "#f59e0b",
-                      filter: "drop-shadow(0 0 6px rgba(245,158,11,0.6))",
-                    }}
-                  />
-                </div>
-                <div
-                  className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full"
-                  style={{
-                    background: totalToday > 0 ? "#10b981" : "#6b7280",
-                    boxShadow: totalToday > 0 ? "0 0 8px rgba(16,185,129,0.7), 0 0 2px rgba(16,185,129,1)" : "none",
-                    animation: totalToday > 0 ? "ach-dot-ping 1.5s ease-in-out infinite" : "none",
-                  }}
-                />
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    animation: "ach-ring-pulse 2.5s ease-out infinite",
-                    border: "1px solid rgba(245,158,11,0.3)",
-                    clipPath: "polygon(8% 0%, 92% 0%, 100% 8%, 100% 92%, 92% 100%, 8% 100%, 0% 92%, 0% 8%)",
-                  }}
+          >
+            <div className="flex items-center gap-1.5 px-2.5 py-2 sm:py-2.5">
+              <div
+                className="h-7 w-7 rounded-md flex items-center justify-center flex-shrink-0"
+                style={{ background: `${item.color}18` }}
+              >
+                <item.icon
+                  className="h-3.5 w-3.5"
+                  style={{ color: item.color, animation: `ach-icon-pulse 2.5s ease-in-out ${idx * 0.3}s infinite` }}
                 />
               </div>
-              <div>
-                <h2 className="text-sm sm:text-base font-bold text-foreground leading-tight" data-testid="text-achievements-heading">
-                  {t.dashboard.todayAchievements}
-                </h2>
-                <p className="text-[10px] text-muted-foreground">
-                  {totalToday > 0 ? `${totalToday} activities completed` : "Start studying to unlock"}
-                </p>
+              <div className="min-w-0">
+                <div
+                  className="text-base sm:text-lg font-bold leading-none tabular-nums"
+                  style={{ color: item.color }}
+                  data-testid={`text-achievement-value-${idx}`}
+                >
+                  <AnimatedCounter target={item.value} />
+                </div>
+                <div className="text-[8px] sm:text-[9px] font-medium uppercase tracking-wide text-muted-foreground truncate leading-tight mt-0.5">
+                  {item.label}
+                </div>
               </div>
             </div>
-            {stats.today.mcqsSolved > 0 && (
-              <Badge variant="secondary" className="text-[10px] font-semibold">
-                <Zap className="h-3 w-3 mr-0.5 text-amber-500" />
-                <AnimatedCounter target={accuracy} suffix="%" /> accuracy
-              </Badge>
-            )}
+            <div
+              className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${item.color}, transparent)`,
+                animation: `ach-shimmer 2s ease-in-out ${idx * 0.4}s infinite`,
+              }}
+            />
           </div>
-        </div>
-
-        <div className="px-4 sm:px-5 pb-4 pt-2.5 relative z-10">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-            {achievements.map((item, idx) => (
-              <div
-                key={item.label}
-                className="relative group"
-                data-testid={`card-achievement-${idx}`}
-                style={{ animation: `ach-card-enter 0.5s cubic-bezier(0.22,1,0.36,1) ${idx * 0.1}s both` }}
-              >
-                <div
-                  className="absolute -inset-px pointer-events-none transition-opacity duration-300 opacity-0 group-hover:opacity-100"
-                  style={{
-                    clipPath: "polygon(0% 6px, 6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px))",
-                    background: `linear-gradient(135deg, ${item.accent}, ${item.accent}66)`,
-                  }}
-                />
-
-                <div
-                  className="relative overflow-hidden transition-all duration-300"
-                  style={{
-                    clipPath: "polygon(0% 6px, 6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px))",
-                    border: `1px solid rgba(${item.accentRgb},0.25)`,
-                    background: `linear-gradient(160deg, rgba(${item.accentRgb},0.06) 0%, rgba(${item.accentRgb},0.02) 50%, rgba(${item.accentRgb},0.08) 100%)`,
-                  }}
-                >
-                  <div
-                    className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                    style={{
-                      background: `radial-gradient(ellipse at 50% 0%, rgba(${item.accentRgb},0.15), transparent 70%)`,
-                    }}
-                  />
-
-                  <div
-                    className="absolute top-0 left-0 right-0 h-px"
-                    style={{ background: `linear-gradient(90deg, transparent, rgba(${item.accentRgb},0.5) 50%, transparent)` }}
-                  />
-
-                  <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background: `linear-gradient(180deg, transparent 0%, rgba(${item.accentRgb},0.03) 100%)`,
-                      animation: `ach-scanline 3s linear ${idx * 0.7}s infinite`,
-                    }}
-                  />
-
-                  <div className="relative p-3 sm:p-3.5 flex flex-col items-center text-center">
-                    <div
-                      className="relative h-10 w-10 sm:h-11 sm:w-11 mb-2.5 flex items-center justify-center"
-                      style={{
-                        clipPath: "polygon(15% 0%, 85% 0%, 100% 15%, 100% 85%, 85% 100%, 15% 100%, 0% 85%, 0% 15%)",
-                        background: `linear-gradient(135deg, rgba(${item.accentRgb},0.2) 0%, rgba(${item.accentRgb},0.05) 100%)`,
-                        boxShadow: `inset 0 0 12px rgba(${item.accentRgb},0.15), 0 0 8px rgba(${item.accentRgb},0.1)`,
-                      }}
-                    >
-                      <item.icon
-                        className="h-5 w-5"
-                        style={{
-                          color: item.accent,
-                          filter: `drop-shadow(0 0 5px rgba(${item.accentRgb},0.5))`,
-                          animation: `ach-icon-glow 2s ease-in-out ${idx * 0.4}s infinite`,
-                        }}
-                      />
-                      <div
-                        className="absolute inset-0 pointer-events-none"
-                        style={{
-                          clipPath: "polygon(15% 0%, 85% 0%, 100% 15%, 100% 85%, 85% 100%, 15% 100%, 0% 85%, 0% 15%)",
-                          border: `1px solid rgba(${item.accentRgb},0.3)`,
-                          animation: `ach-icon-ring 3s ease-in-out ${idx * 0.3}s infinite`,
-                        }}
-                      />
-                    </div>
-
-                    <span
-                      className="text-2xl sm:text-[28px] font-black leading-none mb-1"
-                      style={{
-                        color: item.accent,
-                        textShadow: `0 0 12px rgba(${item.accentRgb},0.3)`,
-                        fontVariantNumeric: "tabular-nums",
-                      }}
-                      data-testid={`text-achievement-value-${idx}`}
-                    >
-                      <AnimatedCounter target={item.value} />
-                    </span>
-                    <span
-                      className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground leading-tight"
-                    >
-                      {item.label}
-                    </span>
-                  </div>
-
-                  <div className="absolute top-0 left-0 w-4 h-px" style={{ background: item.accent }} />
-                  <div className="absolute top-0 left-0 w-px h-4" style={{ background: item.accent }} />
-                  <div className="absolute bottom-0 right-0 w-4 h-px" style={{ background: item.accent }} />
-                  <div className="absolute bottom-0 right-0 w-px h-4" style={{ background: item.accent }} />
-                  <div className="absolute top-0 right-0 w-2 h-px" style={{ background: `rgba(${item.accentRgb},0.4)` }} />
-                  <div className="absolute bottom-0 left-0 w-2 h-px" style={{ background: `rgba(${item.accentRgb},0.4)` }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div
-          className="absolute bottom-0 left-0 right-0 h-px"
-          style={{ background: "linear-gradient(90deg, transparent, rgba(245,158,11,0.3) 30%, rgba(59,130,246,0.3) 70%, transparent)" }}
-        />
+        ))}
       </div>
 
       <style>{`
-        @keyframes ach-trophy-bob {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          30% { transform: translateY(-3px) rotate(-4deg); }
-          60% { transform: translateY(-1px) rotate(3deg); }
+        @keyframes ach-bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-2px); }
         }
-        @keyframes ach-dot-ping {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(1.3); }
+        @keyframes ach-fade-in {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes ach-ring-pulse {
-          0% { opacity: 0.5; transform: scale(1); }
-          50% { opacity: 0; transform: scale(1.25); }
-          100% { opacity: 0; transform: scale(1.25); }
+        @keyframes ach-pop-in {
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
         }
-        @keyframes ach-card-enter {
-          from { opacity: 0; transform: translateY(12px) scale(0.95); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
+        @keyframes ach-icon-pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.15); }
         }
-        @keyframes ach-scanline {
-          0% { background-position: 0% -100%; }
-          100% { background-position: 0% 200%; }
-        }
-        @keyframes ach-icon-glow {
-          0%, 100% { filter: drop-shadow(0 0 5px currentColor); transform: scale(1); }
-          50% { filter: drop-shadow(0 0 10px currentColor) drop-shadow(0 0 3px currentColor); transform: scale(1.08); }
-        }
-        @keyframes ach-icon-ring {
+        @keyframes ach-shimmer {
           0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.7; }
+          50% { opacity: 0.8; }
         }
       `}</style>
     </div>
@@ -769,17 +624,10 @@ export default function DashboardPage() {
       <Sidebar />
 
       <main className="flex-1 overflow-y-auto">
-        <div className="hidden md:flex justify-end px-4 pt-3">
-          <InlineLanguageButton />
-        </div>
-        <div className="max-w-5xl mx-auto px-3 sm:px-6 py-3 sm:py-6">
-
-          <div
-            className="relative flex items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-4"
-            style={{ animation: "dashboard-slide-right 0.4s ease-out both" }}
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <h1 className="text-sm sm:text-lg font-semibold truncate" data-testid="text-dashboard-greeting">
+        <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
+          <div className="max-w-5xl mx-auto px-3 sm:px-6 flex items-center justify-between h-12 sm:h-14 gap-2">
+            <div className="flex items-center gap-2 min-w-0" style={{ animation: "dashboard-slide-right 0.3s ease-out both" }}>
+              <h1 className="text-sm sm:text-base font-semibold truncate" data-testid="text-dashboard-greeting">
                 {getGreeting(t)}, <span className="text-primary">{displayName}</span>
               </h1>
               {examLabels.length > 0 && (
@@ -789,8 +637,12 @@ export default function DashboardPage() {
                 </Badge>
               )}
             </div>
-
+            <div className="hidden md:block">
+              <InlineLanguageButton />
+            </div>
           </div>
+        </div>
+        <div className="max-w-5xl mx-auto px-3 sm:px-6 py-3 sm:py-5">
 
           {statsLoading ? (
             <Card className="p-4 mb-4">
