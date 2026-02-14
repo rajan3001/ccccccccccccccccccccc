@@ -16,6 +16,12 @@ import {
   ArrowRight,
   MessageCircle,
   ArrowDown,
+  FileText,
+  Brain,
+  BookOpen,
+  Newspaper,
+  PenLine,
+  Lightbulb,
 } from "lucide-react";
 import { generatePDF, chatToPDFSections } from "@/lib/pdf-generator";
 import { useLanguage } from "@/i18n/context";
@@ -139,7 +145,7 @@ export default function ChatPage() {
         </div>
         <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto scroll-smooth">
           {!conversationId || (!isChatLoading && !hasMessages && !isStreaming) ? (
-            <div className="flex flex-col items-center justify-center h-full animate-in fade-in duration-500">
+            <div className="flex flex-col items-center justify-center h-full animate-in fade-in duration-500 px-4">
               {queryStatus && !(queryStatus as any).isAdmin && (
                 <div className="mb-6" data-testid="query-status-badge">
                   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
@@ -151,12 +157,57 @@ export default function ChatPage() {
                 </div>
               )}
 
-              <h2 className="text-lg sm:text-2xl font-display font-semibold mb-1 text-center px-4" data-testid="text-welcome-heading">
+              <h2 className="text-lg sm:text-2xl font-display font-semibold mb-1 text-center" data-testid="text-welcome-heading">
                 {t.chat.welcome}, {user?.firstName || t.chat.aspirant}
               </h2>
-              <p className="text-xs sm:text-sm text-muted-foreground max-w-md text-center px-4">
+              <p className="text-xs sm:text-sm text-muted-foreground max-w-md text-center mb-6">
                 {t.chat.askAnything}
               </p>
+
+              <div className="w-full max-w-xl space-y-3">
+                <div className="flex items-center gap-1.5 justify-center mb-1">
+                  <Lightbulb className="h-3 w-3 text-amber-500" />
+                  <span className="text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase tracking-wide">Try asking</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { icon: BookOpen, text: "Explain Article 370 and its impact", color: "text-blue-500", bg: "bg-blue-500/8" },
+                    { icon: Brain, text: "Generate MCQs on Indian Polity", color: "text-emerald-500", bg: "bg-emerald-500/8" },
+                    { icon: PenLine, text: "Write an answer on Federalism in India", color: "text-purple-500", bg: "bg-purple-500/8" },
+                    { icon: Newspaper, text: "Summarize today's current affairs", color: "text-amber-500", bg: "bg-amber-500/8" },
+                  ].map((item, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleHomeSend(item.text)}
+                      disabled={createMutation.isPending}
+                      className="flex items-start gap-2.5 p-3 rounded-lg border border-border bg-card hover-elevate text-left group cursor-pointer transition-all"
+                      data-testid={`button-chat-help-${i}`}
+                    >
+                      <div className={`h-7 w-7 rounded-md ${item.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                        <item.icon className={`h-3.5 w-3.5 ${item.color}`} />
+                      </div>
+                      <span className="text-xs sm:text-sm font-medium text-foreground leading-snug">{item.text}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap justify-center gap-2 pt-1">
+                  {[
+                    { icon: FileText, label: "Download as PDF" },
+                    { icon: Brain, label: "Generate Quiz" },
+                    { icon: PenLine, label: "Answer Writing" },
+                    { icon: BookOpen, label: "Topic Deep-dive" },
+                  ].map((feat, i) => (
+                    <div
+                      key={i}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/60 border border-border"
+                      data-testid={`badge-feature-${i}`}
+                    >
+                      <feat.icon className="h-2.5 w-2.5 text-muted-foreground" />
+                      <span className="text-[9px] sm:text-[10px] font-medium text-muted-foreground">{feat.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : isChatLoading ? (
             <div className="h-full flex items-center justify-center">
