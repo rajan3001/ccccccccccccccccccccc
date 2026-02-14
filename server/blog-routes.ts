@@ -763,13 +763,13 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     </a>
     <div class="top-bar-right">
       <nav class="top-bar-nav" data-testid="top-nav">
-        <a href="/" data-testid="nav-home">Home</a>
+        ${isLoggedIn ? '' : `<a href="/" data-testid="nav-home">Home</a>
         <a href="/#features" class="hidden-mobile" data-testid="nav-features">Features</a>
-        <a href="/#exams" class="hidden-mobile" data-testid="nav-exams">Exams</a>
+        <a href="/#exams" class="hidden-mobile" data-testid="nav-exams">Exams</a>`}
         <a href="/blog" class="nav-active" data-testid="nav-articles">Articles</a>
       </nav>
       ${isLoggedIn ? `
-      <a href="/dashboard" class="nav-cta" data-testid="nav-dashboard">
+      <a href="/" class="nav-cta" data-testid="nav-dashboard">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         Dashboard
       </a>` : `
@@ -817,7 +817,7 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
         <a href="/">Home</a>
         <a href="/#features">Features</a>
         <a href="/blog">Articles</a>
-        ${isLoggedIn ? '<a href="/dashboard">Dashboard</a>' : '<a href="/login">Login</a>'}
+        ${isLoggedIn ? '<a href="/">Dashboard</a>' : '<a href="/login">Login</a>'}
       </nav>
     </div>
   </footer>
@@ -1184,13 +1184,13 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     </a>
     <div class="top-bar-right">
       <nav class="top-bar-nav" data-testid="top-nav">
-        <a href="/" data-testid="nav-home">Home</a>
+        ${isLoggedIn ? '' : `<a href="/" data-testid="nav-home">Home</a>
         <a href="/#features" class="hidden-mobile" data-testid="nav-features">Features</a>
-        <a href="/#exams" class="hidden-mobile" data-testid="nav-exams">Exams</a>
+        <a href="/#exams" class="hidden-mobile" data-testid="nav-exams">Exams</a>`}
         <a href="/blog" data-testid="nav-blog">Articles</a>
       </nav>
       ${isLoggedIn ? `
-      <a href="/dashboard" class="nav-cta" data-testid="nav-dashboard">
+      <a href="/" class="nav-cta" data-testid="nav-dashboard">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         Dashboard
       </a>` : `
@@ -1349,7 +1349,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
         <a href="/">Home</a>
         <a href="/#features">Features</a>
         <a href="/blog">Articles</a>
-        ${isLoggedIn ? '<a href="/dashboard">Dashboard</a>' : '<a href="/login">Login</a>'}
+        ${isLoggedIn ? '<a href="/">Dashboard</a>' : '<a href="/login">Login</a>'}
       </nav>
     </div>
   </footer>
