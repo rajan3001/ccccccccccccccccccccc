@@ -4,6 +4,7 @@ import { db } from "./db";
 import { blogPosts, type InsertBlogPost, BLOG_CATEGORIES } from "@shared/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { objectStorageClient } from "./replit_integrations/object_storage/objectStorage";
+import { runContentScrapeAndPublish, scheduleDailyScraping } from "./blog-scraper";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
@@ -1707,6 +1708,16 @@ export function registerBlogRoutes(app: any) {
     }
   });
 
+  router.post("/api/blog/scrape", async (req: Request, res: Response) => {
+    try {
+      const maxPerSource = Math.min(5, Math.max(1, parseInt(req.query.max as string) || 3));
+      res.json({ message: `Content scraping started (max ${maxPerSource} per source)`, status: "started" });
+      runContentScrapeAndPublish(maxPerSource).then(n => console.log(`[Scraper] Manual scrape complete: ${n} articles published`));
+    } catch (e) {
+      res.status(500).json({ error: "Failed to start scraping" });
+    }
+  });
+
   router.post("/api/blog/regenerate-all", async (req: Request, res: Response) => {
     try {
       await db.delete(blogPosts);
@@ -1853,6 +1864,7 @@ Allow: /
   app.use(router);
 
   scheduleDailyBlogGeneration();
+  scheduleDailyScraping();
 }
 
 function scheduleDailyBlogGeneration() {
