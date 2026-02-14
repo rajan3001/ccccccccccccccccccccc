@@ -220,61 +220,58 @@ function TodayAchievements({ stats, t }: { stats: DashboardStats; t: any }) {
     : 0;
 
   return (
-    <div className="mb-3 sm:mb-4" data-testid="section-today-achievements">
-      <div className="flex items-center gap-2 mb-2">
-        <Trophy className="h-3.5 w-3.5 text-amber-500" style={{ animation: "ach-bounce 2s ease-in-out infinite" }} />
-        <span className="text-[11px] sm:text-xs font-semibold text-foreground" data-testid="text-achievements-heading">
-          {t.dashboard.todayAchievements}
-        </span>
+    <div className="mb-3" data-testid="section-today-achievements">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <Trophy className="h-3 w-3 text-amber-500" style={{ animation: "ach-bounce 2s ease-in-out infinite" }} />
+          <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground" data-testid="text-achievements-heading">
+            {t.dashboard.todayAchievements}
+          </span>
+        </div>
+        <div className="flex gap-1.5 sm:gap-2">
+          {achievements.map((item, idx) => (
+            <div
+              key={item.label}
+              className="relative w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-md cursor-default"
+              data-testid={`card-achievement-${idx}`}
+              style={{
+                background: `linear-gradient(145deg, ${item.color}15, ${item.color}08)`,
+                border: `1px solid ${item.color}30`,
+                animation: `ach-pop-in 0.35s cubic-bezier(0.34,1.56,0.64,1) ${idx * 0.06}s both`,
+              }}
+            >
+              <div className="flex flex-col items-center justify-center h-full gap-0.5">
+                <item.icon
+                  className="h-3.5 w-3.5"
+                  style={{ color: item.color, animation: `ach-icon-pulse 2.5s ease-in-out ${idx * 0.3}s infinite` }}
+                />
+                <span
+                  className="text-sm sm:text-base font-extrabold leading-none tabular-nums"
+                  style={{ color: item.color }}
+                  data-testid={`text-achievement-value-${idx}`}
+                >
+                  <AnimatedCounter target={item.value} />
+                </span>
+                <span className="text-[6px] sm:text-[7px] font-bold uppercase tracking-wider text-muted-foreground text-center leading-none">
+                  {item.label}
+                </span>
+              </div>
+              <div
+                className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full"
+                style={{
+                  background: `linear-gradient(90deg, transparent, ${item.color}, transparent)`,
+                  animation: `ach-shimmer 2s ease-in-out ${idx * 0.4}s infinite`,
+                }}
+              />
+            </div>
+          ))}
+        </div>
         {stats.today.mcqsSolved > 0 && (
-          <Badge variant="secondary" className="text-[9px] ml-auto">
+          <Badge variant="secondary" className="text-[9px] ml-auto flex-shrink-0">
             <Zap className="h-2.5 w-2.5 mr-0.5 text-amber-500" />
             <AnimatedCounter target={accuracy} suffix="%" /> accuracy
           </Badge>
         )}
-      </div>
-      <div className="flex gap-2.5" style={{ animation: "ach-fade-in 0.35s ease-out both" }}>
-        {achievements.map((item, idx) => (
-          <div
-            key={item.label}
-            className="relative flex-1 aspect-square rounded-lg cursor-default"
-            data-testid={`card-achievement-${idx}`}
-            style={{
-              background: `linear-gradient(145deg, ${item.bg}, ${item.color}08)`,
-              border: `1.5px solid ${item.border}`,
-              animation: `ach-pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1) ${idx * 0.08}s both`,
-            }}
-          >
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-1">
-              <div
-                className="h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center mb-1"
-                style={{ background: `${item.color}20`, boxShadow: `0 0 10px ${item.color}15` }}
-              >
-                <item.icon
-                  className="h-3.5 w-3.5 sm:h-4 sm:w-4"
-                  style={{ color: item.color, animation: `ach-icon-pulse 2.5s ease-in-out ${idx * 0.3}s infinite` }}
-                />
-              </div>
-              <span
-                className="text-lg sm:text-xl font-extrabold leading-none tabular-nums"
-                style={{ color: item.color }}
-                data-testid={`text-achievement-value-${idx}`}
-              >
-                <AnimatedCounter target={item.value} />
-              </span>
-              <span className="text-[7px] sm:text-[8px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5 text-center leading-tight px-1">
-                {item.label}
-              </span>
-            </div>
-            <div
-              className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full"
-              style={{
-                background: `linear-gradient(90deg, transparent, ${item.color}, transparent)`,
-                animation: `ach-shimmer 2s ease-in-out ${idx * 0.4}s infinite`,
-              }}
-            />
-          </div>
-        ))}
       </div>
 
       <style>{`
@@ -282,21 +279,17 @@ function TodayAchievements({ stats, t }: { stats: DashboardStats; t: any }) {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-2px); }
         }
-        @keyframes ach-fade-in {
-          from { opacity: 0; transform: translateY(6px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
         @keyframes ach-pop-in {
-          from { opacity: 0; transform: scale(0.85); }
+          from { opacity: 0; transform: scale(0.8); }
           to { opacity: 1; transform: scale(1); }
         }
         @keyframes ach-icon-pulse {
-          0%, 100% { transform: scale(1); opacity: 0.9; }
-          50% { transform: scale(1.18); opacity: 1; }
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.2); }
         }
         @keyframes ach-shimmer {
-          0%, 100% { opacity: 0.2; }
-          50% { opacity: 0.9; }
+          0%, 100% { opacity: 0.15; }
+          50% { opacity: 0.85; }
         }
       `}</style>
     </div>
