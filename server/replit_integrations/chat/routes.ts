@@ -4,7 +4,6 @@ import { chatStorage } from "./storage";
 import { isAuthenticated } from "../auth";
 import { ObjectStorageService } from "../object_storage";
 import { getUserLanguage, getLanguageInstruction } from "../../language-utils";
-
 const ai = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
   httpOptions: {
@@ -15,29 +14,40 @@ const ai = new GoogleGenAI({
 
 const objectStorage = new ObjectStorageService();
 
+const MAX_TEXT_CONTENT_LENGTH = 15000;
+const MAX_INLINE_DATA_SIZE = 8 * 1024 * 1024;
+
 async function readFileContent(objectPath: string, fileType: string): Promise<string | null> {
   try {
     const file = await objectStorage.getObjectEntityFile(objectPath);
-    const [metadata] = await file.getMetadata();
 
     if (fileType.startsWith("text/") || fileType === "text/plain" || fileType === "text/csv" || fileType === "text/markdown") {
       const [content] = await file.download();
-      return content.toString("utf-8");
-    }
-
-    if (fileType === "application/pdf") {
-      const [content] = await file.download();
-      const textContent = content.toString("utf-8");
-      const cleanText = textContent.replace(/[^\x20-\x7E\n\r\t]/g, " ").replace(/\s+/g, " ").trim();
-      if (cleanText.length > 100) {
-        return cleanText.substring(0, 5000);
+      const text = content.toString("utf-8");
+      if (text.length > MAX_TEXT_CONTENT_LENGTH) {
+        return text.substring(0, MAX_TEXT_CONTENT_LENGTH) + "\n\n[Content truncated - file was too large to include fully]";
       }
-      return "[PDF file attached - content could not be extracted as text]";
+      return text;
     }
 
     return null;
   } catch (error) {
     console.error("Error reading file content:", error);
+    return null;
+  }
+}
+
+async function downloadFileAsBase64(objectPath: string, mimeType: string): Promise<{ data: string; mimeType: string } | null> {
+  try {
+    const file = await objectStorage.getObjectEntityFile(objectPath);
+    const [buffer] = await file.download();
+    if (buffer.length > MAX_INLINE_DATA_SIZE) {
+      console.warn(`File too large for inline data: ${buffer.length} bytes`);
+      return null;
+    }
+    return { data: buffer.toString("base64"), mimeType };
+  } catch (error) {
+    console.error("Error reading file as base64:", error);
     return null;
   }
 }
@@ -176,21 +186,35 @@ export function registerChatRoutes(app: Express): void {
         
         if (m.attachments && Array.isArray(m.attachments)) {
           for (const att of m.attachments as any[]) {
-            if (att.type?.startsWith("image/") && att.objectPath) {
-              try {
-                const file = await objectStorage.getObjectEntityFile(att.objectPath);
-                const [imageData] = await file.download();
-                const base64 = imageData.toString("base64");
+            if (!att.objectPath) continue;
+            
+            if (att.type?.startsWith("image/")) {
+              const fileData = await downloadFileAsBase64(att.objectPath, att.type);
+              if (fileData) {
                 parts.push({
                   inlineData: {
-                    mimeType: att.type,
-                    data: base64,
+                    mimeType: fileData.mimeType,
+                    data: fileData.data,
                   }
                 });
-              } catch (e) {
-                parts.push({ text: `[Image attached: ${att.name}]` });
+                parts.push({ text: `[Image: ${att.name} - Analyze this image thoroughly. Read ALL text (printed or handwritten), describe diagrams, charts, tables, maps, graphs. Provide detailed OCR-level text extraction.]` });
+              } else {
+                parts.push({ text: `[Image attached: ${att.name} - could not load]` });
               }
-            } else if (att.objectPath) {
+            } else if (att.type === "application/pdf") {
+              const fileData = await downloadFileAsBase64(att.objectPath, "application/pdf");
+              if (fileData) {
+                parts.push({
+                  inlineData: {
+                    mimeType: "application/pdf",
+                    data: fileData.data,
+                  }
+                });
+                parts.push({ text: `[PDF: ${att.name} - Read and analyze this entire PDF. Extract all text, tables, diagrams, and content.]` });
+              } else {
+                parts.push({ text: `[PDF attached: ${att.name} - The file was too large to process directly (over 8MB). Please try uploading a smaller PDF.]` });
+              }
+            } else {
               const fileContent = await readFileContent(att.objectPath, att.type || "text/plain");
               if (fileContent) {
                 parts.push({ text: `\n\n--- Attached File: ${att.name} ---\n${fileContent}\n--- End of File ---\n` });
@@ -226,6 +250,14 @@ CRITICAL RULES:
 - NEVER mention, recommend, or reference any coaching institute, ed-tech company, or competitor by name (such as NextIAS, Vision IAS, Unacademy, Byju's, Allen, Vajiram, Drishti IAS, SuperKalam, Testbook, Adda247, Oliveboard, PrepLadder, or any others).
 - If asked about coaching institutes, politely redirect to Learnpro's own features.
 - Always refer to yourself and this platform as 'Learnpro AI'.
+
+FILE & IMAGE ANALYSIS:
+- When the user shares an image, analyze it thoroughly like an expert OCR system. Extract ALL visible text (printed or handwritten), describe diagrams, charts, maps, tables, graphs, and any visual content in detail.
+- For handwritten notes or answer sheets: read and transcribe all handwriting accurately, then provide feedback or analysis as requested.
+- For PDFs: read the entire content carefully. Summarize, explain, answer questions about it, or extract specific information as the user requests.
+- For screenshots of questions, textbook pages, or study material: extract the content and provide relevant explanations, answers, or analysis.
+- When an image contains a question paper or exam questions, solve them with detailed explanations.
+- Always acknowledge what files/images were shared and confirm what you can see in them.
 
 RESPONSE STYLE:
 - For casual greetings (hello, hi, hey, good morning, etc.): Respond warmly and naturally in 1-2 sentences. Do NOT add educational content, MCQ suggestions, or study material to greeting responses. Simply greet back and ask how you can help with their preparation.

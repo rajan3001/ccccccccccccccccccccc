@@ -42,6 +42,78 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
     }
   };
 
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const items = Array.from(e.clipboardData.items);
+    const imageItems = items.filter(item => item.type.startsWith("image/"));
+    if (imageItems.length === 0) return;
+
+    e.preventDefault();
+
+    for (const item of imageItems) {
+      const blob = item.getAsFile();
+      if (!blob) continue;
+
+      const ext = blob.type.split("/")[1] || "png";
+      const fileName = `pasted-image-${Date.now()}.${ext}`;
+      const file = new window.File([blob], fileName, { type: blob.type });
+
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "Image too large",
+          description: "Pasted image exceeds the 10 MB limit.",
+          variant: "destructive",
+        });
+        continue;
+      }
+
+      const attachment: FileAttachment = {
+        file,
+        preview: URL.createObjectURL(blob),
+        uploaded: false,
+        uploading: true,
+      };
+
+      setAttachments(prev => [...prev, attachment]);
+
+      try {
+        const urlRes = await fetch("/api/uploads/request-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: fileName,
+            size: file.size,
+            contentType: file.type,
+          }),
+        });
+
+        if (!urlRes.ok) throw new Error("Failed to get upload URL");
+        const { uploadURL, objectPath } = await urlRes.json();
+
+        await fetch(uploadURL, {
+          method: "PUT",
+          body: file,
+          headers: { "Content-Type": file.type },
+        });
+
+        setAttachments(prev =>
+          prev.map(a =>
+            a.file === file
+              ? { ...a, uploaded: true, uploading: false, objectPath, uploadURL }
+              : a
+          )
+        );
+      } catch (error) {
+        console.error("Paste upload failed:", error);
+        toast({
+          title: "Upload failed",
+          description: "Failed to upload pasted image. Please try again.",
+          variant: "destructive",
+        });
+        setAttachments(prev => prev.filter(a => a.file !== file));
+      }
+    }
+  };
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
@@ -242,6 +314,7 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             placeholder={placeholder}
             className="min-h-[50px] max-h-[200px] w-full resize-none border-0 bg-transparent py-3 px-2 focus-visible:ring-0 text-base"
             data-testid="input-chat-message"
