@@ -1243,7 +1243,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
         </div>
       </header>
 
-      ${post.coverImageUrl ? `<div class="cover-img" data-testid="cover-image"><img src="${post.coverImageUrl}" alt="${post.coverImageAlt || post.title}" width="800" height="400" loading="eager" /></div>` : ''}
+      
 
       <div class="relevance-box" data-testid="relevance-prelims">
         <div class="relevance-head">
