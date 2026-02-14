@@ -247,7 +247,7 @@ export function MessageBubble({ message, isStreaming, conversationId, userQuery,
             </div>
           )}
 
-          <div className="max-w-none text-sm sm:text-base">
+          <div className="max-w-none">
             {message.content ? (
               isStreaming ? (
                 <div className="streaming-text">
