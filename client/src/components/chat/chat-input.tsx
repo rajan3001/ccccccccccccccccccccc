@@ -38,7 +38,9 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit();
+      if (!isUploading) {
+        handleSubmit();
+      }
     }
   };
 
@@ -216,6 +218,14 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
   };
 
   const handleSubmit = () => {
+    if (isUploading) {
+      toast({
+        title: "Please wait",
+        description: "Files are still uploading. Please wait a moment before sending.",
+      });
+      return;
+    }
+
     const hasContent = input.trim();
     const hasAttachments = attachments.some(a => a.uploaded);
     if (!hasContent && !hasAttachments) return;

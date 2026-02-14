@@ -60,12 +60,15 @@ export default function ChatPage() {
     refetchInterval: 30000,
   });
 
-  const handleHomeSend = async (message: string) => {
+  const handleHomeSend = async (message: string, attachments?: { name: string; type: string; objectPath: string; size: number }[]) => {
     if (conversationId) {
-      sendMessage(message);
+      sendMessage(message, attachments);
     } else {
       createMutation.mutate("New Chat", {
         onSuccess: (newChat) => {
+          if (attachments && attachments.length > 0) {
+            sessionStorage.setItem(`chat_attachments_${newChat.id}`, JSON.stringify(attachments));
+          }
           setLocation(`/chat/${newChat.id}?prefill=${encodeURIComponent(message)}`);
         },
       });
@@ -106,7 +109,15 @@ export default function ChatPage() {
         } catch {
           decodedMessage = prefill;
         }
-        sendMessage(decodedMessage);
+        const savedAttachments = sessionStorage.getItem(`chat_attachments_${conversationId}`);
+        let attachments: any[] | undefined;
+        if (savedAttachments) {
+          try {
+            attachments = JSON.parse(savedAttachments);
+            sessionStorage.removeItem(`chat_attachments_${conversationId}`);
+          } catch {}
+        }
+        sendMessage(decodedMessage, attachments);
         window.history.replaceState({}, "", `/chat/${conversationId}`);
       }
     }
