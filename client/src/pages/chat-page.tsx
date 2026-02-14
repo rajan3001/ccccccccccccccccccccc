@@ -171,10 +171,10 @@ export default function ChatPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { icon: BookOpen, text: "Explain Article 370 and its impact", color: "text-blue-500", bg: "bg-blue-500/8" },
-                    { icon: Brain, text: "Generate MCQs on Indian Polity", color: "text-emerald-500", bg: "bg-emerald-500/8" },
-                    { icon: PenLine, text: "Write an answer on Federalism in India", color: "text-purple-500", bg: "bg-purple-500/8" },
-                    { icon: Newspaper, text: "Summarize today's current affairs", color: "text-amber-500", bg: "bg-amber-500/8" },
+                    { icon: BookOpen, text: "Explain Article 370 and its impact on J&K", color: "text-blue-500", bg: "bg-blue-500/8" },
+                    { icon: Brain, text: "Generate 10 MCQs on Indian Polity for Prelims", color: "text-emerald-500", bg: "bg-emerald-500/8" },
+                    { icon: PenLine, text: "Write a 250-word answer on Federalism in India", color: "text-purple-500", bg: "bg-purple-500/8" },
+                    { icon: Newspaper, text: "Explain the significance of 73rd & 74th Amendments", color: "text-amber-500", bg: "bg-amber-500/8" },
                   ].map((item, i) => (
                     <button
                       key={i}
