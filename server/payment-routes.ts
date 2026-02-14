@@ -199,14 +199,12 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
         total_count: totalCount,
         quantity: 1,
         customer_notify: 0,
-        callback_url: "https://learnproai.in/api/payments/razorpay/callback",
-        redirect: true,
         notes: {
           userId,
           planCode,
           planLabel: plan.label,
         },
-      } as any);
+      });
 
       await storage.createSubscription({
         userId,
