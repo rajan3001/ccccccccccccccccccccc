@@ -233,43 +233,41 @@ function TodayAchievements({ stats, t }: { stats: DashboardStats; t: any }) {
           </Badge>
         )}
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" style={{ animation: "ach-fade-in 0.4s ease-out both" }}>
+      <div className="flex gap-2.5" style={{ animation: "ach-fade-in 0.35s ease-out both" }}>
         {achievements.map((item, idx) => (
           <div
             key={item.label}
-            className="relative rounded-md overflow-visible group cursor-default"
+            className="relative flex-1 aspect-square rounded-lg cursor-default"
             data-testid={`card-achievement-${idx}`}
             style={{
-              background: item.bg,
-              border: `1px solid ${item.border}`,
-              animation: `ach-pop-in 0.35s cubic-bezier(0.34,1.56,0.64,1) ${idx * 0.07}s both`,
+              background: `linear-gradient(145deg, ${item.bg}, ${item.color}08)`,
+              border: `1.5px solid ${item.border}`,
+              animation: `ach-pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1) ${idx * 0.08}s both`,
             }}
           >
-            <div className="flex items-center gap-1.5 px-2.5 py-2 sm:py-2.5">
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-1">
               <div
-                className="h-7 w-7 rounded-md flex items-center justify-center flex-shrink-0"
-                style={{ background: `${item.color}18` }}
+                className="h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center mb-1"
+                style={{ background: `${item.color}20`, boxShadow: `0 0 10px ${item.color}15` }}
               >
                 <item.icon
-                  className="h-3.5 w-3.5"
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                   style={{ color: item.color, animation: `ach-icon-pulse 2.5s ease-in-out ${idx * 0.3}s infinite` }}
                 />
               </div>
-              <div className="min-w-0">
-                <div
-                  className="text-base sm:text-lg font-bold leading-none tabular-nums"
-                  style={{ color: item.color }}
-                  data-testid={`text-achievement-value-${idx}`}
-                >
-                  <AnimatedCounter target={item.value} />
-                </div>
-                <div className="text-[8px] sm:text-[9px] font-medium uppercase tracking-wide text-muted-foreground truncate leading-tight mt-0.5">
-                  {item.label}
-                </div>
-              </div>
+              <span
+                className="text-lg sm:text-xl font-extrabold leading-none tabular-nums"
+                style={{ color: item.color }}
+                data-testid={`text-achievement-value-${idx}`}
+              >
+                <AnimatedCounter target={item.value} />
+              </span>
+              <span className="text-[7px] sm:text-[8px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5 text-center leading-tight px-1">
+                {item.label}
+              </span>
             </div>
             <div
-              className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full"
+              className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full"
               style={{
                 background: `linear-gradient(90deg, transparent, ${item.color}, transparent)`,
                 animation: `ach-shimmer 2s ease-in-out ${idx * 0.4}s infinite`,
@@ -289,16 +287,16 @@ function TodayAchievements({ stats, t }: { stats: DashboardStats; t: any }) {
           to { opacity: 1; transform: translateY(0); }
         }
         @keyframes ach-pop-in {
-          from { opacity: 0; transform: scale(0.9); }
+          from { opacity: 0; transform: scale(0.85); }
           to { opacity: 1; transform: scale(1); }
         }
         @keyframes ach-icon-pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.15); }
+          0%, 100% { transform: scale(1); opacity: 0.9; }
+          50% { transform: scale(1.18); opacity: 1; }
         }
         @keyframes ach-shimmer {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.8; }
+          0%, 100% { opacity: 0.2; }
+          50% { opacity: 0.9; }
         }
       `}</style>
     </div>
