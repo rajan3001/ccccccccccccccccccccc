@@ -106,6 +106,7 @@ export function useTopicById(topicId: number) {
   return useQuery<{
     topic: DailyTopic;
     date: string;
+    cachedDetail: string | null;
     prevTopic: TopicNavItem | null;
     nextTopic: TopicNavItem | null;
     topicIndex: number;

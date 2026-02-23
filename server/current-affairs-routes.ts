@@ -70,6 +70,79 @@ ${topicEntries}`;
   await Promise.all(updatePromises);
 }
 
+function buildDetailPrompt(topic: { title: string; summary: string; source: string | null }, langKey: string): string {
+  const sourceInfo = topic.source ? ` (Source: ${topic.source})` : "";
+  const caLangInst = getLanguageInstruction(langKey);
+  return `You are an expert UPSC/State PSC current affairs analyst. Write a concise, exam-focused analysis of this topic:
+
+**${topic.title}**${sourceInfo}
+
+${topic.summary}
+
+STRICT RULES:
+- TOTAL output must be between 800-1200 words MAXIMUM. Do NOT exceed this.
+- Be crisp and to-the-point like a professional current affairs digest.
+- Use bullet points extensively for easy scanning.
+- No filler text, no verbose explanations, no repetition.
+- Never mention any coaching institute names.
+
+FORMAT (follow this exact structure):
+
+### In Summary
+Write 3-4 concise bullet points capturing the essence of the news (2-3 lines each max).
+
+### Key Highlights
+Use bullet points with **bold sub-headings** to cover the main aspects of the news. Group related points under logical sub-headings. Each bullet should be 1-2 lines max. Cover:
+- What happened and key decisions/outcomes
+- Important facts, figures, dates, names
+- Any agreements, policies, or frameworks involved
+- Strategic/economic/social significance
+
+### Background
+2-3 short bullet points on relevant context (keep under 100 words total).
+
+### UPSC Relevance
+A brief box/table format:
+- **GS Paper**: Which paper(s) this maps to
+- **Syllabus Topic**: Specific syllabus connection
+- **Key Terms**: Important terms for prelims (comma separated)
+
+Write in a professional, analytical tone. Prioritize facts over opinions. Use markdown formatting.${caLangInst}`;
+}
+
+async function preGenerateTopicDetail(topicId: number, title: string, summary: string, source: string | null): Promise<void> {
+  try {
+    const prompt = buildDetailPrompt({ title, summary, source }, "en");
+    const result = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      config: {
+        thinkingConfig: { thinkingBudget: 0 },
+        temperature: 0.4,
+      },
+    });
+    const content = result.text || "";
+    if (content) {
+      await db.update(dailyTopics)
+        .set({ detailContent: content })
+        .where(eq(dailyTopics.id, topicId));
+    }
+  } catch (err: any) {
+    console.error(`[Pre-gen] Failed for topic ${topicId}:`, err.message);
+  }
+}
+
+async function preGenerateAllTopicDetails(topics: Array<{ id: number; title: string; summary: string; source: string | null }>): Promise<void> {
+  console.log(`[Pre-gen] Starting background generation for ${topics.length} topics...`);
+  const CONCURRENCY = 3;
+  for (let i = 0; i < topics.length; i += CONCURRENCY) {
+    const batch = topics.slice(i, i + CONCURRENCY);
+    await Promise.all(batch.map(t => preGenerateTopicDetail(t.id, t.title, t.summary, t.source)));
+    console.log(`[Pre-gen] Completed ${Math.min(i + CONCURRENCY, topics.length)}/${topics.length} topics`);
+  }
+  console.log(`[Pre-gen] All ${topics.length} topic details generated.`);
+}
+
 export function registerCurrentAffairsRoutes(app: Express): void {
   app.get("/api/current-affairs/latest", isAuthenticated, async (_req: Request, res: Response) => {
     try {
@@ -160,6 +233,13 @@ export function registerCurrentAffairsRoutes(app: Express): void {
       }
 
       res.json({ digest, topics });
+
+      const missingDetails = topics.filter(t => !t.detailContent);
+      if (missingDetails.length > 0) {
+        preGenerateAllTopicDetails(missingDetails.map(t => ({
+          id: t.id, title: t.title, summary: t.summary, source: t.source,
+        }))).catch(err => console.error("[Pre-gen] Background fill failed:", err));
+      }
     } catch (error) {
       console.error("Error fetching current affairs:", error);
       res.status(500).json({ error: "Failed to fetch current affairs" });
@@ -362,6 +442,10 @@ No markdown, no explanations, just the JSON array.`;
       ).returning();
 
       res.json({ digest: newDigest, topics: insertedTopics });
+
+      preGenerateAllTopicDetails(insertedTopics.map(t => ({
+        id: t.id, title: t.title, summary: t.summary, source: t.source,
+      }))).catch(err => console.error("[Pre-gen] Background generation failed:", err));
     } catch (error) {
       console.error("Error generating current affairs:", error);
       res.status(500).json({ error: "Failed to generate current affairs" });
@@ -556,12 +640,22 @@ Write in a professional, analytical tone. Prioritize facts over opinions. Use ma
       const nextSibling = currentIndex < allSiblings.length - 1 ? allSiblings[currentIndex + 1] : null;
 
       const translatedTopic = applyTranslation(topic);
+
+      let cachedDetail: string | null = null;
+      if (langCode && langCode !== "en") {
+        const langContentMap = (topic.detailContentLangs as Record<string, string>) || {};
+        cachedDetail = langContentMap[langCode] || null;
+      } else {
+        cachedDetail = topic.detailContent || null;
+      }
+
       const prevTopic = prevSibling ? { id: prevSibling.id, title: applyTranslation(prevSibling).title } : null;
       const nextTopic = nextSibling ? { id: nextSibling.id, title: applyTranslation(nextSibling).title } : null;
 
       res.json({
         topic: translatedTopic,
         date: digest?.date || null,
+        cachedDetail,
         prevTopic,
         nextTopic,
         topicIndex: currentIndex + 1,

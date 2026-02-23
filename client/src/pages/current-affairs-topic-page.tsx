@@ -75,6 +75,7 @@ export default function CurrentAffairsTopicPage() {
   const { data: topicData, isLoading: topicLoading, isError } = useTopicById(topicId);
   const topic = topicData?.topic;
   const digestDate = topicData?.date || "";
+  const cachedDetail = topicData?.cachedDetail || null;
   const prevTopic = topicData?.prevTopic;
   const nextTopic = topicData?.nextTopic;
   const topicIndex = topicData?.topicIndex || 0;
@@ -102,6 +103,13 @@ export default function CurrentAffairsTopicPage() {
     setIsStreaming(false);
     setStreamStarted(false);
   }, [topicId]);
+
+  useEffect(() => {
+    if (cachedDetail && !detailContent && !streamStarted) {
+      setDetailContent(cachedDetail);
+      setStreamStarted(true);
+    }
+  }, [cachedDetail, detailContent, streamStarted]);
 
   const startStreaming = useCallback(() => {
     if (streamStarted || isStreaming) return;
@@ -164,10 +172,10 @@ export default function CurrentAffairsTopicPage() {
   }, [topicId, streamStarted, isStreaming, toast, language]);
 
   useEffect(() => {
-    if (topic && !streamStarted) {
+    if (topic && !streamStarted && !cachedDetail) {
       startStreaming();
     }
-  }, [topic, streamStarted, startStreaming]);
+  }, [topic, streamStarted, startStreaming, cachedDetail]);
 
   useEffect(() => {
     return () => {

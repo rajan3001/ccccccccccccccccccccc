@@ -62,7 +62,7 @@ export function InlineLanguageButton() {
                 </span>
               </div>
             </div>
-            <ScrollArea className="max-h-[min(400px,70vh)]">
+            <ScrollArea className="max-h-[min(360px,50vh)]">
               <div className="p-1.5">
                 {SUPPORTED_LANGUAGES.map((lang, i) => (
                   <button
