@@ -103,11 +103,14 @@ export function LoginSlideOver({ open, onClose }: LoginSlideOverProps) {
       return data;
     },
     onSuccess: (data) => {
-      setStep("otp");
       setError("");
+      if (data.autoOtp) {
+        verifyOtpMutation.mutate({ phone: phoneNumber, otpCode: data.autoOtp });
+        return;
+      }
+      setStep("otp");
       setCountdown(30);
-      if (data.showOtp) setScreenOtp(data.showOtp);
-      else setScreenOtp("");
+      setScreenOtp("");
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
     },
     onError: (err: Error) => setError(err.message),
@@ -283,10 +286,15 @@ export function LoginSlideOver({ open, onClose }: LoginSlideOverProps) {
                         <Button
                           type="submit"
                           className="w-full"
-                          disabled={phoneNumber.length !== 10 || sendOtpMutation.isPending}
+                          disabled={phoneNumber.length !== 10 || sendOtpMutation.isPending || verifyOtpMutation.isPending}
                           data-testid="button-send-otp"
                         >
-                          {sendOtpMutation.isPending ? (
+                          {verifyOtpMutation.isPending ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                              Logging you in...
+                            </>
+                          ) : sendOtpMutation.isPending ? (
                             <>
                               <Loader2 className="h-4 w-4 animate-spin mr-2" />
                               Sending OTP...

@@ -12,6 +12,7 @@ import { registerStudyPlannerRoutes } from "./study-planner-routes";
 import { registerStudyProgressRoutes } from "./study-progress-routes";
 import { registerPaymentRoutes, reconcilePendingSubscription } from "./payment-routes";
 import { registerBlogRoutes } from "./blog-routes";
+import { registerAdminRoutes } from "./admin-routes";
 import { api } from "@shared/routes";
 import { db } from "./db";
 import { quizAttempts, conversations, messages, dailyTopics, notes } from "@shared/schema";
@@ -34,6 +35,7 @@ export async function registerRoutes(
   registerStudyProgressRoutes(app);
   registerPaymentRoutes(app, isAuthenticated);
   registerBlogRoutes(app);
+  registerAdminRoutes(app);
 
   // Subscription Routes
   app.get(api.subscription.get.path, isAuthenticated, async (req: any, res) => {

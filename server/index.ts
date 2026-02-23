@@ -11,6 +11,7 @@ app.use(compression());
 
 const PRODUCTION_DOMAIN = "learnproai.in";
 app.use((req, res, next) => {
+  if (process.env.NODE_ENV !== "production") return next();
   const host = req.hostname;
   if (host && host !== PRODUCTION_DOMAIN && host !== "localhost" && !host.startsWith("127.") && !host.startsWith("0.0.0.0") && (host.includes("replit") || host.includes("repl.co") || host.includes("worf."))) {
     const redirectUrl = `https://${PRODUCTION_DOMAIN}${req.originalUrl}`;
