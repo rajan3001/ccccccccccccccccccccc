@@ -3,6 +3,7 @@ import type { Express, RequestHandler } from "express";
 import connectPg from "connect-pg-simple";
 import { db } from "../../db";
 import { users, otpVerifications } from "@shared/models/auth";
+import { subscriptions } from "@shared/schema";
 import { eq, and, gt, desc, or } from "drizzle-orm";
 import { z } from "zod";
 import { sql } from "drizzle-orm";
@@ -93,6 +94,27 @@ async function sendOtpViaSms(phone: string, otp: string): Promise<boolean> {
   } catch (error) {
     console.error("Failed to send OTP via SMSGatewayHub:", error);
     return false;
+  }
+}
+
+async function assignTestModeSubscription(userId: string) {
+  try {
+    const [existing] = await db.select().from(subscriptions)
+      .where(and(eq(subscriptions.userId, userId), eq(subscriptions.status, "active")))
+      .limit(1);
+    if (!existing) {
+      await db.insert(subscriptions).values({
+        userId,
+        status: "active",
+        plan: "ultimate_yearly",
+        amount: 0,
+        currency: "INR",
+        currentPeriodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      });
+      console.log(`[TEST MODE] Auto-assigned ultimate plan to user ${userId}`);
+    }
+  } catch (err) {
+    console.error("[TEST MODE] Failed to assign subscription:", err);
   }
 }
 
@@ -234,6 +256,7 @@ export async function setupAuth(app: Express) {
           onboardingCompleted: false,
         }).returning();
       }
+      await assignTestModeSubscription(user.id);
 
       const ADMIN_PHONES = ["+919102557680"];
       if (ADMIN_PHONES.includes(phone) && !user.isAdmin) {
@@ -365,6 +388,7 @@ export async function setupAuth(app: Express) {
           onboardingCompleted: false,
         }).returning();
       }
+      await assignTestModeSubscription(user.id);
 
       delete (req.session as any).googleAuth;
       (req.session as any).userId = user.id;
