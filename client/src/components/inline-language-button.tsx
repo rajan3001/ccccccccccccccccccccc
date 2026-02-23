@@ -43,10 +43,13 @@ export function InlineLanguageButton() {
             onClick={() => setIsOpen(false)}
           />
           <div
-            className="fixed z-[101] inset-x-3 bottom-3 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-1.5 sm:w-64 sm:bottom-auto"
+            className="fixed z-[101] inset-x-3 bottom-3"
             style={{ animation: "inlineLangIn 0.25s cubic-bezier(0.16,1,0.3,1) both" }}
           >
-            <div className="bg-popover rounded-2xl border border-primary/20 dark:border-primary/30 shadow-xl shadow-black/20 flex flex-col" style={{ maxHeight: 'calc(100dvh - 80px)' }}>
+            <div
+              className="bg-popover rounded-2xl border border-primary/20 dark:border-primary/30 shadow-xl shadow-black/20 flex flex-col max-w-md mx-auto"
+              style={{ maxHeight: 'calc(100dvh - 100px)' }}
+            >
               <div className="px-4 py-3 border-b border-border/60 bg-gradient-to-r from-primary/8 to-transparent rounded-t-2xl flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
@@ -56,7 +59,7 @@ export function InlineLanguageButton() {
                 </div>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="sm:hidden h-7 w-7 rounded-full flex items-center justify-center bg-muted/60 hover:bg-muted"
+                  className="h-7 w-7 rounded-full flex items-center justify-center bg-muted/60 hover:bg-muted"
                   data-testid="button-close-language"
                 >
                   <X className="h-4 w-4 text-muted-foreground" />
@@ -66,7 +69,7 @@ export function InlineLanguageButton() {
                 className="flex-1 overflow-y-auto overscroll-contain p-1.5"
                 style={{ WebkitOverflowScrolling: 'touch' as any }}
               >
-                {SUPPORTED_LANGUAGES.map((lang, i) => (
+                {SUPPORTED_LANGUAGES.map((lang) => (
                   <button
                     key={lang.code}
                     onClick={() => {
@@ -108,14 +111,8 @@ export function InlineLanguageButton() {
           </div>
           <style>{`
             @keyframes inlineLangIn {
-              from { opacity: 0; transform: translateY(20px) scale(0.95); }
+              from { opacity: 0; transform: translateY(30px) scale(0.95); }
               to { opacity: 1; transform: translateY(0) scale(1); }
-            }
-            @media (min-width: 640px) {
-              @keyframes inlineLangIn {
-                from { opacity: 0; transform: translateY(-8px) scale(0.96); }
-                to { opacity: 1; transform: translateY(0) scale(1); }
-              }
             }
           `}</style>
         </>
