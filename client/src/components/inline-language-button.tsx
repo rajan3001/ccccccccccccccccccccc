@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/i18n/context";
 import { SUPPORTED_LANGUAGES, type LanguageCode } from "@/i18n/languages";
-import { Check, ChevronDown, Globe } from "lucide-react";
+import { Check, ChevronDown, Globe, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { translations } from "@/i18n/translations";
@@ -15,14 +15,9 @@ export function InlineLanguageButton() {
   const t = translations[language] || translations.en;
 
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    }
     if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = ""; };
     }
   }, [isOpen]);
 
@@ -43,26 +38,34 @@ export function InlineLanguageButton() {
 
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
           <div
-            className={cn(
-              "absolute right-0 top-full mt-1.5 z-50 w-60 rounded-xl overflow-hidden",
-              "border border-primary/20 dark:border-primary/30",
-              "bg-popover",
-              "shadow-lg shadow-primary/10 dark:shadow-primary/20"
-            )}
-            style={{ animation: "inlineLangIn 0.2s cubic-bezier(0.16,1,0.3,1) both" }}
+            className="fixed inset-0 z-[100] bg-black/30 backdrop-blur-[2px]"
+            onClick={() => setIsOpen(false)}
+          />
+          <div
+            className="fixed z-[101] inset-x-3 bottom-3 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-1.5 sm:w-64 sm:bottom-auto"
+            style={{ animation: "inlineLangIn 0.25s cubic-bezier(0.16,1,0.3,1) both" }}
           >
-            <div className="px-3.5 py-2 border-b border-border/60 bg-gradient-to-r from-primary/8 to-transparent">
-              <div className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary/80">
-                  {t.settings.changeLanguage}
-                </span>
+            <div className="bg-popover rounded-2xl border border-primary/20 dark:border-primary/30 shadow-xl shadow-black/20 flex flex-col" style={{ maxHeight: 'calc(100dvh - 80px)' }}>
+              <div className="px-4 py-3 border-b border-border/60 bg-gradient-to-r from-primary/8 to-transparent rounded-t-2xl flex items-center justify-between flex-shrink-0">
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                  <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-primary/80">
+                    {t.settings.changeLanguage}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="sm:hidden h-7 w-7 rounded-full flex items-center justify-center bg-muted/60 hover:bg-muted"
+                  data-testid="button-close-language"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
               </div>
-            </div>
-            <div className="overflow-y-auto overscroll-contain" style={{ maxHeight: 'min(320px, 45vh)', WebkitOverflowScrolling: 'touch' }}>
-              <div className="p-1.5">
+              <div
+                className="flex-1 overflow-y-auto overscroll-contain p-1.5"
+                style={{ WebkitOverflowScrolling: 'touch' as any }}
+              >
                 {SUPPORTED_LANGUAGES.map((lang, i) => (
                   <button
                     key={lang.code}
@@ -71,18 +74,16 @@ export function InlineLanguageButton() {
                       setIsOpen(false);
                     }}
                     className={cn(
-                      "w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-sm transition-all duration-150",
-                      "hover-elevate",
+                      "w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150",
                       language === lang.code
                         ? "bg-primary/10 dark:bg-primary/15 text-primary font-bold border border-primary/20"
-                        : "text-foreground border border-transparent"
+                        : "text-foreground border border-transparent active:bg-muted/60"
                     )}
-                    style={{ animation: `inlineLangRowIn ${0.06 + i * 0.02}s cubic-bezier(0.16,1,0.3,1) both` }}
                     data-testid={`button-inline-lang-${lang.code}`}
                   >
                     <div className="flex items-center gap-2.5">
                       <div className={cn(
-                        "flex items-center justify-center h-6 w-6 rounded-md text-[10px] font-bold flex-shrink-0",
+                        "flex items-center justify-center h-7 w-7 rounded-md text-[10px] font-bold flex-shrink-0",
                         language === lang.code
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted text-muted-foreground"
@@ -97,7 +98,7 @@ export function InlineLanguageButton() {
                     {language === lang.code && (
                       <div className="flex items-center gap-1">
                         <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                        <Check className="h-3.5 w-3.5 text-primary" />
+                        <Check className="h-4 w-4 text-primary" />
                       </div>
                     )}
                   </button>
@@ -107,12 +108,14 @@ export function InlineLanguageButton() {
           </div>
           <style>{`
             @keyframes inlineLangIn {
-              from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+              from { opacity: 0; transform: translateY(20px) scale(0.95); }
               to { opacity: 1; transform: translateY(0) scale(1); }
             }
-            @keyframes inlineLangRowIn {
-              from { opacity: 0; transform: translateX(-6px); }
-              to { opacity: 1; transform: translateX(0); }
+            @media (min-width: 640px) {
+              @keyframes inlineLangIn {
+                from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+                to { opacity: 1; transform: translateY(0) scale(1); }
+              }
             }
           `}</style>
         </>
