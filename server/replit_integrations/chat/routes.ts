@@ -4,6 +4,7 @@ import { chatStorage } from "./storage";
 import { isAuthenticated } from "../auth";
 import { ObjectStorageService } from "../object_storage";
 import { getUserLanguage, getLanguageInstruction } from "../../language-utils";
+import { storage } from "../../storage";
 const ai = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
   httpOptions: {
@@ -129,12 +130,18 @@ export function registerChatRoutes(app: Express): void {
     return req.user?.dbUser?.id || req.user?.claims?.sub;
   }
 
+  async function hasActiveSubscription(userId: string | undefined): Promise<boolean> {
+    if (!userId) return false;
+    const sub = await storage.getActiveSubscription(userId);
+    return !!sub;
+  }
+
   app.get("/api/chat/query-status", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      if (isAdmin(req)) {
-        return res.json({ used: 0, limit: 999, remaining: 999, isAdmin: true });
-      }
       const userId = getUserId(req);
+      if (isAdmin(req) || await hasActiveSubscription(userId)) {
+        return res.json({ used: 0, limit: 999, remaining: 999, isAdmin: true, unlimited: true });
+      }
       const used = await chatStorage.getTodayUserMessageCount(userId);
       res.json({ used, limit: FREE_DAILY_LIMIT, remaining: Math.max(0, FREE_DAILY_LIMIT - used) });
     } catch (error) {
@@ -161,7 +168,7 @@ export function registerChatRoutes(app: Express): void {
 
       const userId = getUserId(req);
 
-      if (!isAdmin(req)) {
+      if (!isAdmin(req) && !(await hasActiveSubscription(userId))) {
         const todayCount = await chatStorage.getTodayUserMessageCount(userId);
         if (todayCount >= FREE_DAILY_LIMIT) {
           return res.status(429).json({ error: "Daily query limit reached. Upgrade to Pro for unlimited queries." });

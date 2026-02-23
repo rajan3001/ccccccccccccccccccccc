@@ -4,7 +4,6 @@ import { SUPPORTED_LANGUAGES, type LanguageCode } from "@/i18n/languages";
 import { Check, ChevronDown, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { translations } from "@/i18n/translations";
 
 export function InlineLanguageButton() {
@@ -62,7 +61,7 @@ export function InlineLanguageButton() {
                 </span>
               </div>
             </div>
-            <ScrollArea className="max-h-[min(360px,50vh)]">
+            <div className="overflow-y-auto overscroll-contain" style={{ maxHeight: 'min(320px, 45vh)', WebkitOverflowScrolling: 'touch' }}>
               <div className="p-1.5">
                 {SUPPORTED_LANGUAGES.map((lang, i) => (
                   <button
@@ -104,7 +103,7 @@ export function InlineLanguageButton() {
                   </button>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </div>
           <style>{`
             @keyframes inlineLangIn {
