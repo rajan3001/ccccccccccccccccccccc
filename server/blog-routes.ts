@@ -743,9 +743,13 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     .hero h1 span{background:linear-gradient(135deg,#fbbf24,#f59e0b,#fde68a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200% auto;animation:hero-shimmer 4s linear infinite}
     .hero p{color:rgba(219,234,254,0.82);font-size:1.08rem;max-width:540px;margin:0 auto;position:relative;animation:fadeUp 0.5s 0.2s ease-out both;line-height:1.7}
 
-    .cat-strip{padding:0.75rem 1.5rem;border-bottom:1px solid var(--border);position:sticky;top:var(--header-h);z-index:40;background:rgba(255,255,255,0.96);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;box-shadow:0 1px 0 rgba(0,0,0,0.06),0 4px 12px rgba(0,0,0,0.04)}
+    .cat-strip-wrap{position:sticky;top:var(--header-h);z-index:40;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.96);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);box-shadow:0 1px 0 rgba(0,0,0,0.06),0 4px 12px rgba(0,0,0,0.04)}
+    .cat-strip{padding:0.75rem 1.5rem;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;max-width:100vw;box-sizing:border-box;position:relative}
     .cat-strip::-webkit-scrollbar{display:none}
     .cat-strip-inner{display:flex;gap:0.5rem;max-width:1200px;margin:0 auto;min-width:max-content;align-items:center}
+    .cat-fade-r,.cat-fade-l{position:absolute;top:0;bottom:0;width:40px;pointer-events:none;z-index:2}
+    .cat-fade-r{right:0;background:linear-gradient(to left,rgba(255,255,255,0.95),transparent)}
+    .cat-fade-l{left:0;background:linear-gradient(to right,rgba(255,255,255,0.95),transparent);opacity:0;transition:opacity 0.2s}
     .cat-tab{display:inline-flex;align-items:center;gap:0.45rem;padding:0.5rem 1.05rem;border-radius:9999px;font-size:0.8rem;font-weight:600;color:var(--text-secondary);background:rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.07);transition:all 0.22s cubic-bezier(0.34,1.56,0.64,1);white-space:nowrap;flex-shrink:0;cursor:pointer;font-family:inherit;position:relative;overflow:hidden;letter-spacing:0.01em}
     .cat-tab::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent);opacity:0;transition:opacity 0.2s}
     .cat-tab:hover{color:var(--text);background:rgba(0,0,0,0.06);border-color:rgba(0,0,0,0.12);transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,0.08)}
@@ -867,7 +871,13 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     <p>${activeCategory !== 'all' ? catInfo.description : 'In-depth articles on strategy, current affairs, subject guides, and answer writing to accelerate your preparation.'}</p>
   </section>
 
-  <div class="cat-strip"><div class="cat-strip-inner" id="catTabs">${categoryTabs}</div></div>
+  <div class="cat-strip-wrap">
+    <div class="cat-strip" id="catStripScroll">
+      <div class="cat-fade-l" id="catFadeL"></div>
+      <div class="cat-fade-r" id="catFadeR"></div>
+      <div class="cat-strip-inner" id="catTabs">${categoryTabs}</div>
+    </div>
+  </div>
 
   <main class="main">
     <div class="section-title">
@@ -908,6 +918,18 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     var empty=document.getElementById('blogEmpty');
     var heroP=document.querySelector('.hero p');
     var current='all';
+
+    var catScroll=document.getElementById('catStripScroll');
+    var fadeL=document.getElementById('catFadeL');
+    var fadeR=document.getElementById('catFadeR');
+    function updateFades(){
+      if(!catScroll)return;
+      var sl=catScroll.scrollLeft;
+      var maxSl=catScroll.scrollWidth-catScroll.clientWidth;
+      if(fadeL)fadeL.style.opacity=sl>8?'1':'0';
+      if(fadeR)fadeR.style.opacity=sl<maxSl-8?'1':'0';
+    }
+    if(catScroll){catScroll.addEventListener('scroll',updateFades);updateFades();window.addEventListener('resize',updateFades);}
     var params=new URLSearchParams(window.location.search);
     var initCat=params.get('category');
 
