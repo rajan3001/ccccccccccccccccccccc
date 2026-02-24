@@ -137,100 +137,120 @@ function inlineFormat(text: string): string {
 }
 
 const UPSC_TOPICS = [
-  { category: "upsc-strategy", topics: [
-    "How to Start UPSC Preparation from Scratch in 2025",
-    "Best UPSC Study Plan for Working Professionals",
-    "UPSC Toppers Strategy: Common Habits of Successful Candidates",
-    "How to Balance Optional Subject with GS Preparation",
-    "Time Management Tips for UPSC Aspirants",
-    "How to Crack UPSC in First Attempt: Complete Roadmap",
-    "UPSC Prelims vs Mains: Key Differences in Preparation Approach",
-    "How to Stay Motivated During Long UPSC Preparation Journey",
-    "Role of AI and Technology in Modern UPSC Preparation",
-    "Self-Study vs Coaching for UPSC: Pros and Cons Analysis",
-  ]},
   { category: "current-affairs", topics: [
-    "Monthly Current Affairs Compilation for UPSC: Key Highlights",
-    "Important Supreme Court Judgments for UPSC Preparation",
-    "Key International Events and Their Impact on India's Foreign Policy",
-    "Recent Government Schemes and Policies for UPSC Mains",
-    "Environment and Ecology Current Affairs for UPSC",
-    "Science and Technology Breakthroughs Relevant to UPSC",
-    "Economic Survey Highlights for UPSC Economics",
-    "Important Amendments and Bills Passed in Parliament",
-    "Disaster Management and Climate Change: Current Issues",
-    "India's G20 Presidency and Its Significance for UPSC",
+    "Why the Supreme Court Struck Down Electoral Bonds — And What It Means for Democracy",
+    "BRICS Expansion 2025: How Six New Members Reshape Global Power Dynamics",
+    "India's Semiconductor Mission: Can We Actually Build Chips by 2027?",
+    "The Chandrayaan-4 Moon Sample Return — What Scientists Expect to Find",
+    "One Nation One Election: Constitutional Challenges the Government Must Address",
+    "How India's UPI Crossed 14 Billion Monthly Transactions — A Fintech Revolution",
+    "Why Did RBI Pause Rate Cuts? Breaking Down the February 2026 MPC Decision",
+    "The Manipur Crisis: Understanding Ethnic Conflict and the Demand for Separate Administration",
+    "Lateral Entry in Civil Services: Why It Sparked a National Debate",
+    "India-Canada Diplomatic Row: From Khalistani Allegations to Expelled Diplomats",
+    "Digital Personal Data Protection Act 2023: How It Changes Your Privacy Rights",
+    "Why India Abstained at the UN on the Ukraine Resolution — Decoding Non-Alignment 2.0",
+    "The Collapse of Sri Lanka's Economy: Lessons India Cannot Ignore",
+    "How the Joshimath Sinking Exposed India's Mountain Development Crisis",
+    "Why Farmers Are Protesting Again: MSP Guarantee and the C2+50% Formula",
+    "India's Green Hydrogen Mission: Ambition vs Ground Reality",
+    "What the Same-Sex Marriage Verdict Tells Us About Judicial Review in India",
+    "How Artificial Intelligence Is Transforming India's Healthcare Delivery System",
+    "The Adani-Hindenburg Saga: Corporate Governance Questions India Must Answer",
+    "India's Carbon Credit Trading Scheme: Will It Actually Reduce Emissions?",
   ]},
   { category: "gs-paper-1", topics: [
-    "Indian Art and Architecture: Complete Guide for UPSC GS Paper 1",
-    "Modern Indian History: Freedom Movement Timeline",
-    "World History for UPSC: Major Revolutions and Their Impact",
-    "Indian Society: Issues of Social Justice and Empowerment",
-    "Geography of India: Physical, Economic and Human Geography",
-    "Urbanization Challenges in India: UPSC Perspective",
-    "Population and Associated Issues for UPSC GS-1",
-    "Salient Features of Indian Culture and Diversity",
+    "The Indus Valley Civilization Was Not Just Harappan — New Archaeological Findings",
+    "How Ashoka's Dhamma Shaped Ancient India's Approach to Governance",
+    "The 1857 Revolt: Why Historians Now Call It India's First War of Independence",
+    "Subhas Chandra Bose and the INA: The Untold Story of Azad Hind Fauj",
+    "Why BR Ambedkar Called Caste 'An Enclosed Class' — Understanding Social Stratification",
+    "Monsoon Variability and Indian Agriculture: What El Nino Really Does to Crop Yields",
+    "India's Demographic Dividend Ends by 2040 — Are We Prepared for an Aging Population?",
+    "How Bhakti and Sufi Movements Created India's Syncretic Cultural Identity",
+    "The Partition of 1947: Beyond Border Lines — Human Cost and Lasting Consequences",
+    "Why Indian Cities Flood Every Monsoon: Urbanization, Drainage, and Planning Failures",
+    "French Revolution to Arab Spring: How Popular Uprisings Changed World History",
+    "The Role of Women in India's Freedom Movement: Beyond Rani Laxmibai",
+    "India's Northeast: Understanding the Region's Unique Cultural and Ethnic Diversity",
+    "How Climate Change Is Redrawing India's Coastline and Threatening 170 Million People",
   ]},
   { category: "gs-paper-2", topics: [
-    "Indian Constitution: Important Articles Every UPSC Aspirant Must Know",
-    "Comparison of Indian and US Constitution for UPSC",
-    "Governance Issues and Challenges in India",
-    "International Relations: India and Its Neighbors",
-    "Welfare Schemes for Vulnerable Sections of Society",
-    "Role of Civil Services in Indian Democracy",
-    "Parliamentary Procedures and Functions for UPSC",
-    "Federal Structure and Centre-State Relations",
+    "Why India's Governor System Keeps Creating Constitutional Crises",
+    "Article 370 Abrogation: The Legal Arguments the Supreme Court Evaluated",
+    "How the Anti-Defection Law Failed — And Why the 10th Schedule Needs Reform",
+    "India-China Border Dispute: 62 Years of LAC Tensions and Failed Negotiations",
+    "Why RTE Act 2009 Hasn't Fixed India's Learning Crisis After 15 Years",
+    "Tribunals in India Are Dying: How Executive Interference Undermines Judicial Independence",
+    "The Collegium System vs NJAC: Why Judicial Appointments Remain India's Biggest Controversy",
+    "How MGNREGA Became India's Largest Social Safety Net — And Why It's Under Threat",
+    "India's Neighbourhood First Policy: Successes with Bangladesh, Failures with Nepal",
+    "Why Indian Parliament's Productivity Has Dropped Below 50% in Recent Sessions",
+    "The Panchayati Raj Experiment: 30 Years After the 73rd Amendment, Has Decentralization Worked?",
+    "How India's Quad Membership Balances Strategic Autonomy with Alliance Politics",
+    "Centre vs States on GST: Federalism Under Strain in India's Tax Architecture",
+    "India at the UN Security Council: The Long Road to Permanent Membership",
   ]},
   { category: "gs-paper-3", topics: [
-    "Indian Economy for UPSC: GDP, Inflation and Budget Analysis",
-    "Agriculture Sector Reforms and Challenges in India",
-    "Infrastructure Development: Roads, Railways and Smart Cities",
-    "Internal Security: Naxalism, Terrorism and Cyber Security",
-    "Environmental Conservation and Biodiversity for UPSC",
-    "Science and Technology in Everyday Life for UPSC",
-    "Inclusive Growth and Economic Planning",
-    "Energy Security and Renewable Energy in India",
+    "Why India's Manufacturing Sector Is Stuck at 17% of GDP Despite Make in India",
+    "Cryptocurrency Regulation in India: Between Innovation and Financial Stability",
+    "The Insolvency and Bankruptcy Code: Has IBC Actually Resolved India's Bad Loan Crisis?",
+    "Left-Wing Extremism in India's Red Corridor: A Declining but Persistent Threat",
+    "India's Space Economy: From ISRO Monopoly to Private Players Like Skyroot and Agnikul",
+    "Why India Imports 85% of Its Oil Despite Having Renewable Energy Targets",
+    "The PM-KISAN Scheme: Direct Benefit Transfer and Its Real Impact on Small Farmers",
+    "Drone Warfare and Border Security: How Technology Is Reshaping India's Defence Strategy",
+    "India's Nuclear Energy Paradox: Why We Generate Only 3% Power from Nuclear Despite Having the Tech",
+    "River Linking Project: Engineering Marvel or Ecological Disaster in the Making?",
+    "How Plastic Pollution Became India's Most Ignored Environmental Emergency",
+    "The Gig Economy in India: 77 Million Workers Without Social Security",
+    "5G Rollout and Digital India: Beyond Speed — The Infrastructure Gap Nobody Talks About",
+    "India's Food Processing Sector: The Missing Link Between Farm and Fork",
   ]},
   { category: "gs-paper-4", topics: [
-    "Ethics in Public Administration: Key Concepts for UPSC",
-    "Case Studies on Ethical Dilemmas in Civil Services",
-    "Emotional Intelligence and Its Application in Governance",
-    "Attitude and Foundational Values for Civil Services",
-    "Corporate Governance and Ethical Issues",
-    "Thinkers and Philosophers Important for GS Paper 4",
-    "Probity in Governance: Transparency and Accountability",
+    "When Duty Conflicts with Conscience: Real Ethical Dilemmas IAS Officers Face",
+    "Mahatma Gandhi vs Kant: Two Philosophies of Truth That Every Civil Servant Should Understand",
+    "Whistleblower Protection in India: Why Satyendra Dubey's Murder Still Matters",
+    "The Ethics of Artificial Intelligence: Can Machines Make Moral Decisions for Governance?",
+    "Corruption in Public Life: Why Institutional Ethics Matter More Than Individual Morality",
+    "John Rawls' Theory of Justice: How 'Veil of Ignorance' Applies to Indian Policy Making",
+    "Emotional Intelligence in Crisis Management: Lessons from Real District Administration Cases",
+    "Why Bureaucratic Apathy Is More Dangerous Than Active Corruption",
+    "Amartya Sen's Capability Approach: Redefining Development Beyond GDP Numbers",
+    "The Nolan Principles: Seven Standards of Public Life Every Civil Servant Must Follow",
   ]},
   { category: "answer-writing", topics: [
-    "How to Write Perfect Answers in UPSC Mains Examination",
-    "UPSC Answer Writing Practice: Structure and Techniques",
-    "Common Mistakes in UPSC Mains Answer Writing and How to Avoid Them",
-    "How to Use Diagrams and Flowcharts in UPSC Answers",
-    "Essay Writing Tips for UPSC: Scoring 150+ Marks",
-    "How to Present Multiple Perspectives in UPSC Answers",
+    "Why Most UPSC Mains Answers Score Below 50% — Common Structural Mistakes",
+    "The 10-Minute Answer Framework: How Toppers Write 200-Word Answers Under Pressure",
+    "When the Question Says 'Critically Examine' vs 'Discuss' — What the Examiner Actually Wants",
+    "How to Build Arguments Like a Topper: The Thesis-Antithesis-Synthesis Method",
+    "Essay Writing for UPSC: How Anu Kumari Scored 165/250 — Deconstructing Her Approach",
+    "Using Data, Reports, and Judgments in Answers: What Adds Marks vs What Looks Like Showoff",
+    "The Art of Concluding Mains Answers: Why 'Way Forward' Paragraphs Make or Break Your Score",
   ]},
   { category: "state-psc", topics: [
-    "State PSC Preparation Strategy: How Different from UPSC",
-    "Top 15 State PSC Exams in India: Complete Guide",
-    "BPSC vs UPSC: Syllabus Comparison and Strategy",
-    "MPSC Preparation Guide: Syllabus, Pattern and Tips",
-    "UPPSC Strategy: How to Crack UP PCS Exam",
-    "RPSC RAS Exam Guide: Complete Preparation Strategy",
-    "WBPSC Preparation: West Bengal Civil Services Exam Guide",
-    "KPSC Preparation: Karnataka State Civil Services Strategy",
+    "BPSC 70th Exam: Why Bihar's State Service Exam Is Becoming Harder Than Ever",
+    "UPPSC vs UPSC: How Uttar Pradesh PCS Demands a Completely Different Strategy",
+    "MPSC 2025: Maharashtra's State Services Exam Pattern and What Makes It Unique",
+    "Why JPSC Jharkhand Has One of the Lowest Selection Rates Among State PSCs",
+    "Kerala PSC: How the State's Exam System Differs from the National Pattern",
+    "RPSC RAS Exam: Rajasthan's Civil Service and Why Desert Ecology Is a Hot Topic",
+    "Tamil Nadu TNPSC Group 1: The Only State PSC Where Regional History Dominates the Syllabus",
+    "West Bengal WBPSC: Understanding the Dual Pattern of Prelims and Personality Test",
   ]},
   { category: "booklist", topics: [
-    "Best Books for UPSC Prelims 2025: Subject-wise Recommendations",
-    "NCERT Books Strategy for UPSC: Which Ones to Read",
-    "Best Optional Subject Books for UPSC Mains",
-    "Current Affairs Sources for UPSC: Newspapers, Magazines and Online",
-    "Best Reference Books for UPSC GS Papers 1 to 4",
+    "Beyond Laxmikanth: 5 Constitution Books That Give You an Edge in GS Paper 2",
+    "Why Reading Newspapers Alone Won't Help — Building a Current Affairs Strategy That Works",
+    "The NCERT Reading Order That Toppers Actually Follow (Not What Coaching Centers Tell You)",
+    "Optional Subject Book Selection: How the Right 3-4 Books Can Get You 300+ Marks",
+    "Bipin Chandra vs Spectrum: Which Modern History Book Actually Helps More in Prelims",
   ]},
   { category: "motivation", topics: [
-    "UPSC Success Stories: From Failure to IAS Officer",
-    "How to Deal with UPSC Exam Stress and Anxiety",
-    "Life After UPSC: What Happens When You Become an IAS Officer",
-    "UPSC Aspirants from Rural India: Inspiring Journeys",
-    "How to Bounce Back After Failed UPSC Attempts",
+    "Cleared UPSC at 32 After 5 Attempts: The Story Behind the Persistence",
+    "The Mental Health Crisis Among UPSC Aspirants That Nobody Talks About",
+    "How a Daily Wage Labourer's Son from Dharavi Became an IAS Officer",
+    "Quitting a 20 LPA Tech Job for UPSC: Was It Worth It? Three Officers Share Their Truth",
+    "What Failing UPSC Taught Me That Success Never Could — Stories from the Other Side",
   ]},
 ];
 
@@ -266,12 +286,31 @@ async function generateFreshTopics(count: number, existingTitles: Set<string>): 
   const categories = BLOG_CATEGORIES.filter(c => c !== "general");
   const randomCats = categories.sort(() => Math.random() - 0.5).slice(0, count);
 
-  const prompt = `Generate ${count} unique blog post titles for a UPSC/Civil Services exam preparation platform. 
-Each title should be SEO-optimized with keywords like UPSC, IAS, Civil Services, etc.
+  const prompt = `You are an editorial director at India's best UPSC preparation platform. Generate ${count} article titles.
+
+STYLE RULES (CRITICAL):
+- Write titles like a journalist or policy analyst, NOT like an SEO robot
+- Use specific events, names, data, years, and real-world context
+- Titles should provoke curiosity or promise insight — NOT list features
+- NEVER use generic patterns like "Complete Guide", "Tips and Tricks", "Everything You Need to Know"
+- NEVER stuff UPSC/IAS/Civil Services into every title — use them sparingly and naturally
+- Think: "What would The Indian Express or EPW publish?" not "What would a coaching center blog post?"
+
+GOOD EXAMPLES:
+- "Why India's Fiscal Deficit Touched 6.4% — And What the Budget 2026 Must Fix"
+- "The Cauvery Water Dispute: 200 Years of Inter-State Rivalry That Won't End"
+- "How a Single RTI Application Uncovered India's Biggest Land Scam"
+- "The Death of the Planning Commission: Was NITI Aayog Really a Better Replacement?"
+
+BAD EXAMPLES (NEVER write these):
+- "UPSC Prelims Strategy: Complete Guide for Beginners"
+- "Top 10 Current Affairs for UPSC 2025"
+- "How to Crack UPSC in First Attempt"
+
 Categories to cover: ${randomCats.join(", ")}
 
 Return a JSON array of objects with "topic" and "category" fields.
-Ensure titles are different from these existing ones: ${Array.from(existingTitles).slice(0, 20).join(", ")}
+Avoid topics similar to: ${Array.from(existingTitles).slice(0, 30).join(" | ")}
 
 Return ONLY the JSON array, no other text.`;
 
@@ -291,10 +330,12 @@ Return ONLY the JSON array, no other text.`;
 }
 
 async function generateBlogContent(topic: string, category: string): Promise<InsertBlogPost | null> {
-  const prompt = `You are a senior UPSC content strategist. Write a deeply researched, SEO-optimized blog post designed to rank #1 on Google.
+  const prompt = `You are a senior policy analyst and editorial writer for India's most respected UPSC preparation platform. Write a deeply researched, authoritative article that reads like something published in The Indian Express or Economic & Political Weekly — NOT like a coaching institute blog post.
 
 TOPIC: "${topic}"
 CATEGORY: ${category}
+
+WRITING TONE: Analytical, specific, evidence-backed. Use real names, dates, case studies, Supreme Court judgments, committee reports. Write like a subject matter expert, not a content mill.
 
 === ABSOLUTE FORMATTING RULES (VIOLATION = REJECTION) ===
 
@@ -360,10 +401,10 @@ The administrative structure operates through multiple levels:
 
 Return ONLY a JSON object:
 {
-  "title": "SEO title under 60 chars with primary keyword",
-  "metaTitle": "Meta title 50-60 chars with UPSC/IAS keyword",
-  "metaDescription": "150-160 char meta description with keyword and CTA",
-  "excerpt": "2-3 sentence summary under 200 chars",
+  "title": "Editorial-quality title — specific, engaging, no generic SEO spam. Use the topic but refine it for readability. Max 70 chars.",
+  "metaTitle": "Same as title or slightly modified for search — max 60 chars",
+  "metaDescription": "150-160 char description that hooks the reader — written like a newspaper subheading, not an SEO meta tag",
+  "excerpt": "2-3 sentence summary under 200 chars — conversational, insightful tone",
   "content": "Full markdown content. ONLY ## and ### headings. Dash lists in EVERY section. Bold key terms. Tables. Short paragraphs.",
   "tags": ["5-8 relevant tags"],
   "coverImageAlt": "Descriptive alt text with keywords"
@@ -383,18 +424,23 @@ No markdown fencing. No extra text. Only valid JSON.`;
       .replace(/^```json\s*/i, "")
       .replace(/```\s*$/i, "")
       .trim();
-    // Remove control characters that break JSON parsing
+    // Remove ALL control characters that break JSON parsing (keep \n \r \t)
     jsonStr = jsonStr.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
-    // Fix bad escape sequences: replace \n in middle of strings that aren't actual newlines
+    // Normalize line endings
+    jsonStr = jsonStr.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    // Fix bad escape sequences
     jsonStr = jsonStr.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
     let parsed;
+    // First: try raw parse (works when AI properly escapes everything)
     try {
       parsed = JSON.parse(jsonStr);
     } catch (e1) {
-      // Fallback: try more aggressive cleaning
-      jsonStr = jsonStr.replace(/\t/g, "    ").replace(/\r\n/g, "\n");
+      // Second: escape newlines/tabs ONLY inside JSON string values (not structural newlines)
+      const sanitized = jsonStr.replace(/"((?:[^"\\]|\\.)*)"/g, (match) => {
+        return match.replace(/\n/g, '\\n').replace(/\t/g, '\\t');
+      });
       try {
-        parsed = JSON.parse(jsonStr);
+        parsed = JSON.parse(sanitized);
       } catch (e2) {
         // Last resort: extract fields manually with regex
         const titleMatch = jsonStr.match(/"title"\s*:\s*"([^"]+)"/);
