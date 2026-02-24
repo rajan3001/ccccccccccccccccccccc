@@ -31,26 +31,27 @@ export function InlineLanguageButton() {
         data-testid="button-inline-language"
       >
         <Globe className="h-4 w-4" />
-        <span className="hidden sm:inline">{currentLang?.nativeLabel || "English"}</span>
-        <span className="sm:hidden">{currentLang?.code.toUpperCase()}</span>
+        <span className="hidden lg:inline">{currentLang?.nativeLabel || "English"}</span>
+        <span className="lg:hidden">{currentLang?.code.toUpperCase()}</span>
         <ChevronDown className={cn("h-3 w-3 transition-transform duration-200", isOpen && "rotate-180")} />
       </Button>
 
       {isOpen && (
         <>
           <div
-            className="fixed inset-0 z-[100] bg-black/30 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[100] bg-black/30 lg:bg-black/10 backdrop-blur-[2px] lg:backdrop-blur-none"
             onClick={() => setIsOpen(false)}
           />
+
           <div
-            className="fixed z-[101] inset-x-3 bottom-3"
-            style={{ animation: "inlineLangIn 0.25s cubic-bezier(0.16,1,0.3,1) both" }}
+            className="fixed z-[101] inset-x-3 bottom-3 lg:absolute lg:inset-auto lg:right-0 lg:top-full lg:mt-2 lg:bottom-auto lg:w-72"
+            style={{ animation: "inlineLangIn 0.2s cubic-bezier(0.16,1,0.3,1) both" }}
           >
             <div
-              className="bg-popover rounded-2xl border border-primary/20 dark:border-primary/30 shadow-xl shadow-black/20 flex flex-col max-w-md mx-auto"
-              style={{ maxHeight: 'calc(100dvh - 100px)' }}
+              className="bg-popover rounded-2xl lg:rounded-xl border border-primary/20 dark:border-primary/30 shadow-xl shadow-black/20 flex flex-col max-w-md mx-auto lg:max-w-none"
+              style={{ maxHeight: 'min(calc(100dvh - 100px), 480px)' }}
             >
-              <div className="px-4 py-3 border-b border-border/60 bg-gradient-to-r from-primary/8 to-transparent rounded-t-2xl flex items-center justify-between flex-shrink-0">
+              <div className="px-4 py-3 border-b border-border/60 bg-gradient-to-r from-primary/8 to-transparent rounded-t-2xl lg:rounded-t-xl flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                   <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-primary/80">
@@ -80,7 +81,7 @@ export function InlineLanguageButton() {
                       "w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150",
                       language === lang.code
                         ? "bg-primary/10 dark:bg-primary/15 text-primary font-bold border border-primary/20"
-                        : "text-foreground border border-transparent active:bg-muted/60"
+                        : "text-foreground border border-transparent hover:bg-muted/60 active:bg-muted/60"
                     )}
                     data-testid={`button-inline-lang-${lang.code}`}
                   >
@@ -111,8 +112,14 @@ export function InlineLanguageButton() {
           </div>
           <style>{`
             @keyframes inlineLangIn {
-              from { opacity: 0; transform: translateY(30px) scale(0.95); }
+              from { opacity: 0; transform: translateY(20px) scale(0.96); }
               to { opacity: 1; transform: translateY(0) scale(1); }
+            }
+            @media (min-width: 1024px) {
+              @keyframes inlineLangIn {
+                from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+                to { opacity: 1; transform: translateY(0) scale(1); }
+              }
             }
           `}</style>
         </>
