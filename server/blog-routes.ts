@@ -653,9 +653,14 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
     @keyframes fadeIn{from{opacity:0}to{opacity:1}}
     @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    @keyframes floatAlt{0%,100%{transform:translateY(0) translateX(0)}33%{transform:translateY(-8px) translateX(4px)}66%{transform:translateY(4px) translateX(-4px)}}
     @keyframes glow{0%,100%{opacity:0.5}50%{opacity:1}}
-    @keyframes gridPulse{0%,100%{opacity:0.03}50%{opacity:0.06}}
+    @keyframes gridPulse{0%,100%{opacity:0.06}50%{opacity:0.14}}
+    @keyframes pulse-ring{0%{transform:scale(0.9);opacity:0.8}100%{transform:scale(1.6);opacity:0}}
+    @keyframes hero-shimmer{0%{background-position:-400% 0}100%{background-position:400% 0}}
+    @keyframes particle-drift{0%{opacity:0;transform:translateY(0) scale(0)}20%{opacity:1}80%{opacity:0.6}100%{opacity:0;transform:translateY(-60px) scale(1.2)}}
+    @keyframes tab-pop{0%{transform:scale(1)}50%{transform:scale(0.94)}100%{transform:scale(1)}}
 
     .top-bar{background:hsla(0,0%,100%,0.92);backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2);border-bottom:1px solid var(--border);padding:0 max(1rem,calc((100% - 1200px)/2 + 1.5rem));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;height:var(--header-h);gap:0.5rem}
     .top-bar-logo{display:flex;align-items:center;gap:0.3rem;text-decoration:none;font-weight:700;font-size:1.15rem;color:var(--text);flex-shrink:0}
@@ -670,28 +675,40 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     .nav-cta:hover{background:#1d4ed8}
     .nav-cta svg{width:15px;height:15px;flex-shrink:0}
 
-    .hero{position:relative;padding:3.5rem 1.5rem 2.5rem;text-align:center;overflow:hidden;background:linear-gradient(180deg,hsla(35,50%,95%,0.6),transparent)}
+    .hero{position:relative;padding:4rem 1.5rem 3rem;text-align:center;overflow:hidden;background:linear-gradient(145deg,#0f172a 0%,#1e3a8a 45%,#1d4ed8 100%)}
     .hero-bg{position:absolute;inset:0;pointer-events:none}
-    .hero-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,hsla(35,90%,45%,0.06),transparent 65%)}
-    .hero-bg::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:1px;height:120px;background:linear-gradient(to bottom,hsla(35,90%,45%,0.3),transparent)}
-    .hero-grid{position:absolute;inset:0;background-image:linear-gradient(hsla(35,90%,45%,0.04) 1px,transparent 1px),linear-gradient(90deg,hsla(35,90%,45%,0.04) 1px,transparent 1px);background-size:48px 48px;animation:gridPulse 4s ease-in-out infinite}
-    .hero-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;animation:float 8s ease-in-out infinite}
-    .hero-orb-1{width:300px;height:300px;background:hsla(35,90%,70%,0.12);top:-80px;right:10%;animation-delay:-2s}
-    .hero-orb-2{width:200px;height:200px;background:hsla(35,60%,65%,0.08);bottom:-40px;left:5%;animation-delay:-4s}
-    .hero-badge{display:inline-flex;align-items:center;gap:0.4rem;background:var(--gold-dim);border:1px solid hsla(35,90%,45%,0.18);color:var(--gold-dark);font-size:0.72rem;font-weight:600;padding:0.35rem 0.9rem;border-radius:9999px;margin-bottom:1.25rem;letter-spacing:0.06em;text-transform:uppercase;position:relative;animation:fadeUp 0.5s ease-out both}
-    .hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);animation:glow 2s ease-in-out infinite}
-    .hero h1{font-family:var(--font-display);font-size:2.8rem;font-weight:800;color:var(--text);line-height:1.15;margin-bottom:0.75rem;position:relative;animation:fadeUp 0.5s 0.1s ease-out both;letter-spacing:-0.02em}
-    .hero h1 span{background:linear-gradient(135deg,var(--gold-dark),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-    .hero p{color:var(--text-secondary);font-size:1.05rem;max-width:560px;margin:0 auto;position:relative;animation:fadeUp 0.5s 0.2s ease-out both}
+    .hero-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 30% 120%,rgba(99,102,241,0.25),transparent 60%),radial-gradient(ellipse 60% 40% at 80% -10%,rgba(59,130,246,0.3),transparent 55%)}
+    .hero-bg::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:2px;height:160px;background:linear-gradient(to bottom,rgba(147,197,253,0.6),transparent)}
+    .hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.06) 1px,transparent 1px);background-size:52px 52px;animation:gridPulse 5s ease-in-out infinite}
+    .hero-orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none}
+    .hero-orb-1{width:380px;height:380px;background:rgba(99,102,241,0.28);top:-120px;right:8%;animation:float 10s ease-in-out infinite;animation-delay:-2s}
+    .hero-orb-2{width:260px;height:260px;background:rgba(59,130,246,0.22);bottom:-60px;left:4%;animation:floatAlt 12s ease-in-out infinite;animation-delay:-5s}
+    .hero-orb-3{width:180px;height:180px;background:rgba(147,51,234,0.18);top:20%;left:15%;animation:float 9s ease-in-out infinite;animation-delay:-3s}
+    .hero-particle{position:absolute;width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,0.6);pointer-events:none}
+    .hero-particle:nth-child(1){left:20%;top:70%;animation:particle-drift 6s ease-in-out infinite;animation-delay:0s}
+    .hero-particle:nth-child(2){left:40%;top:80%;animation:particle-drift 8s ease-in-out infinite;animation-delay:-2s}
+    .hero-particle:nth-child(3){left:65%;top:60%;animation:particle-drift 7s ease-in-out infinite;animation-delay:-4s}
+    .hero-particle:nth-child(4){left:80%;top:75%;animation:particle-drift 9s ease-in-out infinite;animation-delay:-1s}
+    .hero-particle:nth-child(5){left:55%;top:85%;animation:particle-drift 6.5s ease-in-out infinite;animation-delay:-3s}
+    .hero-badge{display:inline-flex;align-items:center;gap:0.45rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.22);color:rgba(255,255,255,0.9);font-size:0.72rem;font-weight:700;padding:0.4rem 1rem;border-radius:9999px;margin-bottom:1.4rem;letter-spacing:0.08em;text-transform:uppercase;position:relative;animation:fadeUp 0.5s ease-out both;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+    .hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:#93c5fd;animation:glow 2s ease-in-out infinite;flex-shrink:0}
+    .hero-badge-ring{position:absolute;inset:-2px;border-radius:9999px;border:1px solid rgba(147,197,253,0.3);animation:pulse-ring 2.5s ease-out infinite}
+    .hero h1{font-family:var(--font-display);font-size:3rem;font-weight:900;color:#ffffff;line-height:1.12;margin-bottom:1rem;position:relative;animation:fadeUp 0.5s 0.1s ease-out both;letter-spacing:-0.03em;text-shadow:0 2px 20px rgba(0,0,0,0.25)}
+    .hero h1 span{background:linear-gradient(135deg,#fbbf24,#f59e0b,#fde68a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200% auto;animation:hero-shimmer 4s linear infinite}
+    .hero p{color:rgba(219,234,254,0.82);font-size:1.08rem;max-width:540px;margin:0 auto;position:relative;animation:fadeUp 0.5s 0.2s ease-out both;line-height:1.7}
 
-    .cat-strip{padding:0.65rem 1.5rem;border-bottom:1px solid var(--border);position:sticky;top:var(--header-h);z-index:40;background:hsla(40,33%,98%,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .cat-strip{padding:0.75rem 1.5rem;border-bottom:1px solid var(--border);position:sticky;top:var(--header-h);z-index:40;background:rgba(255,255,255,0.96);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;box-shadow:0 1px 0 rgba(0,0,0,0.06),0 4px 12px rgba(0,0,0,0.04)}
     .cat-strip::-webkit-scrollbar{display:none}
-    .cat-strip-inner{display:flex;gap:0.4rem;max-width:1200px;margin:0 auto;min-width:max-content}
-    .cat-tab{display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 0.9rem;border-radius:9999px;font-size:0.8rem;font-weight:500;color:var(--text-secondary);background:none;border:1px solid transparent;transition:all 0.25s;white-space:nowrap;flex-shrink:0;cursor:pointer;font-family:inherit}
-    .cat-tab:hover{color:var(--text);background:hsl(35,15%,93%);border-color:var(--border)}
-    .cat-active{background:var(--gold-dim)!important;color:var(--gold-dark)!important;border-color:hsla(35,90%,45%,0.2)!important;font-weight:600}
-    .cat-count{background:hsla(30,10%,50%,0.08);padding:0.1rem 0.4rem;border-radius:9999px;font-size:0.68rem;font-weight:600;color:var(--text-muted)}
-    .cat-active .cat-count{background:hsla(35,90%,45%,0.12);color:var(--gold-dark)}
+    .cat-strip-inner{display:flex;gap:0.5rem;max-width:1200px;margin:0 auto;min-width:max-content;align-items:center}
+    .cat-tab{display:inline-flex;align-items:center;gap:0.45rem;padding:0.5rem 1.05rem;border-radius:9999px;font-size:0.8rem;font-weight:600;color:var(--text-secondary);background:rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.07);transition:all 0.22s cubic-bezier(0.34,1.56,0.64,1);white-space:nowrap;flex-shrink:0;cursor:pointer;font-family:inherit;position:relative;overflow:hidden;letter-spacing:0.01em}
+    .cat-tab::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent);opacity:0;transition:opacity 0.2s}
+    .cat-tab:hover{color:var(--text);background:rgba(0,0,0,0.06);border-color:rgba(0,0,0,0.12);transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,0.08)}
+    .cat-tab:hover::after{opacity:1}
+    .cat-tab:active{animation:tab-pop 0.2s ease-out both}
+    .cat-active{background:linear-gradient(135deg,#1d4ed8,#2563eb)!important;color:#fff!important;border-color:transparent!important;font-weight:700;box-shadow:0 4px 14px rgba(37,99,235,0.35),0 1px 3px rgba(37,99,235,0.2),inset 0 1px 0 rgba(255,255,255,0.15)!important;transform:translateY(-1px)}
+    .cat-active::after{opacity:1!important}
+    .cat-count{background:rgba(0,0,0,0.07);padding:0.12rem 0.45rem;border-radius:9999px;font-size:0.67rem;font-weight:700;color:var(--text-muted);transition:all 0.22s;line-height:1.4}
+    .cat-active .cat-count{background:rgba(255,255,255,0.22);color:rgba(255,255,255,0.9)}
 
     .main{max-width:1200px;margin:0 auto;padding:2rem 1.5rem 3rem}
     .section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.75rem;animation:fadeUp 0.5s 0.3s ease-out both}
@@ -744,9 +761,9 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
       .hidden-mobile{display:none!important}
     }
     @media(max-width:640px){
-      .hero h1{font-size:1.8rem}
-      .hero p{font-size:0.92rem}
-      .hero{padding:2.5rem 1rem 2rem}
+      .hero h1{font-size:1.9rem;letter-spacing:-0.02em}
+      .hero p{font-size:0.93rem}
+      .hero{padding:3rem 1rem 2.25rem}
       .blog-grid{grid-template-columns:1fr;gap:1rem}
       .top-bar{padding:0 0.75rem;gap:0.25rem}
       .top-bar-logo{font-size:1rem;gap:0.4rem}
@@ -756,7 +773,7 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
       .nav-cta svg{width:14px;height:14px}
       .main{padding:1.25rem 1rem 2rem}
       .footer-inner{flex-direction:column;text-align:center}
-      .hero-orb{display:none}
+      .hero-orb-3{display:none}
     }
   </style>
 </head>
@@ -789,8 +806,17 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
       <div class="hero-grid"></div>
       <div class="hero-orb hero-orb-1"></div>
       <div class="hero-orb hero-orb-2"></div>
+      <div class="hero-orb hero-orb-3"></div>
+      <div class="hero-particle"></div>
+      <div class="hero-particle"></div>
+      <div class="hero-particle"></div>
+      <div class="hero-particle"></div>
+      <div class="hero-particle"></div>
     </div>
-    <div class="hero-badge">UPSC &amp; State PSC Preparation</div>
+    <div class="hero-badge">
+      <span class="hero-badge-ring"></span>
+      UPSC &amp; State PSC Preparation
+    </div>
     <h1>Expert Insights for <span>Civil Services</span></h1>
     <p>${activeCategory !== 'all' ? catInfo.description : 'In-depth articles on strategy, current affairs, subject guides, and answer writing to accelerate your preparation.'}</p>
   </section>
