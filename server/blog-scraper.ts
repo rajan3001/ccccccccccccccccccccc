@@ -520,6 +520,7 @@ export async function scrapeAllSources(): Promise<ScrapedArticle[]> {
 
   const allArticles: ScrapedArticle[] = [];
   const sourceNames = ["Drishti IAS", "Vajiram & Ravi", "Vision IAS", "Adda247", "SPM IAS", "Physics Wallah", "StudyIQ", "NextIAS"];
+  const BLOCKED_NAMES = ["drishti", "vajiram", "vision", "adda247", "spm", "pw", "studyiq", "nextias"];
 
   for (let i = 0; i < results.length; i++) {
     const result = results[i];
