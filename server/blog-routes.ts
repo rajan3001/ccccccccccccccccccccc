@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { GoogleGenAI, Modality } from "@google/genai";
 import { db } from "./db";
 import { blogPosts, type InsertBlogPost, BLOG_CATEGORIES } from "@shared/schema";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, isNull } from "drizzle-orm";
 import { objectStorageClient } from "./replit_integrations/object_storage/objectStorage";
 import { runContentScrapeAndPublish, scheduleDailyScraping } from "./blog-scraper";
 
@@ -2037,6 +2037,32 @@ function scheduleDailyBlogGeneration() {
       const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(blogPosts).where(eq(blogPosts.published, true));
       if (count < 5) {
         console.log(`[Blog] ${count} published articles found. Use POST /api/blog/generate to create posts manually, or wait for scheduled auto-generation.`);
+      }
+
+      const postsWithoutImages = await db
+        .select({ id: blogPosts.id, title: blogPosts.title, slug: blogPosts.slug })
+        .from(blogPosts)
+        .where(and(eq(blogPosts.published, true), isNull(blogPosts.coverImageUrl)));
+
+      if (postsWithoutImages.length > 0) {
+        console.log(`[Cover] Found ${postsWithoutImages.length} posts without cover images. Starting background generation...`);
+        (async () => {
+          let success = 0;
+          for (const post of postsWithoutImages) {
+            try {
+              const imageUrl = await generateAndUploadCoverImage(post.title, post.slug);
+              if (imageUrl) {
+                await db.update(blogPosts).set({ coverImageUrl: imageUrl }).where(eq(blogPosts.id, post.id));
+                success++;
+                console.log(`[Cover] ${success}/${postsWithoutImages.length} - Generated for: ${post.title}`);
+              }
+              await new Promise(r => setTimeout(r, 3000));
+            } catch (e) {
+              console.error(`[Cover] Failed for "${post.title}":`, (e as Error).message);
+            }
+          }
+          console.log(`[Cover] Complete: ${success}/${postsWithoutImages.length} cover images generated`);
+        })();
       }
     } catch (e) {
       console.error("[Blog] Article count check failed:", e);
