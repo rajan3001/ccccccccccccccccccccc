@@ -1815,6 +1815,37 @@ export function registerBlogRoutes(app: any) {
     }
   });
 
+  router.post("/api/blog/regenerate-thumbnails", async (req: Request, res: Response) => {
+    try {
+      const posts = await db
+        .select({ id: blogPosts.id, title: blogPosts.title, slug: blogPosts.slug })
+        .from(blogPosts)
+        .where(eq(blogPosts.published, true));
+
+      res.json({ message: `Regenerating thumbnails for ${posts.length} posts...`, status: "started", total: posts.length });
+
+      (async () => {
+        let success = 0;
+        for (const post of posts) {
+          try {
+            const imageUrl = await generateAndUploadCoverImage(post.title, post.slug);
+            if (imageUrl) {
+              await db.update(blogPosts).set({ coverImageUrl: imageUrl }).where(eq(blogPosts.id, post.id));
+              success++;
+              console.log(`[Thumbnails] ${success}/${posts.length} - Updated: ${post.title}`);
+            }
+            await new Promise(r => setTimeout(r, 3000));
+          } catch (e) {
+            console.error(`[Thumbnails] Failed for "${post.title}":`, (e as Error).message);
+          }
+        }
+        console.log(`[Thumbnails] Complete: ${success}/${posts.length} thumbnails regenerated`);
+      })();
+    } catch (e) {
+      res.status(500).json({ error: "Failed to start thumbnail regeneration" });
+    }
+  });
+
   router.get("/blog", async (req: Request, res: Response) => {
     try {
       const isLoggedIn = !!(req.session as any)?.userId;
