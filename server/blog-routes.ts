@@ -428,7 +428,7 @@ Only link if the topic is genuinely related. Use natural anchor text within sent
 5. FORMATTING:
    - ## (H2) and ### (H3) only. Minimum 6 H2 sections.
    - Dash (-) bullet lists only, never asterisk (*)
-   - End with ## FAQs — 5 questions aspirants actually Google (as ### headings with 2-3 sentence answers)
+   - End with ## UPSC Mains Practice Question (one GS question with approach hints as numbered list) and ## FAQs — 5 questions aspirants actually Google (as ### headings with 2-3 sentence answers)
 
 6. LENGTH: 2000-2500 words. Data-dense, no filler.
 
@@ -1217,6 +1217,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
   <title>${post.metaTitle}</title>
   <meta name="description" content="${escapedDesc}">
   <meta name="keywords" content="${(post.tags || []).join(', ')}">
+  <meta name="article-category" content="${post.category}">
   <link rel="canonical" href="https://learnproai.in/blog/${post.slug}">
   <meta property="og:type" content="article">
   <meta property="og:title" content="${escapedTitle}">
@@ -1361,6 +1362,20 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     .info-box p:last-child{margin-bottom:0}
     .info-box ul{margin:0.5rem 0 0.5rem 1.25rem}
     .info-box li{margin-bottom:0.3rem;font-size:0.88rem}
+
+    /* UPSC Mains Practice Question box */
+    .mains-pq-box{border-radius:var(--radius);margin:2rem 0;overflow:hidden;background:linear-gradient(135deg,hsl(210,50%,97%),hsl(215,45%,95%));border:1.5px solid hsl(215,50%,85%);box-shadow:0 4px 16px hsla(215,60%,50%,0.08)}
+    .mains-pq-header{padding:0.75rem 1.15rem;background:linear-gradient(135deg,hsl(215,70%,42%),hsl(215,75%,48%));display:flex;align-items:center;gap:0.5rem;position:relative;overflow:hidden}
+    .mains-pq-header::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.06) 1px,transparent 1px);background-size:14px 14px}
+    .mains-pq-header svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;position:relative;z-index:1;flex-shrink:0}
+    .mains-pq-header span{font-family:var(--font-display);font-size:0.88rem;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:0.04em;position:relative;z-index:1}
+    .mains-pq-body{padding:1.15rem 1.25rem}
+    .mains-pq-tag{display:inline-block;padding:0.2rem 0.6rem;background:hsl(215,70%,42%);color:#fff;font-size:0.7rem;font-weight:700;border-radius:4px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.65rem}
+    .mains-pq-question{font-family:var(--font-body);font-size:0.92rem;font-weight:700;color:var(--text);line-height:1.65;margin-bottom:0.85rem}
+    .mains-pq-approach{font-family:var(--font-display);font-size:0.8rem;font-weight:700;color:hsl(215,70%,38%);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:0.5rem}
+    .mains-pq-body ol{margin:0 0 0 1.25rem;font-size:0.88rem;line-height:1.65;color:var(--text-secondary)}
+    .mains-pq-body ol li{margin-bottom:0.35rem}
+    .mains-pq-body ol li strong{color:var(--text);font-weight:700}
 
     /* Prelims / Mains relevance box */
     .relevance-box{border-radius:var(--radius);margin:1.5rem 0;overflow:hidden}
@@ -1769,6 +1784,93 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
       box.appendChild(headDiv);
       box.innerHTML+=bq.innerHTML;
       bq.parentNode.replaceChild(box,bq);
+    });
+
+    /* === Transform UPSC Mains Practice Question section into premium box === */
+    var sboxes=body.querySelectorAll('.section-box');
+    sboxes.forEach(function(sb){
+      var headEl=sb.querySelector('.section-head');
+      if(!headEl)return;
+      var ht=(headEl.textContent||'').trim().toLowerCase();
+      if(ht.indexOf('mains practice question')===-1 && ht.indexOf('upsc mains question')===-1 && ht.indexOf('mains practice')===-1)return;
+      var bodyEl=sb.querySelector('.section-body');
+      if(!bodyEl)return;
+
+      var pqBox=document.createElement('div');
+      pqBox.className='mains-pq-box';
+      pqBox.setAttribute('data-testid','mains-practice-question');
+
+      var header=document.createElement('div');
+      header.className='mains-pq-header';
+      header.innerHTML='<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><span>UPSC Mains Practice Question</span>';
+      pqBox.appendChild(header);
+
+      var pqBody=document.createElement('div');
+      pqBody.className='mains-pq-body';
+
+      var gsTag='General Studies';
+      var catMeta=document.querySelector('meta[name="article-category"]');
+      var catVal=catMeta?(catMeta.getAttribute('content')||''):'';
+      if(catVal.indexOf('gs-paper-1')!==-1) gsTag='General Studies Paper I';
+      else if(catVal.indexOf('gs-paper-2')!==-1) gsTag='General Studies Paper II';
+      else if(catVal.indexOf('gs-paper-3')!==-1) gsTag='General Studies Paper III';
+      else if(catVal.indexOf('gs-paper-4')!==-1) gsTag='General Studies Paper IV';
+      else if(catVal.indexOf('current')!==-1) gsTag='General Studies Paper II';
+      var tagEl=document.createElement('div');
+      tagEl.className='mains-pq-tag';
+      tagEl.textContent=gsTag;
+      pqBody.appendChild(tagEl);
+
+      var children=Array.from(bodyEl.children);
+      var questionText='';
+      var approachFound=false;
+      var approachHints=[];
+
+      children.forEach(function(child){
+        var ct=(child.textContent||'').trim();
+        if(!approachFound && child.tagName==='P'){
+          var raw=ct;
+          raw=raw.replace(/^(general studies paper\s*(i{1,3}|iv|[1-4])\s*[:\.]\s*)/i,'');
+          raw=raw.replace(/^Q[\.\:\s]+/i,'');
+          if(raw && !questionText){
+            questionText=raw;
+            var em=child.querySelector('em');
+            if(em) questionText=em.textContent||raw;
+          }
+        }
+        if(/approach hint|approach/i.test(ct) && ct.length<40){
+          approachFound=true;
+          return;
+        }
+        if(approachFound && (child.tagName==='OL'||child.tagName==='UL')){
+          approachHints.push(child.cloneNode(true));
+        }
+      });
+
+      if(questionText){
+        var qDiv=document.createElement('div');
+        qDiv.className='mains-pq-question';
+        qDiv.innerHTML='<strong>Q.</strong> '+questionText;
+        pqBody.appendChild(qDiv);
+      }
+
+      if(approachHints.length>0){
+        var apLabel=document.createElement('div');
+        apLabel.className='mains-pq-approach';
+        apLabel.textContent='Approach Hints:';
+        pqBody.appendChild(apLabel);
+        approachHints.forEach(function(ol){pqBody.appendChild(ol);});
+      } else if(bodyEl.querySelector('ol,ul')){
+        var apLabel2=document.createElement('div');
+        apLabel2.className='mains-pq-approach';
+        apLabel2.textContent='Approach Hints:';
+        pqBody.appendChild(apLabel2);
+        var lists=bodyEl.querySelectorAll('ol,ul');
+        lists.forEach(function(l){pqBody.appendChild(l.cloneNode(true));});
+      }
+
+      pqBox.appendChild(pqBody);
+      sb.parentNode.replaceChild(pqBox,sb);
     });
 
     /* === Generate FAQ section from article content === */
