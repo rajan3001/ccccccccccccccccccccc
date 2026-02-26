@@ -37,21 +37,21 @@ const markdownComponents: Components = {
     </blockquote>
   ),
   table: ({ children }) => (
-    <div className="my-4 overflow-x-auto rounded-lg border border-border">
+    <div className="my-5 overflow-x-auto rounded-xl border-2 border-primary/20 shadow-sm dark:border-primary/30">
       <table className="w-full text-sm border-collapse">{children}</table>
     </div>
   ),
   thead: ({ children }) => (
-    <thead className="bg-primary/10">{children}</thead>
+    <thead className="bg-primary/15 dark:bg-primary/25">{children}</thead>
   ),
   th: ({ children }) => (
-    <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-foreground border-b border-border">{children}</th>
+    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-primary-foreground dark:text-primary bg-primary/90 dark:bg-primary/40 border-b-2 border-primary/30 first:rounded-tl-[10px] last:rounded-tr-[10px]">{children}</th>
   ),
   td: ({ children }) => (
-    <td className="px-4 py-2.5 text-sm text-foreground/90 border-b border-border/50">{children}</td>
+    <td className="px-4 py-3 text-sm text-foreground leading-relaxed border-b border-border/70 border-r border-r-border/30 last:border-r-0">{children}</td>
   ),
   tr: ({ children }) => (
-    <tr className="even:bg-muted/30">{children}</tr>
+    <tr className="even:bg-muted/50 dark:even:bg-muted/20 hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors">{children}</tr>
   ),
   code: ({ className, children, ...props }) => {
     const isInline = !className;

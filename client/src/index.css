@@ -126,13 +126,29 @@
   @apply border-l-4 border-primary/50 pl-4 italic text-muted-foreground my-4;
 }
 .prose table {
-  @apply w-full border-collapse my-4;
+  @apply w-full border-collapse my-5 rounded-xl overflow-hidden;
+  border: 2px solid hsl(var(--primary) / 0.2);
+  box-shadow: 0 1px 3px hsl(var(--primary) / 0.08);
 }
 .prose th {
-  @apply text-left font-semibold text-foreground p-2 border-b-2 border-border;
+  @apply text-left font-bold text-xs uppercase tracking-wider p-3 border-b-2;
+  background: hsl(var(--primary) / 0.9);
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary) / 0.3);
 }
 .prose td {
-  @apply p-2 border-b border-border/50;
+  @apply p-3 text-sm leading-relaxed;
+  border-bottom: 1px solid hsl(var(--border) / 0.7);
+  border-right: 1px solid hsl(var(--border) / 0.3);
+}
+.prose td:last-child {
+  border-right: none;
+}
+.prose tbody tr:nth-child(even) {
+  background: hsl(var(--muted) / 0.5);
+}
+.prose tbody tr:hover {
+  background: hsl(var(--primary) / 0.05);
 }
 
 
