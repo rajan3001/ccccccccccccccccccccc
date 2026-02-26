@@ -2007,7 +2007,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     fetch('/api/conversations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:query.substring(0,60)}),credentials:'include'})
     .then(function(r){return r.json();})
     .then(function(conv){
-      var articleContext='Article: '+_articleTitle+'\\nUser question: '+query;
+      var articleContext='[ARTICLE CONTEXT] Title: '+_articleTitle+'\\n\\n[INSTRUCTION] Answer the following question about the above article. Keep your response BRIEF and STRUCTURED — strictly between 500 to 700 words. Use short paragraphs (2-3 sentences), bullet points, and bold key terms. Start directly with the answer. Do NOT exceed 700 words.\\n\\n[QUESTION] '+query;
       return fetch('/api/conversations/'+conv.id+'/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:articleContext,attachments:[]}),credentials:'include'});
     })
     .then(function(r){
@@ -2032,15 +2032,36 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
       var reader=r.body.getReader();
       var decoder=new TextDecoder();
       var fullText='';
+      var sseBuffer='';
+      function parseSSE(raw){
+        sseBuffer+=raw;
+        var lines=sseBuffer.split('\\n');
+        sseBuffer=lines.pop()||'';
+        var extracted='';
+        for(var i=0;i<lines.length;i++){
+          var line=lines[i].trim();
+          if(line.startsWith('data: ')){
+            var payload=line.substring(6);
+            try{var obj=JSON.parse(payload);if(obj.content)extracted+=obj.content;}
+            catch(e){extracted+=payload;}
+          }
+        }
+        return extracted;
+      }
       function readChunk(){
         reader.read().then(function(result){
           if(result.done){
+            if(sseBuffer.trim()){
+              var last=parseSSE('\\n');
+              fullText+=last;
+            }
             goBtn.disabled=false;goBtn.innerHTML='Go <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>';
             responseEl.innerHTML=formatAiResponse(fullText);
             return;
           }
           var chunk=decoder.decode(result.value,{stream:true});
-          fullText+=chunk;
+          var parsed=parseSSE(chunk);
+          fullText+=parsed;
           responseEl.innerHTML=formatAiResponse(fullText)+'<span class="ask-ai-cursor">|</span>';
           responseEl.scrollTop=responseEl.scrollHeight;
           readChunk();
