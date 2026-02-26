@@ -1528,49 +1528,68 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     .ask-ai-btn:active{transform:translateY(0);box-shadow:0 1px 4px hsla(215,90%,45%,0.2)}
     .ask-ai-btn:focus-visible{outline:2px solid hsl(215,90%,45%);outline-offset:2px}
     .ask-ai-btn svg{width:16px;height:16px;flex-shrink:0}
-    .ask-ai-dialog-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
-    .ask-ai-dialog-overlay.open{display:flex}
-    .ask-ai-dialog{background:#fff;border-radius:12px;width:90%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,0.2);padding:1.5rem;position:relative;animation:dialogIn 0.25s ease}
-    @keyframes dialogIn{from{opacity:0;transform:scale(0.95) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
-    .ask-ai-dialog-title{font-family:var(--font-display);font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 0.25rem;display:flex;align-items:center;gap:0.45rem}
-    .ask-ai-dialog-title svg{width:20px;height:20px;color:hsl(215,90%,45%);flex-shrink:0}
-    .ask-ai-dialog-sub{font-size:0.78rem;color:var(--text-muted);margin:0 0 1rem}
-    .ask-ai-dialog-input{width:100%;padding:0.7rem 0.85rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;font-family:var(--font-body);color:var(--text);outline:none;transition:border-color 0.2s;box-sizing:border-box;resize:none;min-height:70px}
-    .ask-ai-dialog-input:focus{border-color:hsl(215,90%,45%);box-shadow:0 0 0 3px hsla(215,90%,45%,0.1)}
-    .ask-ai-dialog-input::placeholder{color:var(--text-muted)}
-    .ask-ai-dialog-actions{display:flex;align-items:center;justify-content:flex-end;gap:0.6rem;margin-top:0.85rem}
-    .ask-ai-dialog-cancel{padding:0.45rem 1rem;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-secondary);font-size:0.82rem;font-weight:500;cursor:pointer;transition:all 0.2s;font-family:var(--font-body)}
-    .ask-ai-dialog-cancel:hover{background:var(--bg-warm);border-color:var(--text-muted)}
-    .ask-ai-dialog-go{padding:0.45rem 1.25rem;border-radius:8px;border:none;background:linear-gradient(135deg,hsl(215,90%,45%),hsl(215,85%,55%));color:#fff;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:var(--font-body);display:inline-flex;align-items:center;gap:0.35rem}
-    .ask-ai-dialog-go:hover{background:linear-gradient(135deg,hsl(215,90%,50%),hsl(215,85%,60%));box-shadow:0 2px 8px hsla(215,90%,45%,0.3)}
-    .ask-ai-dialog-go:disabled{opacity:0.5;cursor:not-allowed}
-    .ask-ai-dialog-close{position:absolute;top:0.75rem;right:0.75rem;width:28px;height:28px;border-radius:50%;border:none;background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
-    .ask-ai-dialog-close:hover{background:var(--bg-warm);color:var(--text)}
-    .ask-ai-dialog-close svg{width:16px;height:16px}
+    .ask-ai-dialog-overlay{display:none;position:fixed;inset:0;background:rgba(10,15,30,0.55);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+    .ask-ai-dialog-overlay.open{display:flex;animation:overlayIn 0.3s ease}
+    @keyframes overlayIn{from{opacity:0}to{opacity:1}}
+    .ask-ai-dialog{background:linear-gradient(170deg,#ffffff 0%,#f8faff 100%);border-radius:16px;width:92%;max-width:500px;box-shadow:0 24px 80px rgba(0,0,0,0.18),0 0 0 1px rgba(30,64,175,0.06);padding:0;position:relative;animation:dialogIn 0.35s cubic-bezier(0.34,1.56,0.64,1);overflow:hidden}
+    @keyframes dialogIn{from{opacity:0;transform:scale(0.88) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    .ask-ai-dialog-header{background:linear-gradient(135deg,hsl(215,90%,30%) 0%,hsl(225,85%,42%) 50%,hsl(215,80%,50%) 100%);padding:1.15rem 1.35rem;position:relative;overflow:hidden}
+    .ask-ai-dialog-header::before{content:'';position:absolute;top:-40%;right:-20%;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%);pointer-events:none}
+    .ask-ai-dialog-header::after{content:'';position:absolute;bottom:-30%;left:10%;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.05) 0%,transparent 70%);pointer-events:none}
+    .ask-ai-dialog-title{font-family:var(--font-display);font-size:1.05rem;font-weight:700;color:#fff;margin:0;display:flex;align-items:center;gap:0.5rem;position:relative;z-index:1}
+    .ask-ai-dialog-title svg{width:22px;height:22px;color:#93c5fd;flex-shrink:0;animation:sparkleRotate 4s ease-in-out infinite;filter:drop-shadow(0 0 4px rgba(147,197,253,0.5))}
+    @keyframes sparkleRotate{0%,100%{transform:rotate(0deg) scale(1)}25%{transform:rotate(15deg) scale(1.1)}50%{transform:rotate(0deg) scale(1)}75%{transform:rotate(-10deg) scale(1.05)}}
+    .ask-ai-dialog-sub{font-size:0.76rem;color:rgba(191,219,254,0.85);margin:0.3rem 0 0;position:relative;z-index:1;font-weight:400;line-height:1.4}
+    .ask-ai-dialog-body{padding:1.25rem 1.35rem 1.15rem}
+    .ask-ai-dialog-input{width:100%;padding:0.75rem 0.9rem;border:2px solid hsl(215,30%,88%);border-radius:10px;font-size:0.88rem;font-family:var(--font-body);color:hsl(215,25%,20%);outline:none;transition:all 0.25s cubic-bezier(0.4,0,0.2,1);box-sizing:border-box;resize:none;min-height:76px;background:#fff;line-height:1.55}
+    .ask-ai-dialog-input:focus{border-color:hsl(215,90%,52%);box-shadow:0 0 0 4px hsla(215,90%,52%,0.12),0 2px 8px hsla(215,90%,45%,0.08);background:#fff}
+    .ask-ai-dialog-input::placeholder{color:hsl(215,15%,62%);font-style:italic;font-size:0.83rem}
+    .ask-ai-dialog-actions{display:flex;align-items:center;justify-content:flex-end;gap:0.65rem;margin-top:1rem;padding-top:0.85rem;border-top:1px solid hsl(215,30%,93%)}
+    .ask-ai-dialog-cancel{padding:0.5rem 1.1rem;border-radius:9px;border:1.5px solid hsl(215,20%,85%);background:#fff;color:hsl(215,15%,42%);font-size:0.82rem;font-weight:500;cursor:pointer;transition:all 0.2s;font-family:var(--font-body)}
+    .ask-ai-dialog-cancel:hover{background:hsl(215,30%,96%);border-color:hsl(215,20%,75%);transform:translateY(-1px)}
+    .ask-ai-dialog-cancel:active{transform:translateY(0)}
+    .ask-ai-dialog-go{padding:0.5rem 1.35rem;border-radius:9px;border:none;background:linear-gradient(135deg,hsl(215,90%,48%),hsl(225,85%,55%));color:#fff;font-size:0.84rem;font-weight:600;cursor:pointer;transition:all 0.25s cubic-bezier(0.4,0,0.2,1);font-family:var(--font-body);display:inline-flex;align-items:center;gap:0.4rem;box-shadow:0 2px 8px hsla(215,90%,45%,0.25);position:relative;overflow:hidden}
+    .ask-ai-dialog-go::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);transition:left 0.5s}
+    .ask-ai-dialog-go:hover{transform:translateY(-1px);box-shadow:0 4px 16px hsla(215,90%,45%,0.35);background:linear-gradient(135deg,hsl(215,90%,52%),hsl(225,85%,58%))}
+    .ask-ai-dialog-go:hover::before{left:100%}
+    .ask-ai-dialog-go:active{transform:translateY(0);box-shadow:0 1px 4px hsla(215,90%,45%,0.2)}
+    .ask-ai-dialog-go:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}
+    .ask-ai-dialog-close{position:absolute;top:0.85rem;right:0.85rem;width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;z-index:2}
+    .ask-ai-dialog-close:hover{background:rgba(255,255,255,0.22);color:#fff;transform:rotate(90deg)}
+    .ask-ai-dialog-close svg{width:15px;height:15px}
     .ask-ai-dialog-login{text-align:center;padding:0.75rem 0 0.25rem}
-    .ask-ai-dialog-login p{font-size:0.85rem;color:var(--text-secondary);margin:0 0 0.65rem}
-    .ask-ai-field-label{display:block;font-size:0.8rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.45rem}
-    .ask-ai-phone-row{display:flex;align-items:center;gap:0;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color 0.2s}
-    .ask-ai-phone-row:focus-within{border-color:hsl(215,90%,45%);box-shadow:0 0 0 3px hsla(215,90%,45%,0.1)}
-    .ask-ai-phone-prefix{padding:0.6rem 0.65rem;background:var(--bg-warm);font-size:0.85rem;font-weight:600;color:var(--text-secondary);border-right:1px solid var(--border);flex-shrink:0}
-    .ask-ai-phone-row .ask-ai-dialog-input{border:none;border-radius:0;min-height:auto;box-shadow:none}
+    .ask-ai-dialog-login p{font-size:0.85rem;color:hsl(215,15%,42%);margin:0 0 0.65rem}
+    .ask-ai-field-label{display:block;font-size:0.8rem;font-weight:600;color:hsl(215,15%,38%);margin-bottom:0.5rem;letter-spacing:0.01em}
+    .ask-ai-phone-row{display:flex;align-items:center;gap:0;border:2px solid hsl(215,30%,88%);border-radius:10px;overflow:hidden;transition:all 0.25s}
+    .ask-ai-phone-row:focus-within{border-color:hsl(215,90%,52%);box-shadow:0 0 0 4px hsla(215,90%,52%,0.12)}
+    .ask-ai-phone-prefix{padding:0.65rem 0.7rem;background:hsl(215,30%,96%);font-size:0.85rem;font-weight:700;color:hsl(215,25%,35%);border-right:1.5px solid hsl(215,30%,88%);flex-shrink:0}
+    .ask-ai-phone-row .ask-ai-dialog-input{border:none;border-radius:0;min-height:auto;box-shadow:none;font-weight:500}
     .ask-ai-phone-row .ask-ai-dialog-input:focus{box-shadow:none}
-    .ask-ai-error{font-size:0.78rem;color:#dc2626;margin-top:0.4rem;padding:0.3rem 0.5rem;background:#fef2f2;border-radius:6px}
-    .ask-ai-otp-row{display:flex;gap:0.4rem;justify-content:center}
-    .ask-ai-otp-input{width:40px;height:46px;text-align:center;font-size:1.1rem;font-weight:700;border:1.5px solid var(--border);border-radius:8px;outline:none;transition:border-color 0.2s;font-family:var(--font-body);color:var(--text)}
-    .ask-ai-otp-input:focus{border-color:hsl(215,90%,45%);box-shadow:0 0 0 3px hsla(215,90%,45%,0.1)}
-    .ask-ai-response-q{font-size:0.82rem;font-weight:600;color:hsl(215,90%,45%);margin-bottom:0.65rem;padding:0.5rem 0.65rem;background:hsla(215,90%,45%,0.06);border-radius:8px;border-left:3px solid hsl(215,90%,45%)}
-    .ask-ai-response-body{font-size:0.85rem;line-height:1.7;color:var(--text);max-height:350px;overflow-y:auto;padding:0.25rem 0}
-    .ask-ai-response-body p{margin:0.5rem 0}
-    .ask-ai-response-body strong{color:var(--text);font-weight:700}
-    .ask-ai-response-body ul,.ask-ai-response-body ol{padding-left:1.2rem;margin:0.5rem 0}
-    .ask-ai-response-body li{margin:0.25rem 0}
-    .ask-ai-loading{display:flex;align-items:center;gap:0.5rem;padding:1.5rem 0;justify-content:center;color:var(--text-muted);font-size:0.82rem}
-    .ask-ai-loading-dots{display:flex;gap:4px}
-    .ask-ai-loading-dots span{width:6px;height:6px;border-radius:50%;background:hsl(215,90%,45%);animation:dotPulse 1.4s ease-in-out infinite}
-    .ask-ai-loading-dots span:nth-child(2){animation-delay:0.2s}
-    .ask-ai-loading-dots span:nth-child(3){animation-delay:0.4s}
-    @keyframes dotPulse{0%,80%,100%{opacity:0.3;transform:scale(0.8)}40%{opacity:1;transform:scale(1.1)}}
+    .ask-ai-error{font-size:0.78rem;color:#dc2626;margin-top:0.45rem;padding:0.35rem 0.6rem;background:#fef2f2;border-radius:8px;border-left:3px solid #dc2626;animation:shakeIn 0.4s ease}
+    @keyframes shakeIn{0%{transform:translateX(-8px);opacity:0}25%{transform:translateX(4px)}50%{transform:translateX(-2px)}75%{transform:translateX(1px)}100%{transform:translateX(0);opacity:1}}
+    .ask-ai-otp-row{display:flex;gap:0.5rem;justify-content:center;animation:fadeUp 0.35s ease}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .ask-ai-otp-input{width:42px;height:48px;text-align:center;font-size:1.15rem;font-weight:700;border:2px solid hsl(215,30%,88%);border-radius:10px;outline:none;transition:all 0.25s;font-family:var(--font-body);color:hsl(215,25%,20%);background:#fff}
+    .ask-ai-otp-input:focus{border-color:hsl(215,90%,52%);box-shadow:0 0 0 4px hsla(215,90%,52%,0.12);transform:translateY(-2px)}
+    .ask-ai-response-q{font-size:0.82rem;font-weight:600;color:hsl(215,80%,40%);margin-bottom:0.75rem;padding:0.55rem 0.75rem;background:linear-gradient(135deg,hsla(215,90%,52%,0.06),hsla(225,85%,55%,0.04));border-radius:10px;border-left:3px solid hsl(215,90%,52%);animation:fadeUp 0.3s ease}
+    .ask-ai-response-body{font-size:0.86rem;line-height:1.75;color:hsl(215,20%,22%);max-height:380px;overflow-y:auto;padding:0.25rem 0.15rem;scrollbar-width:thin;scrollbar-color:hsl(215,30%,85%) transparent}
+    .ask-ai-response-body::-webkit-scrollbar{width:5px}
+    .ask-ai-response-body::-webkit-scrollbar-thumb{background:hsl(215,30%,82%);border-radius:10px}
+    .ask-ai-response-body p{margin:0.55rem 0;color:hsl(215,20%,22%)}
+    .ask-ai-response-body strong{color:hsl(215,60%,30%);font-weight:700}
+    .ask-ai-response-body h3,.ask-ai-response-body h4{color:hsl(215,70%,32%)}
+    .ask-ai-response-body ul,.ask-ai-response-body ol{padding-left:1.2rem;margin:0.55rem 0}
+    .ask-ai-response-body li{margin:0.3rem 0;color:hsl(215,20%,22%)}
+    .ask-ai-response-body li::marker{color:hsl(215,90%,52%)}
+    .ask-ai-cursor{color:hsl(215,90%,52%);animation:cursorBlink 0.8s ease-in-out infinite;font-weight:300}
+    @keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
+    .ask-ai-loading{display:flex;flex-direction:column;align-items:center;gap:0.75rem;padding:2rem 0;color:hsl(215,15%,50%);font-size:0.82rem;animation:fadeUp 0.3s ease}
+    .ask-ai-loading-dots{display:flex;gap:6px}
+    .ask-ai-loading-dots span{width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,hsl(215,90%,52%),hsl(225,85%,55%));animation:dotBounce 1.4s ease-in-out infinite}
+    .ask-ai-loading-dots span:nth-child(2){animation-delay:0.16s}
+    .ask-ai-loading-dots span:nth-child(3){animation-delay:0.32s}
+    @keyframes dotBounce{0%,80%,100%{transform:translateY(0) scale(0.8);opacity:0.4}40%{transform:translateY(-10px) scale(1.1);opacity:1}}
+    @media(prefers-reduced-motion:reduce){.ask-ai-dialog,.ask-ai-dialog-overlay.open,.ask-ai-dialog-title svg,.ask-ai-loading-dots span,.ask-ai-cursor,.ask-ai-otp-row,.ask-ai-error,.ask-ai-dialog-go::before{animation:none!important;transition:none!important}}
 
     @media print{
       .top-bar,.read-bar,.sidebar-col,.site-footer,.share-bar,.ask-ai-btn,.ask-ai-dialog-overlay,.cta-box,.nav-posts,.relevance-box,.tags-section,.faq-section,.source-box,.breadcrumb,.pdf-btn{display:none!important}
@@ -1801,59 +1820,63 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
 
   <div class="ask-ai-dialog-overlay" id="askAiOverlay" data-testid="ask-ai-dialog-overlay">
     <div class="ask-ai-dialog" role="dialog" aria-labelledby="askAiDialogTitle" data-testid="ask-ai-dialog">
-      <button class="ask-ai-dialog-close" onclick="closeAskAiDialog()" aria-label="Close dialog" data-testid="ask-ai-dialog-close">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
-      </button>
-      <h3 class="ask-ai-dialog-title" id="askAiDialogTitle">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v1m0 16v1m-8-9H3m18 0h-1m-2.636-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707"/><circle cx="12" cy="12" r="4"/></svg>
-        Ask Learnpro AI
-      </h3>
-      <p class="ask-ai-dialog-sub">Ask any question about this article — "${post.title.replace(/"/g, '&quot;')}"</p>
+      <div class="ask-ai-dialog-header">
+        <button class="ask-ai-dialog-close" onclick="closeAskAiDialog()" aria-label="Close dialog" data-testid="ask-ai-dialog-close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        </button>
+        <h3 class="ask-ai-dialog-title" id="askAiDialogTitle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v1m0 16v1m-8-9H3m18 0h-1m-2.636-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707"/><circle cx="12" cy="12" r="4"/></svg>
+          Ask Learnpro AI
+        </h3>
+        <p class="ask-ai-dialog-sub">${post.title.replace(/"/g, '&quot;')}</p>
+      </div>
 
-      <div id="askAiLoginPane" style="display:${isLoggedIn ? 'none' : 'block'}">
-        <div id="loginPhoneStep" data-testid="login-phone-step">
-          <label class="ask-ai-field-label">Enter your mobile number to continue</label>
-          <div class="ask-ai-phone-row">
-            <span class="ask-ai-phone-prefix">+91</span>
-            <input type="tel" id="askAiPhone" class="ask-ai-dialog-input" style="min-height:auto;resize:none" maxlength="10" placeholder="10-digit mobile number" data-testid="ask-ai-phone-input">
+      <div class="ask-ai-dialog-body">
+        <div id="askAiLoginPane" style="display:${isLoggedIn ? 'none' : 'block'}">
+          <div id="loginPhoneStep" data-testid="login-phone-step">
+            <label class="ask-ai-field-label">Enter your mobile number to continue</label>
+            <div class="ask-ai-phone-row">
+              <span class="ask-ai-phone-prefix">+91</span>
+              <input type="tel" id="askAiPhone" class="ask-ai-dialog-input" style="min-height:auto;resize:none" maxlength="10" placeholder="10-digit mobile number" data-testid="ask-ai-phone-input">
+            </div>
+            <div id="loginError" class="ask-ai-error" style="display:none"></div>
+            <div class="ask-ai-dialog-actions">
+              <button class="ask-ai-dialog-cancel" onclick="closeAskAiDialog()" data-testid="ask-ai-cancel">Cancel</button>
+              <button class="ask-ai-dialog-go" id="sendOtpBtn" onclick="sendOtp()" data-testid="ask-ai-send-otp">
+                Send OTP <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+              </button>
+            </div>
           </div>
-          <div id="loginError" class="ask-ai-error" style="display:none"></div>
+          <div id="loginOtpStep" style="display:none" data-testid="login-otp-step">
+            <label class="ask-ai-field-label">Enter the 6-digit OTP sent to your phone</label>
+            <div class="ask-ai-otp-row" id="otpRow"></div>
+            <div id="otpError" class="ask-ai-error" style="display:none"></div>
+            <div class="ask-ai-dialog-actions">
+              <button class="ask-ai-dialog-cancel" onclick="backToPhone()" data-testid="ask-ai-back-phone">Back</button>
+              <button class="ask-ai-dialog-go" id="verifyOtpBtn" onclick="verifyOtp()" data-testid="ask-ai-verify-otp">
+                Verify <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 6L9 17l-5-5"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="askAiQueryPane" style="display:${isLoggedIn ? 'block' : 'none'}">
+          <textarea class="ask-ai-dialog-input" id="askAiInput" data-testid="ask-ai-input" placeholder="e.g. Summarise the key points, What are the constitutional provisions mentioned?" rows="3"></textarea>
           <div class="ask-ai-dialog-actions">
             <button class="ask-ai-dialog-cancel" onclick="closeAskAiDialog()" data-testid="ask-ai-cancel">Cancel</button>
-            <button class="ask-ai-dialog-go" id="sendOtpBtn" onclick="sendOtp()" data-testid="ask-ai-send-otp">
-              Send OTP <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+            <button class="ask-ai-dialog-go" id="askAiGoBtn" onclick="submitAskAi()" data-testid="ask-ai-go">
+              Go <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
             </button>
           </div>
         </div>
-        <div id="loginOtpStep" style="display:none" data-testid="login-otp-step">
-          <label class="ask-ai-field-label">Enter the 6-digit OTP sent to your phone</label>
-          <div class="ask-ai-otp-row" id="otpRow"></div>
-          <div id="otpError" class="ask-ai-error" style="display:none"></div>
+
+        <div id="askAiResponsePane" style="display:none">
+          <div class="ask-ai-response-q" id="askAiResponseQ" data-testid="ask-ai-response-q"></div>
+          <div class="ask-ai-response-body" id="askAiResponseBody" data-testid="ask-ai-response-body"></div>
           <div class="ask-ai-dialog-actions">
-            <button class="ask-ai-dialog-cancel" onclick="backToPhone()" data-testid="ask-ai-back-phone">Back</button>
-            <button class="ask-ai-dialog-go" id="verifyOtpBtn" onclick="verifyOtp()" data-testid="ask-ai-verify-otp">
-              Verify <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 6L9 17l-5-5"/></svg>
-            </button>
+            <button class="ask-ai-dialog-cancel" onclick="resetAskAi()" data-testid="ask-ai-ask-another">Ask another question</button>
+            <button class="ask-ai-dialog-go" onclick="closeAskAiDialog()" data-testid="ask-ai-done">Done</button>
           </div>
-        </div>
-      </div>
-
-      <div id="askAiQueryPane" style="display:${isLoggedIn ? 'block' : 'none'}">
-        <textarea class="ask-ai-dialog-input" id="askAiInput" data-testid="ask-ai-input" placeholder="e.g. Summarise the key points, What are the constitutional provisions mentioned?" rows="3"></textarea>
-        <div class="ask-ai-dialog-actions">
-          <button class="ask-ai-dialog-cancel" onclick="closeAskAiDialog()" data-testid="ask-ai-cancel">Cancel</button>
-          <button class="ask-ai-dialog-go" id="askAiGoBtn" onclick="submitAskAi()" data-testid="ask-ai-go">
-            Go <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <div id="askAiResponsePane" style="display:none">
-        <div class="ask-ai-response-q" id="askAiResponseQ" data-testid="ask-ai-response-q"></div>
-        <div class="ask-ai-response-body" id="askAiResponseBody" data-testid="ask-ai-response-body"></div>
-        <div class="ask-ai-dialog-actions">
-          <button class="ask-ai-dialog-cancel" onclick="resetAskAi()" data-testid="ask-ai-ask-another">Ask another question</button>
-          <button class="ask-ai-dialog-go" onclick="closeAskAiDialog()" data-testid="ask-ai-done">Done</button>
         </div>
       </div>
     </div>
@@ -2002,7 +2025,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
 
     showPane('askAiResponsePane');
     document.getElementById('askAiResponseQ').textContent=query;
-    document.getElementById('askAiResponseBody').innerHTML='<div class="ask-ai-loading"><div class="ask-ai-loading-dots"><span></span><span></span><span></span></div> Thinking...</div>';
+    document.getElementById('askAiResponseBody').innerHTML='<div class="ask-ai-loading"><div class="ask-ai-loading-dots"><span></span><span></span><span></span></div><span>Generating response\u2026</span></div>';
 
     fetch('/api/conversations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:query.substring(0,60)}),credentials:'include'})
     .then(function(r){return r.json();})
