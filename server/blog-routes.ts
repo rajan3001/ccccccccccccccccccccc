@@ -1902,6 +1902,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
   var _aiLoggedIn=${isLoggedIn ? 'true' : 'false'};
   var _articleTitle=${JSON.stringify(post.title)};
   var _articleSlug=${JSON.stringify(post.slug)};
+  var _articleText=(function(){var el=document.getElementById('articleBody');if(!el)return '';var t=el.innerText||el.textContent||'';return t.substring(0,6000);})();
   var _storedPhone='';
 
   function openAskAiDialog(){
@@ -2030,7 +2031,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     fetch('/api/conversations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:query.substring(0,60)}),credentials:'include'})
     .then(function(r){return r.json();})
     .then(function(conv){
-      var articleContext='[ARTICLE CONTEXT] Title: '+_articleTitle+'\\n\\n[INSTRUCTION] Answer the following question about the above article. Keep your response BRIEF and STRUCTURED — strictly between 500 to 700 words. Use short paragraphs (2-3 sentences), bullet points, and bold key terms. Start directly with the answer. Do NOT exceed 700 words.\\n\\n[QUESTION] '+query;
+      var articleContext='[ARTICLE CONTEXT]\\nTitle: '+_articleTitle+'\\n\\nContent:\\n'+_articleText+'\\n\\n[INSTRUCTION] Answer the following question about the above article. Keep your response BRIEF and STRUCTURED — strictly between 500 to 700 words. Use short paragraphs (2-3 sentences), bullet points, and bold key terms. Start directly with the answer. Do NOT exceed 700 words.\\n\\n[QUESTION] '+query;
       return fetch('/api/conversations/'+conv.id+'/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:articleContext,attachments:[]}),credentials:'include'});
     })
     .then(function(r){
