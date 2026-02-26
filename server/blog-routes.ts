@@ -189,7 +189,7 @@ const UPSC_TOPICS = [
     "India's Nuclear 3%: Reactor-by-Reactor Status and What's Stuck in Stage 2",
     "River Linking: Ken-Betwa DPR Approved, 4 Others Pending — Cost and Timeline Data",
     "Gig Workers and Social Security: India's Code on Social Security 2020 — What Changed",
-    "Food Processing Gap: Farm Gate Price vs Retail Price for 10 Commodities",
+    "Food Processing Gap: Why India Processes Less Than Most Economies — Policy Failures and PMKSY Impact",
     "Fiscal Deficit 2019-2026: Year-by-Year Trend and FRBM Compliance Score",
     "Left-Wing Extremism: District Count Drop From 90 to 45 — What Actually Worked",
     "Crypto Tax at 30%: How Much India Collected vs How Much Moved Offshore",
@@ -281,7 +281,8 @@ async function generateFreshTopics(count: number, existingTitles: Set<string>): 
   const prompt = `Generate ${count} UPSC article titles that can RANK on Google. Each title must target a SPECIFIC search intent and promise DATA or ANALYSIS — not generic explanation.
 
 TITLE RULES:
-- Every title MUST include a number, data point, or specific claim
+- Every title MUST be specific — include a Constitutional article, scheme name, policy event, or verifiable structural detail
+- NEVER promise specific data in the title that the article then fabricates (e.g., "10 Commodities' Price Data" when you're inventing the prices)
 - Target ONE search intent per title (comparison, trend, analysis, or breakdown)
 - NEVER use: "Complete Guide", "Everything You Need to Know", "Strategic Guide", "Tips and Tricks"
 - Think cluster content: each article should link to others on related sub-topics
@@ -352,40 +353,55 @@ No filler transitions at sentence starts: "Moreover", "Furthermore", "Additional
 NEVER title the article "Complete Guide", "Everything You Need to Know", or "A Strategic Guide".
 
 === ANTI-HALLUCINATION (CRITICAL — YMYL CATEGORY) ===
-UPSC content falls under Google's YMYL (Your Money or Your Life) category. Fabricated statistics WILL trigger algorithmic penalties.
+UPSC content is YMYL. Fabricated data of ANY kind triggers Google penalties and destroys domain authority.
 
-ABSOLUTE BANS:
-- NEVER write "X% of aspirants/candidates..." unless citing a named source (e.g., "UPSC Annual Report 2023")
-- NEVER write precise percentages like "63% report anxiety" or "40% of successful candidates" — these are AI fabrication signals
-- NEVER write "studies show", "research indicates", "data suggests" without naming the actual study
-- NEVER invent retention rates, success rates, or adoption percentages
-- Over-precise numbers without citation (e.g., "Retention Rate: 70-80%") are a HUGE AI footprint — avoid entirely
+YOU ARE AN AI. YOU CANNOT LOOK UP REAL DATA. ACCEPT THIS LIMITATION.
 
-SAFE DATA YOU CAN USE (verifiable from public UPSC records):
-- Prelims/Mains cut-off marks by year and category (from UPSC annual reports)
-- Number of applicants vs seats (from UPSC notifications)
-- Question distribution by topic per year (manually countable from past papers)
-- Constitutional article numbers, committee names, Supreme Court judgment names
-- Government scheme launch years, budget allocations (from Union Budget documents)
-- Real topper names and their publicly stated strategies (from interviews)
+ABSOLUTE BANS — NEVER DO ANY OF THESE:
+- NEVER invent specific prices (e.g., "₹15/kg farm-gate, ₹52/kg retail")
+- NEVER invent percentages (e.g., "63% report anxiety", "price spread of 247%")
+- NEVER invent statistics and attribute them to real sources (e.g., "compiled from Ministry of Consumer Affairs data" — you didn't compile anything)
+- NEVER write "studies show", "research indicates", "data suggests", "surveys reveal" without naming the EXACT study with author, year, and publication
+- NEVER create fake data tables with invented numbers presented as real data
+- NEVER add disclaimers like "prices are indicative averages" to justify invented numbers — the numbers are still fabricated
+- NEVER invent success rates, adoption rates, retention rates, or any rate
+- NEVER write "X% of aspirants/candidates/farmers/students..." with an invented percentage
 
-WHEN UNSURE, USE ANECDOTAL FRAMING:
-Instead of: "40% of successful candidates use digital platforms"
-Write: "In recent topper interviews, an increasing number of candidates report shifting toward integrated digital tools"
-Instead of: "Retention rate improves by 70-80%"
-Write: "Structured revision cycles significantly improve recall compared to scattered note-making"
-No numbers = no red flags. Anecdotal > fabricated.
+THE CORE RULE: If you did not retrieve a number from an actual database or document, DO NOT write it. Period.
+
+WHAT YOU CAN DO IN TABLES:
+- Structural/comparative tables WITHOUT invented numbers: list features, pros/cons, scheme names, article numbers, committee names, timeline events
+- Tables comparing QUALITATIVE aspects: scope, applicability, jurisdiction, mandate
+- Tables listing FACTUAL items: Constitutional articles, schemes with launch years (which you know), SC judgments, treaty names
+- Tables with data ONLY from your training knowledge that you're confident is accurate (e.g., number of Lok Sabha seats = 543, Rajya Sabha = 245, Union Budget 2023 allocation for MGNREGA was ~₹60,000 crore)
+
+BAD TABLE (fabricated data):
+| Commodity | Farm Price (₹/kg) | Retail Price (₹/kg) | Spread (%) |
+| Tomato | 15 | 52 | 247% |
+→ You made up every single number here.
+
+GOOD TABLE (structural/qualitative):
+| Factor | Impact on Price Spread | Policy Response |
+| Cold Chain Gaps | High perishable losses → inflated retail | PMKSY Cold Chain scheme |
+| Intermediary Layers | 4-6 middlemen typical in mandi system | eNAM digital platform |
+→ No invented numbers. Analysis based on known policy facts.
+
+ANECDOTAL FRAMING FOR UNCERTAIN DATA:
+Instead of: "price spread reaches 247%"
+Write: "Price spreads for perishables like tomatoes can multiply several times between farmgate and retail, particularly during seasonal gluts"
+Instead of: "India processes only 10% of agricultural produce"
+Write: "India's food processing levels remain significantly lower than developed economies, where processing rates exceed 60-80% of total agricultural output" (this range is well-established in policy literature)
 
 NEVER WRITE SALES ARTICLES:
-Do NOT position any approach/method/tool as universally superior. Analyze trade-offs. Present evidence for both sides. If you find yourself writing "X is better than Y in every way" — you are writing a sales pitch, not analysis.
+Do NOT position any approach/method/tool as universally superior. Present trade-offs honestly.
 
-=== DATA REQUIREMENTS (VERIFIABLE DATA ONLY) ===
+=== DATA REQUIREMENTS ===
 Your article MUST include at least:
-1. TWO data tables — but ONLY with verifiable numbers: cut-off marks, question counts from past papers, budget figures, or Constitutional provisions. Use markdown pipe table syntax.
-2. Specific year references (not "in recent years" — say "in 2023" or "between 2019 and 2024")
-3. At least ONE trend analysis using REAL publicly available data (cut-off trends, question frequency from actual past papers)
-4. At least ONE comparison (A vs B with structured reasoning — not fabricated metrics)
-5. Real UPSC question references ("In Prelims 2023, Q47 asked about..." or "Mains 2022 GS2 had a 15-marker on...")
+1. TWO tables — structural/comparative tables with QUALITATIVE analysis, scheme comparisons, Constitutional provisions, or timeline data. NOT tables with invented price/percentage data.
+2. Specific year references where you're confident (scheme launch years, Constitutional amendment years, election years)
+3. At least ONE trend analysis based on KNOWN policy shifts (not invented numbers plotted over years)
+4. At least ONE comparison (A vs B — comparing approaches, policies, or frameworks qualitatively)
+5. Real UPSC question references ONLY if you're certain of the exact question — otherwise say "UPSC has repeatedly asked about [topic] in GS-3 Mains"
 
 === INTERNAL LINKING ===
 Include 2-3 internal links to related articles on this site using markdown link format.
@@ -394,15 +410,18 @@ ${internalLinks.length > 0 ? internalLinks.join('\n') : 'No existing articles ye
 Only link if the topic is genuinely related. Use natural anchor text within sentences.
 
 === WRITING RULES ===
-1. OPENING: Start with a specific number or data point. Not a definition.
-   GOOD: "Between 2019 and 2024, UPSC asked 43 questions from Environment in Prelims. That's 8-9 per year. Yet most aspirants spend less than 15% of prep time on it."
+1. OPENING: Start with a concrete, verifiable fact or policy event. Not a definition, not an invented statistic.
+   GOOD: "The 2021 Tribunal Reforms Act abolished nine appellate tribunals in a single stroke, transferring their caseload to already overburdened High Courts."
+   GOOD: "Between Article 356 and Article 365, the Constitution gives the Centre two distinct tools to discipline states — but UPSC treats them as one topic, and aspirants pay the price."
+   BAD: "Between 2019 and 2024, UPSC asked 43 questions from Environment" (did you count them? If not sure, don't claim it)
 
 2. VOICE: Direct, opinionated, data-backed. Take positions. A smart mentor sharing analysis, not a textbook.
 
-3. HEADINGS: Clear, direct, specific. Include numbers where possible.
-   GOOD: "5-Year Cut-Off Trend: General vs OBC vs SC"
-   GOOD: "Why GS3 Scoring Dropped 12% After 2021"
+3. HEADINGS: Clear, direct, specific. Use verifiable structural details.
+   GOOD: "Cut-Off Trend 2019-2024: General vs OBC vs SC (from UPSC Annual Reports)"
+   GOOD: "3 Constitutional Provisions That Define Centre-State Financial Relations"
    BAD: "Understanding the Examination Framework"
+   BAD: "Why GS3 Scoring Dropped 12% After 2021" (did you verify this? If not, don't claim it)
 
 4. Max 3-line paragraphs. Bold key terms with **double asterisks**.
 
@@ -695,7 +714,7 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
   <meta name="twitter:card" content="summary_large_image">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" href="/favicon_final.webp" type="image/webp">
   <script type="application/ld+json">
   {
@@ -712,7 +731,7 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
   }
   </script>
   <style>
-    :root{--primary:hsl(25,85%,45%);--primary-light:hsl(30,90%,52%);--primary-dark:hsl(25,90%,35%);--primary-dim:hsla(25,85%,45%,0.08);--primary-border:hsla(25,85%,45%,0.15);--gold:hsl(35,90%,45%);--gold-rgb:196,130,20;--gold-light:hsl(35,85%,50%);--gold-dark:hsl(35,90%,32%);--gold-dim:hsla(35,90%,45%,0.08);--bg:hsl(40,33%,98%);--bg-card:#ffffff;--bg-card-hover:hsl(40,20%,96%);--border:hsl(35,15%,90%);--border-hover:hsl(35,15%,82%);--text:#1a1a2e;--text-secondary:hsl(30,8%,45%);--text-muted:hsl(30,8%,60%);--radius:12px;--header-h:56px;--font-display:'Plus Jakarta Sans','Inter',system-ui,sans-serif}
+    :root{--primary:hsl(25,85%,45%);--primary-light:hsl(30,90%,52%);--primary-dark:hsl(25,90%,35%);--primary-dim:hsla(25,85%,45%,0.08);--primary-border:hsla(25,85%,45%,0.15);--gold:hsl(35,90%,45%);--gold-rgb:196,130,20;--gold-light:hsl(35,85%,50%);--gold-dark:hsl(35,90%,32%);--gold-dim:hsla(35,90%,45%,0.08);--bg:hsl(40,33%,98%);--bg-card:#ffffff;--bg-card-hover:hsl(40,20%,96%);--border:hsl(35,15%,90%);--border-hover:hsl(35,15%,82%);--text:#1a1a2e;--text-secondary:hsl(30,8%,45%);--text-muted:hsl(30,8%,60%);--radius:12px;--header-h:56px;--font-display:'Source Serif 4','Georgia',serif}
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 
@@ -745,27 +764,27 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     @keyframes heroGlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
     @keyframes heroLine{0%{opacity:0.3;height:0}50%{opacity:0.7;height:160px}100%{opacity:0.3;height:160px}}
 
-    .hero{position:relative;padding:4.5rem 1.5rem 3.5rem;text-align:center;overflow:hidden;background:linear-gradient(-45deg,#020617,#0f172a,#1e3a8a,#172554);background-size:400% 400%;animation:heroGlow 12s ease infinite}
+    .hero{position:relative;padding:4.5rem 1.5rem 3.5rem;text-align:center;overflow:hidden;background:linear-gradient(-45deg,#1a0e04,#2d1a0a,#3d1f08,#261206);background-size:400% 400%;animation:heroGlow 12s ease infinite}
     .hero-bg{position:absolute;inset:0;pointer-events:none}
-    .hero-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 30% 110%,rgba(59,130,246,0.2),transparent 60%),radial-gradient(ellipse 50% 40% at 75% -5%,rgba(99,102,241,0.25),transparent 55%)}
-    .hero-bg::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:1px;height:160px;background:linear-gradient(to bottom,rgba(147,197,253,0.6),transparent);animation:heroLine 3s ease-in-out infinite}
-    .hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(59,130,246,0.12) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,0.12) 1px,transparent 1px);background-size:50px 50px;animation:heroGridScroll 15s linear infinite}
+    .hero-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 30% 110%,hsla(25,85%,45%,0.2),transparent 60%),radial-gradient(ellipse 50% 40% at 75% -5%,hsla(30,90%,40%,0.25),transparent 55%)}
+    .hero-bg::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:1px;height:160px;background:linear-gradient(to bottom,hsla(30,90%,60%,0.6),transparent);animation:heroLine 3s ease-in-out infinite}
+    .hero-grid{position:absolute;inset:0;background-image:linear-gradient(hsla(25,85%,45%,0.12) 1px,transparent 1px),linear-gradient(90deg,hsla(25,85%,45%,0.12) 1px,transparent 1px);background-size:50px 50px;animation:heroGridScroll 15s linear infinite}
     .hero-orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none}
-    .hero-orb-1{width:350px;height:350px;background:rgba(59,130,246,0.2);top:-100px;right:8%;animation:float 10s ease-in-out infinite;animation-delay:-2s}
-    .hero-orb-2{width:240px;height:240px;background:rgba(99,102,241,0.18);bottom:-50px;left:4%;animation:floatAlt 12s ease-in-out infinite;animation-delay:-5s}
-    .hero-orb-3{width:160px;height:160px;background:rgba(147,197,253,0.12);top:20%;left:15%;animation:float 9s ease-in-out infinite;animation-delay:-3s}
-    .hero-particle{position:absolute;width:3px;height:3px;border-radius:50%;background:rgba(147,197,253,0.7);pointer-events:none}
+    .hero-orb-1{width:350px;height:350px;background:hsla(25,85%,45%,0.2);top:-100px;right:8%;animation:float 10s ease-in-out infinite;animation-delay:-2s}
+    .hero-orb-2{width:240px;height:240px;background:hsla(30,90%,40%,0.18);bottom:-50px;left:4%;animation:floatAlt 12s ease-in-out infinite;animation-delay:-5s}
+    .hero-orb-3{width:160px;height:160px;background:hsla(35,80%,55%,0.12);top:20%;left:15%;animation:float 9s ease-in-out infinite;animation-delay:-3s}
+    .hero-particle{position:absolute;width:3px;height:3px;border-radius:50%;background:hsla(35,90%,60%,0.7);pointer-events:none}
     .hero-particle:nth-child(1){left:20%;top:70%;animation:particle-drift 6s ease-in-out infinite;animation-delay:0s}
     .hero-particle:nth-child(2){left:40%;top:80%;animation:particle-drift 8s ease-in-out infinite;animation-delay:-2s}
     .hero-particle:nth-child(3){left:65%;top:60%;animation:particle-drift 7s ease-in-out infinite;animation-delay:-4s}
     .hero-particle:nth-child(4){left:80%;top:75%;animation:particle-drift 9s ease-in-out infinite;animation-delay:-1s}
     .hero-particle:nth-child(5){left:55%;top:85%;animation:particle-drift 6.5s ease-in-out infinite;animation-delay:-3s}
     .hero-badge{display:inline-flex;align-items:center;gap:0.45rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.9);font-size:0.72rem;font-weight:600;padding:0.4rem 1rem;border-radius:9999px;margin-bottom:1.4rem;letter-spacing:0.08em;text-transform:uppercase;position:relative;animation:fadeUp 0.5s ease-out both;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-    .hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:#60a5fa;animation:glow 2s ease-in-out infinite;flex-shrink:0}
-    .hero-badge-ring{position:absolute;inset:-2px;border-radius:9999px;border:1px solid rgba(96,165,250,0.3);animation:pulse-ring 2.5s ease-out infinite}
+    .hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:hsl(35,90%,55%);animation:glow 2s ease-in-out infinite;flex-shrink:0}
+    .hero-badge-ring{position:absolute;inset:-2px;border-radius:9999px;border:1px solid hsla(30,90%,50%,0.3);animation:pulse-ring 2.5s ease-out infinite}
     .hero h1{font-family:var(--font-display);font-size:2.8rem;font-weight:800;color:#ffffff;line-height:1.15;margin-bottom:1rem;position:relative;animation:fadeUp 0.5s 0.1s ease-out both;letter-spacing:-0.02em}
-    .hero h1 span{background:linear-gradient(135deg,#60a5fa,#818cf8,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200% auto;animation:hero-shimmer 4s linear infinite}
-    .hero p{color:rgba(203,213,225,0.85);font-size:1.05rem;max-width:540px;margin:0 auto;position:relative;animation:fadeUp 0.5s 0.2s ease-out both;line-height:1.7;font-weight:400}
+    .hero h1 span{background:linear-gradient(135deg,hsl(35,90%,55%),hsl(25,85%,50%),hsl(30,90%,60%));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200% auto;animation:hero-shimmer 4s linear infinite}
+    .hero p{color:rgba(255,240,220,0.85);font-size:1.05rem;max-width:540px;margin:0 auto;position:relative;animation:fadeUp 0.5s 0.2s ease-out both;line-height:1.7;font-weight:400}
 
     .cat-strip-wrap{position:sticky;top:var(--header-h);z-index:40;border-bottom:1px solid var(--border);background:hsla(40,33%,98%,0.96);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);box-shadow:0 1px 0 rgba(0,0,0,0.06),0 4px 12px rgba(0,0,0,0.04)}
     .cat-strip{max-width:1200px;margin:0 auto;padding:0.75rem 1.5rem;overflow:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;box-sizing:border-box;position:relative;display:flex;align-items:center;gap:0.5rem}
@@ -828,7 +847,7 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     .sidebar-card h3{font-family:var(--font-display);font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:0.75rem;padding-bottom:0.5rem;border-bottom:2px solid var(--primary-border);text-transform:uppercase;letter-spacing:0.03em}
     .sb-archive-box{border-radius:10px;overflow:hidden;margin-bottom:1rem;border:1px solid rgba(0,0,0,0.08);background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
     .sb-archive-header{padding:0.7rem 0.85rem;display:flex;align-items:center;gap:0.5rem;color:#fff;font-weight:700;font-family:var(--font-display);position:relative;overflow:hidden}
-    .sb-archive-header.blue{background:linear-gradient(135deg,#1e3a8a,#1d4ed8)}
+    .sb-archive-header.blue{background:linear-gradient(135deg,hsl(25,90%,30%),hsl(25,85%,42%))}
     .sb-archive-header.orange{background:linear-gradient(135deg,#166534,#15803d)}
     @keyframes grid-move{0%{background-position:0 0}100%{background-position:24px 24px}}
     .sb-archive-header::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.08) 1px,transparent 1px);background-size:12px 12px;animation:grid-move 12s linear infinite}
@@ -837,19 +856,19 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     .sb-archive-body{padding:0.85rem;display:flex;flex-direction:column;gap:0.6rem}
     .sb-inputs-row{display:grid;grid-template-columns:1fr 1fr;gap:0.4rem}
     .sb-input-field{width:100%;padding:0.5rem 0.6rem;border:1.5px solid #d1d5db;border-radius:6px;font-size:0.8rem;color:var(--text);font-family:var(--font-display);outline:none;transition:border-color 0.2s;background:#fafafa}
-    .sb-input-field:focus{border-color:#1d4ed8;background:#fff}
-    .sb-go-btn{width:100%;padding:0.55rem;background:#1d4ed8;color:#fff;border:none;border-radius:6px;font-weight:700;font-size:0.8rem;cursor:pointer;transition:all 0.2s;font-family:var(--font-display);letter-spacing:0.02em;text-transform:uppercase}
-    .sb-go-btn:hover{background:#1e40af;transform:translateY(-1px);box-shadow:0 4px 12px rgba(29,78,216,0.35)}
+    .sb-input-field:focus{border-color:var(--primary);background:#fff}
+    .sb-go-btn{width:100%;padding:0.55rem;background:var(--primary);color:#fff;border:none;border-radius:6px;font-weight:700;font-size:0.8rem;cursor:pointer;transition:all 0.2s;font-family:var(--font-display);letter-spacing:0.02em;text-transform:uppercase}
+    .sb-go-btn:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 4px 12px hsla(25,85%,45%,0.35)}
     .sb-go-btn.orange{background:#15803d}
     .sb-go-btn.orange:hover{background:#166534;box-shadow:0 4px 12px rgba(22,101,52,0.35)}
     .tag-pills{display:flex;flex-wrap:wrap;gap:0.35rem}
-    .tag-pill{display:inline-block;padding:0.22rem 0.55rem;border-radius:4px;font-size:0.72rem;font-weight:600;background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;text-decoration:none;transition:all 0.2s;cursor:pointer}
-    .tag-pill:hover{background:#3730a3;color:#fff;border-color:#3730a3}
-    .cta-card{background:linear-gradient(135deg,#0f172a,#1e3a8a)!important;border:none!important;color:#fff;text-align:center;padding:1.5rem 1.25rem!important;position:relative;overflow:hidden}
+    .tag-pill{display:inline-block;padding:0.22rem 0.55rem;border-radius:4px;font-size:0.72rem;font-weight:600;background:var(--primary-dim);color:var(--primary-dark);border:1px solid var(--primary-border);text-decoration:none;transition:all 0.2s;cursor:pointer}
+    .tag-pill:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .cta-card{background:linear-gradient(135deg,hsl(25,60%,18%),hsl(25,85%,30%))!important;border:none!important;color:#fff;text-align:center;padding:1.5rem 1.25rem!important;position:relative;overflow:hidden}
     .cta-card::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.04) 1px,transparent 1px);background-size:16px 16px}
     .cta-card h3{color:#fff!important;border-bottom-color:rgba(255,255,255,0.15)!important;font-size:0.85rem!important;position:relative;z-index:1}
     .cta-card p{color:rgba(255,255,255,0.75);font-size:0.8rem;line-height:1.6;margin-bottom:1rem;position:relative;z-index:1}
-    .cta-btn{display:inline-flex;align-items:center;gap:0.35rem;background:#fff;color:#1e3a8a;font-size:0.78rem;font-weight:700;padding:0.5rem 1.25rem;border-radius:6px;text-decoration:none;transition:all 0.2s;border:none;position:relative;z-index:1;text-transform:uppercase;letter-spacing:0.02em}
+    .cta-btn{display:inline-flex;align-items:center;gap:0.35rem;background:#fff;color:var(--primary-dark);font-size:0.78rem;font-weight:700;padding:0.5rem 1.25rem;border-radius:6px;text-decoration:none;transition:all 0.2s;border:none;position:relative;z-index:1;text-transform:uppercase;letter-spacing:0.02em}
     .cta-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,0.2)}
     .cta-btn svg{width:14px;height:14px}
 
@@ -1251,9 +1270,9 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root{--accent:hsl(25,85%,45%);--accent-dark:hsl(25,90%,35%);--accent-light:hsl(30,90%,52%);--accent-bg:hsla(25,85%,45%,0.06);--accent-border:hsla(25,85%,45%,0.15);--bg:hsl(40,33%,98%);--bg-card:#ffffff;--border:#e5e7eb;--border-hover:#d1d5db;--text:#1a1a2e;--text-secondary:#4b5563;--text-muted:#9ca3af;--radius:0.5rem;--header-h:56px;--sidebar-w:320px;--content-max:740px;--font-display:'Plus Jakarta Sans','Inter',system-ui,sans-serif;--font-body:'Inter',system-ui,sans-serif}
+    :root{--accent:hsl(25,85%,45%);--accent-dark:hsl(25,90%,35%);--accent-light:hsl(30,90%,52%);--accent-bg:hsla(25,85%,45%,0.06);--accent-border:hsla(25,85%,45%,0.15);--bg:hsl(40,33%,98%);--bg-card:#ffffff;--border:#e5e7eb;--border-hover:#d1d5db;--text:#1a1a2e;--text-secondary:#4b5563;--text-muted:#9ca3af;--radius:0.5rem;--header-h:56px;--sidebar-w:320px;--content-max:740px;--font-display:'Source Serif 4','Georgia',serif;--font-body:'Inter',system-ui,sans-serif}
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
     ::selection{background:hsla(25,85%,45%,0.15);color:var(--text)}

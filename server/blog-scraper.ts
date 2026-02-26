@@ -48,13 +48,67 @@ function cleanText(text: string): string {
   return text.replace(/\s+/g, " ").replace(/\n\s*\n/g, "\n").trim();
 }
 
+function cleanTitle(title: string): string {
+  let t = title.replace(/\s+/g, " ").trim();
+  t = t.replace(/\s*\d{1,2}\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{4}\s*$/i, "");
+  t = t.replace(/\s*-\s*(Drishti|Vajiram|Vision|Adda|PW|StudyIQ|NextIAS|SPM).*$/i, "");
+  t = t.replace(/\s*\|\s*.*$/, "");
+  return t.trim();
+}
+
+const STALE_TITLE_PATTERNS = [
+  /upsc\s+syllabus/i, /upsc\s+exam\s+date/i, /upsc\s+exam\s+calendar/i,
+  /upsc\s+eligibility/i, /upsc\s+age\s+limit/i, /upsc\s+notification/i,
+  /upsc\s+admit\s+card/i, /upsc\s+result/i, /upsc\s+cut\s*off/i,
+  /upsc\s+topper/i, /upsc\s+books/i, /upsc\s+coaching/i,
+  /best\s+books/i, /how\s+to\s+prepare/i, /preparation\s+strategy/i,
+  /preparation\s+tips/i, /study\s+material/i, /study\s+plan/i,
+  /mock\s+test/i, /test\s+series/i, /previous\s+year/i,
+  /answer\s+key/i, /salary\s+(of|for)/i, /optional\s+subject/i,
+  /selection\s+process/i, /apply\s+online/i, /registration/i,
+  /admit\s+card/i, /recruitment/i, /vacancy/i, /job\s+profile/i,
+  /^start\s+now/i, /^home$/i, /^login/i, /^sign\s*up/i,
+  /^about\s+us/i, /^contact/i, /^faq/i, /^privacy/i, /^terms/i,
+  /in\s+hindi/i, /हिंदी/i, /सिलेबस/i, /परीक्षा/i, /[\u0900-\u097F]/,
+  /^\d{4}\s+(upsc|ias|prelims|mains)/i,
+  /^upsc\s+(prelims|mains)\s+\d{4}$/i,
+];
+
+const STALE_URL_PATTERNS = [
+  /syllabus/i, /eligibility/i, /age-limit/i, /admit-card/i,
+  /answer-key/i, /cut-off/i, /notification/i, /salary/i,
+  /topper/i, /books/i, /coaching/i, /optional-subject/i,
+  /how-to-prepare/i, /preparation-tips/i, /study-plan/i,
+  /recruitment/i, /vacancy/i, /apply-online/i, /registration/i,
+  /job-profile/i, /selection-process/i, /mock-test/i, /test-series/i,
+  /exam-pattern/i, /exam-date/i, /exam-calendar/i, /result/i,
+];
+
+function isStaleOrIrrelevant(title: string, url: string): boolean {
+  const normalizedTitle = title.replace(/\s+/g, " ").trim();
+  if (normalizedTitle.length < 15) return true;
+  if (normalizedTitle.length > 200) return true;
+  for (const pat of STALE_TITLE_PATTERNS) {
+    if (pat.test(normalizedTitle)) return true;
+  }
+  for (const pat of STALE_URL_PATTERNS) {
+    if (pat.test(url)) return true;
+  }
+  const yearMatch = normalizedTitle.match(/\b(20\d{2})\b/);
+  if (yearMatch) {
+    const year = parseInt(yearMatch[1]);
+    const currentYear = new Date().getFullYear();
+    if (year < currentYear - 1) return true;
+  }
+  return false;
+}
+
 async function scrapeDrishtiIAS(): Promise<ScrapedArticle[]> {
   const articles: ScrapedArticle[] = [];
   const sections = [
     { url: "https://www.drishtiias.com/daily-updates/daily-news-editorials", cat: "current-affairs" },
     { url: "https://www.drishtiias.com/daily-updates/daily-news-analysis", cat: "current-affairs" },
     { url: "https://www.drishtiias.com/to-the-points", cat: "general" },
-    { url: "https://www.drishtiias.com/important-institutions", cat: "gs-paper-2" },
   ];
 
   for (const section of sections) {
@@ -68,9 +122,9 @@ async function scrapeDrishtiIAS(): Promise<ScrapedArticle[]> {
         const href = $(el).attr("href");
         const title = $(el).text().trim();
         if (href && title && title.length > 15 && title.length < 200 &&
-            (href.includes("daily-news") || href.includes("daily-updates") || href.includes("to-the-points") || href.includes("important-institutions"))) {
+            (href.includes("daily-news") || href.includes("daily-updates") || href.includes("to-the-points"))) {
           const fullUrl = href.startsWith("http") ? href : `https://www.drishtiias.com${href}`;
-          if (!links.find(l => l.href === fullUrl)) {
+          if (!links.find(l => l.href === fullUrl) && !isStaleOrIrrelevant(title, fullUrl)) {
             links.push({ href: fullUrl, title });
           }
         }
@@ -95,7 +149,7 @@ async function scrapeDrishtiIAS(): Promise<ScrapedArticle[]> {
         content = cleanText(content);
         if (content.length > 300) {
           articles.push({
-            title: link.title,
+            title: cleanTitle(link.title),
             content: content.substring(0, 8000),
             url: link.href,
             source: "drishti",
@@ -113,8 +167,8 @@ async function scrapeDrishtiIAS(): Promise<ScrapedArticle[]> {
 async function scrapeVajiramandravi(): Promise<ScrapedArticle[]> {
   const articles: ScrapedArticle[] = [];
   const sections = [
-    { url: "https://vajiramandravi.com/quest-upsc-notes/", cat: "upsc-strategy" },
     { url: "https://vajiramandravi.com/upsc-daily-current-affairs/", cat: "current-affairs" },
+    { url: "https://vajiramandravi.com/quest-upsc-notes/", cat: "general" },
   ];
 
   for (const section of sections) {
@@ -129,7 +183,7 @@ async function scrapeVajiramandravi(): Promise<ScrapedArticle[]> {
         const title = $(el).text().trim();
         if (href && title && title.length > 15 && title.length < 200 && href.includes("vajiramandravi.com")) {
           const fullUrl = href.startsWith("http") ? href : `https://vajiramandravi.com${href}`;
-          if (!links.find(l => l.href === fullUrl) && fullUrl !== section.url) {
+          if (!links.find(l => l.href === fullUrl) && fullUrl !== section.url && !isStaleOrIrrelevant(title, fullUrl)) {
             links.push({ href: fullUrl, title });
           }
         }
@@ -145,7 +199,7 @@ async function scrapeVajiramandravi(): Promise<ScrapedArticle[]> {
         content = cleanText(content);
         if (content.length > 300) {
           articles.push({
-            title: link.title,
+            title: cleanTitle(link.title),
             content: content.substring(0, 8000),
             url: link.href,
             source: "vajiram",
@@ -166,7 +220,6 @@ async function scrapeVisionIAS(): Promise<ScrapedArticle[]> {
     { url: "https://www.visionias.in/current-affairs/daily-news", cat: "current-affairs" },
     { url: "https://www.visionias.in/current-affairs", cat: "current-affairs" },
     { url: "https://www.visionias.in/resources/blogs", cat: "general" },
-    { url: "https://www.visionias.in/resources", cat: "general" },
   ];
 
   for (const section of sections) {
@@ -182,10 +235,11 @@ async function scrapeVisionIAS(): Promise<ScrapedArticle[]> {
         if (!title || title.length < 10) {
           title = $(el).attr("title") || $(el).find("h2, h3, h4, .title").first().text().trim();
         }
-        if (href && title && title.length > 10 && title.length < 200) {
+        if (href && title && title.length > 15 && title.length < 200) {
           const fullUrl = href.startsWith("http") ? href : `https://www.visionias.in${href.startsWith("/") ? "" : "/"}${href}`;
           if (!links.find(l => l.href === fullUrl) && fullUrl !== section.url &&
-              !fullUrl.includes("login") && !fullUrl.includes("signup") && !fullUrl.includes("cart")) {
+              !fullUrl.includes("login") && !fullUrl.includes("signup") && !fullUrl.includes("cart") &&
+              !isStaleOrIrrelevant(title, fullUrl)) {
             links.push({ href: fullUrl, title });
           }
         }
@@ -204,7 +258,7 @@ async function scrapeVisionIAS(): Promise<ScrapedArticle[]> {
         content = cleanText(content);
         if (content.length > 300) {
           articles.push({
-            title: link.title,
+            title: cleanTitle(link.title),
             content: content.substring(0, 8000),
             url: link.href,
             source: "vision",
@@ -222,10 +276,8 @@ async function scrapeVisionIAS(): Promise<ScrapedArticle[]> {
 async function scrapeAdda247(): Promise<ScrapedArticle[]> {
   const articles: ScrapedArticle[] = [];
   const sections = [
-    { url: "https://www.adda247.com/upsc-exam/", cat: "upsc-strategy" },
     { url: "https://www.adda247.com/upsc-exam/upsc-current-affairs/", cat: "current-affairs" },
-    { url: "https://www.adda247.com/jobs/", cat: "general" },
-    { url: "https://www.adda247.com/government-jobs/", cat: "general" },
+    { url: "https://www.adda247.com/upsc-exam/", cat: "upsc-strategy" },
   ];
 
   for (const section of sections) {
@@ -243,8 +295,9 @@ async function scrapeAdda247(): Promise<ScrapedArticle[]> {
         }
         if (href && title && title.length > 15 && title.length < 200 &&
             href.includes("adda247.com") && !href.includes("login") && !href.includes("signup") &&
-            !href.includes("mock-test") && !href.includes("test-series")) {
-          if (!links.find(l => l.href === href) && href !== section.url) {
+            !href.includes("mock-test") && !href.includes("test-series") &&
+            !href.includes("/jobs/") && !href.includes("government-jobs")) {
+          if (!links.find(l => l.href === href) && href !== section.url && !isStaleOrIrrelevant(title, href)) {
             links.push({ href, title });
           }
         }
@@ -263,7 +316,7 @@ async function scrapeAdda247(): Promise<ScrapedArticle[]> {
         content = cleanText(content);
         if (content.length > 300) {
           articles.push({
-            title: link.title,
+            title: cleanTitle(link.title),
             content: content.substring(0, 8000),
             url: link.href,
             source: "adda247",
@@ -281,9 +334,8 @@ async function scrapeAdda247(): Promise<ScrapedArticle[]> {
 async function scrapePhysicsWallah(): Promise<ScrapedArticle[]> {
   const articles: ScrapedArticle[] = [];
   const sections = [
-    { url: "https://www.pw.live/exams/upsc/", cat: "upsc-strategy" },
     { url: "https://www.pw.live/exams/upsc/upsc-current-affairs/", cat: "current-affairs" },
-    { url: "https://www.pw.live/exams/upsc/upsc-syllabus/", cat: "upsc-strategy" },
+    { url: "https://www.pw.live/exams/upsc/", cat: "upsc-strategy" },
   ];
 
   for (const section of sections) {
@@ -303,7 +355,7 @@ async function scrapePhysicsWallah(): Promise<ScrapedArticle[]> {
             href.includes("pw.live") && !href.includes("login") && !href.includes("signup") &&
             !href.includes("batch") && !href.includes("test-series")) {
           const fullUrl = href.startsWith("http") ? href : `https://www.pw.live${href}`;
-          if (!links.find(l => l.href === fullUrl) && fullUrl !== section.url) {
+          if (!links.find(l => l.href === fullUrl) && fullUrl !== section.url && !isStaleOrIrrelevant(title, fullUrl)) {
             links.push({ href: fullUrl, title });
           }
         }
@@ -322,7 +374,7 @@ async function scrapePhysicsWallah(): Promise<ScrapedArticle[]> {
         content = cleanText(content);
         if (content.length > 300) {
           articles.push({
-            title: link.title,
+            title: cleanTitle(link.title),
             content: content.substring(0, 8000),
             url: link.href,
             source: "pw",
@@ -340,9 +392,9 @@ async function scrapePhysicsWallah(): Promise<ScrapedArticle[]> {
 async function scrapeStudyIQ(): Promise<ScrapedArticle[]> {
   const articles: ScrapedArticle[] = [];
   const sections = [
-    { url: "https://www.studyiq.com/articles/", cat: "general" },
-    { url: "https://www.studyiq.com/articles/upsc-articles/", cat: "upsc-strategy" },
     { url: "https://www.studyiq.com/articles/current-affairs/", cat: "current-affairs" },
+    { url: "https://www.studyiq.com/articles/upsc-articles/", cat: "upsc-strategy" },
+    { url: "https://www.studyiq.com/articles/", cat: "general" },
   ];
 
   for (const section of sections) {
@@ -361,7 +413,7 @@ async function scrapeStudyIQ(): Promise<ScrapedArticle[]> {
         if (href && title && title.length > 15 && title.length < 200 &&
             href.includes("studyiq.com") && !href.includes("login") && !href.includes("signup") &&
             !href.includes("test-series") && !href.includes("course")) {
-          if (!links.find(l => l.href === href) && href !== section.url) {
+          if (!links.find(l => l.href === href) && href !== section.url && !isStaleOrIrrelevant(title, href)) {
             links.push({ href, title });
           }
         }
@@ -380,7 +432,7 @@ async function scrapeStudyIQ(): Promise<ScrapedArticle[]> {
         content = cleanText(content);
         if (content.length > 300) {
           articles.push({
-            title: link.title,
+            title: cleanTitle(link.title),
             content: content.substring(0, 8000),
             url: link.href,
             source: "studyiq",
@@ -398,9 +450,9 @@ async function scrapeStudyIQ(): Promise<ScrapedArticle[]> {
 async function scrapeNextIAS(): Promise<ScrapedArticle[]> {
   const articles: ScrapedArticle[] = [];
   const sections = [
+    { url: "https://www.nextias.com/current-affairs/daily-current-affairs/", cat: "current-affairs" },
     { url: "https://www.nextias.com/current-affairs/", cat: "current-affairs" },
     { url: "https://www.nextias.com/blog/", cat: "general" },
-    { url: "https://www.nextias.com/current-affairs/daily-current-affairs/", cat: "current-affairs" },
   ];
 
   for (const section of sections) {
@@ -420,7 +472,7 @@ async function scrapeNextIAS(): Promise<ScrapedArticle[]> {
             href.includes("nextias.com") && !href.includes("login") && !href.includes("signup") &&
             !href.includes("test-series") && !href.includes("course")) {
           const fullUrl = href.startsWith("http") ? href : `https://www.nextias.com${href}`;
-          if (!links.find(l => l.href === fullUrl) && fullUrl !== section.url) {
+          if (!links.find(l => l.href === fullUrl) && fullUrl !== section.url && !isStaleOrIrrelevant(title, fullUrl)) {
             links.push({ href: fullUrl, title });
           }
         }
@@ -439,7 +491,7 @@ async function scrapeNextIAS(): Promise<ScrapedArticle[]> {
         content = cleanText(content);
         if (content.length > 300) {
           articles.push({
-            title: link.title,
+            title: cleanTitle(link.title),
             content: content.substring(0, 8000),
             url: link.href,
             source: "nextias",
@@ -473,7 +525,7 @@ async function scrapeSPMIAS(): Promise<ScrapedArticle[]> {
         const title = $(el).text().trim();
         if (href && title && title.length > 15 && title.length < 200 &&
             href.includes("spmiasacademy.com") && href !== section.url) {
-          if (!links.find(l => l.href === href)) {
+          if (!links.find(l => l.href === href) && !isStaleOrIrrelevant(title, href)) {
             links.push({ href, title });
           }
         }
@@ -489,7 +541,7 @@ async function scrapeSPMIAS(): Promise<ScrapedArticle[]> {
         content = cleanText(content);
         if (content.length > 300) {
           articles.push({
-            title: link.title,
+            title: cleanTitle(link.title),
             content: content.substring(0, 8000),
             url: link.href,
             source: "spm",
@@ -653,6 +705,7 @@ RULES:
 1. NEVER mention any coaching institute, website, academy, or source name
 2. NEVER copy sentences — completely rewrite with NEW data and analysis added
 3. Target ONE specific search intent — do NOT mix motivational + strategic + explanatory
+4. Write ONLY in English. NEVER use Hindi, Hinglish, or any Indian language script. If the source material is in Hindi, translate concepts to English.
 
 ORIGINAL TITLE: "${article.title}"
 RESEARCH MATERIAL (rewrite completely, add data):
@@ -663,38 +716,39 @@ Never use: "comprehensive", "holistic", "strategic blueprint", "foundational pil
 No "Moreover", "Furthermore", "Additionally" at sentence starts. NEVER title it "Complete Guide" or "Strategic Guide".
 
 === ANTI-HALLUCINATION (CRITICAL — YMYL CATEGORY) ===
-UPSC content is YMYL. Fabricated statistics trigger Google algorithmic penalties.
+UPSC content is YMYL. Fabricated data of ANY kind triggers Google penalties.
+
+YOU ARE AN AI. YOU CANNOT LOOK UP REAL DATA. ACCEPT THIS LIMITATION.
 
 ABSOLUTE BANS:
-- NEVER write "X% of aspirants/candidates..." unless citing a named source (e.g., "UPSC Annual Report 2023")
-- NEVER invent percentages like "63% report anxiety" or "40% of successful candidates"
-- NEVER write "studies show", "research indicates" without naming the actual study
-- NEVER invent retention rates, success rates, or adoption percentages
-- Over-precise numbers without citation = AI fabrication signal. Avoid entirely.
+- NEVER invent specific prices, costs, or monetary figures
+- NEVER invent percentages or statistics
+- NEVER invent data and attribute it to real sources (e.g., "compiled from Ministry data" — you didn't compile anything)
+- NEVER write "studies show", "research indicates" without naming the EXACT study
+- NEVER create fake data tables with invented numbers
+- NEVER add disclaimers like "indicative averages" to justify invented numbers
 
-SAFE DATA (verifiable from public records):
-- Prelims/Mains cut-off marks by year/category (UPSC annual reports)
-- Applicant numbers vs seats (UPSC notifications)
-- Question counts by topic per year (countable from past papers)
-- Constitutional articles, committee names, SC judgment names
-- Scheme launch years, budget figures (Union Budget)
-- Real topper names + their publicly stated strategies
+THE CORE RULE: If you did not retrieve a number from an actual database or document, DO NOT write it.
 
-WHEN UNSURE, USE ANECDOTAL FRAMING:
-BAD: "40% of candidates use digital platforms"
-GOOD: "In recent topper interviews, candidates increasingly report using digital tools"
-BAD: "Retention rate 70-80%"
-GOOD: "Structured revision cycles significantly improve recall vs scattered study"
+WHAT YOU CAN DO IN TABLES:
+- Structural/comparative tables WITHOUT invented numbers: features, pros/cons, scheme names, article numbers, timelines
+- Qualitative comparisons: scope, mandate, jurisdiction, applicability
+- Factual items you KNOW: Constitutional articles, scheme launch years, SC judgment names, Lok Sabha seats (543), etc.
+- Data from training knowledge you're confident about (well-known budget allocations, election years, etc.)
 
-NEVER position any method/tool as universally superior. Analyze trade-offs honestly.
+ANECDOTAL FRAMING FOR UNCERTAIN DATA:
+BAD: "price spread reaches 247%"
+GOOD: "Price spreads for perishables can multiply several times between farmgate and retail during seasonal gluts"
 
-=== DATA REQUIREMENTS (VERIFIABLE ONLY) ===
+NEVER position any method/tool as universally superior. Present trade-offs honestly.
+
+=== DATA REQUIREMENTS ===
 You MUST include:
-1. TWO data tables with VERIFIABLE numbers only: cut-off marks, question counts from past papers, budget figures. Never invented percentages.
-2. Specific years — not "in recent years" but "in 2023"
-3. ONE trend analysis using REAL public data (cut-offs, question frequency)
-4. ONE structured comparison (A vs B with reasoning, not fabricated metrics)
-5. Real UPSC question references where relevant
+1. TWO tables — structural/comparative with QUALITATIVE analysis, scheme comparisons, or Constitutional provisions. NOT tables with invented price/percentage data.
+2. Specific years where confident (scheme launches, amendment years)
+3. ONE trend analysis based on KNOWN policy shifts (not invented numbers)
+4. ONE comparison (A vs B with structured reasoning)
+5. UPSC question references ONLY if certain — otherwise say "UPSC has repeatedly asked about [topic] in GS-X Mains"
 
 === INTERNAL LINKING ===
 ${internalLinks.length > 0 ? 'Include 2-3 links to related articles:\n' + internalLinks.join('\n') : 'No existing articles yet.'}
@@ -736,6 +790,24 @@ No markdown fencing. No extra text. Only valid JSON.`;
       .replace(/```\s*$/i, "")
       .trim();
     jsonStr = jsonStr.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+    jsonStr = jsonStr.replace(/\r/g, "");
+
+    const fixNewlinesInStrings = (s: string): string => {
+      let inString = false;
+      let escaped = false;
+      let result = "";
+      for (let i = 0; i < s.length; i++) {
+        const ch = s[i];
+        if (escaped) { result += ch; escaped = false; continue; }
+        if (ch === "\\") { result += ch; escaped = true; continue; }
+        if (ch === '"') { inString = !inString; result += ch; continue; }
+        if (ch === "\n" && inString) { result += "\\n"; continue; }
+        if (ch === "\t" && inString) { result += "\\t"; continue; }
+        result += ch;
+      }
+      return result;
+    };
+    jsonStr = fixNewlinesInStrings(jsonStr);
     jsonStr = jsonStr.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
 
     let parsed;
@@ -872,8 +944,8 @@ export async function runContentScrapeAndPublish(maxPerSource: number = 5): Prom
       .where(sql`${blogPosts.sourceUrl} IS NOT NULL`);
     const existingUrlSet = new Set(existingUrls.map(e => e.sourceUrl));
 
-    const newArticles = allArticles.filter(a => !existingUrlSet.has(a.url));
-    console.log(`[Scraper] ${newArticles.length} new articles after dedup (${allArticles.length} total scraped)`);
+    const newArticles = allArticles.filter(a => !existingUrlSet.has(a.url) && !isStaleOrIrrelevant(a.title, a.url));
+    console.log(`[Scraper] ${newArticles.length} new articles after dedup+filter (${allArticles.length} total scraped)`);
 
     const sourceCounts: Record<string, number> = {};
     const articlesToProcess: ScrapedArticle[] = [];
