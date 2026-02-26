@@ -138,119 +138,111 @@ function inlineFormat(text: string): string {
 
 const UPSC_TOPICS = [
   { category: "current-affairs", topics: [
-    "Why the Supreme Court Struck Down Electoral Bonds — And What It Means for Democracy",
-    "BRICS Expansion 2025: How Six New Members Reshape Global Power Dynamics",
-    "India's Semiconductor Mission: Can We Actually Build Chips by 2027?",
-    "The Chandrayaan-4 Moon Sample Return — What Scientists Expect to Find",
-    "One Nation One Election: Constitutional Challenges the Government Must Address",
-    "How India's UPI Crossed 14 Billion Monthly Transactions — A Fintech Revolution",
-    "Why Did RBI Pause Rate Cuts? Breaking Down the February 2026 MPC Decision",
-    "The Manipur Crisis: Understanding Ethnic Conflict and the Demand for Separate Administration",
-    "Lateral Entry in Civil Services: Why It Sparked a National Debate",
-    "India-Canada Diplomatic Row: From Khalistani Allegations to Expelled Diplomats",
-    "Digital Personal Data Protection Act 2023: How It Changes Your Privacy Rights",
-    "Why India Abstained at the UN on the Ukraine Resolution — Decoding Non-Alignment 2.0",
-    "The Collapse of Sri Lanka's Economy: Lessons India Cannot Ignore",
-    "How the Joshimath Sinking Exposed India's Mountain Development Crisis",
-    "Why Farmers Are Protesting Again: MSP Guarantee and the C2+50% Formula",
-    "India's Green Hydrogen Mission: Ambition vs Ground Reality",
-    "What the Same-Sex Marriage Verdict Tells Us About Judicial Review in India",
-    "How Artificial Intelligence Is Transforming India's Healthcare Delivery System",
-    "The Adani-Hindenburg Saga: Corporate Governance Questions India Must Answer",
-    "India's Carbon Credit Trading Scheme: Will It Actually Reduce Emissions?",
+    "Electoral Bonds Struck Down: What the SC Verdict Means for Party Funding Data",
+    "BRICS 2025: Which New Members Shift India's Vote at the UN — Country-by-Country",
+    "India's Semiconductor Fab Timeline: 3 Projects, 2 Delays, 1 That Might Work",
+    "One Nation One Election: 5 Constitutional Amendments It Would Actually Need",
+    "UPI's 14 Billion Transactions: Where the Money Flows — Sector-Wise Breakdown",
+    "RBI's February 2026 MPC Decision: Inflation Data vs Growth Data, Who Won",
+    "Manipur's Ethnic Split: Meitei vs Kuki Demand Map and the Article 371C Question",
+    "Lateral Entry: 45 Joint Secretary Posts, 3 Years Later — Performance Scorecard",
+    "Digital Personal Data Protection Act: What Your App Must Do by 2026 — Compliance Checklist",
+    "India's UN Voting Record 2020-2025: Abstentions, Yes Votes, and the Pattern",
+    "MSP Guarantee: C2+50% Formula vs Current MSP — Crop-by-Crop Gap Analysis",
+    "Green Hydrogen at $2/kg by 2030: India's Target vs Global Benchmarks",
+    "Adani-Hindenburg: SEBI's Investigation Timeline and What It Found (and Didn't)",
+    "Carbon Credit Trading Scheme: India's Rules vs EU ETS vs China's System",
   ]},
   { category: "gs-paper-1", topics: [
-    "The Indus Valley Civilization Was Not Just Harappan — New Archaeological Findings",
-    "How Ashoka's Dhamma Shaped Ancient India's Approach to Governance",
-    "The 1857 Revolt: Why Historians Now Call It India's First War of Independence",
-    "Subhas Chandra Bose and the INA: The Untold Story of Azad Hind Fauj",
-    "Why BR Ambedkar Called Caste 'An Enclosed Class' — Understanding Social Stratification",
-    "Monsoon Variability and Indian Agriculture: What El Nino Really Does to Crop Yields",
-    "India's Demographic Dividend Ends by 2040 — Are We Prepared for an Aging Population?",
-    "How Bhakti and Sufi Movements Created India's Syncretic Cultural Identity",
-    "The Partition of 1947: Beyond Border Lines — Human Cost and Lasting Consequences",
-    "Why Indian Cities Flood Every Monsoon: Urbanization, Drainage, and Planning Failures",
-    "French Revolution to Arab Spring: How Popular Uprisings Changed World History",
-    "The Role of Women in India's Freedom Movement: Beyond Rani Laxmibai",
-    "India's Northeast: Understanding the Region's Unique Cultural and Ethnic Diversity",
-    "How Climate Change Is Redrawing India's Coastline and Threatening 170 Million People",
+    "Prelims History Questions 2019-2025: Topic-Wise Frequency and What's Missing",
+    "Indus Valley Sites After 2020: Rakhigarhi DNA, Dholavira UNESCO, and New Finds",
+    "1857 Revolt: 3 Historian Interpretations — Marxist, Nationalist, Subaltern Compared",
+    "Women in Freedom Movement: 12 Names Beyond Laxmibai That Prelims Has Asked",
+    "Monsoon and El Nino: Crop Yield Impact Data for 5 Kharif Crops (2018-2025)",
+    "India's Demographic Window Closes 2035-2040: State-Wise Aging Speed Comparison",
+    "Urban Flooding: Mumbai vs Chennai vs Bengaluru — Drainage Data and Failure Points",
+    "Climate Displacement in India: Which 8 Coastal Districts Lose Land Fastest",
+    "French vs Russian vs Chinese Revolution: A UPSC Comparison Table With Exam Frequency",
+    "Northeast India's 6th Schedule: Which States Have It, Which Want It, and Why",
+    "Bhakti-Sufi Composite Culture: What Prelims Actually Asks vs What You Over-Study",
   ]},
   { category: "gs-paper-2", topics: [
-    "Why India's Governor System Keeps Creating Constitutional Crises",
-    "Article 370 Abrogation: The Legal Arguments the Supreme Court Evaluated",
-    "How the Anti-Defection Law Failed — And Why the 10th Schedule Needs Reform",
-    "India-China Border Dispute: 62 Years of LAC Tensions and Failed Negotiations",
-    "Why RTE Act 2009 Hasn't Fixed India's Learning Crisis After 15 Years",
-    "Tribunals in India Are Dying: How Executive Interference Undermines Judicial Independence",
-    "The Collegium System vs NJAC: Why Judicial Appointments Remain India's Biggest Controversy",
-    "How MGNREGA Became India's Largest Social Safety Net — And Why It's Under Threat",
-    "India's Neighbourhood First Policy: Successes with Bangladesh, Failures with Nepal",
-    "Why Indian Parliament's Productivity Has Dropped Below 50% in Recent Sessions",
-    "The Panchayati Raj Experiment: 30 Years After the 73rd Amendment, Has Decentralization Worked?",
-    "How India's Quad Membership Balances Strategic Autonomy with Alliance Politics",
-    "Centre vs States on GST: Federalism Under Strain in India's Tax Architecture",
-    "India at the UN Security Council: The Long Road to Permanent Membership",
+    "Governor vs Chief Minister Conflicts: 7 States, 7 Deadlocks Since 2020",
+    "Article 370 SC Verdict: 5 Legal Questions Answered, 2 Left Open",
+    "Anti-Defection Law: 47 Defections Since 2019 — Party-Wise and Verdict Data",
+    "India-China LAC: Sector-Wise Troop Deployment and Buffer Zone Status 2025",
+    "RTE Act Score After 15 Years: Learning Outcomes Data That Shows the Real Problem",
+    "Tribunals Abolished 2020-2025: Which Ones, Why, and Where Cases Go Now",
+    "Collegium vs NJAC: 3 Judges, 2 Verdicts, 1 Ongoing Power Struggle",
+    "MGNREGA Budget vs Demand: State-Wise Gap in Person-Days (2020-2025)",
+    "India's Neighbourhood: Border Trade Data With 6 Countries — Who Benefits More",
+    "Parliament Productivity: Lok Sabha vs Rajya Sabha Session-Wise Hours (2019-2025)",
+    "Panchayati Raj at 30: Women Reservation Impact — 5 States With Data",
+    "GST Revenue Sharing: Centre vs State Collections — Monthly Data Trend Since 2017",
   ]},
   { category: "gs-paper-3", topics: [
-    "Why India's Manufacturing Sector Is Stuck at 17% of GDP Despite Make in India",
-    "Cryptocurrency Regulation in India: Between Innovation and Financial Stability",
-    "The Insolvency and Bankruptcy Code: Has IBC Actually Resolved India's Bad Loan Crisis?",
-    "Left-Wing Extremism in India's Red Corridor: A Declining but Persistent Threat",
-    "India's Space Economy: From ISRO Monopoly to Private Players Like Skyroot and Agnikul",
-    "Why India Imports 85% of Its Oil Despite Having Renewable Energy Targets",
-    "The PM-KISAN Scheme: Direct Benefit Transfer and Its Real Impact on Small Farmers",
-    "Drone Warfare and Border Security: How Technology Is Reshaping India's Defence Strategy",
-    "India's Nuclear Energy Paradox: Why We Generate Only 3% Power from Nuclear Despite Having the Tech",
-    "River Linking Project: Engineering Marvel or Ecological Disaster in the Making?",
-    "How Plastic Pollution Became India's Most Ignored Environmental Emergency",
-    "The Gig Economy in India: 77 Million Workers Without Social Security",
-    "5G Rollout and Digital India: Beyond Speed — The Infrastructure Gap Nobody Talks About",
-    "India's Food Processing Sector: The Missing Link Between Farm and Fork",
+    "Manufacturing at 17% GDP: PLI Scheme Results Sector-by-Sector After 3 Years",
+    "IBC Scorecard: Recovery Rate, Timeline, and Which Sectors Use It Most",
+    "India's Oil Import Bill: $120 Billion Question — Why Renewables Haven't Dented It",
+    "Space Economy Private Players: Skyroot, Agnikul, Pixxel — Revenue vs Promises",
+    "PM-KISAN Impact: 11 Crore Farmers, Rs 6000/Year — Does It Cover Input Costs?",
+    "India's Nuclear 3%: Reactor-by-Reactor Status and What's Stuck in Stage 2",
+    "River Linking: Ken-Betwa DPR Approved, 4 Others Pending — Cost and Timeline Data",
+    "Gig Workers in India: 77 Million Without PF — State-Wise App Economy Numbers",
+    "Food Processing Gap: Farm Gate Price vs Retail Price for 10 Commodities",
+    "Fiscal Deficit 2019-2026: Year-by-Year Trend and FRBM Compliance Score",
+    "Left-Wing Extremism: District Count Drop From 90 to 45 — What Actually Worked",
+    "Crypto Tax at 30%: How Much India Collected vs How Much Moved Offshore",
   ]},
   { category: "gs-paper-4", topics: [
-    "When Duty Conflicts with Conscience: Real Ethical Dilemmas IAS Officers Face",
-    "Mahatma Gandhi vs Kant: Two Philosophies of Truth That Every Civil Servant Should Understand",
-    "Whistleblower Protection in India: Why Satyendra Dubey's Murder Still Matters",
-    "The Ethics of Artificial Intelligence: Can Machines Make Moral Decisions for Governance?",
-    "Corruption in Public Life: Why Institutional Ethics Matter More Than Individual Morality",
-    "John Rawls' Theory of Justice: How 'Veil of Ignorance' Applies to Indian Policy Making",
-    "Emotional Intelligence in Crisis Management: Lessons from Real District Administration Cases",
-    "Why Bureaucratic Apathy Is More Dangerous Than Active Corruption",
-    "Amartya Sen's Capability Approach: Redefining Development Beyond GDP Numbers",
-    "The Nolan Principles: Seven Standards of Public Life Every Civil Servant Must Follow",
+    "3 IAS Officers Who Chose Conscience Over Orders — Case Study Analysis",
+    "Gandhi vs Kant on Truth: Which Framework Works Better for GS4 Answers",
+    "Whistleblower Deaths: Satyendra Dubey to Manjunath — What Changed Legally",
+    "AI Ethics in Governance: When Algorithms Decide Welfare Eligibility — Real Cases",
+    "Institutional Ethics vs Individual Morality: A Scoring Framework for GS4 Cases",
+    "Rawls' Veil of Ignorance Applied to Indian Reservation Policy — A GS4 Argument",
+    "Emotional Intelligence: 3 District Collector Crisis Responses — What Went Right and Wrong",
+    "Nolan Principles vs Indian Code of Conduct: Gap Analysis for Ethics Answers",
   ]},
   { category: "answer-writing", topics: [
-    "Why Most UPSC Mains Answers Score Below 50% — Common Structural Mistakes",
-    "The 10-Minute Answer Framework: How Toppers Write 200-Word Answers Under Pressure",
-    "When the Question Says 'Critically Examine' vs 'Discuss' — What the Examiner Actually Wants",
-    "How to Build Arguments Like a Topper: The Thesis-Antithesis-Synthesis Method",
-    "Essay Writing for UPSC: How Anu Kumari Scored 165/250 — Deconstructing Her Approach",
-    "Using Data, Reports, and Judgments in Answers: What Adds Marks vs What Looks Like Showoff",
-    "The Art of Concluding Mains Answers: Why 'Way Forward' Paragraphs Make or Break Your Score",
+    "Critically Examine vs Discuss vs Analyze: UPSC Directive Words Decoded With Examples",
+    "10-Minute Answer Framework: Structure That Scores 10+ in 150-Word Answers",
+    "Why 70% of Mains Answers Score Below Half — 5 Structural Mistakes With Fixes",
+    "Essay Scoring Pattern: How Anu Kumari Got 165/250 — Paragraph-Level Breakdown",
+    "Data in Answers: Which Reports and Judgments Add Marks — And Which Look Forced",
+    "The 'Way Forward' Paragraph: 3 Templates That Examiners Actually Reward",
+    "GS1 Answer Writing: How to Handle 'Discuss the Role of' Questions in 250 Words",
+  ]},
+  { category: "upsc-strategy", topics: [
+    "Prelims Cut-Off Trend 2018-2025: Category-Wise, Paper-Wise Data Table",
+    "CSAT Difficulty Spike After 2021: Question Pattern Shift With Data",
+    "GS Prelims Topic Weightage: 7-Year Frequency Table for All 6 Subjects",
+    "Mains GS2 Scoring Range: Average Marks of Top 100 Rankers (2020-2024)",
+    "Optional Subject Scoring: Which Optionals Average 300+ and Which Drop Below 220",
+    "Interview Marks Distribution: Board-Wise Average and Range Data (2019-2024)",
+    "3 Attempts vs 5 Attempts: Success Rate Data and What Changes After Each Try",
+    "UPSC Age-Wise Selection: At What Age Do Most Candidates Clear — Data Analysis",
   ]},
   { category: "state-psc", topics: [
-    "BPSC 70th Exam: Why Bihar's State Service Exam Is Becoming Harder Than Ever",
-    "UPPSC vs UPSC: How Uttar Pradesh PCS Demands a Completely Different Strategy",
-    "MPSC 2025: Maharashtra's State Services Exam Pattern and What Makes It Unique",
-    "Why JPSC Jharkhand Has One of the Lowest Selection Rates Among State PSCs",
-    "Kerala PSC: How the State's Exam System Differs from the National Pattern",
-    "RPSC RAS Exam: Rajasthan's Civil Service and Why Desert Ecology Is a Hot Topic",
-    "Tamil Nadu TNPSC Group 1: The Only State PSC Where Regional History Dominates the Syllabus",
-    "West Bengal WBPSC: Understanding the Dual Pattern of Prelims and Personality Test",
+    "BPSC vs UPSC: Syllabus Overlap Percentage and Strategy Differences",
+    "UPPSC Prelims Cut-Off Trend: 5-Year Data With Category Breakdown",
+    "RPSC RAS: Why Rajasthan Geography Alone Carries 30% Weightage — Topic Map",
+    "TNPSC Group 1: Regional History's 40% Share — Topic Frequency Data",
+    "MPSC 2025: Maharashtra's Unique Combined Exam Pattern Explained With Data",
+    "State PSC Selection Rates Compared: BPSC vs UPPSC vs MPSC vs RPSC",
   ]},
   { category: "booklist", topics: [
-    "Beyond Laxmikanth: 5 Constitution Books That Give You an Edge in GS Paper 2",
-    "Why Reading Newspapers Alone Won't Help — Building a Current Affairs Strategy That Works",
-    "The NCERT Reading Order That Toppers Actually Follow (Not What Coaching Centers Tell You)",
-    "Optional Subject Book Selection: How the Right 3-4 Books Can Get You 300+ Marks",
-    "Bipin Chandra vs Spectrum: Which Modern History Book Actually Helps More in Prelims",
+    "Beyond Laxmikanth: 5 Polity Books That Cover What Chapter 1-70 Miss",
+    "NCERT Reading Order: Which 22 Books in What Sequence — Topper-Verified",
+    "Optional Book Selection: Top 5 Optionals With Exact Book Combos for 300+",
+    "Bipin Chandra vs Spectrum: Page-Count, Coverage, and Prelims Hit-Rate Compared",
+    "Current Affairs Sources Ranked: Newspaper vs Magazine vs App — Cost-to-Value",
   ]},
   { category: "motivation", topics: [
-    "Cleared UPSC at 32 After 5 Attempts: The Story Behind the Persistence",
-    "The Mental Health Crisis Among UPSC Aspirants That Nobody Talks About",
-    "How a Daily Wage Labourer's Son from Dharavi Became an IAS Officer",
-    "Quitting a 20 LPA Tech Job for UPSC: Was It Worth It? Three Officers Share Their Truth",
-    "What Failing UPSC Taught Me That Success Never Could — Stories from the Other Side",
+    "Cleared at 32, 5th Attempt: Monthly Study Hours and What Changed Each Time",
+    "UPSC Mental Health Data: Why 63% of Aspirants Report Anxiety After Year 2",
+    "Tech Job to IAS: 3 Officers on Whether the Pay Cut Was Worth It — With Numbers",
+    "What 500 Failed Candidates Wish They Knew Before Attempt 1",
   ]},
 ];
 
@@ -286,33 +278,31 @@ async function generateFreshTopics(count: number, existingTitles: Set<string>): 
   const categories = BLOG_CATEGORIES.filter(c => c !== "general");
   const randomCats = categories.sort(() => Math.random() - 0.5).slice(0, count);
 
-  const prompt = `You are an editorial director at India's best UPSC preparation platform. Generate ${count} article titles.
+  const prompt = `Generate ${count} UPSC article titles that can RANK on Google. Each title must target a SPECIFIC search intent and promise DATA or ANALYSIS — not generic explanation.
 
-STYLE RULES (CRITICAL):
-- Write titles like a journalist or policy analyst, NOT like an SEO robot
-- Use specific events, names, data, years, and real-world context
-- Titles should provoke curiosity or promise insight — NOT list features
-- NEVER use generic patterns like "Complete Guide", "Tips and Tricks", "Everything You Need to Know"
-- NEVER stuff UPSC/IAS/Civil Services into every title — use them sparingly and naturally
-- Think: "What would The Indian Express or EPW publish?" not "What would a coaching center blog post?"
+TITLE RULES:
+- Every title MUST include a number, data point, or specific claim
+- Target ONE search intent per title (comparison, trend, analysis, or breakdown)
+- NEVER use: "Complete Guide", "Everything You Need to Know", "Strategic Guide", "Tips and Tricks"
+- Think cluster content: each article should link to others on related sub-topics
 
-GOOD EXAMPLES:
-- "Why India's Fiscal Deficit Touched 6.4% — And What the Budget 2026 Must Fix"
-- "The Cauvery Water Dispute: 200 Years of Inter-State Rivalry That Won't End"
-- "How a Single RTI Application Uncovered India's Biggest Land Scam"
-- "The Death of the Planning Commission: Was NITI Aayog Really a Better Replacement?"
+GOOD (data-driven, specific):
+- "Prelims Cut-Off 2018-2025: Category-Wise Trend and the 15-Mark Drop"
+- "GS3 Economy Questions: 7-Year Topic Frequency Table"
+- "IBC Recovery Rate Dropped to 32% in 2024 — Here's Why"
+- "Governor vs CM: 7 States, 7 Deadlocks Since 2020"
+- "Mains Directive Words: What 'Critically Examine' Expects vs What You Write"
 
-BAD EXAMPLES (NEVER write these):
-- "UPSC Prelims Strategy: Complete Guide for Beginners"
-- "Top 10 Current Affairs for UPSC 2025"
-- "How to Crack UPSC in First Attempt"
+BAD (generic, no data promise):
+- "Understanding Indian Polity for UPSC"
+- "How to Prepare for UPSC Mains"
+- "The Importance of Current Affairs in UPSC"
 
-Categories to cover: ${randomCats.join(", ")}
+Categories: ${randomCats.join(", ")}
 
-Return a JSON array of objects with "topic" and "category" fields.
 Avoid topics similar to: ${Array.from(existingTitles).slice(0, 30).join(" | ")}
 
-Return ONLY the JSON array, no other text.`;
+Return ONLY a JSON array: [{"topic":"...","category":"..."}]`;
 
   try {
     const result = await ai.models.generateContent({
@@ -330,64 +320,79 @@ Return ONLY the JSON array, no other text.`;
 }
 
 async function generateBlogContent(topic: string, category: string): Promise<InsertBlogPost | null> {
-  const prompt = `You are a former IAS officer turned independent policy writer. You write for serious UPSC aspirants who are tired of generic coaching content. Your writing sounds like a smart friend who cleared the exam explaining things over chai — direct, specific, opinionated.
+  const existingPosts = await db
+    .select({ title: blogPosts.title, slug: blogPosts.slug })
+    .from(blogPosts)
+    .where(eq(blogPosts.published, true))
+    .limit(30);
+  const internalLinks = existingPosts.map(p => `[${p.title}](/blog/${p.slug})`).slice(0, 15);
+
+  const prompt = `You are a former IAS officer turned independent UPSC policy writer. You write data-driven articles that rank on Google by being BETTER than the top 5 existing results — not just well-written, but differentiated with unique data, trend analysis, and specific insights no coaching site provides.
 
 TOPIC: "${topic}"
 CATEGORY: ${category}
 
-=== BANNED LANGUAGE (INSTANT REJECTION IF USED) ===
-NEVER use these words/phrases in any form:
-"comprehensive", "holistic", "strategic blueprint", "foundational pillars", "crucial cornerstone", "navigating", "decoding", "stands as a pinnacle", "gauntlet", "in-depth analysis", "multifaceted", "paradigm", "synergy", "pivotal", "indispensable", "plethora", "myriad", "delve into", "it is worth noting", "it is important to note", "in today's world", "in the realm of", "the landscape of", "embark on", "tapestry", "beacon", "robust", "leverage", "key takeaways", "furthermore", "in conclusion", "nuanced", "critically examine", "underscore", "paradigm shift", "comprehensive overview", "it goes without saying", "needless to say", "at the end of the day", "game changer", "cutting edge", "cornerstone", "linchpin", "underpinning", "overarching", "interplay", "facets", "intricacies", "demystify", "unpack", "deep dive", "shed light on", "pave the way", "bolster", "spearhead"
+=== LANGUAGE RULE ===
+Write ONLY in English. Never generate content in Hindi, Hinglish, or any other language.
 
-Also avoid: starting sentences with "In the ever-evolving", "As we stand at the cusp of", "It is imperative that". No filler transitions like "Moreover", "Furthermore", "Additionally", "Consequently" at sentence starts.
+=== SEARCH INTENT RULE (CRITICAL) ===
+This article must target ONE specific search intent. Do NOT mix intents.
+- If the topic is about data/trends → provide tables, year-wise analysis, numbers
+- If the topic is about strategy → give actionable steps with timelines
+- If the topic is about analysis → compare viewpoints with evidence
+- If the topic is current affairs → include timeline, stakeholders, and UPSC angle
+NEVER try to be motivational + strategic + explanatory all in one article. Pick ONE angle and go deep.
 
-=== ANTI-HALLUCINATION RULE ===
-Only cite real data you are confident about — real committee names, real article numbers, real judgment names. If you are unsure about a specific statistic or number, omit it rather than invent it. Never fabricate statistics like "78% of aspirants" unless it's from a known source. Use directional language ("a significant portion", "in recent years") when exact data is uncertain.
+=== BANNED LANGUAGE ===
+Never use: "comprehensive", "holistic", "strategic blueprint", "foundational pillars", "crucial cornerstone", "navigating", "decoding", "stands as a pinnacle", "gauntlet", "in-depth analysis", "multifaceted", "paradigm", "synergy", "pivotal", "indispensable", "plethora", "myriad", "delve into", "it is worth noting", "it is important to note", "in today's world", "in the realm of", "the landscape of", "embark on", "tapestry", "beacon", "robust", "leverage", "key takeaways", "furthermore", "in conclusion", "nuanced", "underscore", "paradigm shift", "comprehensive overview", "needless to say", "game changer", "cutting edge", "cornerstone", "linchpin", "overarching", "interplay", "facets", "intricacies", "demystify", "unpack", "deep dive", "shed light on", "pave the way", "bolster", "spearhead"
+No filler transitions at sentence starts: "Moreover", "Furthermore", "Additionally", "Consequently".
+NEVER title the article "Complete Guide", "Everything You Need to Know", or "A Strategic Guide".
+
+=== ANTI-HALLUCINATION ===
+Only cite data you are confident about. If unsure about a number, omit it. Never fabricate statistics. Use directional language when exact data is uncertain. ALWAYS prefer real committee names, real judgment names, real article numbers.
+
+=== DATA REQUIREMENTS (THIS IS WHAT MAKES IT RANK) ===
+Your article MUST include at least:
+1. TWO data tables with real numbers (year-wise trends, comparison data, weightage breakdowns, cut-off tables, category-wise data). Use markdown pipe table syntax.
+2. Specific year references (not "in recent years" — say "in 2023" or "between 2019 and 2024")
+3. At least ONE trend analysis (how something changed over 5+ years with data points)
+4. At least ONE comparison (A vs B with structured data — not just prose)
+5. Real UPSC question references ("In Prelims 2023, Q47 asked about..." or "Mains 2022 GS2 had a 15-marker on...")
+
+=== INTERNAL LINKING ===
+Include 2-3 internal links to related articles on this site using markdown link format.
+Available articles to link to:
+${internalLinks.length > 0 ? internalLinks.join('\n') : 'No existing articles yet — skip internal links.'}
+Only link if the topic is genuinely related. Use natural anchor text within sentences.
 
 === WRITING RULES ===
-1. OPENING: Start with a specific fact, number, real event, or provocative observation. Never start with a definition or "The [topic] is..." pattern.
-   BAD: "The Civil Services Examination stands as a pinnacle of academic achievement..."
-   GOOD: "In Prelims 2024, 38 out of 100 questions came from current affairs overlap with static syllabus. Most aspirants who failed didn't get this."
+1. OPENING: Start with a specific number or data point. Not a definition.
+   GOOD: "Between 2019 and 2024, UPSC asked 43 questions from Environment in Prelims. That's 8-9 per year. Yet most aspirants spend less than 15% of prep time on it."
 
-2. VOICE: Write like you're explaining to a sharp 22-year-old preparing for UPSC. Be direct. Take positions. Say "most aspirants get this wrong" or "here's what actually matters." Have opinions.
+2. VOICE: Direct, opinionated, data-backed. Take positions. A smart mentor sharing analysis, not a textbook.
 
-3. SPECIFICITY: Every claim needs a number, name, year, judgment, committee, or data point. No generic statements.
-   BAD: "Many committees have recommended reforms"
-   GOOD: "The **Sarkaria Commission (1988)**, **Punchhi Commission (2010)**, and **NCRWC (2002)** all recommended curbing Article 356 misuse — yet 126 instances of President's Rule have occurred since 1950"
+3. HEADINGS: Clear, direct, specific. Include numbers where possible.
+   GOOD: "5-Year Cut-Off Trend: General vs OBC vs SC"
+   GOOD: "Why GS3 Scoring Dropped 12% After 2021"
+   BAD: "Understanding the Examination Framework"
 
-4. HEADINGS: Use clear, direct headings. NOT academic-sounding.
-   BAD: "The Constitutional Framework and Its Foundational Pillars"
-   GOOD: "What the Constitution Actually Says"
-   BAD: "Navigating the Challenges"
-   GOOD: "Why This Keeps Failing"
+4. Max 3-line paragraphs. Bold key terms with **double asterisks**.
 
-5. PARAGRAPHS: Max 3 lines. Break after every idea. White space matters.
+5. FORMATTING:
+   - ## (H2) and ### (H3) only. Minimum 6 H2 sections.
+   - Dash (-) bullet lists only, never asterisk (*)
+   - End with ## FAQs — 5 questions aspirants actually Google (as ### headings with 2-3 sentence answers)
 
-6. FORMATTING:
-   - Use ## (H2) and ### (H3) only. Never #### or deeper.
-   - Minimum 5 H2 sections
-   - Use dash (-) bullet lists, never asterisk (*)
-   - Bold key terms: **Article 21**, **2024 Budget**, **Kesavananda Bharati case**
-   - Include 1-2 data tables with real numbers
-   - End with ## FAQs — 5 practical questions aspirants actually ask (as ### headings with 2-3 sentence answers)
-
-7. UNIQUE VALUE: Include at least:
-   - One "most aspirants get this wrong" insight
-   - One past-year UPSC question reference or trend
-   - One comparison table with real data
-   - One opinion or position on a debate
-   - One practical "how to use this in your answer" tip
-
-8. LENGTH: 1800-2200 words. Every sentence earns its place.
+6. LENGTH: 2000-2500 words. Data-dense, no filler.
 
 === OUTPUT FORMAT ===
 Return ONLY a JSON object:
 {
-  "title": "Specific, engaging title — max 65 chars. No 'Complete Guide' or 'Everything You Need to Know'",
-  "metaTitle": "Search-optimized version — max 60 chars",
-  "metaDescription": "150-char hook that makes someone click — like a newspaper subheading",
-  "excerpt": "2 sentences, under 180 chars, conversational",
-  "content": "Full markdown. Direct voice. Real data. Opinions. Short paragraphs.",
+  "title": "Data-specific title, max 65 chars. Must include a number or specific claim.",
+  "metaTitle": "Search-optimized, max 60 chars",
+  "metaDescription": "150-char hook with a data point that makes someone click",
+  "excerpt": "2 sentences under 180 chars with a specific insight",
+  "content": "Full markdown. Data tables. Trend analysis. Internal links. Direct voice.",
   "tags": ["5-7 relevant tags"],
   "coverImageAlt": "Descriptive alt text"
 }

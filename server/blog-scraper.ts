@@ -640,53 +640,58 @@ function sanitizeContent(text: string): string {
 async function rewriteArticleWithAI(article: ScrapedArticle): Promise<InsertBlogPost | null> {
   const detectedCategory = detectCategory(article.title, article.content);
 
-  const prompt = `You are rewriting a research note into an original article for serious UPSC aspirants. Your voice: a senior mentor who cleared the exam, now sharing real insights — NOT a coaching center blog writer.
+  const existingPosts = await db
+    .select({ title: blogPosts.title, slug: blogPosts.slug })
+    .from(blogPosts)
+    .where(eq(blogPosts.published, true))
+    .limit(20);
+  const internalLinks = existingPosts.map(p => `[${p.title}](/blog/${p.slug})`).slice(0, 10);
+
+  const prompt = `You are rewriting a research note into a data-driven, rank-worthy article. Your goal: be BETTER than the top 5 Google results for this topic. Not just well-written — differentiated with data, trends, and analysis no coaching site provides.
 
 RULES:
 1. NEVER mention any coaching institute, website, academy, or source name
-2. NEVER copy sentences — completely rewrite everything
-3. Write as if you personally researched this topic
+2. NEVER copy sentences — completely rewrite with NEW data and analysis added
+3. Target ONE specific search intent — do NOT mix motivational + strategic + explanatory
 
 ORIGINAL TITLE: "${article.title}"
-RESEARCH MATERIAL (rewrite completely, do NOT copy):
+RESEARCH MATERIAL (rewrite completely, add data):
 ${article.content}
 
-=== BANNED LANGUAGE (WILL BE REJECTED) ===
-Never use in any form: "comprehensive", "holistic", "strategic blueprint", "foundational pillars", "crucial cornerstone", "navigating", "decoding", "stands as a pinnacle", "gauntlet", "in-depth analysis", "multifaceted", "paradigm", "synergy", "pivotal", "indispensable", "plethora", "myriad", "delve into", "it is worth noting", "in today's world", "the landscape of", "embark on", "tapestry", "beacon", "robust", "leverage", "key takeaways", "furthermore", "in conclusion", "nuanced", "critically examine", "underscore", "paradigm shift", "comprehensive overview", "needless to say", "game changer", "cutting edge", "cornerstone", "linchpin", "overarching", "interplay", "facets", "intricacies", "demystify", "unpack", "deep dive", "shed light on", "pave the way", "bolster", "spearhead"
-No filler transitions at sentence starts: "Moreover", "Furthermore", "Additionally", "Consequently".
+=== BANNED LANGUAGE ===
+Never use: "comprehensive", "holistic", "strategic blueprint", "foundational pillars", "crucial cornerstone", "navigating", "decoding", "stands as a pinnacle", "gauntlet", "in-depth analysis", "multifaceted", "paradigm", "synergy", "pivotal", "indispensable", "plethora", "myriad", "delve into", "it is worth noting", "in today's world", "the landscape of", "embark on", "tapestry", "beacon", "robust", "leverage", "key takeaways", "furthermore", "in conclusion", "nuanced", "underscore", "paradigm shift", "comprehensive overview", "needless to say", "game changer", "cutting edge", "cornerstone", "linchpin", "overarching", "interplay", "facets", "intricacies", "demystify", "unpack", "deep dive", "shed light on", "pave the way", "bolster", "spearhead"
+No "Moreover", "Furthermore", "Additionally" at sentence starts. NEVER title it "Complete Guide" or "Strategic Guide".
 
-ANTI-HALLUCINATION: Only cite real data you are confident about. If unsure about a statistic, omit it. Never fabricate numbers. Use directional language when exact data is uncertain.
+ANTI-HALLUCINATION: Only cite real data. If unsure, omit. Never fabricate statistics.
+
+=== DATA REQUIREMENTS (THIS IS WHAT MAKES IT RANK) ===
+You MUST include:
+1. TWO data tables with real numbers (year-wise trends, comparisons, category data)
+2. Specific years — not "in recent years" but "in 2023"
+3. ONE trend analysis over 5+ years with data points
+4. ONE structured comparison (A vs B with data)
+5. Real UPSC question references where relevant
+
+=== INTERNAL LINKING ===
+${internalLinks.length > 0 ? 'Include 2-3 links to related articles:\n' + internalLinks.join('\n') : 'No existing articles yet.'}
 
 === WRITING STYLE ===
-1. OPENING: Start with a sharp fact, number, or provocative observation. Never "The [topic] is a..."
-   GOOD: "Between 2019 and 2024, India's fiscal deficit averaged 6.2% of GDP — nearly double the FRBM target. Here's why that matters for your GS3 answer."
-
-2. VOICE: Direct, opinionated, specific. Take positions. Say what most aspirants get wrong. Reference real UPSC questions, years, trends.
-
-3. SPECIFICITY: Every claim needs data — a year, number, judgment name, committee report, or article number. Zero generic statements.
-
-4. HEADINGS: Clear and direct, not academic.
-   BAD: "Understanding the Constitutional Framework"
-   GOOD: "What the Constitution Actually Says"
-
-5. Max 3-line paragraphs. Bold key terms with **double asterisks**.
-
-6. Use ## (H2) and ### (H3) only. Min 5 H2 sections.
-   Use dash (-) bullets only. Include 1-2 data tables.
-   End with ## FAQs — 5 questions aspirants actually search for (### headings, 2-3 sentence answers)
-
-7. Include: one "common mistake" insight, one past-year question reference, one comparison table, one answer-writing tip.
-
-8. Target 1800-2200 words.
+1. Open with a specific number or data point. Never a definition.
+2. Direct, opinionated voice. Take positions. Point out common mistakes.
+3. Headings with numbers: "5-Year Trend", "3 Reasons Why", "State-Wise Breakdown"
+4. Max 3-line paragraphs. Bold key terms. Dash (-) bullets only.
+5. ## and ### headings only. Min 6 H2 sections.
+6. End with ## FAQs — 5 questions people actually Google (### headings, 2-3 sentences)
+7. Target 2000-2500 words, data-dense.
 
 === OUTPUT ===
 Return ONLY a JSON object:
 {
-  "title": "Sharp title under 60 chars — no 'Complete Guide' patterns",
+  "title": "Data-specific title under 60 chars with a number or specific claim",
   "metaTitle": "SEO title under 60 chars",
-  "metaDescription": "150-char hook — sounds like a newspaper subheading",
-  "excerpt": "2 sentences under 180 chars, conversational",
-  "content": "Full markdown. Human voice. Data-backed. Opinionated.",
+  "metaDescription": "150-char hook with data point",
+  "excerpt": "2 sentences under 180 chars with specific insight",
+  "content": "Full markdown. Data tables. Trends. Internal links. Direct voice.",
   "tags": ["5-7 tags"],
   "coverImageAlt": "Descriptive alt text",
   "category": "${detectedCategory}"
