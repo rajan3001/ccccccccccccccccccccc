@@ -493,9 +493,43 @@ No markdown fencing. No extra text. Only valid JSON.`;
 
 async function generateAndUploadCoverImage(title: string, slug: string): Promise<string | null> {
   try {
-    const colorSchemes = [
-      "deep royal blue (#1e3a8a) to teal (#0d9488) gradient",
-      "rich indigo (#4338ca) to vibrant magenta (#c026d3) gradient",
+    const prompt = `A professional and realistic thumbnail for a blog post titled "${title}". 
+    The style must be a high-quality real photograph related to the topic (e.g., if it's about law, show a gavel; if it's about health, show fresh vegetables; if it's about technology, show high-tech circuits).
+    CRITICAL: The image MUST have a clean white header or overlay at the top containing the text "Learnpro AI" in a professional, modern sans-serif font.
+    The overall look should be educational, authoritative, and visually striking, similar to top-tier news or educational platform thumbnails.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-image",
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      config: {
+        responseModalities: [Modality.TEXT, Modality.IMAGE],
+      },
+    });
+
+    const candidate = response.candidates?.[0];
+    const imagePart = candidate?.content?.parts?.find((part: any) => part.inlineData);
+
+    if (!imagePart?.inlineData?.data) {
+      console.error("No image data in Gemini response");
+      return null;
+    }
+
+    const buffer = Buffer.from(imagePart.inlineData.data, "base64");
+    const fileName = `blog-covers/${slug}.png`;
+    const bucket = objectStorageClient.bucket();
+    const file = bucket.file(fileName);
+
+    await file.save(buffer, {
+      metadata: { contentType: "image/png" },
+      public: true,
+    });
+
+    return `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+  } catch (e) {
+    console.error("Error generating and uploading cover image:", e);
+    return null;
+  }
+}
       "emerald green (#047857) to cyan (#06b6d4) gradient",
       "warm crimson (#dc2626) to amber gold (#f59e0b) gradient",
       "deep purple (#7c3aed) to ocean blue (#2563eb) gradient",
