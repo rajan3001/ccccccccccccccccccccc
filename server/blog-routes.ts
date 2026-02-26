@@ -524,25 +524,24 @@ DESIGN REQUIREMENTS:
       return null;
     }
 
-    const imageBuffer = Buffer.from(imagePart.inlineData.data, "base64");
     const mimeType = imagePart.inlineData.mimeType || "image/png";
-    const ext = mimeType.includes("jpeg") ? "jpg" : "png";
+    const base64Data = imagePart.inlineData.data;
 
     const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
-    if (!bucketId) {
-      console.log("No bucket ID for image upload");
-      return null;
+    if (bucketId) {
+      const imageBuffer = Buffer.from(base64Data, "base64");
+      const ext = mimeType.includes("jpeg") ? "jpg" : "png";
+      const objectPath = `public/blog/${slug}.${ext}`;
+      const bucket = objectStorageClient.bucket(bucketId);
+      const file = bucket.file(objectPath);
+      await file.save(imageBuffer, {
+        contentType: mimeType,
+        metadata: { cacheControl: "public, max-age=31536000" },
+      });
+      return `/api/blog/images/${slug}.${ext}`;
     }
 
-    const objectPath = `public/blog/${slug}.${ext}`;
-    const bucket = objectStorageClient.bucket(bucketId);
-    const file = bucket.file(objectPath);
-    await file.save(imageBuffer, {
-      contentType: mimeType,
-      metadata: { cacheControl: "public, max-age=31536000" },
-    });
-
-    return `/api/blog/images/${slug}.${ext}`;
+    return `data:${mimeType};base64,${base64Data}`;
   } catch (e) {
     console.error(`Error generating cover image for "${title}":`, e);
     return null;
@@ -735,9 +734,9 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     .hero p{color:rgba(219,234,254,0.82);font-size:1.08rem;max-width:540px;margin:0 auto;position:relative;animation:fadeUp 0.5s 0.2s ease-out both;line-height:1.7}
 
     .cat-strip-wrap{position:sticky;top:var(--header-h);z-index:40;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.96);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);box-shadow:0 1px 0 rgba(0,0,0,0.06),0 4px 12px rgba(0,0,0,0.04)}
-    .cat-strip{padding:0.75rem 1.5rem;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;max-width:100vw;box-sizing:border-box;position:relative}
+    .cat-strip{max-width:1200px;margin:0 auto;padding:0.75rem 1.5rem;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;box-sizing:border-box;position:relative}
     .cat-strip::-webkit-scrollbar{display:none}
-    .cat-strip-inner{display:flex;gap:0.5rem;max-width:1200px;margin:0 auto;min-width:max-content;align-items:center}
+    .cat-strip-inner{display:flex;gap:0.5rem;min-width:max-content;align-items:center}
     .cat-fade-r,.cat-fade-l{position:absolute;top:0;bottom:0;width:40px;pointer-events:none;z-index:2}
     .cat-fade-r{right:0;background:linear-gradient(to left,rgba(255,255,255,0.95),transparent)}
     .cat-fade-l{left:0;background:linear-gradient(to right,rgba(255,255,255,0.95),transparent);opacity:0;transition:opacity 0.2s}

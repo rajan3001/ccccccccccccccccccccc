@@ -605,22 +605,24 @@ DESIGN REQUIREMENTS:
     const imagePart = candidate?.content?.parts?.find((part: any) => part.inlineData);
     if (!imagePart?.inlineData?.data) return null;
 
-    const imageBuffer = Buffer.from(imagePart.inlineData.data, "base64");
     const mimeType = imagePart.inlineData.mimeType || "image/png";
-    const ext = mimeType.includes("jpeg") ? "jpg" : "png";
+    const base64Data = imagePart.inlineData.data;
 
     const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
-    if (!bucketId) return null;
+    if (bucketId) {
+      const imageBuffer = Buffer.from(base64Data, "base64");
+      const ext = mimeType.includes("jpeg") ? "jpg" : "png";
+      const objectPath = `public/blog/${slug}.${ext}`;
+      const bucket = objectStorageClient.bucket(bucketId);
+      const file = bucket.file(objectPath);
+      await file.save(imageBuffer, {
+        contentType: mimeType,
+        metadata: { cacheControl: "public, max-age=31536000" },
+      });
+      return `/api/blog/images/${slug}.${ext}`;
+    }
 
-    const objectPath = `public/blog/${slug}.${ext}`;
-    const bucket = objectStorageClient.bucket(bucketId);
-    const file = bucket.file(objectPath);
-    await file.save(imageBuffer, {
-      contentType: mimeType,
-      metadata: { cacheControl: "public, max-age=31536000" },
-    });
-
-    return `/api/blog/images/${slug}.${ext}`;
+    return `data:${mimeType};base64,${base64Data}`;
   } catch (e) {
     console.error(`[Scraper] Cover image failed for "${title}":`, (e as Error).message);
     return null;
