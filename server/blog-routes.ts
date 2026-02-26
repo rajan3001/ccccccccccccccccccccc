@@ -1498,15 +1498,15 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
       .share-bar .share-btn{width:34px;height:34px}
       .share-bar .share-btn svg{width:14px;height:14px}
       .share-bar .pdf-btn{font-size:0.72rem;padding:0.35rem 0.75rem}
-      .ask-ai-bar{padding:0.75rem 1rem}
-      .ask-ai-bar span{font-size:0.82rem}
+      .ask-ai-btn{font-size:0.78rem;padding:0.45rem 1rem;gap:0.4rem}
+      .ask-ai-btn svg{width:14px;height:14px}
     }
 
     .share-bar{display:flex;align-items:center;gap:0.45rem;flex-wrap:wrap;margin-top:0.85rem}
     .share-label{font-size:0.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-right:0.15rem}
     .share-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;color:var(--text-secondary);text-decoration:none;position:relative;flex-shrink:0}
     .share-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg);transform:translateY(-2px);box-shadow:0 4px 12px hsla(25,85%,45%,0.15)}
-    .share-btn:focus-visible,.pdf-btn:focus-visible,.ask-ai-bar:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    .share-btn:focus-visible,.pdf-btn:focus-visible,.ask-ai-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     .share-btn svg{width:16px;height:16px;flex-shrink:0}
     .share-btn.whatsapp:hover{color:#25d366;border-color:#25d366;background:rgba(37,211,102,0.06)}
     .share-btn.twitter:hover{color:#1da1f2;border-color:#1da1f2;background:rgba(29,161,242,0.06)}
@@ -1521,20 +1521,39 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     .pdf-btn svg{width:15px;height:15px;flex-shrink:0}
     .share-divider{width:1px;height:24px;background:var(--border);margin:0 0.15rem;flex-shrink:0}
 
-    .ask-ai-bar{display:flex;align-items:center;gap:0.65rem;padding:0.85rem 1.15rem;border-radius:var(--radius);background:linear-gradient(135deg,hsl(25,60%,18%),hsl(25,85%,30%));color:#fff;text-decoration:none;transition:all 0.25s;margin:1.25rem 0;position:relative;overflow:hidden;cursor:pointer}
-    .ask-ai-bar::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:14px 14px;pointer-events:none}
-    .ask-ai-bar:hover{transform:translateY(-2px);box-shadow:0 8px 24px hsla(25,85%,30%,0.3);background:linear-gradient(135deg,hsl(25,65%,22%),hsl(25,85%,35%))}
-    .ask-ai-icon{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1}
-    .ask-ai-icon svg{width:20px;height:20px;stroke:#fbbf24;fill:none}
-    .ask-ai-text{flex:1;position:relative;z-index:1}
-    .ask-ai-bar span{font-family:var(--font-display);font-size:0.88rem;font-weight:700;display:block;letter-spacing:-0.01em}
-    .ask-ai-bar small{font-size:0.75rem;color:rgba(255,240,220,0.7);font-weight:400}
-    .ask-ai-arrow{position:relative;z-index:1;color:rgba(255,255,255,0.5);transition:all 0.2s}
-    .ask-ai-bar:hover .ask-ai-arrow{color:#fff;transform:translateX(3px)}
-    .ask-ai-arrow svg{width:20px;height:20px}
+    .ask-ai-btn{display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1.15rem;border-radius:9999px;background:linear-gradient(135deg,hsl(215,90%,45%),hsl(215,85%,55%));color:#fff;font-family:var(--font-body);font-size:0.82rem;font-weight:600;border:none;cursor:pointer;transition:all 0.25s;text-decoration:none;box-shadow:0 2px 8px hsla(215,90%,45%,0.25);position:relative;overflow:hidden;white-space:nowrap;margin:0.75rem 0}
+    .ask-ai-btn::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent 40%,rgba(255,255,255,0.15) 50%,transparent 60%);animation:aiShimmer 3s ease-in-out infinite}
+    @keyframes aiShimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+    .ask-ai-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px hsla(215,90%,45%,0.35);background:linear-gradient(135deg,hsl(215,90%,50%),hsl(215,85%,60%))}
+    .ask-ai-btn:active{transform:translateY(0);box-shadow:0 1px 4px hsla(215,90%,45%,0.2)}
+    .ask-ai-btn:focus-visible{outline:2px solid hsl(215,90%,45%);outline-offset:2px}
+    .ask-ai-btn svg{width:16px;height:16px;flex-shrink:0}
+    .ask-ai-dialog-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+    .ask-ai-dialog-overlay.open{display:flex}
+    .ask-ai-dialog{background:#fff;border-radius:12px;width:90%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,0.2);padding:1.5rem;position:relative;animation:dialogIn 0.25s ease}
+    @keyframes dialogIn{from{opacity:0;transform:scale(0.95) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    .ask-ai-dialog-title{font-family:var(--font-display);font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 0.25rem;display:flex;align-items:center;gap:0.45rem}
+    .ask-ai-dialog-title svg{width:20px;height:20px;color:hsl(215,90%,45%);flex-shrink:0}
+    .ask-ai-dialog-sub{font-size:0.78rem;color:var(--text-muted);margin:0 0 1rem}
+    .ask-ai-dialog-input{width:100%;padding:0.7rem 0.85rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;font-family:var(--font-body);color:var(--text);outline:none;transition:border-color 0.2s;box-sizing:border-box;resize:none;min-height:70px}
+    .ask-ai-dialog-input:focus{border-color:hsl(215,90%,45%);box-shadow:0 0 0 3px hsla(215,90%,45%,0.1)}
+    .ask-ai-dialog-input::placeholder{color:var(--text-muted)}
+    .ask-ai-dialog-actions{display:flex;align-items:center;justify-content:flex-end;gap:0.6rem;margin-top:0.85rem}
+    .ask-ai-dialog-cancel{padding:0.45rem 1rem;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-secondary);font-size:0.82rem;font-weight:500;cursor:pointer;transition:all 0.2s;font-family:var(--font-body)}
+    .ask-ai-dialog-cancel:hover{background:var(--bg-warm);border-color:var(--text-muted)}
+    .ask-ai-dialog-go{padding:0.45rem 1.25rem;border-radius:8px;border:none;background:linear-gradient(135deg,hsl(215,90%,45%),hsl(215,85%,55%));color:#fff;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:var(--font-body);display:inline-flex;align-items:center;gap:0.35rem}
+    .ask-ai-dialog-go:hover{background:linear-gradient(135deg,hsl(215,90%,50%),hsl(215,85%,60%));box-shadow:0 2px 8px hsla(215,90%,45%,0.3)}
+    .ask-ai-dialog-go:disabled{opacity:0.5;cursor:not-allowed}
+    .ask-ai-dialog-close{position:absolute;top:0.75rem;right:0.75rem;width:28px;height:28px;border-radius:50%;border:none;background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+    .ask-ai-dialog-close:hover{background:var(--bg-warm);color:var(--text)}
+    .ask-ai-dialog-close svg{width:16px;height:16px}
+    .ask-ai-dialog-login{text-align:center;padding:0.75rem 0 0.25rem}
+    .ask-ai-dialog-login p{font-size:0.85rem;color:var(--text-secondary);margin:0 0 0.65rem}
+    .ask-ai-dialog-login a{display:inline-flex;align-items:center;gap:0.35rem;padding:0.5rem 1.25rem;border-radius:8px;background:linear-gradient(135deg,hsl(215,90%,45%),hsl(215,85%,55%));color:#fff;text-decoration:none;font-size:0.82rem;font-weight:600;transition:all 0.2s}
+    .ask-ai-dialog-login a:hover{box-shadow:0 2px 8px hsla(215,90%,45%,0.3)}
 
     @media print{
-      .top-bar,.read-bar,.sidebar-col,.site-footer,.share-bar,.ask-ai-bar,.cta-box,.nav-posts,.relevance-box,.tags-section,.faq-section,.source-box,.breadcrumb,.pdf-btn{display:none!important}
+      .top-bar,.read-bar,.sidebar-col,.site-footer,.share-bar,.ask-ai-btn,.ask-ai-dialog-overlay,.cta-box,.nav-posts,.relevance-box,.tags-section,.faq-section,.source-box,.breadcrumb,.pdf-btn{display:none!important}
       .page-wrapper{max-width:100%;padding:0;display:block}
       .main-col{max-width:100%;padding:0}
       body{font-size:11pt;line-height:1.6;color:#000}
@@ -1621,11 +1640,10 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
         </div>
       </header>
 
-      <a href="/?article=${post.slug}" class="ask-ai-bar" data-testid="ask-ai-top" aria-label="Ask Learnpro AI about this article">
-        <div class="ask-ai-icon"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v1m0 16v1m-8-9H3m18 0h-1m-2.636-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707"/><circle cx="12" cy="12" r="4"/></svg></div>
-        <div class="ask-ai-text"><span>Ask Learnpro AI about this article</span><small>Get instant answers, summaries, and deeper analysis</small></div>
-        <div class="ask-ai-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></div>
-      </a>
+      <button class="ask-ai-btn" data-testid="ask-ai-top" aria-label="Ask Learnpro AI about this article" onclick="openAskAiDialog()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v1m0 16v1m-8-9H3m18 0h-1m-2.636-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707"/><circle cx="12" cy="12" r="4"/></svg>
+        Ask Learnpro AI
+      </button>
 
       <div class="relevance-box relevance-warm" data-testid="relevance-prelims">
         <div class="relevance-head">
@@ -1659,11 +1677,10 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
         <button class="pdf-btn" data-testid="download-pdf-bottom" onclick="window.print()" title="Download as PDF" aria-label="Download article as PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download PDF</button>
       </div>
 
-      <a href="/?article=${post.slug}" class="ask-ai-bar" data-testid="ask-ai-bottom" aria-label="Ask Learnpro AI about this article">
-        <div class="ask-ai-icon"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v1m0 16v1m-8-9H3m18 0h-1m-2.636-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707"/><circle cx="12" cy="12" r="4"/></svg></div>
-        <div class="ask-ai-text"><span>Ask Learnpro AI about this article</span><small>Get instant answers, summaries, and deeper analysis</small></div>
-        <div class="ask-ai-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></div>
-      </a>
+      <button class="ask-ai-btn" data-testid="ask-ai-bottom" aria-label="Ask Learnpro AI about this article" onclick="openAskAiDialog()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v1m0 16v1m-8-9H3m18 0h-1m-2.636-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707"/><circle cx="12" cy="12" r="4"/></svg>
+        Ask Learnpro AI
+      </button>
 
       <section class="faq-section" id="faqSection" data-testid="faq-section">
         <h2 class="faq-title">
@@ -1761,6 +1778,37 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
       </nav>
     </div>
   </footer>
+
+  <div class="ask-ai-dialog-overlay" id="askAiOverlay" data-testid="ask-ai-dialog-overlay">
+    <div class="ask-ai-dialog" role="dialog" aria-labelledby="askAiDialogTitle" data-testid="ask-ai-dialog">
+      <button class="ask-ai-dialog-close" onclick="closeAskAiDialog()" aria-label="Close dialog" data-testid="ask-ai-dialog-close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+      </button>
+      <h3 class="ask-ai-dialog-title" id="askAiDialogTitle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v1m0 16v1m-8-9H3m18 0h-1m-2.636-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707"/><circle cx="12" cy="12" r="4"/></svg>
+        Ask Learnpro AI
+      </h3>
+      <p class="ask-ai-dialog-sub">Ask any question about this article — "${post.title.replace(/"/g, '&quot;')}"</p>
+      ${isLoggedIn ? `
+      <textarea class="ask-ai-dialog-input" id="askAiInput" data-testid="ask-ai-input" placeholder="e.g. Summarise the key points, What are the constitutional provisions mentioned?" rows="3"></textarea>
+      <div class="ask-ai-dialog-actions">
+        <button class="ask-ai-dialog-cancel" onclick="closeAskAiDialog()" data-testid="ask-ai-cancel">Cancel</button>
+        <button class="ask-ai-dialog-go" id="askAiGoBtn" onclick="submitAskAi()" data-testid="ask-ai-go">
+          Go <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      ` : `
+      <div class="ask-ai-dialog-login" data-testid="ask-ai-login-prompt">
+        <p>Please log in to ask Learnpro AI questions about this article.</p>
+        <a href="/login" data-testid="ask-ai-login-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          Log in to continue
+        </a>
+      </div>
+      `}
+    </div>
+  </div>
+
   <script>
   function copyArticleLink(btn){
     var url=window.location.href;
@@ -1778,6 +1826,29 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     var tip=btn.querySelector('.copy-tooltip');
     if(tip){tip.classList.add('show');setTimeout(function(){tip.classList.remove('show');},1800);}
   }
+  function openAskAiDialog(){
+    var overlay=document.getElementById('askAiOverlay');
+    if(overlay){overlay.classList.add('open');var inp=document.getElementById('askAiInput');if(inp)inp.focus();}
+  }
+  function closeAskAiDialog(){
+    var overlay=document.getElementById('askAiOverlay');
+    if(overlay)overlay.classList.remove('open');
+  }
+  function submitAskAi(){
+    var inp=document.getElementById('askAiInput');
+    if(!inp)return;
+    var query=inp.value.trim();
+    if(!query)return;
+    var slug='${post.slug}';
+    window.location.href='/?article='+encodeURIComponent(slug)+'&q='+encodeURIComponent(query);
+  }
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){closeAskAiDialog();}
+  });
+  document.addEventListener('click',function(e){
+    var overlay=document.getElementById('askAiOverlay');
+    if(e.target===overlay)closeAskAiDialog();
+  });
   (function(){
     var bar=document.getElementById('readBar');
     if(bar){
