@@ -805,14 +805,38 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     .pg-numbers{display:flex;gap:0.35rem}
 
     .sidebar{width:320px;flex-shrink:0;animation:fadeUp 0.5s 0.4s ease-out both}
-    .sidebar-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.25rem}
-    .sidebar-card h3{font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--text);margin-bottom:1rem;padding-bottom:0.6rem;border-bottom:2px solid var(--primary-border)}
-    .date-list{max-height:280px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
-    .date-list::-webkit-scrollbar{width:4px}
-    .date-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
-    .date-item{display:flex;align-items:center;justify-content:space-between;padding:0.5rem 0.65rem;border-radius:0.5rem;font-size:0.82rem;color:var(--text-secondary);cursor:pointer;transition:all 0.2s;text-decoration:none;gap:0.5rem}
-    .date-item:hover,.date-item.active{background:var(--primary-dim);color:var(--primary-dark);font-weight:600}
-    .date-item span:last-child{font-size:0.72rem;color:var(--text-muted)}
+    .sidebar-card{background:#fff;border:1px solid var(--border);border-radius:1rem;margin-bottom:1.5rem;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.03)}
+    .sb-archive-box{border-radius:12px;overflow:hidden;margin-bottom:1.5rem;border:1px solid rgba(0,0,0,0.05);background:#fff}
+    .sb-archive-header{padding:1rem;display:flex;align-items:center;gap:0.75rem;color:#fff;font-weight:700;font-family:var(--font-display);position:relative;overflow:hidden}
+    .sb-archive-header.blue{background:linear-gradient(135deg, #0ea5e9, #0284c7)}
+    .sb-archive-header.orange{background:linear-gradient(135deg, #f59e0b, #d97706)}
+    
+    /* Animated Grid Lines */
+    .sb-archive-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+      background-size: 15px 15px;
+      opacity: 0.4;
+      animation: grid-move 20s linear infinite;
+    }
+    @keyframes grid-move {
+      0% { background-position: 0 0; }
+      100% { background-position: 30px 30px; }
+    }
+    
+    .sb-archive-header span{position:relative;z-index:1;font-size:1rem;letter-spacing:-0.01em}
+    .sb-archive-header svg{width:20px;height:20px;position:relative;z-index:1}
+    
+    .sb-archive-body{padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem}
+    .sb-inputs-row{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem}
+    .sb-input-field{width:100%;padding:0.65rem;border:1px solid var(--border);border-radius:6px;font-size:0.85rem;color:var(--text);font-family:var(--font-body);outline:none;transition:border-color 0.2s}
+    .sb-input-field:focus{border-color:var(--accent)}
+    .sb-go-btn{width:100%;padding:0.7rem;background:#0ea5e9;color:#fff;border:none;border-radius:6px;font-weight:700;font-size:0.9rem;cursor:pointer;transition:all 0.2s;font-family:var(--font-display)}
+    .sb-go-btn:hover{background:#0284c7;transform:translateY(-1px);box-shadow:0 4px 10px rgba(14, 165, 233, 0.3)}
+    .sb-go-btn.orange{background:#f59e0b}
+    .sb-go-btn.orange:hover{background:#d97706;box-shadow:0 4px 10px rgba(245, 158, 11, 0.3)}
     .tag-pills{display:flex;flex-wrap:wrap;gap:0.45rem}
     .tag-pill{display:inline-block;padding:0.3rem 0.7rem;border-radius:9999px;font-size:0.75rem;font-weight:500;background:var(--primary-dim);color:var(--primary-dark);border:1px solid var(--primary-border);text-decoration:none;transition:all 0.2s;cursor:pointer}
     .tag-pill:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
@@ -933,13 +957,47 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     </div>
 
     <aside class="sidebar" data-testid="blog-sidebar">
-      <div class="sidebar-card" data-testid="sidebar-browse-dates">
-        <h3>Browse by Date</h3>
-        <div class="date-list" id="dateList">
-          ${last30Days.map(d => {
-            const dateLabel = new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
-            return `<a class="date-item" href="/blog?date=${d}" data-testid="date-filter-${d}"><span>${dateLabel}</span></a>`;
-          }).join('')}
+      <div class="sb-archive-box" data-testid="sidebar-archives-date">
+        <div class="sb-archive-header blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>Archives by Date</span>
+        </div>
+        <div class="sb-archive-body">
+          <div class="sb-inputs-row">
+            <input type="text" class="sb-input-field" placeholder="Date From" onfocus="(this.type='date')" onblur="(this.value==''?this.type='text':null)">
+            <input type="text" class="sb-input-field" placeholder="Date To" onfocus="(this.type='date')" onblur="(this.value==''?this.type='text':null)">
+          </div>
+          <button class="sb-go-btn" onclick="const f=this.parentElement.querySelectorAll('input')[0].value; const t=this.parentElement.querySelectorAll('input')[1].value; if(f) window.location.href='/blog?date='+f;">Go</button>
+        </div>
+      </div>
+
+      <div class="sb-archive-box" data-testid="sidebar-archives-month">
+        <div class="sb-archive-header orange">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>Archives by Month &amp; Year</span>
+        </div>
+        <div class="sb-archive-body">
+          <div class="sb-inputs-row">
+            <select class="sb-input-field">
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
+            </select>
+            <select class="sb-input-field">
+              <option value="01">January</option>
+              <option value="02">February</option>
+              <option value="03">March</option>
+              <option value="04">April</option>
+              <option value="05">May</option>
+              <option value="06">June</option>
+              <option value="07">July</option>
+              <option value="08">August</option>
+              <option value="09">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+          </div>
+          <button class="sb-go-btn orange">Go</button>
         </div>
       </div>
 
