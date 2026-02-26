@@ -673,14 +673,20 @@ export async function runContentScrapeAndPublish(maxPerSource: number = 3): Prom
         const post = await rewriteArticleWithAI(article);
         if (!post) continue;
 
-        const imageUrl = await generateCoverImage(post.title, post.slug);
-        if (imageUrl) {
-          post.coverImageUrl = imageUrl;
-        }
-
         await db.insert(blogPosts).values(post);
         published++;
         console.log(`[Scraper] Published: "${post.title}"`);
+
+        generateCoverImage(post.title, post.slug).then(async (imageUrl) => {
+          if (imageUrl) {
+            try {
+              await db.update(blogPosts).set({ coverImageUrl: imageUrl }).where(eq(blogPosts.slug, post.slug));
+              console.log(`[Scraper] Cover image updated for: "${post.title}"`);
+            } catch (e) {
+              console.error(`[Scraper] Cover DB update failed:`, (e as Error).message);
+            }
+          }
+        }).catch(e => console.error(`[Scraper] Cover image failed:`, (e as Error).message));
 
         await new Promise(r => setTimeout(r, 3000));
       } catch (e) {

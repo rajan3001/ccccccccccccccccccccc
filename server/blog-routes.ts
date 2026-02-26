@@ -416,7 +416,7 @@ No markdown fencing. No extra text. Only valid JSON.`;
     const result = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
-      config: { thinkingConfig: { thinkingBudget: 1024 }, temperature: 0.5 },
+      config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0.5 },
     });
 
     const text = result.text?.trim() || "";
@@ -570,18 +570,25 @@ export async function generateBlogPosts(count: number = 5): Promise<number> {
         const post = await generateBlogContent(topic, category);
         if (!post) continue;
 
-        const imageUrl = await generateAndUploadCoverImage(topic, post.slug);
-        if (imageUrl) {
-          post.coverImageUrl = imageUrl;
-        }
-
         await db.insert(blogPosts).values(post);
         generated++;
         console.log(`Published: ${post.title}`);
 
-        await new Promise(r => setTimeout(r, 2000));
+        generateAndUploadCoverImage(topic, post.slug).then(async (imageUrl) => {
+          if (imageUrl) {
+            try {
+              await db.update(blogPosts).set({ coverImageUrl: imageUrl }).where(eq(blogPosts.slug, post.slug));
+              console.log(`[Cover] Updated image for: ${post.title}`);
+            } catch (e) {
+              console.error(`[Cover] DB update failed for "${post.title}":`, (e as Error).message);
+            }
+          }
+        }).catch(e => console.error(`[Cover] Image gen failed for "${post.title}":`, (e as Error).message));
+
+        await new Promise(r => setTimeout(r, 5000));
       } catch (e) {
-        console.error(`Failed to generate post for "${topic}":`, e);
+        console.error(`Failed to generate post for "${topic}":`, (e as Error).message);
+        await new Promise(r => setTimeout(r, 3000));
       }
     }
   } finally {
@@ -2028,13 +2035,11 @@ function scheduleDailyBlogGeneration() {
   setTimeout(async () => {
     try {
       const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(blogPosts).where(eq(blogPosts.published, true));
-      if (count < 10) {
-        console.log(`[Blog] Only ${count} published articles found — generating initial batch...`);
-        const generated = await generateBlogPosts(10);
-        console.log(`[Blog] Initial batch complete: ${generated} posts created`);
+      if (count < 5) {
+        console.log(`[Blog] ${count} published articles found. Use POST /api/blog/generate to create posts manually, or wait for scheduled auto-generation.`);
       }
     } catch (e) {
-      console.error("[Blog] Initial batch check failed:", e);
+      console.error("[Blog] Article count check failed:", e);
     }
-  }, 15000);
+  }, 10000);
 }

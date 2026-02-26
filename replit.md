@@ -33,7 +33,7 @@ The Learnpro AI platform is built with a modern web stack. The frontend is devel
 - **Multilingual i18n**: Full internationalization across all pages. Architecture: `client/src/i18n/languages.ts` (14 supported languages), `client/src/i18n/translations.ts` (curated translations for en/hi/bn/gu/mr, others fallback to English), `client/src/i18n/context.tsx` (LanguageProvider + useLanguage hook). Language stored in DB (`users.language`), localStorage, and context. All pages translated: Dashboard, Settings, Study Progress, Practice Quiz, Chat, Login, Notes, Study Planner, Current Affairs (both list + detail), Paper Evaluation, Landing page, and Sidebar.
 
 ### External Dependencies
-- **Gemini 2.5 Flash**: Via Replit AI Integrations for all AI functionalities.
+- **Gemini 2.5 Pro**: Via Replit AI Integrations for chat (with Google Search grounding for real-time data). Gemini 2.5 Flash used for blog generation, suggestions, and lighter tasks.
 - **PostgreSQL (Neon)**: Database for all application data.
 - **SMSGatewayHub**: For Phone OTP authentication via Indian SMS gateway (requires API Key, Sender ID, Entity ID, DLT Template ID).
 - **Google OAuth**: Direct Google login via OIDC (requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET). Button only shows when credentials are configured.
