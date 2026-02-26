@@ -805,11 +805,12 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     .pg-numbers{display:flex;gap:0.35rem}
 
     .sidebar{width:320px;flex-shrink:0;animation:fadeUp 0.5s 0.4s ease-out both}
-    .sidebar-card{background:#fff;border:1px solid var(--border);border-radius:1rem;margin-bottom:1.5rem;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.03)}
+    .sidebar-card{background:#fff;border:1px solid var(--border);border-radius:1rem;margin-bottom:1.5rem;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.03);padding:1.25rem}
+    .sidebar-card h3{font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--text);margin-bottom:1rem;padding-bottom:0.6rem;border-bottom:2px solid var(--primary-border)}
     .sb-archive-box{border-radius:12px;overflow:hidden;margin-bottom:1.5rem;border:1px solid rgba(0,0,0,0.05);background:#fff}
     .sb-archive-header{padding:1rem;display:flex;align-items:center;gap:0.75rem;color:#fff;font-weight:700;font-family:var(--font-display);position:relative;overflow:hidden}
-    .sb-archive-header.blue{background:linear-gradient(135deg, #0ea5e9, #0284c7)}
-    .sb-archive-header.orange{background:linear-gradient(135deg, #f59e0b, #d97706)}
+    .sb-archive-header.blue{background:linear-gradient(135deg, hsl(25,85%,42%), hsl(25,90%,35%))}
+    .sb-archive-header.orange{background:linear-gradient(135deg, hsl(35,90%,45%), hsl(35,90%,32%))}
     
     /* Animated Grid Lines */
     .sb-archive-header::before {
@@ -833,10 +834,10 @@ function renderBlogListHtml(posts: any[], page: number, totalPages: number, acti
     .sb-inputs-row{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem}
     .sb-input-field{width:100%;padding:0.65rem;border:1px solid var(--border);border-radius:6px;font-size:0.85rem;color:var(--text);font-family:var(--font-body);outline:none;transition:border-color 0.2s}
     .sb-input-field:focus{border-color:var(--accent)}
-    .sb-go-btn{width:100%;padding:0.7rem;background:#0ea5e9;color:#fff;border:none;border-radius:6px;font-weight:700;font-size:0.9rem;cursor:pointer;transition:all 0.2s;font-family:var(--font-display)}
-    .sb-go-btn:hover{background:#0284c7;transform:translateY(-1px);box-shadow:0 4px 10px rgba(14, 165, 233, 0.3)}
-    .sb-go-btn.orange{background:#f59e0b}
-    .sb-go-btn.orange:hover{background:#d97706;box-shadow:0 4px 10px rgba(245, 158, 11, 0.3)}
+    .sb-go-btn{width:100%;padding:0.7rem;background:hsl(25,85%,42%);color:#fff;border:none;border-radius:6px;font-weight:700;font-size:0.9rem;cursor:pointer;transition:all 0.2s;font-family:var(--font-display)}
+    .sb-go-btn:hover{background:hsl(25,90%,35%);transform:translateY(-1px);box-shadow:0 4px 10px hsla(25,85%,45%,0.3)}
+    .sb-go-btn.orange{background:hsl(35,90%,45%)}
+    .sb-go-btn.orange:hover{background:hsl(35,90%,32%);box-shadow:0 4px 10px hsla(35,90%,45%,0.3)}
     .tag-pills{display:flex;flex-wrap:wrap;gap:0.45rem}
     .tag-pill{display:inline-block;padding:0.3rem 0.7rem;border-radius:9999px;font-size:0.75rem;font-weight:500;background:var(--primary-dim);color:var(--primary-dark);border:1px solid var(--primary-border);text-decoration:none;transition:all 0.2s;cursor:pointer}
     .tag-pill:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
@@ -1338,13 +1339,15 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     .info-box li{margin-bottom:0.3rem;font-size:0.88rem}
 
     /* Prelims / Mains relevance box */
-    .relevance-box{background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin:1.5rem 0;overflow:hidden}
-    .relevance-head{padding:0.6rem 1rem;background:linear-gradient(135deg,hsla(25,85%,45%,0.08),hsla(25,85%,45%,0.03));border-bottom:1px solid var(--border);font-family:var(--font-display);font-size:0.82rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.05em;display:flex;align-items:center;gap:0.45rem}
+    .relevance-box{border-radius:var(--radius);margin:1.5rem 0;overflow:hidden}
+    .relevance-warm{background:linear-gradient(135deg,hsl(25,40%,22%),hsl(25,60%,30%),hsl(30,50%,25%));position:relative}
+    .relevance-warm::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.05) 1px,transparent 1px);background-size:20px 20px;opacity:0.5}
+    .relevance-head{padding:0.7rem 1rem;background:rgba(255,255,255,0.08);border-bottom:1px solid rgba(255,255,255,0.15);font-family:var(--font-display);font-size:0.82rem;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.05em;display:flex;align-items:center;gap:0.45rem;position:relative;z-index:1}
     .relevance-head svg{width:15px;height:15px}
-    .relevance-body{padding:0.85rem 1rem;font-family:var(--font-body);font-size:0.88rem;line-height:1.6;color:var(--text-secondary);display:flex;flex-direction:column;gap:0.5rem}
+    .relevance-body{padding:0.85rem 1rem;font-family:var(--font-body);font-size:0.88rem;line-height:1.6;color:rgba(255,240,220,0.92);display:flex;flex-direction:column;gap:0.5rem;position:relative;z-index:1}
     .relevance-row{display:flex;gap:0.4rem}
-    .relevance-row strong{color:var(--accent);flex-shrink:0}
-    .relevance-body a{color:var(--accent);text-decoration:none;font-weight:500}
+    .relevance-row strong{color:#fbbf24;flex-shrink:0;font-weight:700}
+    .relevance-body a{color:#fbbf24;text-decoration:none;font-weight:500}
     .relevance-body a:hover{text-decoration:underline}
 
     /* FAQ Accordion */
@@ -1516,14 +1519,14 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
 
       
 
-      <div class="relevance-box bg-blue-premium-animated" data-testid="relevance-prelims">
-        <div class="relevance-head" style="background: rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.2); color: #fff;">
+      <div class="relevance-box relevance-warm" data-testid="relevance-prelims">
+        <div class="relevance-head">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
           For Prelims &amp; Mains
         </div>
-        <div class="relevance-body" style="color: rgba(255,255,255,0.95); text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
-          <div class="relevance-row"><strong style="color: #93c5fd; font-weight: 700;">Prelims:</strong> <span style="font-weight: 500;">${(post.tags || []).slice(0, 5).join(', ') || catInfo.label}</span></div>
-          <div class="relevance-row"><strong style="color: #93c5fd; font-weight: 700;">Mains:</strong> <span style="font-weight: 500;">${catInfo.label} - ${catInfo.description}</span></div>
+        <div class="relevance-body">
+          <div class="relevance-row"><strong>Prelims:</strong> <span>${(post.tags || []).slice(0, 5).join(', ') || catInfo.label}</span></div>
+          <div class="relevance-row"><strong>Mains:</strong> <span>${catInfo.label} - ${catInfo.description}</span></div>
         </div>
       </div>
 

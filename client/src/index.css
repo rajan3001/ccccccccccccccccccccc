@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -316,35 +318,9 @@
   50% { transform: translateY(-6px); }
 }
 
-@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
-
 :root {
   --font-premium-serif: 'EB Garamond', serif;
   --font-premium-sans: 'Space Grotesk', sans-serif;
-}
-
-@keyframes grid-glow {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(30px); }
-}
-
-.bg-premium-blue-grid {
-  background: linear-gradient(135deg, #020617 0%, #0f172a 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.bg-premium-blue-grid::before {
-  content: '';
-  position: absolute;
-  inset: -100% -100%;
-  background-image: 
-    linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
-  background-size: 30px 30px;
-  transform: perspective(500px) rotateX(60deg);
-  animation: grid-glow 10s linear infinite;
-  mask-image: radial-gradient(circle at 50% 50%, black, transparent 80%);
 }
 
 .premium-heading {
