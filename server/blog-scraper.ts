@@ -662,14 +662,38 @@ ${article.content}
 Never use: "comprehensive", "holistic", "strategic blueprint", "foundational pillars", "crucial cornerstone", "navigating", "decoding", "stands as a pinnacle", "gauntlet", "in-depth analysis", "multifaceted", "paradigm", "synergy", "pivotal", "indispensable", "plethora", "myriad", "delve into", "it is worth noting", "in today's world", "the landscape of", "embark on", "tapestry", "beacon", "robust", "leverage", "key takeaways", "furthermore", "in conclusion", "nuanced", "underscore", "paradigm shift", "comprehensive overview", "needless to say", "game changer", "cutting edge", "cornerstone", "linchpin", "overarching", "interplay", "facets", "intricacies", "demystify", "unpack", "deep dive", "shed light on", "pave the way", "bolster", "spearhead"
 No "Moreover", "Furthermore", "Additionally" at sentence starts. NEVER title it "Complete Guide" or "Strategic Guide".
 
-ANTI-HALLUCINATION: Only cite real data. If unsure, omit. Never fabricate statistics.
+=== ANTI-HALLUCINATION (CRITICAL — YMYL CATEGORY) ===
+UPSC content is YMYL. Fabricated statistics trigger Google algorithmic penalties.
 
-=== DATA REQUIREMENTS (THIS IS WHAT MAKES IT RANK) ===
+ABSOLUTE BANS:
+- NEVER write "X% of aspirants/candidates..." unless citing a named source (e.g., "UPSC Annual Report 2023")
+- NEVER invent percentages like "63% report anxiety" or "40% of successful candidates"
+- NEVER write "studies show", "research indicates" without naming the actual study
+- NEVER invent retention rates, success rates, or adoption percentages
+- Over-precise numbers without citation = AI fabrication signal. Avoid entirely.
+
+SAFE DATA (verifiable from public records):
+- Prelims/Mains cut-off marks by year/category (UPSC annual reports)
+- Applicant numbers vs seats (UPSC notifications)
+- Question counts by topic per year (countable from past papers)
+- Constitutional articles, committee names, SC judgment names
+- Scheme launch years, budget figures (Union Budget)
+- Real topper names + their publicly stated strategies
+
+WHEN UNSURE, USE ANECDOTAL FRAMING:
+BAD: "40% of candidates use digital platforms"
+GOOD: "In recent topper interviews, candidates increasingly report using digital tools"
+BAD: "Retention rate 70-80%"
+GOOD: "Structured revision cycles significantly improve recall vs scattered study"
+
+NEVER position any method/tool as universally superior. Analyze trade-offs honestly.
+
+=== DATA REQUIREMENTS (VERIFIABLE ONLY) ===
 You MUST include:
-1. TWO data tables with real numbers (year-wise trends, comparisons, category data)
+1. TWO data tables with VERIFIABLE numbers only: cut-off marks, question counts from past papers, budget figures. Never invented percentages.
 2. Specific years — not "in recent years" but "in 2023"
-3. ONE trend analysis over 5+ years with data points
-4. ONE structured comparison (A vs B with data)
+3. ONE trend analysis using REAL public data (cut-offs, question frequency)
+4. ONE structured comparison (A vs B with reasoning, not fabricated metrics)
 5. Real UPSC question references where relevant
 
 === INTERNAL LINKING ===

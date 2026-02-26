@@ -188,7 +188,7 @@ const UPSC_TOPICS = [
     "PM-KISAN Impact: 11 Crore Farmers, Rs 6000/Year — Does It Cover Input Costs?",
     "India's Nuclear 3%: Reactor-by-Reactor Status and What's Stuck in Stage 2",
     "River Linking: Ken-Betwa DPR Approved, 4 Others Pending — Cost and Timeline Data",
-    "Gig Workers in India: 77 Million Without PF — State-Wise App Economy Numbers",
+    "Gig Workers and Social Security: India's Code on Social Security 2020 — What Changed",
     "Food Processing Gap: Farm Gate Price vs Retail Price for 10 Commodities",
     "Fiscal Deficit 2019-2026: Year-by-Year Trend and FRBM Compliance Score",
     "Left-Wing Extremism: District Count Drop From 90 to 45 — What Actually Worked",
@@ -207,7 +207,7 @@ const UPSC_TOPICS = [
   { category: "answer-writing", topics: [
     "Critically Examine vs Discuss vs Analyze: UPSC Directive Words Decoded With Examples",
     "10-Minute Answer Framework: Structure That Scores 10+ in 150-Word Answers",
-    "Why 70% of Mains Answers Score Below Half — 5 Structural Mistakes With Fixes",
+    "5 Structural Mistakes in Mains Answers That Cost You Marks — With Fixes",
     "Essay Scoring Pattern: How Anu Kumari Got 165/250 — Paragraph-Level Breakdown",
     "Data in Answers: Which Reports and Judgments Add Marks — And Which Look Forced",
     "The 'Way Forward' Paragraph: 3 Templates That Examiners Actually Reward",
@@ -220,8 +220,8 @@ const UPSC_TOPICS = [
     "Mains GS2 Scoring Range: Average Marks of Top 100 Rankers (2020-2024)",
     "Optional Subject Scoring: Which Optionals Average 300+ and Which Drop Below 220",
     "Interview Marks Distribution: Board-Wise Average and Range Data (2019-2024)",
-    "3 Attempts vs 5 Attempts: Success Rate Data and What Changes After Each Try",
-    "UPSC Age-Wise Selection: At What Age Do Most Candidates Clear — Data Analysis",
+    "3 Attempts vs 5 Attempts: What Changes in Strategy After Each Try — Topper Insights",
+    "UPSC Age-Wise Selection Patterns: When Do Most Candidates Clear — Annual Report Data",
   ]},
   { category: "state-psc", topics: [
     "BPSC vs UPSC: Syllabus Overlap Percentage and Strategy Differences",
@@ -240,9 +240,9 @@ const UPSC_TOPICS = [
   ]},
   { category: "motivation", topics: [
     "Cleared at 32, 5th Attempt: Monthly Study Hours and What Changed Each Time",
-    "UPSC Mental Health Data: Why 63% of Aspirants Report Anxiety After Year 2",
+    "UPSC Mental Health: Why Long-Duration Aspirants Report Increasing Anxiety — Patterns and Coping",
     "Tech Job to IAS: 3 Officers on Whether the Pay Cut Was Worth It — With Numbers",
-    "What 500 Failed Candidates Wish They Knew Before Attempt 1",
+    "Common Regrets of Failed UPSC Candidates: What Toppers Did Differently",
   ]},
 ];
 
@@ -286,17 +286,20 @@ TITLE RULES:
 - NEVER use: "Complete Guide", "Everything You Need to Know", "Strategic Guide", "Tips and Tricks"
 - Think cluster content: each article should link to others on related sub-topics
 
-GOOD (data-driven, specific):
-- "Prelims Cut-Off 2018-2025: Category-Wise Trend and the 15-Mark Drop"
-- "GS3 Economy Questions: 7-Year Topic Frequency Table"
-- "IBC Recovery Rate Dropped to 32% in 2024 — Here's Why"
-- "Governor vs CM: 7 States, 7 Deadlocks Since 2020"
-- "Mains Directive Words: What 'Critically Examine' Expects vs What You Write"
+CRITICAL: Numbers in titles must be VERIFIABLE from public UPSC records, past papers, or government data. Never invent percentages about "aspirants" or "success rates".
 
-BAD (generic, no data promise):
-- "Understanding Indian Polity for UPSC"
-- "How to Prepare for UPSC Mains"
-- "The Importance of Current Affairs in UPSC"
+GOOD (verifiable data):
+- "Prelims Cut-Off 2018-2025: Category-Wise Trend Table"
+- "GS3 Economy Questions: 7-Year Topic Frequency from Past Papers"
+- "Governor vs CM: 7 States, 7 Constitutional Deadlocks Since 2020"
+- "Mains Directive Words: What 'Critically Examine' Actually Expects"
+- "Article 356 Used 127 Times: State-Wise President's Rule Data"
+
+BAD (fabricated stats / generic):
+- "63% of UPSC Aspirants Face Anxiety" (invented percentage)
+- "40% Digital Shift in Prep" (no source)
+- "Understanding Indian Polity for UPSC" (generic)
+- "How to Prepare for UPSC Mains" (coaching center title)
 
 Categories: ${randomCats.join(", ")}
 
@@ -348,15 +351,40 @@ Never use: "comprehensive", "holistic", "strategic blueprint", "foundational pil
 No filler transitions at sentence starts: "Moreover", "Furthermore", "Additionally", "Consequently".
 NEVER title the article "Complete Guide", "Everything You Need to Know", or "A Strategic Guide".
 
-=== ANTI-HALLUCINATION ===
-Only cite data you are confident about. If unsure about a number, omit it. Never fabricate statistics. Use directional language when exact data is uncertain. ALWAYS prefer real committee names, real judgment names, real article numbers.
+=== ANTI-HALLUCINATION (CRITICAL — YMYL CATEGORY) ===
+UPSC content falls under Google's YMYL (Your Money or Your Life) category. Fabricated statistics WILL trigger algorithmic penalties.
 
-=== DATA REQUIREMENTS (THIS IS WHAT MAKES IT RANK) ===
+ABSOLUTE BANS:
+- NEVER write "X% of aspirants/candidates..." unless citing a named source (e.g., "UPSC Annual Report 2023")
+- NEVER write precise percentages like "63% report anxiety" or "40% of successful candidates" — these are AI fabrication signals
+- NEVER write "studies show", "research indicates", "data suggests" without naming the actual study
+- NEVER invent retention rates, success rates, or adoption percentages
+- Over-precise numbers without citation (e.g., "Retention Rate: 70-80%") are a HUGE AI footprint — avoid entirely
+
+SAFE DATA YOU CAN USE (verifiable from public UPSC records):
+- Prelims/Mains cut-off marks by year and category (from UPSC annual reports)
+- Number of applicants vs seats (from UPSC notifications)
+- Question distribution by topic per year (manually countable from past papers)
+- Constitutional article numbers, committee names, Supreme Court judgment names
+- Government scheme launch years, budget allocations (from Union Budget documents)
+- Real topper names and their publicly stated strategies (from interviews)
+
+WHEN UNSURE, USE ANECDOTAL FRAMING:
+Instead of: "40% of successful candidates use digital platforms"
+Write: "In recent topper interviews, an increasing number of candidates report shifting toward integrated digital tools"
+Instead of: "Retention rate improves by 70-80%"
+Write: "Structured revision cycles significantly improve recall compared to scattered note-making"
+No numbers = no red flags. Anecdotal > fabricated.
+
+NEVER WRITE SALES ARTICLES:
+Do NOT position any approach/method/tool as universally superior. Analyze trade-offs. Present evidence for both sides. If you find yourself writing "X is better than Y in every way" — you are writing a sales pitch, not analysis.
+
+=== DATA REQUIREMENTS (VERIFIABLE DATA ONLY) ===
 Your article MUST include at least:
-1. TWO data tables with real numbers (year-wise trends, comparison data, weightage breakdowns, cut-off tables, category-wise data). Use markdown pipe table syntax.
+1. TWO data tables — but ONLY with verifiable numbers: cut-off marks, question counts from past papers, budget figures, or Constitutional provisions. Use markdown pipe table syntax.
 2. Specific year references (not "in recent years" — say "in 2023" or "between 2019 and 2024")
-3. At least ONE trend analysis (how something changed over 5+ years with data points)
-4. At least ONE comparison (A vs B with structured data — not just prose)
+3. At least ONE trend analysis using REAL publicly available data (cut-off trends, question frequency from actual past papers)
+4. At least ONE comparison (A vs B with structured reasoning — not fabricated metrics)
 5. Real UPSC question references ("In Prelims 2023, Q47 asked about..." or "Mains 2022 GS2 had a 15-marker on...")
 
 === INTERNAL LINKING ===
