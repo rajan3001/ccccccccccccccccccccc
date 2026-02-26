@@ -7,10 +7,20 @@ import { PLAN_CATALOG, type PlanCode } from "@shared/schema";
 
 const PRODUCTION_URL = "https://learnproai.in";
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
+let _razorpay: Razorpay | null = null;
+
+function getRazorpay(): Razorpay {
+  if (!_razorpay) {
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      throw new Error("Razorpay keys are not configured. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.");
+    }
+    _razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+  }
+  return _razorpay;
+}
 
 const planIdCache: Record<string, string> = {};
 
@@ -21,7 +31,7 @@ async function getOrCreateRazorpayPlan(planCode: PlanCode): Promise<string> {
   const amountInPaise = plan.amount * 100;
 
   try {
-    const plans = await razorpay.plans.all({ count: 100 });
+    const plans = await getRazorpay().plans.all({ count: 100 });
     const existing = (plans as any).items?.find(
       (p: any) =>
         p.item?.amount === amountInPaise &&
@@ -37,7 +47,7 @@ async function getOrCreateRazorpayPlan(planCode: PlanCode): Promise<string> {
   } catch (e) {
   }
 
-  const created = await razorpay.plans.create({
+  const created = await getRazorpay().plans.create({
     period: plan.period,
     interval: plan.interval,
     item: {
@@ -90,7 +100,7 @@ export async function reconcilePendingSubscription(userId: string): Promise<bool
       return false;
     }
 
-    const razorpaySub = await razorpay.subscriptions.fetch(sub.razorpaySubscriptionId);
+    const razorpaySub = await getRazorpay().subscriptions.fetch(sub.razorpaySubscriptionId);
     const subStatus = (razorpaySub as any).status;
     const paidCount = (razorpaySub as any).paid_count || 0;
     console.log(`[RECONCILE] User ${userId} sub ${sub.razorpaySubscriptionId}: razorpay status=${subStatus}, paid_count=${paidCount}`);
@@ -103,7 +113,7 @@ export async function reconcilePendingSubscription(userId: string): Promise<bool
 
       let realPaymentId = "";
       try {
-        const payments = await (razorpay.subscriptions as any).fetchPayments(sub.razorpaySubscriptionId);
+        const payments = await (getRazorpay().subscriptions as any).fetchPayments(sub.razorpaySubscriptionId);
         const items = payments?.items || payments || [];
         const captured = items.find((p: any) => p.status === "captured");
         if (captured) {
@@ -196,7 +206,7 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
       else if (duration === "6months") totalCount = 2;
       else totalCount = 1;
 
-      const subscription = await razorpay.subscriptions.create({
+      const subscription = await getRazorpay().subscriptions.create({
         plan_id: razorpayPlanId,
         total_count: totalCount,
         quantity: 1,
@@ -341,7 +351,7 @@ export function registerPaymentRoutes(app: Express, isAuthenticated: any) {
         return res.status(404).json({ message: "No active subscription found" });
       }
 
-      await (razorpay.subscriptions as any).cancel(activeSub.razorpaySubscriptionId, { cancel_at_cycle_end: true });
+      await (getRazorpay().subscriptions as any).cancel(activeSub.razorpaySubscriptionId, { cancel_at_cycle_end: true });
       const cancelled = await storage.cancelSubscription(userId);
 
       res.json({ success: true, subscription: cancelled });
