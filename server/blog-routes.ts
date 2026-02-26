@@ -2012,6 +2012,26 @@ export function registerBlogRoutes(app: any) {
     }
   });
 
+  router.post("/api/blog/clear-all", async (req: Request, res: Response) => {
+    try {
+      await db.delete(blogPosts);
+      res.json({ success: true, message: "All blog posts deleted" });
+    } catch (e) {
+      res.status(500).json({ error: "Failed to clear posts" });
+    }
+  });
+
+  router.delete("/api/blog/posts/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
+      await db.delete(blogPosts).where(eq(blogPosts.id, id));
+      res.json({ success: true, deleted: id });
+    } catch (e) {
+      res.status(500).json({ error: "Failed to delete post" });
+    }
+  });
+
   router.get("/blog", async (req: Request, res: Response) => {
     try {
       const isLoggedIn = !!(req.session as any)?.userId;
