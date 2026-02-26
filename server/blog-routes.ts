@@ -1458,14 +1458,14 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
 
       
 
-      <div class="relevance-box" data-testid="relevance-prelims">
-        <div class="relevance-head">
+      <div class="relevance-box bg-blue-premium-animated" data-testid="relevance-prelims">
+        <div class="relevance-head" style="background: rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.2); color: #fff;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
           For Prelims &amp; Mains
         </div>
-        <div class="relevance-body">
-          <div class="relevance-row"><strong>Prelims:</strong> <span>${(post.tags || []).slice(0, 5).join(', ') || catInfo.label}</span></div>
-          <div class="relevance-row"><strong>Mains:</strong> <span>${catInfo.label} - ${catInfo.description}</span></div>
+        <div class="relevance-body" style="color: rgba(255,255,255,0.95); text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+          <div class="relevance-row"><strong style="color: #93c5fd; font-weight: 700;">Prelims:</strong> <span style="font-weight: 500;">${(post.tags || []).slice(0, 5).join(', ') || catInfo.label}</span></div>
+          <div class="relevance-row"><strong style="color: #93c5fd; font-weight: 700;">Mains:</strong> <span style="font-weight: 500;">${catInfo.label} - ${catInfo.description}</span></div>
         </div>
       </div>
 
