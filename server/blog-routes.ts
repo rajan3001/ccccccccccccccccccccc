@@ -1549,8 +1549,28 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     .ask-ai-dialog-close svg{width:16px;height:16px}
     .ask-ai-dialog-login{text-align:center;padding:0.75rem 0 0.25rem}
     .ask-ai-dialog-login p{font-size:0.85rem;color:var(--text-secondary);margin:0 0 0.65rem}
-    .ask-ai-dialog-login a{display:inline-flex;align-items:center;gap:0.35rem;padding:0.5rem 1.25rem;border-radius:8px;background:linear-gradient(135deg,hsl(215,90%,45%),hsl(215,85%,55%));color:#fff;text-decoration:none;font-size:0.82rem;font-weight:600;transition:all 0.2s}
-    .ask-ai-dialog-login a:hover{box-shadow:0 2px 8px hsla(215,90%,45%,0.3)}
+    .ask-ai-field-label{display:block;font-size:0.8rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.45rem}
+    .ask-ai-phone-row{display:flex;align-items:center;gap:0;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color 0.2s}
+    .ask-ai-phone-row:focus-within{border-color:hsl(215,90%,45%);box-shadow:0 0 0 3px hsla(215,90%,45%,0.1)}
+    .ask-ai-phone-prefix{padding:0.6rem 0.65rem;background:var(--bg-warm);font-size:0.85rem;font-weight:600;color:var(--text-secondary);border-right:1px solid var(--border);flex-shrink:0}
+    .ask-ai-phone-row .ask-ai-dialog-input{border:none;border-radius:0;min-height:auto;box-shadow:none}
+    .ask-ai-phone-row .ask-ai-dialog-input:focus{box-shadow:none}
+    .ask-ai-error{font-size:0.78rem;color:#dc2626;margin-top:0.4rem;padding:0.3rem 0.5rem;background:#fef2f2;border-radius:6px}
+    .ask-ai-otp-row{display:flex;gap:0.4rem;justify-content:center}
+    .ask-ai-otp-input{width:40px;height:46px;text-align:center;font-size:1.1rem;font-weight:700;border:1.5px solid var(--border);border-radius:8px;outline:none;transition:border-color 0.2s;font-family:var(--font-body);color:var(--text)}
+    .ask-ai-otp-input:focus{border-color:hsl(215,90%,45%);box-shadow:0 0 0 3px hsla(215,90%,45%,0.1)}
+    .ask-ai-response-q{font-size:0.82rem;font-weight:600;color:hsl(215,90%,45%);margin-bottom:0.65rem;padding:0.5rem 0.65rem;background:hsla(215,90%,45%,0.06);border-radius:8px;border-left:3px solid hsl(215,90%,45%)}
+    .ask-ai-response-body{font-size:0.85rem;line-height:1.7;color:var(--text);max-height:350px;overflow-y:auto;padding:0.25rem 0}
+    .ask-ai-response-body p{margin:0.5rem 0}
+    .ask-ai-response-body strong{color:var(--text);font-weight:700}
+    .ask-ai-response-body ul,.ask-ai-response-body ol{padding-left:1.2rem;margin:0.5rem 0}
+    .ask-ai-response-body li{margin:0.25rem 0}
+    .ask-ai-loading{display:flex;align-items:center;gap:0.5rem;padding:1.5rem 0;justify-content:center;color:var(--text-muted);font-size:0.82rem}
+    .ask-ai-loading-dots{display:flex;gap:4px}
+    .ask-ai-loading-dots span{width:6px;height:6px;border-radius:50%;background:hsl(215,90%,45%);animation:dotPulse 1.4s ease-in-out infinite}
+    .ask-ai-loading-dots span:nth-child(2){animation-delay:0.2s}
+    .ask-ai-loading-dots span:nth-child(3){animation-delay:0.4s}
+    @keyframes dotPulse{0%,80%,100%{opacity:0.3;transform:scale(0.8)}40%{opacity:1;transform:scale(1.1)}}
 
     @media print{
       .top-bar,.read-bar,.sidebar-col,.site-footer,.share-bar,.ask-ai-btn,.ask-ai-dialog-overlay,.cta-box,.nav-posts,.relevance-box,.tags-section,.faq-section,.source-box,.breadcrumb,.pdf-btn{display:none!important}
@@ -1789,23 +1809,53 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
         Ask Learnpro AI
       </h3>
       <p class="ask-ai-dialog-sub">Ask any question about this article — "${post.title.replace(/"/g, '&quot;')}"</p>
-      ${isLoggedIn ? `
-      <textarea class="ask-ai-dialog-input" id="askAiInput" data-testid="ask-ai-input" placeholder="e.g. Summarise the key points, What are the constitutional provisions mentioned?" rows="3"></textarea>
-      <div class="ask-ai-dialog-actions">
-        <button class="ask-ai-dialog-cancel" onclick="closeAskAiDialog()" data-testid="ask-ai-cancel">Cancel</button>
-        <button class="ask-ai-dialog-go" id="askAiGoBtn" onclick="submitAskAi()" data-testid="ask-ai-go">
-          Go <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-        </button>
+
+      <div id="askAiLoginPane" style="display:${isLoggedIn ? 'none' : 'block'}">
+        <div id="loginPhoneStep" data-testid="login-phone-step">
+          <label class="ask-ai-field-label">Enter your mobile number to continue</label>
+          <div class="ask-ai-phone-row">
+            <span class="ask-ai-phone-prefix">+91</span>
+            <input type="tel" id="askAiPhone" class="ask-ai-dialog-input" style="min-height:auto;resize:none" maxlength="10" placeholder="10-digit mobile number" data-testid="ask-ai-phone-input">
+          </div>
+          <div id="loginError" class="ask-ai-error" style="display:none"></div>
+          <div class="ask-ai-dialog-actions">
+            <button class="ask-ai-dialog-cancel" onclick="closeAskAiDialog()" data-testid="ask-ai-cancel">Cancel</button>
+            <button class="ask-ai-dialog-go" id="sendOtpBtn" onclick="sendOtp()" data-testid="ask-ai-send-otp">
+              Send OTP <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+        <div id="loginOtpStep" style="display:none" data-testid="login-otp-step">
+          <label class="ask-ai-field-label">Enter the 6-digit OTP sent to your phone</label>
+          <div class="ask-ai-otp-row" id="otpRow"></div>
+          <div id="otpError" class="ask-ai-error" style="display:none"></div>
+          <div class="ask-ai-dialog-actions">
+            <button class="ask-ai-dialog-cancel" onclick="backToPhone()" data-testid="ask-ai-back-phone">Back</button>
+            <button class="ask-ai-dialog-go" id="verifyOtpBtn" onclick="verifyOtp()" data-testid="ask-ai-verify-otp">
+              Verify <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 6L9 17l-5-5"/></svg>
+            </button>
+          </div>
+        </div>
       </div>
-      ` : `
-      <div class="ask-ai-dialog-login" data-testid="ask-ai-login-prompt">
-        <p>Please log in to ask Learnpro AI questions about this article.</p>
-        <a href="/login" data-testid="ask-ai-login-link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-          Log in to continue
-        </a>
+
+      <div id="askAiQueryPane" style="display:${isLoggedIn ? 'block' : 'none'}">
+        <textarea class="ask-ai-dialog-input" id="askAiInput" data-testid="ask-ai-input" placeholder="e.g. Summarise the key points, What are the constitutional provisions mentioned?" rows="3"></textarea>
+        <div class="ask-ai-dialog-actions">
+          <button class="ask-ai-dialog-cancel" onclick="closeAskAiDialog()" data-testid="ask-ai-cancel">Cancel</button>
+          <button class="ask-ai-dialog-go" id="askAiGoBtn" onclick="submitAskAi()" data-testid="ask-ai-go">
+            Go <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
       </div>
-      `}
+
+      <div id="askAiResponsePane" style="display:none">
+        <div class="ask-ai-response-q" id="askAiResponseQ" data-testid="ask-ai-response-q"></div>
+        <div class="ask-ai-response-body" id="askAiResponseBody" data-testid="ask-ai-response-body"></div>
+        <div class="ask-ai-dialog-actions">
+          <button class="ask-ai-dialog-cancel" onclick="resetAskAi()" data-testid="ask-ai-ask-another">Ask another question</button>
+          <button class="ask-ai-dialog-go" onclick="closeAskAiDialog()" data-testid="ask-ai-done">Done</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1826,24 +1876,224 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     var tip=btn.querySelector('.copy-tooltip');
     if(tip){tip.classList.add('show');setTimeout(function(){tip.classList.remove('show');},1800);}
   }
+  var _aiLoggedIn=${isLoggedIn ? 'true' : 'false'};
+  var _articleTitle=${JSON.stringify(post.title)};
+  var _articleSlug=${JSON.stringify(post.slug)};
+  var _storedPhone='';
+
   function openAskAiDialog(){
     var overlay=document.getElementById('askAiOverlay');
-    if(overlay){overlay.classList.add('open');var inp=document.getElementById('askAiInput');if(inp)inp.focus();}
+    if(overlay){
+      overlay.classList.add('open');
+      if(_aiLoggedIn){
+        var inp=document.getElementById('askAiInput');
+        if(inp)inp.focus();
+      } else {
+        var ph=document.getElementById('askAiPhone');
+        if(ph)setTimeout(function(){ph.focus();},200);
+      }
+    }
   }
   function closeAskAiDialog(){
     var overlay=document.getElementById('askAiOverlay');
     if(overlay)overlay.classList.remove('open');
   }
+  function showPane(name){
+    ['askAiLoginPane','askAiQueryPane','askAiResponsePane'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el)el.style.display='none';
+    });
+    var target=document.getElementById(name);
+    if(target)target.style.display='block';
+  }
+
+  function sendOtp(){
+    var phone=document.getElementById('askAiPhone').value.trim();
+    if(!/^\\d{10}$/.test(phone)){
+      showError('loginError','Please enter a valid 10-digit mobile number');
+      return;
+    }
+    _storedPhone=phone;
+    var btn=document.getElementById('sendOtpBtn');
+    btn.disabled=true;btn.textContent='Sending...';
+    hideError('loginError');
+    fetch('/api/auth/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phoneNumber:'+91'+phone}),credentials:'include'})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      btn.disabled=false;btn.innerHTML='Send OTP <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>';
+      if(data.success){
+        document.getElementById('loginPhoneStep').style.display='none';
+        document.getElementById('loginOtpStep').style.display='block';
+        buildOtpInputs();
+      } else {
+        showError('loginError',data.message||'Failed to send OTP');
+      }
+    })
+    .catch(function(){
+      btn.disabled=false;btn.innerHTML='Send OTP <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>';
+      showError('loginError','Network error. Please try again.');
+    });
+  }
+
+  function buildOtpInputs(){
+    var row=document.getElementById('otpRow');
+    row.innerHTML='';
+    for(var i=0;i<6;i++){
+      var inp=document.createElement('input');
+      inp.type='tel';inp.maxLength=1;inp.className='ask-ai-otp-input';
+      inp.dataset.idx=i;inp.setAttribute('data-testid','otp-input-'+i);
+      inp.addEventListener('input',function(e){
+        var idx=parseInt(this.dataset.idx);
+        if(this.value&&idx<5){row.children[idx+1].focus();}
+        if(idx===5&&this.value)verifyOtp();
+      });
+      inp.addEventListener('keydown',function(e){
+        var idx=parseInt(this.dataset.idx);
+        if(e.key==='Backspace'&&!this.value&&idx>0){row.children[idx-1].focus();}
+      });
+      row.appendChild(inp);
+    }
+    row.children[0].focus();
+  }
+
+  function backToPhone(){
+    document.getElementById('loginOtpStep').style.display='none';
+    document.getElementById('loginPhoneStep').style.display='block';
+    hideError('otpError');
+  }
+
+  function verifyOtp(){
+    var row=document.getElementById('otpRow');
+    var code='';
+    for(var i=0;i<6;i++)code+=row.children[i].value;
+    if(code.length!==6){showError('otpError','Please enter all 6 digits');return;}
+    var btn=document.getElementById('verifyOtpBtn');
+    btn.disabled=true;btn.textContent='Verifying...';
+    hideError('otpError');
+    fetch('/api/auth/verify-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phoneNumber:'+91'+_storedPhone,otp:code}),credentials:'include'})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      btn.disabled=false;btn.innerHTML='Verify <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 6L9 17l-5-5"/></svg>';
+      if(data.success||data.user){
+        _aiLoggedIn=true;
+        showPane('askAiQueryPane');
+        var inp=document.getElementById('askAiInput');
+        if(inp)inp.focus();
+      } else {
+        showError('otpError',data.message||'Invalid OTP. Please try again.');
+      }
+    })
+    .catch(function(){
+      btn.disabled=false;btn.innerHTML='Verify <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 6L9 17l-5-5"/></svg>';
+      showError('otpError','Network error. Please try again.');
+    });
+  }
+
+  function showError(id,msg){var el=document.getElementById(id);el.textContent=msg;el.style.display='block';}
+  function hideError(id){var el=document.getElementById(id);if(el)el.style.display='none';}
+
   function submitAskAi(){
     var inp=document.getElementById('askAiInput');
     if(!inp)return;
     var query=inp.value.trim();
     if(!query)return;
-    var slug='${post.slug}';
-    window.location.href='/?article='+encodeURIComponent(slug)+'&q='+encodeURIComponent(query);
+    var goBtn=document.getElementById('askAiGoBtn');
+    goBtn.disabled=true;goBtn.textContent='Sending...';
+
+    showPane('askAiResponsePane');
+    document.getElementById('askAiResponseQ').textContent=query;
+    document.getElementById('askAiResponseBody').innerHTML='<div class="ask-ai-loading"><div class="ask-ai-loading-dots"><span></span><span></span><span></span></div> Thinking...</div>';
+
+    fetch('/api/conversations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:query.substring(0,60)}),credentials:'include'})
+    .then(function(r){return r.json();})
+    .then(function(conv){
+      var articleContext='Article: '+_articleTitle+'\\nUser question: '+query;
+      return fetch('/api/conversations/'+conv.id+'/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:articleContext,attachments:[]}),credentials:'include'});
+    })
+    .then(function(r){
+      if(!r.ok){
+        if(r.status===401){
+          _aiLoggedIn=false;showPane('askAiLoginPane');
+          document.getElementById('loginPhoneStep').style.display='block';
+          document.getElementById('loginOtpStep').style.display='none';
+          goBtn.disabled=false;goBtn.innerHTML='Go <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>';
+          return;
+        }
+        throw new Error('AI request failed');
+      }
+      var responseEl=document.getElementById('askAiResponseBody');
+      if(!r.body||!r.body.getReader){
+        r.text().then(function(t){
+          goBtn.disabled=false;goBtn.innerHTML='Go <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>';
+          responseEl.innerHTML=formatAiResponse(t);
+        });
+        return;
+      }
+      var reader=r.body.getReader();
+      var decoder=new TextDecoder();
+      var fullText='';
+      function readChunk(){
+        reader.read().then(function(result){
+          if(result.done){
+            goBtn.disabled=false;goBtn.innerHTML='Go <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>';
+            responseEl.innerHTML=formatAiResponse(fullText);
+            return;
+          }
+          var chunk=decoder.decode(result.value,{stream:true});
+          fullText+=chunk;
+          responseEl.innerHTML=formatAiResponse(fullText)+'<span class="ask-ai-cursor">|</span>';
+          responseEl.scrollTop=responseEl.scrollHeight;
+          readChunk();
+        }).catch(function(){
+          goBtn.disabled=false;goBtn.innerHTML='Go <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>';
+          if(fullText)responseEl.innerHTML=formatAiResponse(fullText);
+          else responseEl.innerHTML='<p style="color:#dc2626">Connection lost. Please try again.</p>';
+        });
+      }
+      readChunk();
+    })
+    .catch(function(err){
+      goBtn.disabled=false;goBtn.innerHTML='Go <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>';
+      document.getElementById('askAiResponseBody').innerHTML='<p style="color:#dc2626">Sorry, something went wrong. Please try again.</p>';
+    });
   }
+
+  function resetAskAi(){
+    showPane('askAiQueryPane');
+    var inp=document.getElementById('askAiInput');
+    if(inp){inp.value='';inp.focus();}
+    var goBtn=document.getElementById('askAiGoBtn');
+    if(goBtn){goBtn.disabled=false;goBtn.innerHTML='Go <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>';}
+  }
+
+  function formatAiResponse(text){
+    text=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    text=text.replace(/\\*\\*(.+?)\\*\\*/g,'<strong>$1</strong>');
+    text=text.replace(/^### (.+)$/gm,'<h4 style="font-size:0.9rem;font-weight:700;margin:0.7rem 0 0.3rem">$1</h4>');
+    text=text.replace(/^## (.+)$/gm,'<h3 style="font-size:0.95rem;font-weight:700;margin:0.8rem 0 0.3rem">$1</h3>');
+    text=text.replace(/^[\\-\\*] (.+)$/gm,'<li>$1</li>');
+    text=text.replace(/(<li>.*<\\/li>)/gs,function(m){return '<ul>'+m+'</ul>';});
+    text=text.replace(/<\\/ul>\\s*<ul>/g,'');
+    var paras=text.split(/\\n\\n+/);
+    return paras.map(function(p){
+      p=p.trim();
+      if(!p)return '';
+      if(p.startsWith('<h')||p.startsWith('<ul'))return p;
+      return '<p>'+p.replace(/\\n/g,'<br>')+'</p>';
+    }).join('');
+  }
+
   document.addEventListener('keydown',function(e){
-    if(e.key==='Escape'){closeAskAiDialog();}
+    if(e.key==='Escape')closeAskAiDialog();
+    if(e.key==='Enter'&&!e.shiftKey){
+      var overlay=document.getElementById('askAiOverlay');
+      if(overlay&&overlay.classList.contains('open')){
+        var queryPane=document.getElementById('askAiQueryPane');
+        if(queryPane&&queryPane.style.display==='block'){
+          e.preventDefault();submitAskAi();
+        }
+      }
+    }
   });
   document.addEventListener('click',function(e){
     var overlay=document.getElementById('askAiOverlay');
