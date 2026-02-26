@@ -1832,7 +1832,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
       </div>
 
       <div class="ask-ai-dialog-body">
-        <div id="askAiLoginPane" style="display:none">
+        <div id="askAiLoginPane" style="display:${isLoggedIn ? 'none' : 'block'}">
           <div id="loginPhoneStep" data-testid="login-phone-step">
             <label class="ask-ai-field-label">Enter your mobile number to continue</label>
             <div class="ask-ai-phone-row">
@@ -1941,7 +1941,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     var btn=document.getElementById('sendOtpBtn');
     btn.disabled=true;btn.textContent='Sending...';
     hideError('loginError');
-    fetch('/api/auth/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phoneNumber:'+91'+phone}),credentials:'include'})
+    fetch('/api/auth/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:'+91'+phone}),credentials:'include'})
     .then(function(r){return r.json();})
     .then(function(data){
       btn.disabled=false;btn.innerHTML='Send OTP <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>';
@@ -1949,6 +1949,11 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
         document.getElementById('loginPhoneStep').style.display='none';
         document.getElementById('loginOtpStep').style.display='block';
         buildOtpInputs();
+        if(data.autoOtp){
+          var row=document.getElementById('otpRow');
+          for(var i=0;i<6;i++){if(row.children[i])row.children[i].value=data.autoOtp[i]||'';}
+          setTimeout(function(){verifyOtp();},400);
+        }
       } else {
         showError('loginError',data.message||'Failed to send OTP');
       }
@@ -1994,7 +1999,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
     var btn=document.getElementById('verifyOtpBtn');
     btn.disabled=true;btn.textContent='Verifying...';
     hideError('otpError');
-    fetch('/api/auth/verify-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phoneNumber:'+91'+_storedPhone,otp:code}),credentials:'include'})
+    fetch('/api/auth/verify-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:'+91'+_storedPhone,otp:code}),credentials:'include'})
     .then(function(r){return r.json();})
     .then(function(data){
       btn.disabled=false;btn.innerHTML='Verify <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 6L9 17l-5-5"/></svg>';
