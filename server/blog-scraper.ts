@@ -580,21 +580,20 @@ No markdown fencing. No extra text. Only valid JSON.`;
 
 async function generateCoverImage(title: string, slug: string): Promise<string | null> {
   try {
-    const colorSchemes = [
-      "deep royal blue (#1e3a8a) to teal (#0d9488) gradient",
-      "rich indigo (#4338ca) to vibrant magenta (#c026d3) gradient",
-      "emerald green (#047857) to cyan (#06b6d4) gradient",
-      "warm crimson (#dc2626) to amber gold (#f59e0b) gradient",
-      "deep purple (#7c3aed) to ocean blue (#2563eb) gradient",
-      "forest green (#15803d) to lime (#84cc16) gradient",
-      "slate blue (#3b82f6) to rose (#f43f5e) gradient",
-      "burnt orange (#ea580c) to deep red (#b91c1c) gradient",
-    ];
-    const scheme = colorSchemes[Math.floor(Math.random() * colorSchemes.length)];
+    const prompt = `Create a professional blog thumbnail image for an educational article about UPSC/Civil Services preparation.
 
-    const prompt = `Create a PREMIUM, ELEGANT cover image for an educational article. 
-TITLE TO DISPLAY: "${title}"
-DESIGN: Rich ${scheme} background with subtle geometric patterns. Title in large, elegant white typography centered. Small "Learnpro AI" watermark bottom-right. Professional, premium feel. Landscape 16:9. No clipart or cartoons.`;
+ARTICLE TITLE: "${title}"
+
+DESIGN REQUIREMENTS:
+- Use a HIGH-QUALITY, REALISTIC photograph as the main background that is directly relevant to the article topic
+- The photo should be vivid, sharp, and professional (like stock photography from Getty or Shutterstock)
+- Overlay the article title "${title}" in LARGE, BOLD white text with a subtle dark shadow for readability
+- Place a "Learnpro AI" brand text or logo badge in the top-center area with a clean white or light background behind it
+- The title text should be the dominant visual element, taking up 40-60% of the image
+- Use a slight dark gradient overlay on the photo to ensure text readability
+- Landscape orientation (16:9 aspect ratio)
+- Professional, authoritative look similar to top news/educational platform thumbnails
+- DO NOT use illustrations, cartoons, or clip art — only real photographs`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",
