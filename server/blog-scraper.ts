@@ -278,6 +278,182 @@ async function scrapeAdda247(): Promise<ScrapedArticle[]> {
   return articles;
 }
 
+async function scrapePhysicsWallah(): Promise<ScrapedArticle[]> {
+  const articles: ScrapedArticle[] = [];
+  const sections = [
+    { url: "https://www.pw.live/exams/upsc/", cat: "upsc-strategy" },
+    { url: "https://www.pw.live/exams/upsc/upsc-current-affairs/", cat: "current-affairs" },
+    { url: "https://www.pw.live/exams/upsc/upsc-syllabus/", cat: "upsc-strategy" },
+  ];
+
+  for (const section of sections) {
+    try {
+      const html = await fetchHtml(section.url);
+      if (!html) continue;
+      const $ = cheerio.load(html);
+      const links: { href: string; title: string }[] = [];
+
+      $("a[href]").each((_, el) => {
+        const href = $(el).attr("href") || "";
+        let title = $(el).text().trim();
+        if (!title || title.length < 10) {
+          title = $(el).attr("title") || $(el).find("h2, h3, h4, .title").first().text().trim();
+        }
+        if (href && title && title.length > 15 && title.length < 200 &&
+            href.includes("pw.live") && !href.includes("login") && !href.includes("signup") &&
+            !href.includes("batch") && !href.includes("test-series")) {
+          const fullUrl = href.startsWith("http") ? href : `https://www.pw.live${href}`;
+          if (!links.find(l => l.href === fullUrl) && fullUrl !== section.url) {
+            links.push({ href: fullUrl, title });
+          }
+        }
+      });
+
+      for (const link of links.slice(0, 5)) {
+        const pageHtml = await fetchHtml(link.href);
+        if (!pageHtml) continue;
+        const page$ = cheerio.load(pageHtml);
+        page$("script, style, nav, header, footer, .sidebar, .advertisement, .ad-container, .social-share").remove();
+
+        let content = page$(".article-content, .entry-content, .post-content, article, main, .blog-content, #content-area").first().text();
+        if (!content || content.length < 200) {
+          content = page$("body").text();
+        }
+        content = cleanText(content);
+        if (content.length > 300) {
+          articles.push({
+            title: link.title,
+            content: content.substring(0, 8000),
+            url: link.href,
+            source: "pw",
+            category: section.cat,
+          });
+        }
+      }
+    } catch (e) {
+      console.error(`[Scraper] Physics Wallah error:`, (e as Error).message);
+    }
+  }
+  return articles;
+}
+
+async function scrapeStudyIQ(): Promise<ScrapedArticle[]> {
+  const articles: ScrapedArticle[] = [];
+  const sections = [
+    { url: "https://www.studyiq.com/articles/", cat: "general" },
+    { url: "https://www.studyiq.com/articles/upsc-articles/", cat: "upsc-strategy" },
+    { url: "https://www.studyiq.com/articles/current-affairs/", cat: "current-affairs" },
+  ];
+
+  for (const section of sections) {
+    try {
+      const html = await fetchHtml(section.url);
+      if (!html) continue;
+      const $ = cheerio.load(html);
+      const links: { href: string; title: string }[] = [];
+
+      $("a[href]").each((_, el) => {
+        const href = $(el).attr("href") || "";
+        let title = $(el).text().trim();
+        if (!title || title.length < 10) {
+          title = $(el).attr("title") || $(el).find("h2, h3, h4, .title").first().text().trim();
+        }
+        if (href && title && title.length > 15 && title.length < 200 &&
+            href.includes("studyiq.com") && !href.includes("login") && !href.includes("signup") &&
+            !href.includes("test-series") && !href.includes("course")) {
+          if (!links.find(l => l.href === href) && href !== section.url) {
+            links.push({ href, title });
+          }
+        }
+      });
+
+      for (const link of links.slice(0, 5)) {
+        const pageHtml = await fetchHtml(link.href);
+        if (!pageHtml) continue;
+        const page$ = cheerio.load(pageHtml);
+        page$("script, style, nav, header, footer, .sidebar, .advertisement, .ad-wrapper, .social-share, .related-post").remove();
+
+        let content = page$(".entry-content, .post-content, article, .article-content, main, #content-area, .blog-content").first().text();
+        if (!content || content.length < 200) {
+          content = page$("body").text();
+        }
+        content = cleanText(content);
+        if (content.length > 300) {
+          articles.push({
+            title: link.title,
+            content: content.substring(0, 8000),
+            url: link.href,
+            source: "studyiq",
+            category: section.cat,
+          });
+        }
+      }
+    } catch (e) {
+      console.error(`[Scraper] StudyIQ error:`, (e as Error).message);
+    }
+  }
+  return articles;
+}
+
+async function scrapeNextIAS(): Promise<ScrapedArticle[]> {
+  const articles: ScrapedArticle[] = [];
+  const sections = [
+    { url: "https://www.nextias.com/current-affairs/", cat: "current-affairs" },
+    { url: "https://www.nextias.com/blog/", cat: "general" },
+    { url: "https://www.nextias.com/current-affairs/daily-current-affairs/", cat: "current-affairs" },
+  ];
+
+  for (const section of sections) {
+    try {
+      const html = await fetchHtml(section.url);
+      if (!html) continue;
+      const $ = cheerio.load(html);
+      const links: { href: string; title: string }[] = [];
+
+      $("a[href]").each((_, el) => {
+        const href = $(el).attr("href") || "";
+        let title = $(el).text().trim();
+        if (!title || title.length < 10) {
+          title = $(el).attr("title") || $(el).find("h2, h3, h4, .title").first().text().trim();
+        }
+        if (href && title && title.length > 15 && title.length < 200 &&
+            href.includes("nextias.com") && !href.includes("login") && !href.includes("signup") &&
+            !href.includes("test-series") && !href.includes("course")) {
+          const fullUrl = href.startsWith("http") ? href : `https://www.nextias.com${href}`;
+          if (!links.find(l => l.href === fullUrl) && fullUrl !== section.url) {
+            links.push({ href: fullUrl, title });
+          }
+        }
+      });
+
+      for (const link of links.slice(0, 5)) {
+        const pageHtml = await fetchHtml(link.href);
+        if (!pageHtml) continue;
+        const page$ = cheerio.load(pageHtml);
+        page$("script, style, nav, header, footer, .sidebar, .advertisement, .ad-container, .social-share, .related-articles").remove();
+
+        let content = page$(".entry-content, .post-content, article, .article-content, main, .content-area, .blog-content").first().text();
+        if (!content || content.length < 200) {
+          content = page$("body").text();
+        }
+        content = cleanText(content);
+        if (content.length > 300) {
+          articles.push({
+            title: link.title,
+            content: content.substring(0, 8000),
+            url: link.href,
+            source: "nextias",
+            category: section.cat,
+          });
+        }
+      }
+    } catch (e) {
+      console.error(`[Scraper] NextIAS error:`, (e as Error).message);
+    }
+  }
+  return articles;
+}
+
 async function scrapeSPMIAS(): Promise<ScrapedArticle[]> {
   const articles: ScrapedArticle[] = [];
   const sections = [
@@ -329,7 +505,7 @@ async function scrapeSPMIAS(): Promise<ScrapedArticle[]> {
 }
 
 export async function scrapeAllSources(): Promise<ScrapedArticle[]> {
-  console.log("[Scraper] Starting to scrape all 5 sources...");
+  console.log("[Scraper] Starting to scrape all 8 sources...");
 
   const results = await Promise.allSettled([
     scrapeDrishtiIAS(),
@@ -337,10 +513,13 @@ export async function scrapeAllSources(): Promise<ScrapedArticle[]> {
     scrapeVisionIAS(),
     scrapeAdda247(),
     scrapeSPMIAS(),
+    scrapePhysicsWallah(),
+    scrapeStudyIQ(),
+    scrapeNextIAS(),
   ]);
 
   const allArticles: ScrapedArticle[] = [];
-  const sourceNames = ["Drishti IAS", "Vajiram & Ravi", "Vision IAS", "Adda247", "SPM IAS"];
+  const sourceNames = ["Drishti IAS", "Vajiram & Ravi", "Vision IAS", "Adda247", "SPM IAS", "Physics Wallah", "StudyIQ", "NextIAS"];
 
   for (let i = 0; i < results.length; i++) {
     const result = results[i];
@@ -443,7 +622,8 @@ const BLOCKED_NAMES = [
   "vision ias", "visionias", "adda247", "adda 247", "spm ias", "spmiasacademy",
   "spm ias academy", "byju", "unacademy", "testbook", "oliveboard", "gradeup",
   "prepp", "clearias", "iasbaba", "insights ias", "insightsonindia", "shankar ias",
-  "nextias", "next ias", "forum ias",
+  "nextias", "next ias", "forum ias", "pw", "physics wallah", "physicswallah",
+  "studyiq", "study iq",
 ];
 
 function sanitizeContent(text: string): string {
@@ -452,7 +632,7 @@ function sanitizeContent(text: string): string {
     const regex = new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
     result = result.replace(regex, "leading coaching experts");
   }
-  result = result.replace(/https?:\/\/(www\.)?(drishtiias|vajiramandravi|visionias|adda247|spmiasacademy|byju|unacademy|testbook)\.[a-z.]+[^\s)"]*/gi, "");
+  result = result.replace(/https?:\/\/(www\.)?(drishtiias|vajiramandravi|visionias|adda247|spmiasacademy|byju|unacademy|testbook|pw\.live|studyiq|nextias)\.[a-z.]+[^\s)"]*/gi, "");
   return result;
 }
 
@@ -631,7 +811,7 @@ DESIGN REQUIREMENTS:
 
 let isScraping = false;
 
-export async function runContentScrapeAndPublish(maxPerSource: number = 3): Promise<number> {
+export async function runContentScrapeAndPublish(maxPerSource: number = 5): Promise<number> {
   if (isScraping) {
     console.log("[Scraper] Already running, skipping...");
     return 0;
@@ -706,40 +886,17 @@ export async function runContentScrapeAndPublish(maxPerSource: number = 3): Prom
 }
 
 export function scheduleDailyScraping() {
-  const SCRAPE_HOURS = [6, 14, 20];
+  const INTERVAL_MS = 90 * 60 * 1000;
 
-  function scheduleNext() {
-    const now = new Date();
-    let nextRun: Date | null = null;
+  console.log(`[Scraper] Scheduling auto-scrape every 90 minutes (${INTERVAL_MS}ms)`);
 
-    for (const hour of SCRAPE_HOURS) {
-      const candidate = new Date();
-      candidate.setHours(hour, 0, 0, 0);
-      if (candidate > now && (!nextRun || candidate < nextRun)) {
-        nextRun = candidate;
-      }
+  setInterval(async () => {
+    try {
+      console.log("[Scraper] Starting scheduled scrape...");
+      const count = await runContentScrapeAndPublish(5);
+      console.log(`[Scraper] Scheduled scrape complete: ${count} articles published`);
+    } catch (e) {
+      console.error("[Scraper] Scheduled scrape failed:", e);
     }
-
-    if (!nextRun) {
-      nextRun = new Date();
-      nextRun.setDate(nextRun.getDate() + 1);
-      nextRun.setHours(SCRAPE_HOURS[0], 0, 0, 0);
-    }
-
-    const delay = nextRun.getTime() - now.getTime();
-    console.log(`[Scraper] Next auto-scrape at ${nextRun.toISOString()} (in ${Math.round(delay / 3600000)}h)`);
-
-    setTimeout(async () => {
-      try {
-        console.log("[Scraper] Starting scheduled scrape...");
-        const count = await runContentScrapeAndPublish(3);
-        console.log(`[Scraper] Scheduled scrape complete: ${count} articles published`);
-      } catch (e) {
-        console.error("[Scraper] Scheduled scrape failed:", e);
-      }
-      scheduleNext();
-    }, delay);
-  }
-
-  scheduleNext();
+  }, INTERVAL_MS);
 }
