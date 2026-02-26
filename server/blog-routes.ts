@@ -1832,7 +1832,7 @@ function renderBlogPostHtml(post: any, relatedPosts: any[] = [], prevPost: any =
       </div>
 
       <div class="ask-ai-dialog-body">
-        <div id="askAiLoginPane" style="display:${isLoggedIn ? 'none' : 'block'}">
+        <div id="askAiLoginPane" style="display:none">
           <div id="loginPhoneStep" data-testid="login-phone-step">
             <label class="ask-ai-field-label">Enter your mobile number to continue</label>
             <div class="ask-ai-phone-row">
