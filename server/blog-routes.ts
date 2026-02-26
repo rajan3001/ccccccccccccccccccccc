@@ -330,84 +330,66 @@ Return ONLY the JSON array, no other text.`;
 }
 
 async function generateBlogContent(topic: string, category: string): Promise<InsertBlogPost | null> {
-  const prompt = `You are a senior policy analyst and editorial writer for India's most respected UPSC preparation platform. Write a deeply researched, authoritative article that reads like something published in The Indian Express or Economic & Political Weekly — NOT like a coaching institute blog post.
+  const prompt = `You are a former IAS officer turned independent policy writer. You write for serious UPSC aspirants who are tired of generic coaching content. Your writing sounds like a smart friend who cleared the exam explaining things over chai — direct, specific, opinionated.
 
 TOPIC: "${topic}"
 CATEGORY: ${category}
 
-WRITING TONE: Analytical, specific, evidence-backed. Use real names, dates, case studies, Supreme Court judgments, committee reports. Write like a subject matter expert, not a content mill.
+=== BANNED LANGUAGE (INSTANT REJECTION IF USED) ===
+NEVER use these words/phrases in any form:
+"comprehensive", "holistic", "strategic blueprint", "foundational pillars", "crucial cornerstone", "navigating", "decoding", "stands as a pinnacle", "gauntlet", "in-depth analysis", "multifaceted", "paradigm", "synergy", "pivotal", "indispensable", "plethora", "myriad", "delve into", "it is worth noting", "it is important to note", "in today's world", "in the realm of", "the landscape of", "embark on", "tapestry", "beacon", "robust", "leverage", "key takeaways", "furthermore", "in conclusion", "nuanced", "critically examine", "underscore", "paradigm shift", "comprehensive overview", "it goes without saying", "needless to say", "at the end of the day", "game changer", "cutting edge", "cornerstone", "linchpin", "underpinning", "overarching", "interplay", "facets", "intricacies", "demystify", "unpack", "deep dive", "shed light on", "pave the way", "bolster", "spearhead"
 
-=== ABSOLUTE FORMATTING RULES (VIOLATION = REJECTION) ===
+Also avoid: starting sentences with "In the ever-evolving", "As we stand at the cusp of", "It is imperative that". No filler transitions like "Moreover", "Furthermore", "Additionally", "Consequently" at sentence starts.
 
-HEADINGS:
-- Use ONLY ## (H2) and ### (H3). NEVER use #### or ##### or ###### anywhere.
-- Minimum 6 H2 sections. Each H2 must have 2-3 H3 sub-sections inside it.
-- H2 = major topic divisions. H3 = sub-points within each H2.
+=== ANTI-HALLUCINATION RULE ===
+Only cite real data you are confident about — real committee names, real article numbers, real judgment names. If you are unsure about a specific statistic or number, omit it rather than invent it. Never fabricate statistics like "78% of aspirants" unless it's from a known source. Use directional language ("a significant portion", "in recent years") when exact data is uncertain.
 
-LISTS (CRITICAL):
-- EVERY H2 section MUST contain at least one bullet list using dash (-) syntax.
-- NEVER use asterisk (*) for bullet points. ONLY use dash (-).
-- Example of CORRECT list:
-  - Point one about the topic
-  - Point two with details
-  - Point three with analysis
-- Use numbered lists (1. 2. 3.) only for sequential steps or rankings.
+=== WRITING RULES ===
+1. OPENING: Start with a specific fact, number, real event, or provocative observation. Never start with a definition or "The [topic] is..." pattern.
+   BAD: "The Civil Services Examination stands as a pinnacle of academic achievement..."
+   GOOD: "In Prelims 2024, 38 out of 100 questions came from current affairs overlap with static syllabus. Most aspirants who failed didn't get this."
 
-BOLD TEXT (CRITICAL):
-- Bold ALL important terms, names, acts, articles, dates using **double asterisks**.
-- Example: **Article 356**, **Sarkaria Commission**, **73rd Amendment**, **1991 reforms**
-- Every paragraph should have at least 1-2 bolded key terms.
+2. VOICE: Write like you're explaining to a sharp 22-year-old preparing for UPSC. Be direct. Take positions. Say "most aspirants get this wrong" or "here's what actually matters." Have opinions.
 
-TABLES:
-- Include at least ONE comparison or summary table per article.
-- Use markdown pipe table syntax: | Header 1 | Header 2 |
+3. SPECIFICITY: Every claim needs a number, name, year, judgment, committee, or data point. No generic statements.
+   BAD: "Many committees have recommended reforms"
+   GOOD: "The **Sarkaria Commission (1988)**, **Punchhi Commission (2010)**, and **NCRWC (2002)** all recommended curbing Article 356 misuse — yet 126 instances of President's Rule have occurred since 1950"
 
-PARAGRAPHS:
-- Maximum 3 lines per paragraph. Break long paragraphs.
-- NO walls of text. Every paragraph must be concise.
+4. HEADINGS: Use clear, direct headings. NOT academic-sounding.
+   BAD: "The Constitutional Framework and Its Foundational Pillars"
+   GOOD: "What the Constitution Actually Says"
+   BAD: "Navigating the Challenges"
+   GOOD: "Why This Keeps Failing"
 
-=== CONTENT REQUIREMENTS ===
+5. PARAGRAPHS: Max 3 lines. Break after every idea. White space matters.
 
-1. Answer the main query in the first 100 words.
-2. Include a 50-word featured snippet summary right after introduction.
-3. Cover: definition, mechanism, key features (as dash list), UPSC relevance, advantages, challenges, recent developments, expert analysis, comparisons.
-4. Write 2000-2500 words. Zero fluff. Every sentence adds value.
-5. Reference specific data: Constitutional articles, committee reports, year-wise statistics, landmark judgments.
-6. End with ## Frequently Asked Questions containing exactly 6 FAQs as ### question followed by 2-3 sentence answer.
+6. FORMATTING:
+   - Use ## (H2) and ### (H3) only. Never #### or deeper.
+   - Minimum 5 H2 sections
+   - Use dash (-) bullet lists, never asterisk (*)
+   - Bold key terms: **Article 21**, **2024 Budget**, **Kesavananda Bharati case**
+   - Include 1-2 data tables with real numbers
+   - End with ## FAQs — 5 practical questions aspirants actually ask (as ### headings with 2-3 sentence answers)
 
-=== EXAMPLE OF CORRECT SECTION FORMAT ===
+7. UNIQUE VALUE: Include at least:
+   - One "most aspirants get this wrong" insight
+   - One past-year UPSC question reference or trend
+   - One comparison table with real data
+   - One opinion or position on a debate
+   - One practical "how to use this in your answer" tip
 
-## Key Features of the Topic
-
-The topic has several defining characteristics that UPSC aspirants must understand for both **Prelims** and **Mains** examinations.
-
-### Constitutional Provisions
-
-The **Indian Constitution** provides the framework through several articles:
-
-- **Article 245**: Defines the territorial extent of laws made by Parliament and State Legislatures
-- **Article 246**: Distributes legislative powers using the three lists in the **Seventh Schedule**
-- **Article 249**: Allows Parliament to legislate on State List matters in national interest
-
-### Administrative Framework
-
-The administrative structure operates through multiple levels:
-
-- **Union Government**: Central ministries and departments handle national policy
-- **State Government**: State-level administration implements welfare schemes
-- **Local Bodies**: Panchayats and municipalities manage grassroots governance
+8. LENGTH: 1800-2200 words. Every sentence earns its place.
 
 === OUTPUT FORMAT ===
-
 Return ONLY a JSON object:
 {
-  "title": "Editorial-quality title — specific, engaging, no generic SEO spam. Use the topic but refine it for readability. Max 70 chars.",
-  "metaTitle": "Same as title or slightly modified for search — max 60 chars",
-  "metaDescription": "150-160 char description that hooks the reader — written like a newspaper subheading, not an SEO meta tag",
-  "excerpt": "2-3 sentence summary under 200 chars — conversational, insightful tone",
-  "content": "Full markdown content. ONLY ## and ### headings. Dash lists in EVERY section. Bold key terms. Tables. Short paragraphs.",
-  "tags": ["5-8 relevant tags"],
-  "coverImageAlt": "Descriptive alt text with keywords"
+  "title": "Specific, engaging title — max 65 chars. No 'Complete Guide' or 'Everything You Need to Know'",
+  "metaTitle": "Search-optimized version — max 60 chars",
+  "metaDescription": "150-char hook that makes someone click — like a newspaper subheading",
+  "excerpt": "2 sentences, under 180 chars, conversational",
+  "content": "Full markdown. Direct voice. Real data. Opinions. Short paragraphs.",
+  "tags": ["5-7 relevant tags"],
+  "coverImageAlt": "Descriptive alt text"
 }
 
 No markdown fencing. No extra text. Only valid JSON.`;

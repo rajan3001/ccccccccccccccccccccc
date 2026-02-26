@@ -640,46 +640,55 @@ function sanitizeContent(text: string): string {
 async function rewriteArticleWithAI(article: ScrapedArticle): Promise<InsertBlogPost | null> {
   const detectedCategory = detectCategory(article.title, article.content);
 
-  const prompt = `You are a senior UPSC content strategist at Learnpro AI. You must COMPLETELY REWRITE the following content into a 100% original, deeply researched, SEO-optimized article.
+  const prompt = `You are rewriting a research note into an original article for serious UPSC aspirants. Your voice: a senior mentor who cleared the exam, now sharing real insights — NOT a coaching center blog writer.
 
-IMPORTANT RULES:
+RULES:
 1. NEVER mention any coaching institute, website, academy, or source name
-2. NEVER copy sentences as-is. Every sentence must be completely rewritten in your own words
-3. Add NEW insights, analysis, UPSC relevance angles, and exam-focused commentary
-4. Make it significantly BETTER and MORE COMPREHENSIVE than the original
-5. Target 2000-2500 words minimum with deep UPSC-focused analysis
-6. Write as if Learnpro AI's expert team researched and wrote this from scratch
+2. NEVER copy sentences — completely rewrite everything
+3. Write as if you personally researched this topic
 
 ORIGINAL TITLE: "${article.title}"
-ORIGINAL CONTENT (use as research material only, DO NOT copy):
+RESEARCH MATERIAL (rewrite completely, do NOT copy):
 ${article.content}
 
-=== FORMATTING RULES ===
-HEADINGS: Use ONLY ## (H2) and ### (H3). NEVER use #### or deeper.
-- Minimum 6 H2 sections, each with 2-3 H3 sub-sections
-LISTS: EVERY H2 section MUST have at least one bullet list using dash (-) syntax
-BOLD: Bold ALL key terms, names, articles, acts, dates using **double asterisks**
-TABLES: Include at least ONE comparison or summary table
-PARAGRAPHS: Maximum 3 lines per paragraph. No walls of text.
+=== BANNED LANGUAGE (WILL BE REJECTED) ===
+Never use in any form: "comprehensive", "holistic", "strategic blueprint", "foundational pillars", "crucial cornerstone", "navigating", "decoding", "stands as a pinnacle", "gauntlet", "in-depth analysis", "multifaceted", "paradigm", "synergy", "pivotal", "indispensable", "plethora", "myriad", "delve into", "it is worth noting", "in today's world", "the landscape of", "embark on", "tapestry", "beacon", "robust", "leverage", "key takeaways", "furthermore", "in conclusion", "nuanced", "critically examine", "underscore", "paradigm shift", "comprehensive overview", "needless to say", "game changer", "cutting edge", "cornerstone", "linchpin", "overarching", "interplay", "facets", "intricacies", "demystify", "unpack", "deep dive", "shed light on", "pave the way", "bolster", "spearhead"
+No filler transitions at sentence starts: "Moreover", "Furthermore", "Additionally", "Consequently".
 
-=== CONTENT ENHANCEMENTS ===
-- Add UPSC Prelims and Mains relevance notes
-- Include related Constitutional articles and provisions
-- Add historical context and recent developments
-- Include comparison tables and data points
-- End with ## Frequently Asked Questions (6 FAQs as ### headings with 2-3 sentence answers)
-- Add ## UPSC Exam Relevance section explaining which papers/topics this connects to
+ANTI-HALLUCINATION: Only cite real data you are confident about. If unsure about a statistic, omit it. Never fabricate numbers. Use directional language when exact data is uncertain.
 
-=== OUTPUT FORMAT ===
+=== WRITING STYLE ===
+1. OPENING: Start with a sharp fact, number, or provocative observation. Never "The [topic] is a..."
+   GOOD: "Between 2019 and 2024, India's fiscal deficit averaged 6.2% of GDP — nearly double the FRBM target. Here's why that matters for your GS3 answer."
+
+2. VOICE: Direct, opinionated, specific. Take positions. Say what most aspirants get wrong. Reference real UPSC questions, years, trends.
+
+3. SPECIFICITY: Every claim needs data — a year, number, judgment name, committee report, or article number. Zero generic statements.
+
+4. HEADINGS: Clear and direct, not academic.
+   BAD: "Understanding the Constitutional Framework"
+   GOOD: "What the Constitution Actually Says"
+
+5. Max 3-line paragraphs. Bold key terms with **double asterisks**.
+
+6. Use ## (H2) and ### (H3) only. Min 5 H2 sections.
+   Use dash (-) bullets only. Include 1-2 data tables.
+   End with ## FAQs — 5 questions aspirants actually search for (### headings, 2-3 sentence answers)
+
+7. Include: one "common mistake" insight, one past-year question reference, one comparison table, one answer-writing tip.
+
+8. Target 1800-2200 words.
+
+=== OUTPUT ===
 Return ONLY a JSON object:
 {
-  "title": "Completely new SEO title (under 60 chars) with UPSC/IAS keywords - must be DIFFERENT from original",
-  "metaTitle": "Meta title 50-60 chars with UPSC/IAS keyword",
-  "metaDescription": "150-160 char meta description with keyword and CTA",
-  "excerpt": "2-3 sentence summary under 200 chars",
-  "content": "Full markdown content. ONLY ## and ### headings. Dash lists. Bold terms. Tables. Short paragraphs.",
-  "tags": ["5-8 relevant tags"],
-  "coverImageAlt": "Descriptive alt text with keywords",
+  "title": "Sharp title under 60 chars — no 'Complete Guide' patterns",
+  "metaTitle": "SEO title under 60 chars",
+  "metaDescription": "150-char hook — sounds like a newspaper subheading",
+  "excerpt": "2 sentences under 180 chars, conversational",
+  "content": "Full markdown. Human voice. Data-backed. Opinionated.",
+  "tags": ["5-7 tags"],
+  "coverImageAlt": "Descriptive alt text",
   "category": "${detectedCategory}"
 }
 
