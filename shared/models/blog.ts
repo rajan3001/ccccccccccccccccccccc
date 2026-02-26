@@ -19,6 +19,8 @@ export const blogPosts = pgTable("blog_posts", {
   published: boolean("published").notNull().default(false),
   featured: boolean("featured").notNull().default(false),
   sourceUrl: text("source_url"),
+  clusterId: text("cluster_id"),
+  clusterRole: text("cluster_role").default("supporting"),
   publishedAt: timestamp("published_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

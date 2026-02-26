@@ -605,6 +605,202 @@ function detectCategory(title: string, content: string): string {
   return "general";
 }
 
+interface TopicCluster {
+  id: string;
+  pillarTitle: string;
+  pillarKeyword: string;
+  category: string;
+  supportingTopics: { title: string; keywords: string[] }[];
+  matchPatterns: RegExp[];
+}
+
+const TOPIC_CLUSTERS: TopicCluster[] = [
+  {
+    id: "gs2-governor-role",
+    pillarTitle: "Role of Governor in India: Constitutional Provisions, Conflicts & Supreme Court Judgments",
+    pillarKeyword: "role of governor in india",
+    category: "gs-paper-2",
+    supportingTopics: [
+      { title: "Article 200 Explained: Governor's Power to Withhold Assent to Bills", keywords: ["article 200", "governor assent", "bill assent"] },
+      { title: "Governor vs Chief Minister: 7 State Deadlocks & Constitutional Crisis", keywords: ["governor vs cm", "governor chief minister conflict"] },
+      { title: "Nabam Rebia Case: Supreme Court on Governor's Discretionary Powers", keywords: ["nabam rebia", "governor discretion", "floor test"] },
+      { title: "Sarkaria vs Punchhi Commission: Recommendations on Governor's Role", keywords: ["sarkaria commission", "punchhi commission", "governor reform"] },
+      { title: "Governor Removal Process: Constitutional Debate & Reform Proposals", keywords: ["governor removal", "governor appointment", "governor tenure"] },
+      { title: "Anti-Defection Law & Governor: Floor Test Controversies Since 2020", keywords: ["anti defection", "floor test", "speaker disqualification"] },
+    ],
+    matchPatterns: [/governor/i, /article\s*200/i, /bill\s*assent/i, /floor\s*test/i, /nabam\s*rebia/i, /sarkaria/i, /punchhi/i, /discretionary\s*power/i],
+  },
+  {
+    id: "gs2-federalism",
+    pillarTitle: "Indian Federalism: Centre-State Relations, Disputes & Constitutional Framework",
+    pillarKeyword: "indian federalism centre state relations",
+    category: "gs-paper-2",
+    supportingTopics: [
+      { title: "Article 356: History of President's Rule Misuse & SC Judgments", keywords: ["article 356", "president rule", "sr bommai"] },
+      { title: "Delhi vs LG: Supreme Court's Landmark Ruling on NCT Governance", keywords: ["delhi lg", "nct governance", "article 239aa"] },
+      { title: "GST Council & Cooperative Federalism: How States Lost Fiscal Autonomy", keywords: ["gst council", "cooperative federalism", "fiscal autonomy"] },
+      { title: "Inter-State Water Disputes: Cauvery, Krishna & Constitutional Mechanisms", keywords: ["water dispute", "cauvery", "krishna", "inter-state"] },
+      { title: "Finance Commission vs NITI Aayog: Fiscal Federalism Architecture", keywords: ["finance commission", "niti aayog", "fiscal federalism"] },
+      { title: "Concurrent List Conflicts: How Centre Overrides State Laws", keywords: ["concurrent list", "seventh schedule", "residuary powers"] },
+    ],
+    matchPatterns: [/federal/i, /centre.state/i, /article\s*356/i, /president.s?\s*rule/i, /delhi.*l\.?g/i, /gst\s*council/i, /cooperative\s*federal/i, /water\s*dispute/i, /cauvery/i, /finance\s*commission/i],
+  },
+  {
+    id: "gs2-judiciary",
+    pillarTitle: "Indian Judiciary: Independence, Reforms & Pending Challenges",
+    pillarKeyword: "indian judiciary reforms challenges",
+    category: "gs-paper-2",
+    supportingTopics: [
+      { title: "Collegium System vs NJAC: The Battle for Judicial Appointments", keywords: ["collegium", "njac", "judicial appointment"] },
+      { title: "Judicial Backlog Crisis: 5 Crore Pending Cases & Reform Roadmap", keywords: ["judicial backlog", "pending cases", "court reform"] },
+      { title: "Tribunal Reforms: How Government Merged & Abolished Key Tribunals", keywords: ["tribunal reform", "tribunal merger", "administrative tribunal"] },
+      { title: "Separation of Powers: Executive Overreach & Judicial Pushback", keywords: ["separation of powers", "executive overreach", "judicial review"] },
+      { title: "PIL Activism: When Courts Cross the Lakshman Rekha", keywords: ["pil", "judicial activism", "public interest litigation"] },
+      { title: "Constitutional Courts vs Statutory Courts: Key Differences Explained", keywords: ["constitutional court", "statutory court", "high court jurisdiction"] },
+    ],
+    matchPatterns: [/judiciary/i, /collegium/i, /njac/i, /judicial\s*appointment/i, /judicial\s*backlog/i, /pending\s*cases/i, /tribunal/i, /separation\s*of\s*power/i, /pil/i, /judicial\s*(activism|review)/i],
+  },
+  {
+    id: "gs2-election-reform",
+    pillarTitle: "Election Commission & Electoral Reforms: Independence, EVM Debates & One Nation One Election",
+    pillarKeyword: "election commission india reforms",
+    category: "gs-paper-2",
+    supportingTopics: [
+      { title: "EC Appointment Reform: Supreme Court's 2023 Ruling & Its Impact", keywords: ["ec appointment", "election commissioner", "anoop baranwal"] },
+      { title: "One Nation One Election: Kovind Committee Report & Feasibility Analysis", keywords: ["one nation one election", "simultaneous elections", "kovind committee"] },
+      { title: "EVM vs Ballot Paper Debate: Technical, Legal & Political Dimensions", keywords: ["evm", "ballot paper", "electronic voting machine"] },
+      { title: "Model Code of Conduct: Loopholes, Violations & Reform Proposals", keywords: ["model code of conduct", "mcc", "election code"] },
+      { title: "Criminalization of Politics: Data, SC Judgments & Decriminalization Attempts", keywords: ["criminalization politics", "criminal candidates", "decriminalization"] },
+      { title: "Money Bill Controversy: Speaker's Certification & Judicial Review", keywords: ["money bill", "speaker certification", "aadhaar judgment"] },
+    ],
+    matchPatterns: [/election\s*commission/i, /electoral\s*reform/i, /evm/i, /one\s*nation.*election/i, /simultaneous\s*election/i, /model\s*code/i, /criminal.*politics/i, /money\s*bill/i],
+  },
+  {
+    id: "gs3-economic-policy",
+    pillarTitle: "India's Economic Transformation: Industrial Policy, Exports & Structural Reforms",
+    pillarKeyword: "india economic policy industrial transformation",
+    category: "gs-paper-3",
+    supportingTopics: [
+      { title: "PLI Scheme Impact: Sector-Wise Analysis of Production Linked Incentives", keywords: ["pli scheme", "production linked incentive", "manufacturing"] },
+      { title: "India's Export Diversification: Moving Beyond Traditional Markets", keywords: ["export diversification", "export policy", "trade deficit"] },
+      { title: "Semiconductor Mission: India's $10 Billion Chip Manufacturing Push", keywords: ["semiconductor", "chip manufacturing", "semicon india"] },
+      { title: "Defence Exports: India's Journey from Importer to Arms Exporter", keywords: ["defence export", "arms export", "defence production"] },
+      { title: "India's Logistics Cost Problem: National Logistics Policy & PM Gati Shakti", keywords: ["logistics cost", "gati shakti", "national logistics policy"] },
+      { title: "Manufacturing vs Services: India's Growth Model Debate", keywords: ["manufacturing", "services sector", "make in india"] },
+    ],
+    matchPatterns: [/pli\s*scheme/i, /production\s*linked/i, /export.*divers/i, /semiconductor/i, /chip\s*manufactur/i, /defence\s*export/i, /logistics\s*cost/i, /gati\s*shakti/i, /manufactur.*vs.*service/i, /industrial\s*policy/i],
+  },
+  {
+    id: "gs3-energy-transition",
+    pillarTitle: "India's Energy Transition & Net Zero 2070: Complete Policy Analysis",
+    pillarKeyword: "india energy transition net zero",
+    category: "gs-paper-3",
+    supportingTopics: [
+      { title: "Net Zero 2070 Roadmap: India's Decarbonization Strategy & Challenges", keywords: ["net zero", "decarbonization", "carbon neutral"] },
+      { title: "Green Hydrogen Mission: Production Targets, Costs & Global Competition", keywords: ["green hydrogen", "hydrogen mission", "hydrogen economy"] },
+      { title: "India's Carbon Credit Trading Scheme (CCTS): Design & Implementation", keywords: ["carbon credit", "carbon market", "ccts", "carbon trading"] },
+      { title: "Coal Transition Dilemma: Energy Security vs Climate Commitments", keywords: ["coal transition", "coal phase", "energy security"] },
+      { title: "Renewable Energy Targets: 500 GW by 2030 — Progress & Gaps", keywords: ["renewable energy", "solar energy", "wind energy", "500 gw"] },
+      { title: "EV Ecosystem: Battery Manufacturing, Charging Infra & FAME Policy", keywords: ["electric vehicle", "ev policy", "fame scheme", "battery"] },
+    ],
+    matchPatterns: [/net\s*zero/i, /decarbon/i, /green\s*hydrogen/i, /carbon\s*(credit|market|trad)/i, /coal\s*transition/i, /renewable\s*energy/i, /solar\s*energy/i, /electric\s*vehicle/i, /ev\s*(policy|ecosystem)/i, /energy\s*transition/i],
+  },
+  {
+    id: "gs3-agriculture",
+    pillarTitle: "Indian Agriculture: Reforms, MSP Debate & Farmer Income Challenge",
+    pillarKeyword: "indian agriculture reforms msp",
+    category: "gs-paper-3",
+    supportingTopics: [
+      { title: "MSP Guarantee Debate: Economic Viability, Swaminathan Formula & Political Reality", keywords: ["msp", "minimum support price", "swaminathan"] },
+      { title: "Farm Laws Repeal: What Happened & What Remains Unresolved", keywords: ["farm laws", "agriculture reform", "apmc"] },
+      { title: "Food Processing Industry: Value Addition Gap & PLI Impact", keywords: ["food processing", "value addition", "agri processing"] },
+      { title: "Natural Farming vs Chemical Agriculture: Policy Push & Scientific Evidence", keywords: ["natural farming", "organic farming", "zero budget"] },
+      { title: "Agricultural Exports: India's Position, Restrictions & Trade Policy", keywords: ["agricultural export", "agri export", "food export ban"] },
+      { title: "Crop Insurance & PM-KISAN: Coverage, Leakage & Reform Needs", keywords: ["crop insurance", "pm kisan", "pmfby"] },
+    ],
+    matchPatterns: [/msp/i, /minimum\s*support/i, /farm\s*law/i, /apmc/i, /food\s*processing/i, /natural\s*farming/i, /organic\s*farming/i, /agri.*export/i, /crop\s*insurance/i, /pm.kisan/i, /swaminathan/i],
+  },
+  {
+    id: "gs2-social-justice",
+    pillarTitle: "Social Justice in India: Reservation, SC/ST Protection & Welfare Architecture",
+    pillarKeyword: "social justice india reservation welfare",
+    category: "gs-paper-2",
+    supportingTopics: [
+      { title: "EWS Reservation: Supreme Court's 103rd Amendment Verdict & Its Implications", keywords: ["ews reservation", "103rd amendment", "economic reservation"] },
+      { title: "Sub-Categorization of OBCs: Rohini Commission & Quota Within Quota", keywords: ["obc sub-categorization", "rohini commission", "creamy layer"] },
+      { title: "SC/ST Atrocities Act: Amendments, SC Judgments & Ground Reality", keywords: ["sc st act", "atrocities act", "scheduled caste"] },
+      { title: "Women's Reservation Bill: 33% Quota, Delimitation Link & Implementation Timeline", keywords: ["women reservation", "nari shakti", "33 percent"] },
+      { title: "Uniform Civil Code: Law Commission Report, State Implementations & Constitutional Debate", keywords: ["uniform civil code", "ucc", "personal law"] },
+      { title: "Right to Education: Implementation Gaps, SC Orders & Private School Quota", keywords: ["right to education", "rte", "25 percent quota"] },
+    ],
+    matchPatterns: [/reservation/i, /ews/i, /obc.*categor/i, /sc.st/i, /atrocit/i, /women.*reservation/i, /uniform\s*civil/i, /ucc/i, /right\s*to\s*education/i, /rte/i, /social\s*justice/i],
+  },
+  {
+    id: "gs3-security",
+    pillarTitle: "India's Internal & External Security: Challenges, Doctrines & Strategic Framework",
+    pillarKeyword: "india security challenges strategic framework",
+    category: "gs-paper-3",
+    supportingTopics: [
+      { title: "Left Wing Extremism: Decline, SAMADHAN Doctrine & Remaining Challenges", keywords: ["left wing extremism", "naxal", "maoist", "samadhan"] },
+      { title: "India-China Border: LAC Standoff, Buffer Zones & Strategic Calculus", keywords: ["india china", "lac", "galwan", "border standoff"] },
+      { title: "Cyber Security Framework: CERT-In, Data Protection & Digital Sovereignty", keywords: ["cyber security", "cert-in", "data protection", "digital"] },
+      { title: "Maritime Security: Indo-Pacific Strategy, QUAD & Indian Ocean Region", keywords: ["maritime security", "indo pacific", "quad", "indian ocean"] },
+      { title: "Counter-Terrorism: UAPA, NIA Framework & International Cooperation", keywords: ["counter terrorism", "uapa", "nia", "terror financing"] },
+      { title: "Defence Modernization: Theaterization, Agnipath & Self-Reliance Push", keywords: ["defence modernization", "theaterization", "agnipath", "atmanirbhar defence"] },
+    ],
+    matchPatterns: [/naxal/i, /maoist/i, /left\s*wing\s*extrem/i, /india.china/i, /lac\s*standoff/i, /galwan/i, /cyber\s*security/i, /maritime\s*security/i, /indo.pacific/i, /quad/i, /counter.terror/i, /uapa/i, /theateriz/i, /agnipath/i],
+  },
+  {
+    id: "gs3-fiscal-policy",
+    pillarTitle: "India's Fiscal Policy: Budget, Debt & Public Finance Management",
+    pillarKeyword: "india fiscal policy budget public finance",
+    category: "gs-paper-3",
+    supportingTopics: [
+      { title: "Union Budget Analysis: Capital Expenditure Push & Revenue Trends", keywords: ["union budget", "capital expenditure", "fiscal deficit"] },
+      { title: "GST Architecture: Revenue Performance, Rate Rationalization & State Compensation", keywords: ["gst", "goods services tax", "gst rate"] },
+      { title: "Public Debt Management: India's Borrowing Strategy & Sustainability", keywords: ["public debt", "government borrowing", "debt gdp ratio"] },
+      { title: "Freebies vs Welfare: Supreme Court Observations & Fiscal Responsibility", keywords: ["freebies", "welfare spending", "fiscal responsibility", "frbm"] },
+      { title: "Disinvestment vs Privatization: Strategic Sale Policy & Outcomes", keywords: ["disinvestment", "privatization", "strategic sale"] },
+      { title: "State Finances: Growing Debt, Revenue Concerns & 15th Finance Commission", keywords: ["state finance", "state debt", "15th finance commission"] },
+    ],
+    matchPatterns: [/fiscal\s*policy/i, /union\s*budget/i, /capital\s*expenditure/i, /fiscal\s*deficit/i, /gst.*architecture/i, /rate\s*rational/i, /public\s*debt/i, /freebie/i, /frbm/i, /disinvestment/i, /privatiz/i, /state\s*finance/i],
+  },
+];
+
+function matchArticleToCluster(title: string, content: string): TopicCluster | null {
+  const text = (title + " " + content).toLowerCase();
+  let bestCluster: TopicCluster | null = null;
+  let bestScore = 0;
+
+  for (const cluster of TOPIC_CLUSTERS) {
+    let score = 0;
+    for (const pattern of cluster.matchPatterns) {
+      if (pattern.test(text)) score++;
+    }
+    if (score > bestScore && score >= 2) {
+      bestScore = score;
+      bestCluster = cluster;
+    }
+  }
+  return bestCluster;
+}
+
+function findBestSupportingTopic(cluster: TopicCluster, title: string, content: string): { title: string; keywords: string[] } | null {
+  const text = (title + " " + content).toLowerCase();
+  let best: { title: string; keywords: string[]; score: number } | null = null;
+
+  for (const topic of cluster.supportingTopics) {
+    let score = 0;
+    for (const kw of topic.keywords) {
+      if (text.includes(kw.toLowerCase())) score++;
+    }
+    if (score > 0 && (!best || score > best.score)) {
+      best = { ...topic, score };
+    }
+  }
+  return best ? { title: best.title, keywords: best.keywords } : null;
+}
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -689,27 +885,57 @@ function sanitizeContent(text: string): string {
   return result;
 }
 
-async function rewriteArticleWithAI(article: ScrapedArticle): Promise<InsertBlogPost | null> {
-  const detectedCategory = detectCategory(article.title, article.content);
+async function rewriteArticleWithAI(article: ScrapedArticle, clusterContext?: { cluster: TopicCluster; role: "pillar" | "supporting"; targetTopic?: { title: string; keywords: string[] }; siblingLinks: string[] }): Promise<InsertBlogPost | null> {
+  const detectedCategory = clusterContext?.cluster.category || detectCategory(article.title, article.content);
 
   const existingPosts = await db
-    .select({ title: blogPosts.title, slug: blogPosts.slug })
+    .select({ title: blogPosts.title, slug: blogPosts.slug, clusterId: blogPosts.clusterId })
     .from(blogPosts)
     .where(eq(blogPosts.published, true))
-    .limit(20);
-  const internalLinks = existingPosts.map(p => `[${p.title}](/blog/${p.slug})`).slice(0, 10);
+    .limit(50);
 
-  const prompt = `You are rewriting a research note into a data-driven, rank-worthy article. Your goal: be BETTER than the top 5 Google results for this topic. Not just well-written — differentiated with data, trends, and analysis no coaching site provides.
+  const clusterSiblings = clusterContext
+    ? existingPosts.filter(p => p.clusterId === clusterContext.cluster.id).map(p => `[${p.title}](/blog/${p.slug})`)
+    : [];
+  const otherLinks = existingPosts.filter(p => !clusterContext || p.clusterId !== clusterContext.cluster.id).map(p => `[${p.title}](/blog/${p.slug})`).slice(0, 5);
+  const allInternalLinks = [...clusterSiblings, ...otherLinks, ...(clusterContext?.siblingLinks || [])];
+
+  const isPillar = clusterContext?.role === "pillar";
+  const wordTarget = isPillar ? "3000-4000" : "1500-2000";
+  const sectionMin = isPillar ? 8 : 6;
+
+  const clusterInstruction = clusterContext ? `
+=== CLUSTER STRATEGY (CRITICAL FOR SEO) ===
+This article belongs to the TOPIC CLUSTER: "${clusterContext.cluster.pillarTitle}"
+Cluster ID: ${clusterContext.cluster.id}
+Article Role: ${clusterContext.role.toUpperCase()}
+
+${isPillar ? `AS A PILLAR PAGE you must:
+- Be the definitive reference on this entire topic area
+- Cover every major sub-topic briefly but link to deep-dive articles for each
+- Include a "Related Analysis" section listing all supporting articles
+- Target the primary keyword: "${clusterContext.cluster.pillarKeyword}"
+- Include 10+ internal links to cluster articles
+- This page is the HUB — everything links back here` : `AS A SUPPORTING ARTICLE you must:
+- Go DEEP on ONE specific sub-topic: "${clusterContext.targetTopic?.title || article.title}"
+- Target keywords: ${clusterContext.targetTopic?.keywords.join(", ") || "based on content"}
+- Link back to the pillar page prominently (first and last section)
+- Link to 2-3 sibling articles in the same cluster
+- Be hyper-focused — do NOT cover the broad topic`}
+` : "";
+
+  const prompt = `You are writing a ${isPillar ? "PILLAR" : "deep analytical"} article for a structured UPSC preparation platform. This is NOT a random blog post — it is part of a topical authority cluster designed to dominate search rankings.
 
 RULES:
 1. NEVER mention any coaching institute, website, academy, or source name
 2. NEVER copy sentences — completely rewrite with NEW data and analysis added
 3. Target ONE specific search intent — do NOT mix motivational + strategic + explanatory
 4. Write ONLY in English. NEVER use Hindi, Hinglish, or any Indian language script. If the source material is in Hindi, translate concepts to English.
-
-ORIGINAL TITLE: "${article.title}"
+5. Neutral, academic, analytical tone — like a policy research brief, NOT a coaching blog
+${clusterInstruction}
+TOPIC FOCUS: "${clusterContext?.targetTopic?.title || article.title}"
 RESEARCH MATERIAL (rewrite completely, add data):
-${article.content}
+${article.content.substring(0, 6000)}
 
 === BANNED LANGUAGE ===
 Never use: "comprehensive", "holistic", "strategic blueprint", "foundational pillars", "crucial cornerstone", "navigating", "decoding", "stands as a pinnacle", "gauntlet", "in-depth analysis", "multifaceted", "paradigm", "synergy", "pivotal", "indispensable", "plethora", "myriad", "delve into", "it is worth noting", "in today's world", "the landscape of", "embark on", "tapestry", "beacon", "robust", "leverage", "key takeaways", "furthermore", "in conclusion", "nuanced", "underscore", "paradigm shift", "comprehensive overview", "needless to say", "game changer", "cutting edge", "cornerstone", "linchpin", "overarching", "interplay", "facets", "intricacies", "demystify", "unpack", "deep dive", "shed light on", "pave the way", "bolster", "spearhead"
@@ -717,59 +943,51 @@ No "Moreover", "Furthermore", "Additionally" at sentence starts. NEVER title it 
 
 === ANTI-HALLUCINATION (CRITICAL — YMYL CATEGORY) ===
 UPSC content is YMYL. Fabricated data of ANY kind triggers Google penalties.
-
 YOU ARE AN AI. YOU CANNOT LOOK UP REAL DATA. ACCEPT THIS LIMITATION.
 
 ABSOLUTE BANS:
 - NEVER invent specific prices, costs, or monetary figures
 - NEVER invent percentages or statistics
-- NEVER invent data and attribute it to real sources (e.g., "compiled from Ministry data" — you didn't compile anything)
+- NEVER invent data and attribute it to real sources
 - NEVER write "studies show", "research indicates" without naming the EXACT study
 - NEVER create fake data tables with invented numbers
-- NEVER add disclaimers like "indicative averages" to justify invented numbers
 
 THE CORE RULE: If you did not retrieve a number from an actual database or document, DO NOT write it.
 
 WHAT YOU CAN DO IN TABLES:
-- Structural/comparative tables WITHOUT invented numbers: features, pros/cons, scheme names, article numbers, timelines
+- Structural/comparative tables: features, pros/cons, scheme names, article numbers, timelines
 - Qualitative comparisons: scope, mandate, jurisdiction, applicability
-- Factual items you KNOW: Constitutional articles, scheme launch years, SC judgment names, Lok Sabha seats (543), etc.
-- Data from training knowledge you're confident about (well-known budget allocations, election years, etc.)
+- Factual items you KNOW: Constitutional articles, SC judgment names, Lok Sabha seats (543), etc.
 
-ANECDOTAL FRAMING FOR UNCERTAIN DATA:
-BAD: "price spread reaches 247%"
-GOOD: "Price spreads for perishables can multiply several times between farmgate and retail during seasonal gluts"
-
-NEVER position any method/tool as universally superior. Present trade-offs honestly.
-
-=== DATA REQUIREMENTS ===
+=== ARTICLE STRUCTURE ===
 You MUST include:
-1. TWO tables — structural/comparative with QUALITATIVE analysis, scheme comparisons, or Constitutional provisions. NOT tables with invented price/percentage data.
-2. Specific years where confident (scheme launches, amendment years)
-3. ONE trend analysis based on KNOWN policy shifts (not invented numbers)
-4. ONE comparison (A vs B with structured reasoning)
-5. UPSC question references ONLY if certain — otherwise say "UPSC has repeatedly asked about [topic] in GS-X Mains"
+1. Hook — open with a specific data point, SC judgment, or policy event. Never a definition.
+2. Core Concept — explain the constitutional/policy framework
+3. ${isPillar ? "THREE" : "TWO"} tables — structural/comparative with QUALITATIVE data
+4. Case Study — real SC judgments, state examples, or policy outcomes
+5. Comparative Analysis — A vs B with structured reasoning
+6. ${isPillar ? "Policy Debate Section — present both sides" : "Supreme Court Reference — relevant judgment details"}
+7. Mains Practice Question — one GS question with approach hints
+8. FAQs — 5 questions people Google (### headings, 2-3 sentence answers)
 
-=== INTERNAL LINKING ===
-${internalLinks.length > 0 ? 'Include 2-3 links to related articles:\n' + internalLinks.join('\n') : 'No existing articles yet.'}
+=== INTERNAL LINKING (MANDATORY) ===
+${allInternalLinks.length > 0 ? 'You MUST include these internal links naturally within the content:\n' + allInternalLinks.slice(0, 10).join('\n') : 'No existing articles yet.'}
 
 === WRITING STYLE ===
-1. Open with a specific number or data point. Never a definition.
-2. Direct, opinionated voice. Take positions. Point out common mistakes.
-3. Headings with numbers: "5-Year Trend", "3 Reasons Why", "State-Wise Breakdown"
-4. Max 3-line paragraphs. Bold key terms. Dash (-) bullets only.
-5. ## and ### headings only. Min 6 H2 sections.
-6. End with ## FAQs — 5 questions people actually Google (### headings, 2-3 sentences)
-7. Target 2000-2500 words, data-dense.
+1. Direct, analytical voice. Take positions. Cite specific SC cases, Constitutional articles, Committee reports.
+2. Short paragraphs (max 3 lines). Bold key terms.
+3. ## and ### headings only. Min ${sectionMin} H2 sections.
+4. Target ${wordTarget} words, data-dense.
+5. End with ## FAQs and ## UPSC Mains Practice Question
 
 === OUTPUT ===
 Return ONLY a JSON object:
 {
-  "title": "Data-specific title under 60 chars with a number or specific claim",
-  "metaTitle": "SEO title under 60 chars",
-  "metaDescription": "150-char hook with data point",
+  "title": "${isPillar ? "Pillar-style title under 70 chars covering the broad topic" : "Specific analytical title under 60 chars with a number or claim"}",
+  "metaTitle": "SEO title under 60 chars with primary keyword",
+  "metaDescription": "150-char hook with data point and keyword",
   "excerpt": "2 sentences under 180 chars with specific insight",
-  "content": "Full markdown. Data tables. Trends. Internal links. Direct voice.",
+  "content": "Full markdown article with tables, case studies, internal links, FAQs, mains question.",
   "tags": ["5-7 tags"],
   "coverImageAlt": "Descriptive alt text",
   "category": "${detectedCategory}"
@@ -789,8 +1007,7 @@ No markdown fencing. No extra text. Only valid JSON.`;
       .replace(/^```json\s*/i, "")
       .replace(/```\s*$/i, "")
       .trim();
-    jsonStr = jsonStr.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
-    jsonStr = jsonStr.replace(/\r/g, "");
+    jsonStr = jsonStr.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 
     const fixNewlinesInStrings = (s: string): string => {
       let inString = false;
@@ -798,45 +1015,57 @@ No markdown fencing. No extra text. Only valid JSON.`;
       let result = "";
       for (let i = 0; i < s.length; i++) {
         const ch = s[i];
+        const code = ch.charCodeAt(0);
         if (escaped) { result += ch; escaped = false; continue; }
         if (ch === "\\") { result += ch; escaped = true; continue; }
         if (ch === '"') { inString = !inString; result += ch; continue; }
-        if (ch === "\n" && inString) { result += "\\n"; continue; }
-        if (ch === "\t" && inString) { result += "\\t"; continue; }
+        if (inString) {
+          if (ch === "\n") { result += "\\n"; continue; }
+          if (ch === "\t") { result += "\\t"; continue; }
+          if (code < 0x20 || code === 0x7F) { continue; }
+        }
         result += ch;
       }
       return result;
     };
     jsonStr = fixNewlinesInStrings(jsonStr);
-    jsonStr = jsonStr.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
 
-    let parsed;
-    try {
-      parsed = JSON.parse(jsonStr);
-    } catch (e1) {
-      jsonStr = jsonStr.replace(/\t/g, "    ").replace(/\r\n/g, "\n");
-      try {
-        parsed = JSON.parse(jsonStr);
-      } catch (e2) {
-        const titleMatch = jsonStr.match(/"title"\s*:\s*"([^"]+)"/);
-        const contentMatch = jsonStr.match(/"content"\s*:\s*"([\s\S]*?)"\s*,\s*"(?:metaTitle|tags|excerpt)/);
-        if (!titleMatch || !contentMatch) throw e1;
-        const metaTitleMatch = jsonStr.match(/"metaTitle"\s*:\s*"([^"]+)"/);
-        const metaDescMatch = jsonStr.match(/"metaDescription"\s*:\s*"([^"]+)"/);
-        const excerptMatch = jsonStr.match(/"excerpt"\s*:\s*"([^"]+)"/);
-        const coverAltMatch = jsonStr.match(/"coverImageAlt"\s*:\s*"([^"]+)"/);
-        const tagsMatch = jsonStr.match(/"tags"\s*:\s*\[([^\]]+)\]/);
-        parsed = {
-          title: titleMatch[1],
-          content: contentMatch[1].replace(/\\n/g, "\n").replace(/\\"/g, '"'),
-          metaTitle: metaTitleMatch?.[1] || titleMatch[1] + " | Learnpro AI",
-          metaDescription: metaDescMatch?.[1] || excerptMatch?.[1] || "",
-          excerpt: excerptMatch?.[1] || "",
-          coverImageAlt: coverAltMatch?.[1] || titleMatch[1],
-          tags: tagsMatch ? tagsMatch[1].split(",").map((t: string) => t.trim().replace(/"/g, "")) : [],
-          category: detectedCategory,
-        };
-      }
+    function tryParseJSON(s: string): any {
+      try { return JSON.parse(s); } catch { return null; }
+    }
+
+    function regexFallbackParse(s: string): any {
+      const titleMatch = s.match(/"title"\s*:\s*"([^"]{5,200})"/);
+      const contentMatch = s.match(/"content"\s*:\s*"([\s\S]*?)"\s*,\s*"(?:metaTitle|metaDescription|tags|excerpt|coverImageAlt)/);
+      if (!titleMatch || !contentMatch) return null;
+      const metaTitleMatch = s.match(/"metaTitle"\s*:\s*"([^"]+)"/);
+      const metaDescMatch = s.match(/"metaDescription"\s*:\s*"([^"]+)"/);
+      const excerptMatch = s.match(/"excerpt"\s*:\s*"([^"]+)"/);
+      const coverAltMatch = s.match(/"coverImageAlt"\s*:\s*"([^"]+)"/);
+      const tagsMatch = s.match(/"tags"\s*:\s*\[([^\]]+)\]/);
+      const categoryMatch = s.match(/"category"\s*:\s*"([^"]+)"/);
+      return {
+        title: titleMatch[1],
+        content: contentMatch[1].replace(/\\n/g, "\n").replace(/\\"/g, '"').replace(/\\\\/g, "\\"),
+        metaTitle: metaTitleMatch?.[1] || titleMatch[1] + " | Learnpro AI",
+        metaDescription: metaDescMatch?.[1] || excerptMatch?.[1] || "",
+        excerpt: excerptMatch?.[1] || "",
+        coverImageAlt: coverAltMatch?.[1] || titleMatch[1],
+        tags: tagsMatch ? tagsMatch[1].split(",").map((t: string) => t.trim().replace(/"/g, "")) : [],
+        category: categoryMatch?.[1] || detectedCategory,
+      };
+    }
+
+    let parsed = tryParseJSON(jsonStr);
+    if (!parsed) {
+      const escaped = jsonStr.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
+      parsed = tryParseJSON(escaped);
+    }
+    if (!parsed) {
+      parsed = regexFallbackParse(jsonStr);
+    }
+    if (!parsed) {
+      throw new Error("Could not parse AI response as JSON");
     }
 
     const sanitizedTitle = sanitizeContent(parsed.title);
@@ -859,8 +1088,10 @@ No markdown fencing. No extra text. Only valid JSON.`;
       coverImageAlt: parsed.coverImageAlt || parsed.title,
       readingTimeMinutes: readingTime,
       published: true,
-      featured: false,
+      featured: isPillar || false,
       sourceUrl: article.url,
+      clusterId: clusterContext?.cluster.id || null,
+      clusterRole: clusterContext?.role || "standalone",
       publishedAt: new Date(),
     };
   } catch (e) {
@@ -944,31 +1175,101 @@ export async function runContentScrapeAndPublish(maxPerSource: number = 5): Prom
       .where(sql`${blogPosts.sourceUrl} IS NOT NULL`);
     const existingUrlSet = new Set(existingUrls.map(e => e.sourceUrl));
 
-    const newArticles = allArticles.filter(a => !existingUrlSet.has(a.url) && !isStaleOrIrrelevant(a.title, a.url));
-    console.log(`[Scraper] ${newArticles.length} new articles after dedup+filter (${allArticles.length} total scraped)`);
+    const existingClusters = await db
+      .select({ clusterId: blogPosts.clusterId, clusterRole: blogPosts.clusterRole, title: blogPosts.title, slug: blogPosts.slug })
+      .from(blogPosts)
+      .where(eq(blogPosts.published, true));
 
-    const sourceCounts: Record<string, number> = {};
-    const articlesToProcess: ScrapedArticle[] = [];
-
-    for (const article of newArticles) {
-      const count = sourceCounts[article.source] || 0;
-      if (count < maxPerSource) {
-        articlesToProcess.push(article);
-        sourceCounts[article.source] = count + 1;
+    const clusterArticleCount: Record<string, { pillar: boolean; supportingCount: number; coveredKeywords: Set<string> }> = {};
+    for (const p of existingClusters) {
+      if (!p.clusterId) continue;
+      if (!clusterArticleCount[p.clusterId]) {
+        clusterArticleCount[p.clusterId] = { pillar: false, supportingCount: 0, coveredKeywords: new Set() };
+      }
+      if (p.clusterRole === "pillar") clusterArticleCount[p.clusterId].pillar = true;
+      else clusterArticleCount[p.clusterId].supportingCount++;
+      const titleLower = p.title.toLowerCase();
+      const cluster = TOPIC_CLUSTERS.find(c => c.id === p.clusterId);
+      if (cluster) {
+        for (const st of cluster.supportingTopics) {
+          const matchCount = st.keywords.filter(kw => titleLower.includes(kw.toLowerCase())).length;
+          if (matchCount >= 1) {
+            st.keywords.forEach(kw => clusterArticleCount[p.clusterId!].coveredKeywords.add(kw.toLowerCase()));
+          }
+        }
       }
     }
 
-    console.log(`[Scraper] Processing ${articlesToProcess.length} articles for rewriting...`);
+    const newArticles = allArticles.filter(a => !existingUrlSet.has(a.url) && !isStaleOrIrrelevant(a.title, a.url));
+    console.log(`[Scraper] ${newArticles.length} new articles after dedup+filter (${allArticles.length} total scraped)`);
 
-    for (const article of articlesToProcess) {
+    const clusterMatched: { article: ScrapedArticle; cluster: TopicCluster; topic: { title: string; keywords: string[] } | null }[] = [];
+    const unmatched: ScrapedArticle[] = [];
+
+    for (const article of newArticles) {
+      const cluster = matchArticleToCluster(article.title, article.content);
+      if (cluster) {
+        const topic = findBestSupportingTopic(cluster, article.title, article.content);
+        clusterMatched.push({ article, cluster, topic });
+      } else {
+        unmatched.push(article);
+      }
+    }
+
+    console.log(`[Scraper] Cluster-matched: ${clusterMatched.length}, Unmatched: ${unmatched.length}`);
+
+    clusterMatched.sort((a, b) => {
+      const aHasPillar = clusterArticleCount[a.cluster.id]?.pillar ? 1 : 0;
+      const bHasPillar = clusterArticleCount[b.cluster.id]?.pillar ? 1 : 0;
+      return aHasPillar - bHasPillar;
+    });
+
+    const clusterProcessed: Record<string, number> = {};
+    const maxPerCluster = 3;
+
+    for (const { article, cluster, topic } of clusterMatched) {
+      const count = clusterProcessed[cluster.id] || 0;
+      if (count >= maxPerCluster) continue;
+
+      const clusterState = clusterArticleCount[cluster.id];
+      const needsPillar = !clusterState?.pillar;
+      const role: "pillar" | "supporting" = needsPillar ? "pillar" : "supporting";
+
+      if (role === "supporting" && topic) {
+        const alreadyCovered = topic.keywords.some(kw => clusterState?.coveredKeywords.has(kw.toLowerCase()));
+        if (alreadyCovered) {
+          console.log(`[Scraper] [${cluster.id}] Skipping already-covered topic: "${topic.title}"`);
+          continue;
+        }
+      }
+
+      const siblingLinks = existingClusters
+        .filter(p => p.clusterId === cluster.id)
+        .map(p => `[${p.title}](/blog/${p.slug})`);
+
       try {
-        console.log(`[Scraper] Rewriting: "${article.title}" (from ${article.source})`);
-        const post = await rewriteArticleWithAI(article);
+        console.log(`[Scraper] [${cluster.id}] ${role.toUpperCase()}: "${article.title}" → ${topic?.title || "pillar"}`);
+        const post = await rewriteArticleWithAI(article, {
+          cluster,
+          role,
+          targetTopic: role === "supporting" ? topic || undefined : undefined,
+          siblingLinks,
+        });
         if (!post) continue;
 
         await db.insert(blogPosts).values(post);
         published++;
-        console.log(`[Scraper] Published: "${post.title}"`);
+        clusterProcessed[cluster.id] = count + 1;
+        console.log(`[Scraper] Published [${cluster.id}/${role}]: "${post.title}"`);
+
+        if (!clusterArticleCount[cluster.id]) {
+          clusterArticleCount[cluster.id] = { pillar: false, supportingCount: 0, coveredKeywords: new Set() };
+        }
+        if (role === "pillar") clusterArticleCount[cluster.id].pillar = true;
+        else clusterArticleCount[cluster.id].supportingCount++;
+        if (topic) {
+          topic.keywords.forEach(kw => clusterArticleCount[cluster.id].coveredKeywords.add(kw.toLowerCase()));
+        }
 
         generateCoverImage(post.title, post.slug).then(async (imageUrl) => {
           if (imageUrl) {
@@ -984,6 +1285,35 @@ export async function runContentScrapeAndPublish(maxPerSource: number = 5): Prom
         await new Promise(r => setTimeout(r, 3000));
       } catch (e) {
         console.error(`[Scraper] Failed to process "${article.title}":`, (e as Error).message);
+      }
+    }
+
+    const unmatchedLimit = Math.max(2, maxPerSource - published);
+    const unmatchedToProcess = unmatched.slice(0, unmatchedLimit);
+    if (unmatchedToProcess.length > 0) {
+      console.log(`[Scraper] Processing ${unmatchedToProcess.length} unmatched current-affairs articles...`);
+    }
+    for (const article of unmatchedToProcess) {
+      try {
+        console.log(`[Scraper] Standalone: "${article.title}" (from ${article.source})`);
+        const post = await rewriteArticleWithAI(article);
+        if (!post) continue;
+
+        await db.insert(blogPosts).values(post);
+        published++;
+        console.log(`[Scraper] Published [standalone]: "${post.title}"`);
+
+        generateCoverImage(post.title, post.slug).then(async (imageUrl) => {
+          if (imageUrl) {
+            try {
+              await db.update(blogPosts).set({ coverImageUrl: imageUrl }).where(eq(blogPosts.slug, post.slug));
+            } catch (e) {}
+          }
+        }).catch(() => {});
+
+        await new Promise(r => setTimeout(r, 3000));
+      } catch (e) {
+        console.error(`[Scraper] Failed "${article.title}":`, (e as Error).message);
       }
     }
   } catch (e) {
