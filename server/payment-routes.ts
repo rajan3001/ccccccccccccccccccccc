@@ -5,7 +5,7 @@ import { z } from "zod";
 import { storage } from "./storage";
 import { PLAN_CATALOG, type PlanCode } from "@shared/schema";
 
-const PRODUCTION_URL = "https://learnproai.in";
+const PRODUCTION_URL = `https://${process.env.SITE_DOMAIN || "learnproai.in"}`;
 
 let _razorpay: Razorpay | null = null;
 

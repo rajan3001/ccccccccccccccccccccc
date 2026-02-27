@@ -110,9 +110,10 @@ export function useRazorpayCheckout() {
 
   const initiateCheckout = async (planCode: string) => {
     try {
+      const siteDomain = import.meta.env.VITE_SITE_DOMAIN || "learnproai.in";
       const currentHost = window.location.hostname;
-      if (currentHost !== "learnproai.in" && (currentHost.includes("replit") || currentHost.includes("repl.co") || currentHost.includes("worf."))) {
-        window.location.href = `https://learnproai.in/subscription`;
+      if (currentHost !== siteDomain && (currentHost.includes("replit") || currentHost.includes("repl.co") || currentHost.includes("worf."))) {
+        window.location.href = `https://${siteDomain}/subscription`;
         return;
       }
 
@@ -133,7 +134,7 @@ export function useRazorpayCheckout() {
         subscription_id: subData.subscriptionId,
         name: "Learnpro AI",
         description: `${subData.planLabel} Plan - Auto Renewal`,
-        callback_url: `https://learnproai.in/api/payments/razorpay/callback`,
+        callback_url: `https://${import.meta.env.VITE_SITE_DOMAIN || "learnproai.in"}/api/payments/razorpay/callback`,
         handler: async (response: any) => {
           await verifyMutation.mutateAsync({
             razorpay_payment_id: response.razorpay_payment_id,

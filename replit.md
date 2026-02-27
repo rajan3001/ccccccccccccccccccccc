@@ -35,6 +35,15 @@ The Learnpro AI platform is built with a modern web stack. The frontend is devel
 - **User Profile & Settings**: Learner profile popup with avatar, name, plan, and links to settings including Billing. Notification Settings tab shows "Coming Soon" placeholder.
 - **Multilingual i18n**: Full internationalization across all pages. Architecture: `client/src/i18n/languages.ts` (14 supported languages), `client/src/i18n/translations.ts` (curated translations for en/hi/bn/gu/mr, others fallback to English), `client/src/i18n/context.tsx` (LanguageProvider + useLanguage hook). Language stored in DB (`users.language`), localStorage, and context. All pages translated: Dashboard, Settings, Study Progress, Practice Quiz, Chat, Login, Notes, Study Planner, Current Affairs (both list + detail), Paper Evaluation, Landing page, and Sidebar.
 
+### Domain Portability
+All domain references use the `SITE_DOMAIN` environment variable (server-side) and `VITE_SITE_DOMAIN` (client-side), defaulting to `learnproai.in`. When transferring to a new domain:
+1. Set `SITE_DOMAIN` env var to the new domain (e.g., `newdomain.com`)
+2. Set `VITE_SITE_DOMAIN` to the same value for client-side references
+3. Update `CUSTOM_DOMAIN` for Google OAuth callback URLs
+4. All user data (accounts, progress, subscriptions, conversations, notes, quiz scores) is stored in PostgreSQL and fully preserved across domain/DNS changes
+5. Sessions are cookie-based without a fixed domain — users will need to re-login on the new domain, but all their data remains intact
+6. Object Storage files are domain-independent (Google Cloud Storage)
+
 ### External Dependencies
 - **Gemini 2.5 Pro**: Via Replit AI Integrations for chat (with Google Search grounding for real-time data). Gemini 2.5 Flash used for blog generation, suggestions, and lighter tasks.
 - **PostgreSQL (Neon)**: Database for all application data.

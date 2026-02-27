@@ -16,7 +16,7 @@ const httpServer = createServer(app);
 
 app.use(compression());
 
-const PRODUCTION_DOMAIN = "learnproai.in";
+const PRODUCTION_DOMAIN = process.env.SITE_DOMAIN || "learnproai.in";
 app.use((req, res, next) => {
   if (process.env.NODE_ENV !== "production") return next();
   const host = req.hostname;
