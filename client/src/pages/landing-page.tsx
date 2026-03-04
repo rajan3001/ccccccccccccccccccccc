@@ -767,9 +767,10 @@ export default function LandingPage() {
       <LoginSlideOver open={loginOpen} onClose={() => setLoginOpen(false)} />
       <HowItWorksTour open={tourOpen} onOpenChange={setTourOpen} />
 
-      <nav className="sticky top-0 z-[999] bg-background/80 backdrop-blur-md">
-        <div className="border-b border-border/40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
+      <nav className="sticky top-0 z-[999]">
+        <div className="relative bg-background/70 backdrop-blur-xl border-b border-white/10 dark:border-white/5">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/[0.03] via-transparent to-primary/[0.03]" />
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
             <Logo size="md" />
             <div className="flex items-center gap-2 lg:gap-3">
               <a href="#features">
@@ -788,112 +789,113 @@ export default function LandingPage() {
                 </Button>
               </a>
 
-              <a href="https://play.google.com/store/apps/details?id=com.egnmnw.isqbia" target="_blank" rel="noopener noreferrer">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hidden lg:inline-flex gap-1.5 border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold shadow-sm"
-                  data-testid="link-download-app"
-                >
-                  <Smartphone className="h-3.5 w-3.5" />
-                  Download App
-                </Button>
-              </a>
-              <a href="https://learnpro.live/" target="_blank" rel="noopener noreferrer">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hidden lg:inline-flex gap-1.5 border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-400 font-semibold shadow-sm"
-                  data-testid="link-elearning-site"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  E-Learning
-                </Button>
-              </a>
-              <a href="https://learnpro.in" target="_blank" rel="noopener noreferrer">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hidden lg:inline-flex gap-1.5 border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-semibold shadow-sm"
-                  data-testid="link-learnpro-home"
-                >
-                  <Home className="h-3.5 w-3.5" />
-                  Learnpro Home
-                </Button>
-              </a>
+              <div className="hidden lg:flex items-center gap-2">
+                <a href="https://play.google.com/store/apps/details?id=com.egnmnw.isqbia" target="_blank" rel="noopener noreferrer" className="group relative" data-testid="link-download-app">
+                  <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-r from-emerald-500 via-green-400 to-teal-500 opacity-60 group-hover:opacity-100 blur-[2px] transition-all duration-500" />
+                  <div className="relative flex items-center gap-2 px-3.5 py-2 rounded-xl bg-background/90 dark:bg-background/80 backdrop-blur-sm text-xs font-bold tracking-wide">
+                    <div className="flex items-center justify-center h-5 w-5 rounded-md bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+                      <Smartphone className="h-3 w-3" />
+                    </div>
+                    <span className="bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">Courses App</span>
+                  </div>
+                </a>
+
+                <a href="https://learnpro.live/" target="_blank" rel="noopener noreferrer" className="group relative" data-testid="link-elearning-site">
+                  <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-r from-violet-500 via-purple-400 to-fuchsia-500 opacity-60 group-hover:opacity-100 blur-[2px] transition-all duration-500" />
+                  <div className="relative flex items-center gap-2 px-3.5 py-2 rounded-xl bg-background/90 dark:bg-background/80 backdrop-blur-sm text-xs font-bold tracking-wide">
+                    <div className="flex items-center justify-center h-5 w-5 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white">
+                      <Zap className="h-3 w-3" />
+                    </div>
+                    <span className="bg-gradient-to-r from-violet-600 to-fuchsia-600 dark:from-violet-400 dark:to-fuchsia-400 bg-clip-text text-transparent">E-Learning</span>
+                  </div>
+                </a>
+
+                <a href="https://learnpro.in" target="_blank" rel="noopener noreferrer" className="group relative" data-testid="link-learnpro-home">
+                  <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-r from-amber-500 via-orange-400 to-yellow-500 opacity-60 group-hover:opacity-100 blur-[2px] transition-all duration-500" />
+                  <div className="relative flex items-center gap-2 px-3.5 py-2 rounded-xl bg-background/90 dark:bg-background/80 backdrop-blur-sm text-xs font-bold tracking-wide">
+                    <div className="flex items-center justify-center h-5 w-5 rounded-md bg-gradient-to-br from-amber-500 to-orange-600 text-white">
+                      <Globe className="h-3 w-3" />
+                    </div>
+                    <span className="bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">Learnpro Home</span>
+                  </div>
+                </a>
+              </div>
 
               <Button
                 onClick={openLogin}
                 data-testid="button-login-nav"
+                className="relative overflow-hidden"
               >
-                {t.landing.login}
+                <span className="relative z-10">{t.landing.login}</span>
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="lg:hidden border-b border-border/30 bg-background/60">
-          <div className="overflow-x-auto scrollbar-hide">
-            <div className="flex items-center gap-2 px-4 py-2 min-w-max">
-              <a href="#features">
-                <Button variant="ghost" size="sm" className="text-muted-foreground text-xs whitespace-nowrap" data-testid="link-features-mobile">
+        <div className="lg:hidden relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/[0.04] via-violet-500/[0.03] to-emerald-500/[0.04]" />
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+          <div className="relative overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 px-4 py-2.5 min-w-max">
+              <a href="#features" className="flex-shrink-0">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground bg-muted/50 whitespace-nowrap transition-colors" data-testid="link-features-mobile">
+                  <Sparkles className="h-3 w-3" />
                   {t.landing.features}
-                </Button>
+                </span>
               </a>
-              <a href="#exams">
-                <Button variant="ghost" size="sm" className="text-muted-foreground text-xs whitespace-nowrap" data-testid="link-exams-mobile">
+              <a href="#exams" className="flex-shrink-0">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground bg-muted/50 whitespace-nowrap transition-colors" data-testid="link-exams-mobile">
+                  <Target className="h-3 w-3" />
                   {t.landing.navExams}
-                </Button>
+                </span>
               </a>
-              <a href="/blog">
-                <Button variant="ghost" size="sm" className="text-muted-foreground text-xs whitespace-nowrap" data-testid="link-blog-mobile">
+              <a href="/blog" className="flex-shrink-0">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground bg-muted/50 whitespace-nowrap transition-colors" data-testid="link-blog-mobile">
+                  <BookOpen className="h-3 w-3" />
                   {t.nav?.blog || "Articles"}
-                </Button>
+                </span>
               </a>
-              <div className="w-px h-5 bg-border/60 flex-shrink-0" />
-              <a href="https://play.google.com/store/apps/details?id=com.egnmnw.isqbia" target="_blank" rel="noopener noreferrer">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold text-xs whitespace-nowrap"
-                  data-testid="link-download-app-mobile"
-                >
-                  <Smartphone className="h-3.5 w-3.5" />
-                  Download App
-                </Button>
+
+              <div className="w-px h-5 bg-gradient-to-b from-transparent via-primary/30 to-transparent flex-shrink-0" />
+
+              <a href="https://play.google.com/store/apps/details?id=com.egnmnw.isqbia" target="_blank" rel="noopener noreferrer" className="flex-shrink-0 group relative" data-testid="link-download-app-mobile">
+                <div className="absolute -inset-[1px] rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 opacity-50 group-hover:opacity-80 blur-[1px] transition-opacity duration-300" />
+                <span className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap bg-background/90 dark:bg-background/80">
+                  <div className="flex items-center justify-center h-4 w-4 rounded bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+                    <Smartphone className="h-2.5 w-2.5" />
+                  </div>
+                  <span className="bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">Courses App</span>
+                </span>
               </a>
-              <a href="https://learnpro.live/" target="_blank" rel="noopener noreferrer">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-400 font-semibold text-xs whitespace-nowrap"
-                  data-testid="link-elearning-mobile"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  E-Learning
-                </Button>
+
+              <a href="https://learnpro.live/" target="_blank" rel="noopener noreferrer" className="flex-shrink-0 group relative" data-testid="link-elearning-mobile">
+                <div className="absolute -inset-[1px] rounded-lg bg-gradient-to-r from-violet-500 to-fuchsia-500 opacity-50 group-hover:opacity-80 blur-[1px] transition-opacity duration-300" />
+                <span className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap bg-background/90 dark:bg-background/80">
+                  <div className="flex items-center justify-center h-4 w-4 rounded bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white">
+                    <Zap className="h-2.5 w-2.5" />
+                  </div>
+                  <span className="bg-gradient-to-r from-violet-600 to-fuchsia-600 dark:from-violet-400 dark:to-fuchsia-400 bg-clip-text text-transparent">E-Learning</span>
+                </span>
               </a>
-              <a href="https://learnpro.in" target="_blank" rel="noopener noreferrer">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-semibold text-xs whitespace-nowrap"
-                  data-testid="link-learnpro-home-mobile"
-                >
-                  <Home className="h-3.5 w-3.5" />
-                  Learnpro Home
-                </Button>
+
+              <a href="https://learnpro.in" target="_blank" rel="noopener noreferrer" className="flex-shrink-0 group relative" data-testid="link-learnpro-home-mobile">
+                <div className="absolute -inset-[1px] rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 opacity-50 group-hover:opacity-80 blur-[1px] transition-opacity duration-300" />
+                <span className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap bg-background/90 dark:bg-background/80">
+                  <div className="flex items-center justify-center h-4 w-4 rounded bg-gradient-to-br from-amber-500 to-orange-600 text-white">
+                    <Globe className="h-2.5 w-2.5" />
+                  </div>
+                  <span className="bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">Learnpro Home</span>
+                </span>
               </a>
-              <a href="https://wa.me/919102557680" target="_blank" rel="noopener noreferrer">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 border-[#25D366]/40 bg-[#25D366]/10 text-[#128C7E] dark:text-[#25D366] font-semibold text-xs whitespace-nowrap"
-                  data-testid="link-whatsapp-mobile"
-                >
-                  <SiWhatsapp className="h-3.5 w-3.5" />
-                  Contact Us
-                </Button>
+
+              <a href="https://wa.me/919102557680" target="_blank" rel="noopener noreferrer" className="flex-shrink-0 group relative" data-testid="link-whatsapp-mobile">
+                <div className="absolute -inset-[1px] rounded-lg bg-gradient-to-r from-[#25D366] to-[#128C7E] opacity-50 group-hover:opacity-80 blur-[1px] transition-opacity duration-300" />
+                <span className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap bg-background/90 dark:bg-background/80">
+                  <div className="flex items-center justify-center h-4 w-4 rounded bg-gradient-to-br from-[#25D366] to-[#128C7E] text-white">
+                    <SiWhatsapp className="h-2.5 w-2.5" />
+                  </div>
+                  <span className="bg-gradient-to-r from-[#25D366] to-[#128C7E] bg-clip-text text-transparent">Contact Us</span>
+                </span>
               </a>
             </div>
           </div>
