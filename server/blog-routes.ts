@@ -9,13 +9,20 @@ import { runContentScrapeAndPublish, scheduleDailyScraping } from "./blog-scrape
 const SITE_DOMAIN = process.env.SITE_DOMAIN || "learnproai.in";
 const SITE_URL = `https://${SITE_DOMAIN}`;
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
-  httpOptions: {
-    apiVersion: "",
-    baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
-  },
-});
+let _ai: GoogleGenAI | null = null;
+function getAI(): GoogleGenAI {
+  if (!_ai) {
+    if (!process.env.AI_INTEGRATIONS_GEMINI_API_KEY) {
+      throw new Error("AI_INTEGRATIONS_GEMINI_API_KEY is not set.");
+    }
+    _ai = new GoogleGenAI({
+      apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
+      httpOptions: { apiVersion: "", baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL },
+    });
+  }
+  return _ai;
+}
+const ai = new Proxy({} as GoogleGenAI, { get(_t, p) { return (getAI() as any)[p]; } });
 
 function slugify(text: string): string {
   return text

@@ -5,11 +5,26 @@ import { isAuthenticated } from "../auth";
 import { ObjectStorageService } from "../object_storage";
 import { getUserLanguage, getLanguageInstruction } from "../../language-utils";
 import { storage } from "../../storage";
-const ai = new GoogleGenAI({
-  apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
-  httpOptions: {
-    apiVersion: "",
-    baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
+
+let _ai: GoogleGenAI | null = null;
+function getAI(): GoogleGenAI {
+  if (!_ai) {
+    if (!process.env.AI_INTEGRATIONS_GEMINI_API_KEY) {
+      throw new Error("AI_INTEGRATIONS_GEMINI_API_KEY is not set. Please configure this secret.");
+    }
+    _ai = new GoogleGenAI({
+      apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
+      httpOptions: {
+        apiVersion: "",
+        baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
+      },
+    });
+  }
+  return _ai;
+}
+const ai = new Proxy({} as GoogleGenAI, {
+  get(_target, prop) {
+    return (getAI() as any)[prop];
   },
 });
 

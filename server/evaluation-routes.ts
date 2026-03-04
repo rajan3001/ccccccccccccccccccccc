@@ -8,13 +8,20 @@ import { eq, desc } from "drizzle-orm";
 import type { CompetencyFeedback } from "@shared/models/evaluation";
 import { getLanguageName, getLanguageInstruction } from "./language-utils";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
-  httpOptions: {
-    apiVersion: "",
-    baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
-  },
-});
+let _ai: GoogleGenAI | null = null;
+function getAI(): GoogleGenAI {
+  if (!_ai) {
+    if (!process.env.AI_INTEGRATIONS_GEMINI_API_KEY) {
+      throw new Error("AI_INTEGRATIONS_GEMINI_API_KEY is not set.");
+    }
+    _ai = new GoogleGenAI({
+      apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
+      httpOptions: { apiVersion: "", baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL },
+    });
+  }
+  return _ai;
+}
+const ai = new Proxy({} as GoogleGenAI, { get(_t, p) { return (getAI() as any)[p]; } });
 
 const objectStorage = new ObjectStorageService();
 
