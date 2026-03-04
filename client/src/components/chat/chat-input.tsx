@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Square, Paperclip, X, FileText, Image as ImageIcon, File, NotebookPen, BookOpen, GraduationCap, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { buildNotePrompt, type NoteType } from "@/components/notes/note-type-dialog";
+import { createPortal } from "react-dom";
 
 export interface FileAttachment {
   file: File;
@@ -22,19 +23,21 @@ interface ChatInputProps {
   placeholder?: string;
 }
 
-const NOTE_OPTIONS: { type: NoteType; icon: typeof FileText; label: string; desc: string; color: string }[] = [
-  { type: "short", icon: FileText, label: "Short Notes", desc: "Concise bullet-point summary", color: "text-blue-500" },
-  { type: "detailed", icon: BookOpen, label: "Detailed Academic", desc: "Comprehensive exam-ready notes", color: "text-emerald-500" },
-  { type: "class", icon: GraduationCap, label: "Class Notes", desc: "1000-1200 word classroom style", color: "text-purple-500" },
-  { type: "revision", icon: Layers, label: "Quick Revision Cards", desc: "Flashcard-style key points", color: "text-amber-500" },
+const NOTE_OPTIONS: { type: NoteType; icon: typeof FileText; label: string; desc: string; color: string; bg: string }[] = [
+  { type: "short", icon: FileText, label: "Short Notes", desc: "Concise bullet-point summary", color: "text-blue-500", bg: "bg-blue-500/10" },
+  { type: "detailed", icon: BookOpen, label: "Detailed Academic", desc: "Comprehensive exam-ready notes", color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  { type: "class", icon: GraduationCap, label: "Class Notes", desc: "1000-1200 word classroom style", color: "text-purple-500", bg: "bg-purple-500/10" },
+  { type: "revision", icon: Layers, label: "Quick Revision Cards", desc: "Flashcard-style key points", color: "text-amber-500", bg: "bg-amber-500/10" },
 ];
 
 export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anything about UPSC, History, Polity..." }: ChatInputProps) {
   const [input, setInput] = useState("");
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
   const [showNoteMenu, setShowNoteMenu] = useState(false);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const noteButtonRef = useRef<HTMLButtonElement>(null);
   const noteMenuRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -45,16 +48,36 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
     }
   }, [input]);
 
+  const updateMenuPosition = useCallback(() => {
+    if (!noteButtonRef.current) return;
+    const rect = noteButtonRef.current.getBoundingClientRect();
+    const menuWidth = 280;
+    let left = rect.right - menuWidth;
+    if (left < 8) left = 8;
+    setMenuPos({
+      top: rect.top - 8,
+      left,
+    });
+  }, []);
+
   useEffect(() => {
     if (!showNoteMenu) return;
+    updateMenuPosition();
     const handleClickOutside = (e: MouseEvent) => {
-      if (noteMenuRef.current && !noteMenuRef.current.contains(e.target as Node)) {
+      if (
+        noteMenuRef.current && !noteMenuRef.current.contains(e.target as Node) &&
+        noteButtonRef.current && !noteButtonRef.current.contains(e.target as Node)
+      ) {
         setShowNoteMenu(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showNoteMenu]);
+    window.addEventListener("resize", updateMenuPosition);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("resize", updateMenuPosition);
+    };
+  }, [showNoteMenu, updateMenuPosition]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -291,38 +314,48 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
   const isUploading = attachments.some(a => a.uploading);
   const hasInput = input.trim().length > 0;
 
-  return (
-    <div className="relative max-w-3xl mx-auto w-full px-2 py-2 sm:p-4" ref={noteMenuRef}>
-      {showNoteMenu && hasInput && (
-        <div
-          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-popover border border-border rounded-xl shadow-2xl overflow-hidden z-50"
-          data-testid="note-type-menu"
-        >
-          <div className="px-3 py-2 border-b border-border/60 bg-muted/40">
-            <div className="flex items-center gap-2">
-              <NotebookPen className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Send as Notes</span>
-            </div>
-          </div>
-          {NOTE_OPTIONS.map((opt) => (
-            <button
-              key={opt.type}
-              onClick={() => handleNoteType(opt.type)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-foreground hover:bg-primary/10 transition-colors text-left"
-              data-testid={`button-send-as-${opt.type}`}
-            >
-              <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0", opt.color === "text-blue-500" ? "bg-blue-500/10" : opt.color === "text-emerald-500" ? "bg-emerald-500/10" : opt.color === "text-purple-500" ? "bg-purple-500/10" : "bg-amber-500/10")}>
-                <opt.icon className={cn("h-4 w-4", opt.color)} />
-              </div>
-              <div>
-                <div className="text-sm font-semibold">{opt.label}</div>
-                <div className="text-[11px] text-muted-foreground">{opt.desc}</div>
-              </div>
-            </button>
-          ))}
+  const noteMenu = showNoteMenu && hasInput && menuPos ? createPortal(
+    <div
+      ref={noteMenuRef}
+      className="w-[280px] bg-popover border border-border rounded-xl shadow-2xl overflow-hidden"
+      style={{
+        position: "fixed",
+        top: menuPos.top,
+        left: menuPos.left,
+        transform: "translateY(-100%)",
+        zIndex: 9999,
+        animation: "noteMenuSlideUp 0.15s ease-out",
+      }}
+      data-testid="note-type-menu"
+    >
+      <div className="px-3 py-2 border-b border-border/60 bg-muted/40">
+        <div className="flex items-center gap-2">
+          <NotebookPen className="h-3.5 w-3.5 text-primary" />
+          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Send as Notes</span>
         </div>
-      )}
+      </div>
+      {NOTE_OPTIONS.map((opt) => (
+        <button
+          key={opt.type}
+          onClick={() => handleNoteType(opt.type)}
+          className="w-full flex items-center gap-3 px-3 py-2.5 text-foreground hover:bg-primary/10 transition-colors text-left"
+          data-testid={`button-send-as-${opt.type}`}
+        >
+          <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0", opt.bg)}>
+            <opt.icon className={cn("h-4 w-4", opt.color)} />
+          </div>
+          <div>
+            <div className="text-sm font-semibold">{opt.label}</div>
+            <div className="text-[11px] text-muted-foreground">{opt.desc}</div>
+          </div>
+        </button>
+      ))}
+    </div>,
+    document.body
+  ) : null;
 
+  return (
+    <div className="relative max-w-3xl mx-auto w-full px-2 py-2 sm:p-4">
       <div className="relative flex flex-col bg-background border-2 border-primary/20 rounded-2xl shadow-lg shadow-primary/5 focus-within:border-primary/50 focus-within:shadow-primary/10 transition-all duration-300">
         {attachments.length > 0 && (
           <div className="flex flex-wrap gap-2 p-3 pb-0">
@@ -411,6 +444,7 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
               <div className="flex items-center gap-1">
                 {hasInput && (
                   <Button
+                    ref={noteButtonRef}
                     variant="ghost"
                     size="icon"
                     onClick={() => setShowNoteMenu(!showNoteMenu)}
@@ -433,6 +467,13 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
           </div>
         </div>
       </div>
+      {noteMenu}
+      <style>{`
+        @keyframes noteMenuSlideUp {
+          from { opacity: 0; transform: translateY(calc(-100% + 8px)); }
+          to { opacity: 1; transform: translateY(-100%); }
+        }
+      `}</style>
     </div>
   );
 }
