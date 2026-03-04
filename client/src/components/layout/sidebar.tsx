@@ -195,44 +195,6 @@ export function Sidebar() {
             </Button>
           </a>
 
-          <div className="mt-2 pt-2 border-t border-border/40 space-y-1.5">
-            <a href="https://play.google.com/store/apps/details?id=com.egnmnw.isqbia" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileOpen(false)} className="group relative block" data-testid="link-sidebar-download-app">
-              <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 opacity-0 group-hover:opacity-70 blur-[1px] transition-opacity duration-300" />
-              <div className="relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                <div className="flex items-center justify-center h-5 w-5 rounded bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex-shrink-0">
-                  <Smartphone className="h-3 w-3" />
-                </div>
-                <span className="bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent font-semibold">Courses App</span>
-              </div>
-            </a>
-            <a href="https://learnpro.live/" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileOpen(false)} className="group relative block" data-testid="link-sidebar-elearning">
-              <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-violet-500 to-fuchsia-500 opacity-0 group-hover:opacity-70 blur-[1px] transition-opacity duration-300" />
-              <div className="relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                <div className="flex items-center justify-center h-5 w-5 rounded bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white flex-shrink-0">
-                  <ExternalLink className="h-3 w-3" />
-                </div>
-                <span className="bg-gradient-to-r from-violet-600 to-fuchsia-600 dark:from-violet-400 dark:to-fuchsia-400 bg-clip-text text-transparent font-semibold">E-Learning Site</span>
-              </div>
-            </a>
-            <a href="https://learnpro.in" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileOpen(false)} className="group relative block" data-testid="link-sidebar-learnpro-home">
-              <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 opacity-0 group-hover:opacity-70 blur-[1px] transition-opacity duration-300" />
-              <div className="relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                <div className="flex items-center justify-center h-5 w-5 rounded bg-gradient-to-br from-amber-500 to-orange-600 text-white flex-shrink-0">
-                  <Globe className="h-3 w-3" />
-                </div>
-                <span className="bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent font-semibold">Learnpro Home</span>
-              </div>
-            </a>
-            <a href="https://wa.me/919102557680" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileOpen(false)} className="group relative block" data-testid="link-sidebar-whatsapp">
-              <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-[#25D366] to-[#128C7E] opacity-0 group-hover:opacity-70 blur-[1px] transition-opacity duration-300" />
-              <div className="relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                <div className="flex items-center justify-center h-5 w-5 rounded bg-gradient-to-br from-[#25D366] to-[#128C7E] text-white flex-shrink-0">
-                  <SiWhatsapp className="h-3 w-3" />
-                </div>
-                <span className="bg-gradient-to-r from-[#25D366] to-[#128C7E] bg-clip-text text-transparent font-semibold">Contact Us</span>
-              </div>
-            </a>
-          </div>
         </div>
       </div>
 
@@ -439,7 +401,41 @@ export function Sidebar() {
           </SheetContent>
         </Sheet>
         <Logo size="sm" />
-        <div className="relative">
+        <div className="flex items-center gap-1.5">
+          <a href="https://play.google.com/store/apps/details?id=com.egnmnw.isqbia" target="_blank" rel="noopener noreferrer" className="group relative" data-testid="link-topbar-download-app" title="Courses App" aria-label="Courses App">
+            <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 opacity-50 group-hover:opacity-90 blur-[1px] transition-opacity duration-300" />
+            <div className="relative flex items-center justify-center h-7 w-7 rounded-lg bg-background/90 dark:bg-background/80">
+              <div className="flex items-center justify-center h-[18px] w-[18px] rounded bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+                <Smartphone className="h-2.5 w-2.5" />
+              </div>
+            </div>
+          </a>
+          <a href="https://learnpro.live/" target="_blank" rel="noopener noreferrer" className="group relative" data-testid="link-topbar-elearning" title="E-Learning Site" aria-label="E-Learning Site">
+            <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-violet-500 to-fuchsia-500 opacity-50 group-hover:opacity-90 blur-[1px] transition-opacity duration-300" />
+            <div className="relative flex items-center justify-center h-7 w-7 rounded-lg bg-background/90 dark:bg-background/80">
+              <div className="flex items-center justify-center h-[18px] w-[18px] rounded bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white">
+                <ExternalLink className="h-2.5 w-2.5" />
+              </div>
+            </div>
+          </a>
+          <a href="https://learnpro.in" target="_blank" rel="noopener noreferrer" className="group relative" data-testid="link-topbar-learnpro-home" title="Learnpro Home" aria-label="Learnpro Home">
+            <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 opacity-50 group-hover:opacity-90 blur-[1px] transition-opacity duration-300" />
+            <div className="relative flex items-center justify-center h-7 w-7 rounded-lg bg-background/90 dark:bg-background/80">
+              <div className="flex items-center justify-center h-[18px] w-[18px] rounded bg-gradient-to-br from-amber-500 to-orange-600 text-white">
+                <Globe className="h-2.5 w-2.5" />
+              </div>
+            </div>
+          </a>
+          <a href="https://wa.me/919102557680" target="_blank" rel="noopener noreferrer" className="group relative" data-testid="link-topbar-whatsapp" title="Contact Us" aria-label="Contact Us on WhatsApp">
+            <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-[#25D366] to-[#128C7E] opacity-50 group-hover:opacity-90 blur-[1px] transition-opacity duration-300" />
+            <div className="relative flex items-center justify-center h-7 w-7 rounded-lg bg-background/90 dark:bg-background/80">
+              <div className="flex items-center justify-center h-[18px] w-[18px] rounded bg-gradient-to-br from-[#25D366] to-[#128C7E] text-white">
+                <SiWhatsapp className="h-2.5 w-2.5" />
+              </div>
+            </div>
+          </a>
+
+          <div className="relative ml-0.5">
           <button
             onClick={() => setShowMobileLang(!showMobileLang)}
             data-testid="button-mobile-language"
@@ -541,6 +537,7 @@ export function Sidebar() {
               `}</style>
             </>
           )}
+          </div>
         </div>
       </div>
     </>
