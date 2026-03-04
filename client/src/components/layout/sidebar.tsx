@@ -101,7 +101,7 @@ export function Sidebar() {
     { href: "https://wa.me/919102557680", icon: SiWhatsapp, label: "Contact Us", gradient: "from-[#25D366] to-[#128C7E]", border: "border-[#25D366]/25 hover:border-[#25D366]/50", glow: "from-[#25D366] to-[#128C7E]", textGradient: "from-[#25D366] to-[#128C7E]", testId: "link-right-whatsapp" },
   ];
 
-  const SidebarContent = () => (
+  const SidebarContent = ({ showExternalLinks = true }: { showExternalLinks?: boolean }) => (
     <div className="flex flex-col h-full bg-secondary/30 border-r border-border">
       <div className="px-4 pt-4 pb-2 flex-shrink-0">
         <Link href="/" onClick={() => setIsMobileOpen(false)}>
@@ -204,7 +204,7 @@ export function Sidebar() {
             </Button>
           </a>
 
-          <div className="mt-2 pt-2 border-t border-border/40 space-y-1">
+          {showExternalLinks && <div className="mt-2 pt-2 border-t border-border/40 space-y-1">
             <a href="https://play.google.com/store/apps/details?id=com.egnmnw.isqbia" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileOpen(false)} className="group relative block" data-testid="link-sidebar-download-app">
               <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 opacity-0 group-hover:opacity-70 blur-[1px] transition-opacity duration-300" />
               <div className="relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
@@ -241,7 +241,7 @@ export function Sidebar() {
                 <span className="bg-gradient-to-r from-[#25D366] to-[#128C7E] bg-clip-text text-transparent font-semibold">Contact Us</span>
               </div>
             </a>
-          </div>
+          </div>}
 
         </div>
       </div>
@@ -434,7 +434,7 @@ export function Sidebar() {
   return (
     <>
       <div className="hidden md:block w-72 h-screen flex-shrink-0">
-        <SidebarContent />
+        <SidebarContent showExternalLinks={false} />
       </div>
 
       <div
