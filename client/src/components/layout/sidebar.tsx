@@ -28,7 +28,11 @@ import {
   Globe,
   Check,
   ChevronDown,
+  Smartphone,
+  ExternalLink,
+  Home,
 } from "lucide-react";
+import { SiWhatsapp } from "react-icons/si";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -190,6 +194,53 @@ export function Sidebar() {
               {t.nav?.blog || "Articles"}
             </Button>
           </a>
+
+          <div className="mt-2 pt-2 border-t border-border/40 space-y-1">
+            <a href="https://play.google.com/store/apps/details?id=com.egnmnw.isqbia" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileOpen(false)}>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-2 text-emerald-600 dark:text-emerald-400"
+                size="sm"
+                data-testid="link-sidebar-download-app"
+              >
+                <Smartphone className="h-4 w-4" />
+                Download App
+              </Button>
+            </a>
+            <a href="https://learnpro.live/" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileOpen(false)}>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-2 text-violet-600 dark:text-violet-400"
+                size="sm"
+                data-testid="link-sidebar-elearning"
+              >
+                <ExternalLink className="h-4 w-4" />
+                E-Learning Site
+              </Button>
+            </a>
+            <a href="https://learnpro.in" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileOpen(false)}>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-2 text-amber-600 dark:text-amber-400"
+                size="sm"
+                data-testid="link-sidebar-learnpro-home"
+              >
+                <Home className="h-4 w-4" />
+                Learnpro Home
+              </Button>
+            </a>
+            <a href="https://wa.me/919102557680" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileOpen(false)}>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-2 text-[#25D366]"
+                size="sm"
+                data-testid="link-sidebar-whatsapp"
+              >
+                <SiWhatsapp className="h-4 w-4" />
+                Contact Us
+              </Button>
+            </a>
+          </div>
         </div>
       </div>
 

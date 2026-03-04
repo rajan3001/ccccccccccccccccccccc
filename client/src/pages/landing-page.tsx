@@ -37,7 +37,11 @@ import {
   Globe,
   Flag,
   Languages,
+  Smartphone,
+  ExternalLink,
+  Home,
 } from "lucide-react";
+import { SiWhatsapp } from "react-icons/si";
 import { motion } from "framer-motion";
 import { HeroDashboardAnimation, NeuralNetworkAnimation } from "@/components/landing/hero-animation";
 import { LoginSlideOver } from "@/components/login-slide-over";
@@ -766,7 +770,7 @@ export default function LandingPage() {
       <nav className="border-b border-border/40 backdrop-blur-md sticky top-0 z-[999] bg-background/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
           <Logo size="md" />
-          <div className="flex items-center flex-wrap gap-4">
+          <div className="flex items-center flex-wrap gap-2 lg:gap-3">
             <a href="#features">
               <Button variant="ghost" className="hidden sm:inline-flex text-muted-foreground" data-testid="link-features">
                 {t.landing.features}
@@ -782,6 +786,41 @@ export default function LandingPage() {
                 {t.nav?.blog || "Articles"}
               </Button>
             </a>
+
+            <a href="https://play.google.com/store/apps/details?id=com.egnmnw.isqbia" target="_blank" rel="noopener noreferrer">
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden lg:inline-flex gap-1.5 border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold shadow-sm"
+                data-testid="link-download-app"
+              >
+                <Smartphone className="h-3.5 w-3.5" />
+                Download App
+              </Button>
+            </a>
+            <a href="https://learnpro.live/" target="_blank" rel="noopener noreferrer">
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden lg:inline-flex gap-1.5 border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-400 font-semibold shadow-sm"
+                data-testid="link-elearning-site"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                E-Learning
+              </Button>
+            </a>
+            <a href="https://learnpro.in" target="_blank" rel="noopener noreferrer">
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden lg:inline-flex gap-1.5 border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-semibold shadow-sm"
+                data-testid="link-learnpro-home"
+              >
+                <Home className="h-3.5 w-3.5" />
+                Learnpro Home
+              </Button>
+            </a>
+
             <Button
               onClick={openLogin}
               data-testid="button-login-nav"
@@ -1339,6 +1378,24 @@ export default function LandingPage() {
       </main>
 
       <LandingFooter onLoginClick={openLogin} />
+
+      <a
+        href="https://wa.me/919102557680"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-[1000] group"
+        data-testid="button-whatsapp-float"
+      >
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full bg-[#25D366] blur-lg opacity-40 group-hover:opacity-60 transition-opacity animate-pulse" />
+          <div className="relative flex items-center gap-2.5 bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white pl-4 pr-5 py-3 rounded-full shadow-2xl shadow-[#25D366]/30 hover:shadow-[#25D366]/50 transition-all duration-300 border border-white/20">
+            <SiWhatsapp className="h-5 w-5 flex-shrink-0" />
+            <span className="text-sm font-semibold whitespace-nowrap hidden sm:inline">Contact Us</span>
+          </div>
+          <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-white border-2 border-[#25D366] animate-ping" />
+          <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-white border-2 border-[#25D366]" />
+        </div>
+      </a>
     </div>
   );
 }
