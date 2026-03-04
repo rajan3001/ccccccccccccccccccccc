@@ -25,6 +25,7 @@ import {
   User,
   Phone,
   ChevronRight,
+  ChevronLeft,
   Globe,
   Check,
   ChevronDown,
@@ -65,6 +66,7 @@ export function Sidebar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [showMobileLang, setShowMobileLang] = useState(false);
+  const [rightStripExpanded, setRightStripExpanded] = useState(false);
   const currentId = location.startsWith("/chat/") 
     ? parseInt(location.split("/")[2]) 
     : null;
@@ -202,7 +204,7 @@ export function Sidebar() {
             </Button>
           </a>
 
-          <div className="mt-2 pt-2 border-t border-border/40 space-y-1 md:hidden">
+          <div className="mt-2 pt-2 border-t border-border/40 space-y-1">
             <a href="https://play.google.com/store/apps/details?id=com.egnmnw.isqbia" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileOpen(false)} className="group relative block" data-testid="link-sidebar-download-app">
               <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 opacity-0 group-hover:opacity-70 blur-[1px] transition-opacity duration-300" />
               <div className="relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
@@ -435,7 +437,22 @@ export function Sidebar() {
         <SidebarContent />
       </div>
 
-      <div className="hidden md:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-2 py-3 px-1.5 rounded-l-xl bg-background/80 dark:bg-background/70 backdrop-blur-md border border-r-0 border-border/50 shadow-lg" data-testid="right-icon-strip">
+      <div
+        className={cn(
+          "hidden md:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-2 py-3 rounded-l-xl bg-background/80 dark:bg-background/70 backdrop-blur-md border border-r-0 border-border/50 shadow-lg transition-all duration-300 ease-out",
+          rightStripExpanded ? "px-3" : "px-1.5"
+        )}
+        data-testid="right-icon-strip"
+      >
+        <button
+          onClick={() => setRightStripExpanded(!rightStripExpanded)}
+          className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-all duration-300 mb-1"
+          data-testid="button-toggle-right-strip"
+          title={rightStripExpanded ? "Collapse" : "Expand"}
+          aria-label={rightStripExpanded ? "Collapse links" : "Expand links"}
+        >
+          {rightStripExpanded ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+        </button>
         {externalLinks.map((link) => (
           <a
             key={link.testId}
@@ -448,10 +465,15 @@ export function Sidebar() {
             aria-label={link.label}
           >
             <div className={cn("absolute -inset-[0.5px] rounded-lg bg-gradient-to-r opacity-0 group-hover:opacity-80 blur-[1px] transition-opacity duration-300", link.glow)} />
-            <div className={cn("relative flex items-center justify-center h-8 w-8 rounded-lg bg-background/90 dark:bg-background/80 transition-all duration-300", link.border)}>
-              <div className={cn("flex items-center justify-center h-5 w-5 rounded bg-gradient-to-br text-white", link.gradient)}>
+            <div className={cn("relative flex items-center gap-2.5 rounded-lg bg-background/90 dark:bg-background/80 transition-all duration-300", link.border, rightStripExpanded ? "h-8 px-3 pr-4" : "h-8 w-8 justify-center")}>
+              <div className={cn("flex items-center justify-center h-5 w-5 rounded bg-gradient-to-br text-white flex-shrink-0", link.gradient)}>
                 <link.icon className="h-3 w-3" />
               </div>
+              {rightStripExpanded && (
+                <span className={cn("text-xs font-semibold whitespace-nowrap bg-gradient-to-r bg-clip-text text-transparent", link.textGradient)}>
+                  {link.label}
+                </span>
+              )}
             </div>
           </a>
         ))}
