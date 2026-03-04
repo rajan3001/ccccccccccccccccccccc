@@ -25,6 +25,7 @@ import {
   NotebookPen,
 } from "lucide-react";
 import { NoteTypeDialog, buildNotePrompt, type NoteType } from "@/components/notes/note-type-dialog";
+import { cn } from "@/lib/utils";
 import { generatePDF, chatToPDFSections } from "@/lib/pdf-generator";
 import { useLanguage } from "@/i18n/context";
 import { InlineLanguageButton } from "@/components/inline-language-button";
@@ -209,38 +210,26 @@ export default function ChatPage() {
                     </button>
                   ))}
                 </div>
-
-                <button
-                  onClick={() => setShowNoteTypeDialog(true)}
-                  disabled={createMutation.isPending}
-                  className="w-full flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 text-left cursor-pointer transition-all"
-                  data-testid="button-generate-notes-home"
-                >
-                  <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0">
-                    <NotebookPen className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <span className="text-sm font-semibold text-foreground">Generate Notes</span>
-                    <span className="text-xs text-muted-foreground ml-2">Short, Detailed, Class Notes, or Revision Cards</span>
-                  </div>
-                </button>
-
                 <div className="flex flex-wrap justify-center gap-2 pt-1">
                   {[
-                    { icon: FileText, label: "Download as PDF" },
-                    { icon: Brain, label: "Generate Quiz" },
-                    { icon: PenLine, label: "Answer Writing" },
-                    { icon: BookOpen, label: "Topic Deep-dive" },
-                    { icon: NotebookPen, label: "Generate Notes" },
+                    { icon: FileText, label: "Download as PDF", action: null },
+                    { icon: Brain, label: "Generate Quiz", action: null },
+                    { icon: PenLine, label: "Answer Writing", action: null },
+                    { icon: BookOpen, label: "Topic Deep-dive", action: null },
+                    { icon: NotebookPen, label: "Generate Notes", action: () => setShowNoteTypeDialog(true) },
                   ].map((feat, i) => (
-                    <div
+                    <button
                       key={i}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/60 border border-border"
+                      onClick={feat.action || undefined}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/60 border border-border",
+                        feat.action && "cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-all"
+                      )}
                       data-testid={`badge-feature-${i}`}
                     >
                       <feat.icon className="h-2.5 w-2.5 text-muted-foreground" />
                       <span className="text-[9px] sm:text-[10px] font-medium text-muted-foreground">{feat.label}</span>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>

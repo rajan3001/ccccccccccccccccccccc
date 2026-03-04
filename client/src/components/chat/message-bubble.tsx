@@ -159,6 +159,8 @@ export function MessageBubble({ message, isStreaming, conversationId, userQuery,
         setNoteTags(NOTE_TYPE_LABELS[noteType]);
       } else {
         title = userQuery.replace(/[#*_`]/g, "").trim().slice(0, 80);
+        setNoteFolder("");
+        setNoteTags("");
       }
     }
     title = title || "Untitled Note";

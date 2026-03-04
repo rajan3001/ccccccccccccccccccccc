@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { useConversations, useDeleteConversation } from "@/hooks/use-chat";
+import { useConversations, useDeleteConversation, useCreateConversation } from "@/hooks/use-chat";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useLanguage } from "@/i18n/context";
 import { SUPPORTED_LANGUAGES, type LanguageCode } from "@/i18n/languages";
@@ -57,6 +57,7 @@ export function Sidebar() {
   const { user, logout, isLoggingOut } = useAuth();
   const { data: conversations, isLoading } = useConversations();
   const deleteMutation = useDeleteConversation();
+  const createMutation = useCreateConversation();
   const { data: subData } = useSubscription();
   const { language, setLanguage, t } = useLanguage();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -67,7 +68,11 @@ export function Sidebar() {
   const handleGenerateNotes = (type: NoteType, topic: string) => {
     const prompt = buildNotePrompt(type, topic);
     setIsMobileOpen(false);
-    setLocation(`/chat/new?prefill=${encodeURIComponent(prompt)}`);
+    createMutation.mutate("New Chat", {
+      onSuccess: (newChat) => {
+        setLocation(`/chat/${newChat.id}?prefill=${encodeURIComponent(prompt)}`);
+      },
+    });
   };
 
   const currentId = location.startsWith("/chat/") 
