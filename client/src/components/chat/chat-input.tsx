@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Square, Paperclip, X, FileText, Image as ImageIcon, File } from "lucide-react";
+import { Send, Square, Paperclip, X, FileText, Image as ImageIcon, File, NotebookPen, ChevronUp, Layers, BookOpen, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { buildNotePrompt, type NoteType } from "@/components/notes/note-type-dialog";
 
 export interface FileAttachment {
   file: File;
@@ -21,11 +22,20 @@ interface ChatInputProps {
   placeholder?: string;
 }
 
+const NOTE_OPTIONS: { type: NoteType; icon: typeof FileText; label: string; color: string }[] = [
+  { type: "short", icon: FileText, label: "Short Notes", color: "text-blue-500" },
+  { type: "detailed", icon: BookOpen, label: "Detailed Academic", color: "text-emerald-500" },
+  { type: "class", icon: GraduationCap, label: "Class Notes (1000-1200w)", color: "text-purple-500" },
+  { type: "revision", icon: Layers, label: "Quick Revision Cards", color: "text-amber-500" },
+];
+
 export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anything about UPSC, History, Polity..." }: ChatInputProps) {
   const [input, setInput] = useState("");
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
+  const [showNoteMenu, setShowNoteMenu] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const noteMenuRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -34,6 +44,17 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
     }
   }, [input]);
+
+  useEffect(() => {
+    if (!showNoteMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (noteMenuRef.current && !noteMenuRef.current.contains(e.target as Node)) {
+        setShowNoteMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showNoteMenu]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -241,6 +262,7 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
 
     onSend(input || "(See attached files)", uploadedAttachments.length > 0 ? uploadedAttachments : undefined);
     setInput("");
+    setShowNoteMenu(false);
     attachments.forEach(a => {
       if (a.preview) URL.revokeObjectURL(a.preview);
     });
@@ -250,7 +272,20 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
     }
   };
 
+  const handleNoteType = (type: NoteType) => {
+    const topic = input.trim();
+    if (!topic) return;
+    const prompt = buildNotePrompt(type, topic);
+    onSend(prompt);
+    setInput("");
+    setShowNoteMenu(false);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
+  };
+
   const isUploading = attachments.some(a => a.uploading);
+  const hasInput = input.trim().length > 0;
 
   return (
     <div className="relative max-w-3xl mx-auto w-full px-2 py-2 sm:p-4">
@@ -329,7 +364,7 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
             className="min-h-[50px] max-h-[200px] w-full resize-none border-0 bg-transparent py-3 px-2 focus-visible:ring-0 text-base"
             data-testid="input-chat-message"
           />
-          <div className="pb-2 pr-1">
+          <div className="pb-2 pr-1 relative" ref={noteMenuRef}>
             {isStreaming ? (
               <Button
                 onClick={onStop}
@@ -339,18 +374,61 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
                 <Square className="h-4 w-4 fill-current" />
               </Button>
             ) : (
-              <Button
-                onClick={handleSubmit}
-                disabled={(!input.trim() && !attachments.some(a => a.uploaded)) || isUploading}
-                size="icon"
-                data-testid="button-send-message"
+              <div className="flex items-center gap-1">
+                {hasInput && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowNoteMenu(!showNoteMenu)}
+                    className="h-9 w-9 text-muted-foreground hover:text-primary"
+                    data-testid="button-note-type-toggle"
+                    title="Generate as Notes"
+                  >
+                    <NotebookPen className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button
+                  onClick={handleSubmit}
+                  disabled={(!input.trim() && !attachments.some(a => a.uploaded)) || isUploading}
+                  size="icon"
+                  data-testid="button-send-message"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+            {showNoteMenu && hasInput && (
+              <div
+                className="absolute bottom-full right-0 mb-2 w-56 bg-popover border border-border rounded-xl shadow-xl overflow-hidden z-50"
+                style={{ animation: "noteMenuIn 0.15s ease-out" }}
+                data-testid="note-type-menu"
               >
-                <Send className="h-4 w-4" />
-              </Button>
+                <div className="px-3 py-2 border-b border-border/60 bg-muted/30">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Generate as Notes</span>
+                </div>
+                {NOTE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.type}
+                    onClick={() => handleNoteType(opt.type)}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-foreground hover:bg-primary/8 transition-colors text-left"
+                    data-testid={`button-send-as-${opt.type}`}
+                  >
+                    <opt.icon className={cn("h-4 w-4 flex-shrink-0", opt.color)} />
+                    <span className="font-medium">{opt.label}</span>
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         </div>
       </div>
+      <style>{`
+        @keyframes noteMenuIn {
+          from { opacity: 0; transform: translateY(4px) scale(0.97); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+      `}</style>
     </div>
   );
 }

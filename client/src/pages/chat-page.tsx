@@ -22,10 +22,40 @@ import {
   Newspaper,
   PenLine,
   Lightbulb,
-  NotebookPen,
+  Scale,
+  Globe,
+  Landmark,
+  Map,
+  Users,
+  Shield,
+  Leaf,
+  type LucideIcon,
 } from "lucide-react";
-import { NoteTypeDialog, buildNotePrompt, type NoteType } from "@/components/notes/note-type-dialog";
 import { cn } from "@/lib/utils";
+
+const ALL_SUGGESTIONS: { icon: LucideIcon; text: string; color: string; bg: string }[] = [
+  { icon: BookOpen, text: "Explain Article 370 and its impact on J&K", color: "text-blue-500", bg: "bg-blue-500/8" },
+  { icon: Brain, text: "Generate 10 MCQs on Indian Polity for Prelims", color: "text-emerald-500", bg: "bg-emerald-500/8" },
+  { icon: PenLine, text: "Write a 250-word answer on Federalism in India", color: "text-purple-500", bg: "bg-purple-500/8" },
+  { icon: Newspaper, text: "Explain the significance of 73rd & 74th Amendments", color: "text-amber-500", bg: "bg-amber-500/8" },
+  { icon: Scale, text: "Compare Fundamental Rights and DPSP", color: "text-rose-500", bg: "bg-rose-500/8" },
+  { icon: Globe, text: "Explain India's Act East Policy and its significance", color: "text-cyan-500", bg: "bg-cyan-500/8" },
+  { icon: Landmark, text: "Describe the role of CAG in Indian democracy", color: "text-indigo-500", bg: "bg-indigo-500/8" },
+  { icon: Map, text: "Explain the formation of new states under Article 3", color: "text-teal-500", bg: "bg-teal-500/8" },
+  { icon: Users, text: "Discuss the Panchayati Raj system and its evolution", color: "text-orange-500", bg: "bg-orange-500/8" },
+  { icon: Shield, text: "Write about Emergency Provisions under the Constitution", color: "text-red-500", bg: "bg-red-500/8" },
+  { icon: Leaf, text: "Explain India's climate change commitments and policies", color: "text-green-500", bg: "bg-green-500/8" },
+  { icon: Brain, text: "Generate MCQs on Ancient Indian History for UPSC", color: "text-violet-500", bg: "bg-violet-500/8" },
+  { icon: PenLine, text: "Write a 250-word answer on judicial activism in India", color: "text-fuchsia-500", bg: "bg-fuchsia-500/8" },
+  { icon: BookOpen, text: "Explain the concept of Cooperative Federalism", color: "text-sky-500", bg: "bg-sky-500/8" },
+  { icon: Newspaper, text: "Discuss the role of RBI in monetary policy", color: "text-lime-500", bg: "bg-lime-500/8" },
+  { icon: Landmark, text: "Explain the Collegium system for judicial appointments", color: "text-pink-500", bg: "bg-pink-500/8" },
+];
+
+function getRandomSuggestions(count: number) {
+  const shuffled = [...ALL_SUGGESTIONS].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
 import { generatePDF, chatToPDFSections } from "@/lib/pdf-generator";
 import { useLanguage } from "@/i18n/context";
 import { InlineLanguageButton } from "@/components/inline-language-button";
@@ -57,7 +87,7 @@ export default function ChatPage() {
   const [quizContent, setQuizContent] = useState<string | null>(null);
   const [quizOpen, setQuizOpen] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const [showNoteTypeDialog, setShowNoteTypeDialog] = useState(false);
+  const [welcomeSuggestions] = useState(() => getRandomSuggestions(4));
 
   const { data: queryStatus } = useQuery<{ used: number; limit: number; remaining: number }>({
     queryKey: ["/api/chat/query-status"],
@@ -84,11 +114,6 @@ export default function ChatPage() {
   const handleStartQuiz = (content: string) => {
     setQuizContent(content);
     setQuizOpen(true);
-  };
-
-  const handleNoteGenerate = (type: NoteType, topic: string) => {
-    const prompt = buildNotePrompt(type, topic);
-    handleHomeSend(prompt);
   };
 
   const scrollToBottom = () => {
@@ -190,12 +215,7 @@ export default function ChatPage() {
                   <span className="text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase tracking-wide">Try asking</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { icon: BookOpen, text: "Explain Article 370 and its impact on J&K", color: "text-blue-500", bg: "bg-blue-500/8" },
-                    { icon: Brain, text: "Generate 10 MCQs on Indian Polity for Prelims", color: "text-emerald-500", bg: "bg-emerald-500/8" },
-                    { icon: PenLine, text: "Write a 250-word answer on Federalism in India", color: "text-purple-500", bg: "bg-purple-500/8" },
-                    { icon: Newspaper, text: "Explain the significance of 73rd & 74th Amendments", color: "text-amber-500", bg: "bg-amber-500/8" },
-                  ].map((item, i) => (
+                  {welcomeSuggestions.map((item, i) => (
                     <button
                       key={i}
                       onClick={() => handleHomeSend(item.text)}
@@ -212,24 +232,19 @@ export default function ChatPage() {
                 </div>
                 <div className="flex flex-wrap justify-center gap-2 pt-1">
                   {[
-                    { icon: FileText, label: "Download as PDF", action: null },
-                    { icon: Brain, label: "Generate Quiz", action: null },
-                    { icon: PenLine, label: "Answer Writing", action: null },
-                    { icon: BookOpen, label: "Topic Deep-dive", action: null },
-                    { icon: NotebookPen, label: "Generate Notes", action: () => setShowNoteTypeDialog(true) },
+                    { icon: FileText, label: "Download as PDF" },
+                    { icon: Brain, label: "Generate Quiz" },
+                    { icon: PenLine, label: "Answer Writing" },
+                    { icon: BookOpen, label: "Topic Deep-dive" },
                   ].map((feat, i) => (
-                    <button
+                    <span
                       key={i}
-                      onClick={feat.action || undefined}
-                      className={cn(
-                        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/60 border border-border",
-                        feat.action && "cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-all"
-                      )}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/60 border border-border"
                       data-testid={`badge-feature-${i}`}
                     >
                       <feat.icon className="h-2.5 w-2.5 text-muted-foreground" />
                       <span className="text-[9px] sm:text-[10px] font-medium text-muted-foreground">{feat.label}</span>
-                    </button>
+                    </span>
                   ))}
                 </div>
               </div>
@@ -381,11 +396,6 @@ export default function ChatPage() {
           />
         )}
 
-        <NoteTypeDialog
-          open={showNoteTypeDialog}
-          onOpenChange={setShowNoteTypeDialog}
-          onGenerate={handleNoteGenerate}
-        />
       </main>
     </div>
   );

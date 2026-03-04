@@ -28,13 +28,11 @@ import {
   Globe,
   Check,
   ChevronDown,
-  NotebookPen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
-import { NoteTypeDialog, buildNotePrompt, type NoteType } from "@/components/notes/note-type-dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -63,18 +61,6 @@ export function Sidebar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [showMobileLang, setShowMobileLang] = useState(false);
-  const [showNoteTypeDialog, setShowNoteTypeDialog] = useState(false);
-
-  const handleGenerateNotes = (type: NoteType, topic: string) => {
-    const prompt = buildNotePrompt(type, topic);
-    setIsMobileOpen(false);
-    createMutation.mutate("New Chat", {
-      onSuccess: (newChat) => {
-        setLocation(`/chat/${newChat.id}?prefill=${encodeURIComponent(prompt)}`);
-      },
-    });
-  };
-
   const currentId = location.startsWith("/chat/") 
     ? parseInt(location.split("/")[2]) 
     : null;
@@ -168,17 +154,6 @@ export function Sidebar() {
               {t.nav.myNotes}
             </Button>
           </Link>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-2"
-            size="sm"
-            data-testid="button-generate-notes"
-            onClick={() => setShowNoteTypeDialog(true)}
-          >
-            <NotebookPen className="h-4 w-4" />
-            {t.nav?.generateNotes || "Generate Notes"}
-          </Button>
 
           <Link href="/study-planner" onClick={() => setIsMobileOpen(false)}>
             <Button
@@ -298,7 +273,7 @@ export function Sidebar() {
             </Link>
           ) : (
             <Link href="/subscription" className="block" onClick={() => setIsMobileOpen(false)}>
-              <div className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 border border-amber-200 dark:border-amber-700/50 text-amber-900 dark:text-amber-300 text-sm font-semibold cursor-pointer hover:shadow-md transition-all">
+              <div className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-100 to-teal-50 dark:from-emerald-900/30 dark:to-teal-800/20 border border-emerald-200 dark:border-emerald-700/50 text-emerald-900 dark:text-emerald-300 text-sm font-semibold cursor-pointer hover:shadow-md transition-all">
                 <Crown className="h-4 w-4 group-hover:scale-110 transition-transform" />
                 <span>{t.nav.upgradePro}</span>
               </div>
@@ -400,11 +375,6 @@ export function Sidebar() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <NoteTypeDialog
-        open={showNoteTypeDialog}
-        onOpenChange={setShowNoteTypeDialog}
-        onGenerate={handleGenerateNotes}
-      />
     </div>
   );
 
