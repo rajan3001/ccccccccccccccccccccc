@@ -28,11 +28,13 @@ import {
   Globe,
   Check,
   ChevronDown,
+  NotebookPen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
+import { NoteTypeDialog, buildNotePrompt, type NoteType } from "@/components/notes/note-type-dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,6 +62,13 @@ export function Sidebar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [showMobileLang, setShowMobileLang] = useState(false);
+  const [showNoteTypeDialog, setShowNoteTypeDialog] = useState(false);
+
+  const handleGenerateNotes = (type: NoteType, topic: string) => {
+    const prompt = buildNotePrompt(type, topic);
+    setIsMobileOpen(false);
+    setLocation(`/chat/new?prefill=${encodeURIComponent(prompt)}`);
+  };
 
   const currentId = location.startsWith("/chat/") 
     ? parseInt(location.split("/")[2]) 
@@ -154,6 +163,17 @@ export function Sidebar() {
               {t.nav.myNotes}
             </Button>
           </Link>
+
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-2"
+            size="sm"
+            data-testid="button-generate-notes"
+            onClick={() => setShowNoteTypeDialog(true)}
+          >
+            <NotebookPen className="h-4 w-4" />
+            {t.nav?.generateNotes || "Generate Notes"}
+          </Button>
 
           <Link href="/study-planner" onClick={() => setIsMobileOpen(false)}>
             <Button
@@ -374,6 +394,12 @@ export function Sidebar() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <NoteTypeDialog
+        open={showNoteTypeDialog}
+        onOpenChange={setShowNoteTypeDialog}
+        onGenerate={handleGenerateNotes}
+      />
     </div>
   );
 

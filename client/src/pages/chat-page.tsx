@@ -22,7 +22,9 @@ import {
   Newspaper,
   PenLine,
   Lightbulb,
+  NotebookPen,
 } from "lucide-react";
+import { NoteTypeDialog, buildNotePrompt, type NoteType } from "@/components/notes/note-type-dialog";
 import { generatePDF, chatToPDFSections } from "@/lib/pdf-generator";
 import { useLanguage } from "@/i18n/context";
 import { InlineLanguageButton } from "@/components/inline-language-button";
@@ -54,6 +56,7 @@ export default function ChatPage() {
   const [quizContent, setQuizContent] = useState<string | null>(null);
   const [quizOpen, setQuizOpen] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [showNoteTypeDialog, setShowNoteTypeDialog] = useState(false);
 
   const { data: queryStatus } = useQuery<{ used: number; limit: number; remaining: number }>({
     queryKey: ["/api/chat/query-status"],
@@ -80,6 +83,11 @@ export default function ChatPage() {
   const handleStartQuiz = (content: string) => {
     setQuizContent(content);
     setQuizOpen(true);
+  };
+
+  const handleNoteGenerate = (type: NoteType, topic: string) => {
+    const prompt = buildNotePrompt(type, topic);
+    handleHomeSend(prompt);
   };
 
   const scrollToBottom = () => {
@@ -201,12 +209,29 @@ export default function ChatPage() {
                     </button>
                   ))}
                 </div>
+
+                <button
+                  onClick={() => setShowNoteTypeDialog(true)}
+                  disabled={createMutation.isPending}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 text-left cursor-pointer transition-all"
+                  data-testid="button-generate-notes-home"
+                >
+                  <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0">
+                    <NotebookPen className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold text-foreground">Generate Notes</span>
+                    <span className="text-xs text-muted-foreground ml-2">Short, Detailed, Class Notes, or Revision Cards</span>
+                  </div>
+                </button>
+
                 <div className="flex flex-wrap justify-center gap-2 pt-1">
                   {[
                     { icon: FileText, label: "Download as PDF" },
                     { icon: Brain, label: "Generate Quiz" },
                     { icon: PenLine, label: "Answer Writing" },
                     { icon: BookOpen, label: "Topic Deep-dive" },
+                    { icon: NotebookPen, label: "Generate Notes" },
                   ].map((feat, i) => (
                     <div
                       key={i}
@@ -366,6 +391,12 @@ export default function ChatPage() {
             onClose={() => setQuizOpen(false)}
           />
         )}
+
+        <NoteTypeDialog
+          open={showNoteTypeDialog}
+          onOpenChange={setShowNoteTypeDialog}
+          onGenerate={handleNoteGenerate}
+        />
       </main>
     </div>
   );

@@ -380,7 +380,46 @@ When asked for MCQs/practice questions, use EXACTLY this format:
 - Statement-based questions: numbered list, each statement on new line.
 - Generate 5 MCQs unless user specifies otherwise.
 - Only generate MCQs when explicitly asked.
-- One-line intro before MCQs: "5 MCQs on [topic]:" — nothing more.`
+- One-line intro before MCQs: "5 MCQs on [topic]:" — nothing more.
+
+═══ NOTE GENERATION FORMATS ═══
+When the user's message starts with "Generate Short Notes on:", "Generate Detailed Academic Notes on:", "Generate Class Notes on:", or "Generate Quick Revision Cards on:", follow these specific formats:
+
+**"Generate Short Notes on: [topic]"**
+- Output 300-500 words maximum
+- Use bullet points with dashes (-) throughout
+- Start with a 1-2 sentence definition/overview
+- Group points under 2-3 bold sub-headings (### level)
+- Focus on key facts, dates, provisions, and verdicts
+- End with a "UPSC Relevance" one-liner
+- No lengthy explanations — every point should be 1 line
+
+**"Generate Detailed Academic Notes on: [topic]"**
+- Output 2000-3000 words
+- Follow the full STRUCTURE FOR STUDY TOPICS hierarchy (Background, Key Provisions, Judicial Pronouncements, Significance, Critical Analysis, UPSC Relevance)
+- Include markdown tables for comparisons
+- Include specific data, case names with years, article numbers
+- Add a "Key Terms" glossary section at the end with bold terms and one-line definitions
+- This is the most comprehensive format — cover every angle
+
+**"Generate Class Notes on: [topic]"**
+- Output exactly 1000-1200 words
+- Structure like a classroom lecture: Introduction → Main Content (3-4 sections) → Summary
+- Use ### headings for each section
+- Mix paragraphs (2-3 sentences each) with bullet points
+- Include 1-2 real-world examples or case studies
+- Add a "Key Takeaways" box at the end with 5-6 bullet points
+- Tone: conversational yet authoritative, like a teacher explaining
+
+**"Generate Quick Revision Cards on: [topic]"**
+- Output as a series of numbered revision cards (8-12 cards)
+- Each card format:
+  **Card [N]: [Sub-topic/Concept]**
+  - **Key Point:** [1-2 sentence core fact]
+  - **Remember:** [Mnemonic, trick, or association to recall]
+  - **Exam Tip:** [How this appears in UPSC — Prelims/Mains/both]
+- After all cards, add a "Quick Recall Test" section with 3-4 one-line questions (with answers in bold)
+- Keep each card concise — max 4-5 lines per card`
         },
         contents: chatMessages,
       });

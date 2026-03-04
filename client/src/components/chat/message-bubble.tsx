@@ -3,6 +3,7 @@ import { Message } from "@/hooks/use-chat";
 import { Logo } from "@/components/ui/logo";
 import { StyledMarkdown, StreamingMarkdown } from "@/components/ui/styled-markdown";
 import { detectMCQContent } from "@/components/chat/chat-quiz-panel";
+import { detectNoteType, NOTE_TYPE_FOLDERS, NOTE_TYPE_LABELS } from "@/components/notes/note-type-dialog";
 import { User, Copy, Check, FileText, Image as ImageIcon, File, BookmarkPlus, FolderPlus, Download, Play, Target } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -150,7 +151,15 @@ export function MessageBubble({ message, isStreaming, conversationId, userQuery,
   const openSaveDialog = () => {
     let title = "";
     if (userQuery) {
-      title = userQuery.replace(/[#*_`]/g, "").trim().slice(0, 80);
+      const noteType = detectNoteType(userQuery);
+      if (noteType) {
+        const topicPart = userQuery.split(":").slice(1).join(":").trim();
+        title = `${NOTE_TYPE_LABELS[noteType]} — ${topicPart}`.slice(0, 80);
+        setNoteFolder(NOTE_TYPE_FOLDERS[noteType]);
+        setNoteTags(NOTE_TYPE_LABELS[noteType]);
+      } else {
+        title = userQuery.replace(/[#*_`]/g, "").trim().slice(0, 80);
+      }
     }
     title = title || "Untitled Note";
     setNoteTitle(title);
