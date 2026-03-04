@@ -44,6 +44,13 @@ All domain references use the `SITE_DOMAIN` environment variable (server-side) a
 5. Sessions are cookie-based without a fixed domain — users will need to re-login on the new domain, but all their data remains intact
 6. Object Storage files are domain-independent (Google Cloud Storage)
 
+### Admin Panel
+- **URL**: `/admin` — server-rendered HTML dashboard with left sidebar navigation
+- **Auth**: HTTP Basic Auth using `ADMIN_USER` and `ADMIN_PASS` env vars (defaults: `admin` / `admin@learnpro2026`)
+- **Sections**: Dashboard (stats + recent users), Users, Subscriptions, Conversations, Current Affairs, Quizzes, Evaluations, Notes, Articles
+- **API Endpoints**: All under `/admin/api/*` with pagination support
+- **File**: `server/admin-routes.ts`
+
 ### External Dependencies
 - **Gemini 2.5 Pro**: Via Replit AI Integrations for chat (with Google Search grounding for real-time data). Gemini 2.5 Flash used for blog generation, suggestions, and lighter tasks.
 - **PostgreSQL (Neon)**: Database for all application data.
