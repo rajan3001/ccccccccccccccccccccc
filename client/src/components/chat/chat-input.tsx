@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Square, Paperclip, X, FileText, Image as ImageIcon, File, NotebookPen, ChevronUp, Layers, BookOpen, GraduationCap } from "lucide-react";
+import { Send, Square, Paperclip, X, FileText, Image as ImageIcon, File, NotebookPen, BookOpen, GraduationCap, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { buildNotePrompt, type NoteType } from "@/components/notes/note-type-dialog";
@@ -22,11 +22,11 @@ interface ChatInputProps {
   placeholder?: string;
 }
 
-const NOTE_OPTIONS: { type: NoteType; icon: typeof FileText; label: string; color: string }[] = [
-  { type: "short", icon: FileText, label: "Short Notes", color: "text-blue-500" },
-  { type: "detailed", icon: BookOpen, label: "Detailed Academic", color: "text-emerald-500" },
-  { type: "class", icon: GraduationCap, label: "Class Notes (1000-1200w)", color: "text-purple-500" },
-  { type: "revision", icon: Layers, label: "Quick Revision Cards", color: "text-amber-500" },
+const NOTE_OPTIONS: { type: NoteType; icon: typeof FileText; label: string; desc: string; color: string }[] = [
+  { type: "short", icon: FileText, label: "Short Notes", desc: "Concise bullet-point summary", color: "text-blue-500" },
+  { type: "detailed", icon: BookOpen, label: "Detailed Academic", desc: "Comprehensive exam-ready notes", color: "text-emerald-500" },
+  { type: "class", icon: GraduationCap, label: "Class Notes", desc: "1000-1200 word classroom style", color: "text-purple-500" },
+  { type: "revision", icon: Layers, label: "Quick Revision Cards", desc: "Flashcard-style key points", color: "text-amber-500" },
 ];
 
 export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anything about UPSC, History, Polity..." }: ChatInputProps) {
@@ -279,6 +279,10 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
     onSend(prompt);
     setInput("");
     setShowNoteMenu(false);
+    attachments.forEach(a => {
+      if (a.preview) URL.revokeObjectURL(a.preview);
+    });
+    setAttachments([]);
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
@@ -288,7 +292,37 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
   const hasInput = input.trim().length > 0;
 
   return (
-    <div className="relative max-w-3xl mx-auto w-full px-2 py-2 sm:p-4">
+    <div className="relative max-w-3xl mx-auto w-full px-2 py-2 sm:p-4" ref={noteMenuRef}>
+      {showNoteMenu && hasInput && (
+        <div
+          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-popover border border-border rounded-xl shadow-2xl overflow-hidden z-50"
+          data-testid="note-type-menu"
+        >
+          <div className="px-3 py-2 border-b border-border/60 bg-muted/40">
+            <div className="flex items-center gap-2">
+              <NotebookPen className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Send as Notes</span>
+            </div>
+          </div>
+          {NOTE_OPTIONS.map((opt) => (
+            <button
+              key={opt.type}
+              onClick={() => handleNoteType(opt.type)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-foreground hover:bg-primary/10 transition-colors text-left"
+              data-testid={`button-send-as-${opt.type}`}
+            >
+              <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0", opt.color === "text-blue-500" ? "bg-blue-500/10" : opt.color === "text-emerald-500" ? "bg-emerald-500/10" : opt.color === "text-purple-500" ? "bg-purple-500/10" : "bg-amber-500/10")}>
+                <opt.icon className={cn("h-4 w-4", opt.color)} />
+              </div>
+              <div>
+                <div className="text-sm font-semibold">{opt.label}</div>
+                <div className="text-[11px] text-muted-foreground">{opt.desc}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="relative flex flex-col bg-background border-2 border-primary/20 rounded-2xl shadow-lg shadow-primary/5 focus-within:border-primary/50 focus-within:shadow-primary/10 transition-all duration-300">
         {attachments.length > 0 && (
           <div className="flex flex-wrap gap-2 p-3 pb-0">
@@ -364,7 +398,7 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
             className="min-h-[50px] max-h-[200px] w-full resize-none border-0 bg-transparent py-3 px-2 focus-visible:ring-0 text-base"
             data-testid="input-chat-message"
           />
-          <div className="pb-2 pr-1 relative" ref={noteMenuRef}>
+          <div className="pb-2 pr-1">
             {isStreaming ? (
               <Button
                 onClick={onStop}
@@ -380,9 +414,8 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
                     variant="ghost"
                     size="icon"
                     onClick={() => setShowNoteMenu(!showNoteMenu)}
-                    className="h-9 w-9 text-muted-foreground hover:text-primary"
+                    className={cn("h-9 w-9", showNoteMenu ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-primary")}
                     data-testid="button-note-type-toggle"
-                    title="Generate as Notes"
                   >
                     <NotebookPen className="h-4 w-4" />
                   </Button>
@@ -397,38 +430,9 @@ export function ChatInput({ onSend, isStreaming, onStop, placeholder = "Ask anyt
                 </Button>
               </div>
             )}
-
-            {showNoteMenu && hasInput && (
-              <div
-                className="absolute bottom-full right-0 mb-2 w-56 bg-popover border border-border rounded-xl shadow-xl overflow-hidden z-50"
-                style={{ animation: "noteMenuIn 0.15s ease-out" }}
-                data-testid="note-type-menu"
-              >
-                <div className="px-3 py-2 border-b border-border/60 bg-muted/30">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Generate as Notes</span>
-                </div>
-                {NOTE_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.type}
-                    onClick={() => handleNoteType(opt.type)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-foreground hover:bg-primary/8 transition-colors text-left"
-                    data-testid={`button-send-as-${opt.type}`}
-                  >
-                    <opt.icon className={cn("h-4 w-4 flex-shrink-0", opt.color)} />
-                    <span className="font-medium">{opt.label}</span>
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
-      <style>{`
-        @keyframes noteMenuIn {
-          from { opacity: 0; transform: translateY(4px) scale(0.97); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-      `}</style>
     </div>
   );
 }
