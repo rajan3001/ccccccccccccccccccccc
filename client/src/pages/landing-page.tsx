@@ -767,66 +767,135 @@ export default function LandingPage() {
       <LoginSlideOver open={loginOpen} onClose={() => setLoginOpen(false)} />
       <HowItWorksTour open={tourOpen} onOpenChange={setTourOpen} />
 
-      <nav className="border-b border-border/40 backdrop-blur-md sticky top-0 z-[999] bg-background/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          <Logo size="md" />
-          <div className="flex items-center flex-wrap gap-2 lg:gap-3">
-            <a href="#features">
-              <Button variant="ghost" className="hidden sm:inline-flex text-muted-foreground" data-testid="link-features">
-                {t.landing.features}
-              </Button>
-            </a>
-            <a href="#exams">
-              <Button variant="ghost" className="hidden sm:inline-flex text-muted-foreground" data-testid="link-exams">
-                {t.landing.navExams}
-              </Button>
-            </a>
-            <a href="/blog">
-              <Button variant="ghost" className="hidden sm:inline-flex text-muted-foreground" data-testid="link-blog-nav">
-                {t.nav?.blog || "Articles"}
-              </Button>
-            </a>
+      <nav className="sticky top-0 z-[999] bg-background/80 backdrop-blur-md">
+        <div className="border-b border-border/40">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
+            <Logo size="md" />
+            <div className="flex items-center gap-2 lg:gap-3">
+              <a href="#features">
+                <Button variant="ghost" className="hidden sm:inline-flex text-muted-foreground" data-testid="link-features">
+                  {t.landing.features}
+                </Button>
+              </a>
+              <a href="#exams">
+                <Button variant="ghost" className="hidden sm:inline-flex text-muted-foreground" data-testid="link-exams">
+                  {t.landing.navExams}
+                </Button>
+              </a>
+              <a href="/blog">
+                <Button variant="ghost" className="hidden sm:inline-flex text-muted-foreground" data-testid="link-blog-nav">
+                  {t.nav?.blog || "Articles"}
+                </Button>
+              </a>
 
-            <a href="https://play.google.com/store/apps/details?id=com.egnmnw.isqbia" target="_blank" rel="noopener noreferrer">
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden lg:inline-flex gap-1.5 border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold shadow-sm"
-                data-testid="link-download-app"
-              >
-                <Smartphone className="h-3.5 w-3.5" />
-                Download App
-              </Button>
-            </a>
-            <a href="https://learnpro.live/" target="_blank" rel="noopener noreferrer">
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden lg:inline-flex gap-1.5 border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-400 font-semibold shadow-sm"
-                data-testid="link-elearning-site"
-              >
-                <ExternalLink className="h-3.5 w-3.5" />
-                E-Learning
-              </Button>
-            </a>
-            <a href="https://learnpro.in" target="_blank" rel="noopener noreferrer">
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden lg:inline-flex gap-1.5 border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-semibold shadow-sm"
-                data-testid="link-learnpro-home"
-              >
-                <Home className="h-3.5 w-3.5" />
-                Learnpro Home
-              </Button>
-            </a>
+              <a href="https://play.google.com/store/apps/details?id=com.egnmnw.isqbia" target="_blank" rel="noopener noreferrer">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hidden lg:inline-flex gap-1.5 border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold shadow-sm"
+                  data-testid="link-download-app"
+                >
+                  <Smartphone className="h-3.5 w-3.5" />
+                  Download App
+                </Button>
+              </a>
+              <a href="https://learnpro.live/" target="_blank" rel="noopener noreferrer">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hidden lg:inline-flex gap-1.5 border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-400 font-semibold shadow-sm"
+                  data-testid="link-elearning-site"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  E-Learning
+                </Button>
+              </a>
+              <a href="https://learnpro.in" target="_blank" rel="noopener noreferrer">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hidden lg:inline-flex gap-1.5 border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-semibold shadow-sm"
+                  data-testid="link-learnpro-home"
+                >
+                  <Home className="h-3.5 w-3.5" />
+                  Learnpro Home
+                </Button>
+              </a>
 
-            <Button
-              onClick={openLogin}
-              data-testid="button-login-nav"
-            >
-              {t.landing.login}
-            </Button>
+              <Button
+                onClick={openLogin}
+                data-testid="button-login-nav"
+              >
+                {t.landing.login}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:hidden border-b border-border/30 bg-background/60">
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 px-4 py-2 min-w-max">
+              <a href="#features">
+                <Button variant="ghost" size="sm" className="text-muted-foreground text-xs whitespace-nowrap" data-testid="link-features-mobile">
+                  {t.landing.features}
+                </Button>
+              </a>
+              <a href="#exams">
+                <Button variant="ghost" size="sm" className="text-muted-foreground text-xs whitespace-nowrap" data-testid="link-exams-mobile">
+                  {t.landing.navExams}
+                </Button>
+              </a>
+              <a href="/blog">
+                <Button variant="ghost" size="sm" className="text-muted-foreground text-xs whitespace-nowrap" data-testid="link-blog-mobile">
+                  {t.nav?.blog || "Articles"}
+                </Button>
+              </a>
+              <div className="w-px h-5 bg-border/60 flex-shrink-0" />
+              <a href="https://play.google.com/store/apps/details?id=com.egnmnw.isqbia" target="_blank" rel="noopener noreferrer">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold text-xs whitespace-nowrap"
+                  data-testid="link-download-app-mobile"
+                >
+                  <Smartphone className="h-3.5 w-3.5" />
+                  Download App
+                </Button>
+              </a>
+              <a href="https://learnpro.live/" target="_blank" rel="noopener noreferrer">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-400 font-semibold text-xs whitespace-nowrap"
+                  data-testid="link-elearning-mobile"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  E-Learning
+                </Button>
+              </a>
+              <a href="https://learnpro.in" target="_blank" rel="noopener noreferrer">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-semibold text-xs whitespace-nowrap"
+                  data-testid="link-learnpro-home-mobile"
+                >
+                  <Home className="h-3.5 w-3.5" />
+                  Learnpro Home
+                </Button>
+              </a>
+              <a href="https://wa.me/919102557680" target="_blank" rel="noopener noreferrer">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 border-[#25D366]/40 bg-[#25D366]/10 text-[#128C7E] dark:text-[#25D366] font-semibold text-xs whitespace-nowrap"
+                  data-testid="link-whatsapp-mobile"
+                >
+                  <SiWhatsapp className="h-3.5 w-3.5" />
+                  Contact Us
+                </Button>
+              </a>
+            </div>
           </div>
         </div>
       </nav>
