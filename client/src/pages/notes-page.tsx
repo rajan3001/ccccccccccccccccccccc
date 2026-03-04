@@ -72,6 +72,26 @@ const SUBJECT_OPTIONS = [
   { value: "Other", label: "Other" },
 ];
 
+const SUBJECT_STRIP_COLORS: Record<string, string> = {
+  "History": "bg-amber-500 dark:bg-amber-400",
+  "Geography": "bg-green-500 dark:bg-green-400",
+  "Polity": "bg-blue-500 dark:bg-blue-400",
+  "Economics": "bg-emerald-500 dark:bg-emerald-400",
+  "Science": "bg-violet-500 dark:bg-violet-400",
+  "Environment": "bg-lime-500 dark:bg-lime-400",
+  "Ethics": "bg-rose-500 dark:bg-rose-400",
+  "International Relations": "bg-sky-500 dark:bg-sky-400",
+  "Society": "bg-purple-500 dark:bg-purple-400",
+  "Art & Culture": "bg-orange-500 dark:bg-orange-400",
+  "Current Affairs": "bg-cyan-500 dark:bg-cyan-400",
+  "Essay": "bg-pink-500 dark:bg-pink-400",
+  "Mathematics": "bg-indigo-500 dark:bg-indigo-400",
+  "Reasoning": "bg-teal-500 dark:bg-teal-400",
+  "English": "bg-fuchsia-500 dark:bg-fuchsia-400",
+  "General Knowledge": "bg-yellow-500 dark:bg-yellow-400",
+  "Other": "bg-gray-400 dark:bg-gray-500",
+};
+
 const SUBJECT_COLORS: Record<string, string> = {
   "History": "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
   "Geography": "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
@@ -332,58 +352,74 @@ export default function NotesPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {notes.map((note) => (
-            <Card
-              key={note.id}
-              className={cn(
-                "p-4 cursor-pointer hover-elevate",
-                isDue(note) && "border-amber-300 dark:border-amber-700"
-              )}
-              onClick={() => openDetail(note)}
-              data-testid={`card-note-${note.id}`}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="text-sm font-medium truncate" data-testid={`text-note-title-${note.id}`}>
-                      {note.title}
-                    </span>
-                    {isDue(note) && (
-                      <Badge variant="secondary" className="text-amber-600 dark:text-amber-400">
-                        <Bell className="h-3 w-3 mr-1" />
-                        {t.notes.dueForReview}
-                      </Badge>
-                    )}
+        <div className="space-y-3">
+          {notes.map((note) => {
+            const noteTypeMatch = note.title.match(/^(Short Notes|Detailed Academic Notes|Class Notes|Quick Revision Cards)/);
+            const noteType = noteTypeMatch ? noteTypeMatch[1] : null;
+            const displayTitle = noteType ? note.title.replace(`${noteType} — `, "").replace(`${noteType}`, "").trim() || note.title : note.title;
+
+            return (
+              <Card
+                key={note.id}
+                className={cn(
+                  "overflow-hidden cursor-pointer hover-elevate transition-all duration-200",
+                  isDue(note) && "border-amber-300 dark:border-amber-700"
+                )}
+                onClick={() => openDetail(note)}
+                data-testid={`card-note-${note.id}`}
+              >
+                <div className="flex">
+                  {note.gsCategory && (
+                    <div className={cn("w-1 flex-shrink-0", SUBJECT_STRIP_COLORS[note.gsCategory] || "bg-gray-400")} />
+                  )}
+                  <div className="flex-1 p-4 min-w-0">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-sm font-semibold text-foreground leading-snug" data-testid={`text-note-title-${note.id}`}>
+                          {displayTitle || "Untitled Note"}
+                        </h3>
+                        {noteType && (
+                          <span className="text-[11px] font-medium text-muted-foreground">{noteType}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {isDue(note) && (
+                          <Badge variant="secondary" className="text-amber-600 dark:text-amber-400 text-[10px]">
+                            <Bell className="h-2.5 w-2.5 mr-0.5" />
+                            Review
+                          </Badge>
+                        )}
+                        <span className="text-[11px] text-muted-foreground">
+                          {new Date(note.updatedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {note.gsCategory && (
+                        <Badge variant="secondary" className={cn("text-[10px] px-1.5 py-0", SUBJECT_COLORS[note.gsCategory] || "")}>
+                          {note.gsCategory}
+                        </Badge>
+                      )}
+                      {note.folder && (
+                        <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded">
+                          <FolderOpen className="h-2.5 w-2.5" />
+                          {note.folder}
+                        </span>
+                      )}
+                      {((note.tags as string[]) || []).slice(0, 3).map((tag) => (
+                        <Badge key={tag} variant="outline" className="text-[10px] px-1.5 py-0">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2 line-clamp-2 leading-relaxed">
+                      {note.content.replace(/[#*_`>|\-\[\]]/g, "").replace(/\n+/g, " ").trim().slice(0, 180)}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {note.gsCategory && (
-                      <Badge variant="secondary" className={cn("text-xs", SUBJECT_COLORS[note.gsCategory] || "")}>
-                        {note.gsCategory}
-                      </Badge>
-                    )}
-                    {note.folder && (
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <FolderOpen className="h-3 w-3" />
-                        {note.folder}
-                      </span>
-                    )}
-                    {((note.tags as string[]) || []).slice(0, 3).map((tag) => (
-                      <Badge key={tag} variant="outline" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2">
-                    {note.content.replace(/[#*_]/g, "").slice(0, 150)}
-                  </p>
                 </div>
-                <span className="text-xs text-muted-foreground flex-shrink-0">
-                  {new Date(note.updatedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                </span>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

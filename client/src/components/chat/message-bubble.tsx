@@ -4,7 +4,7 @@ import { Logo } from "@/components/ui/logo";
 import { StyledMarkdown, StreamingMarkdown } from "@/components/ui/styled-markdown";
 import { detectMCQContent } from "@/components/chat/chat-quiz-panel";
 import { detectNoteType, NOTE_TYPE_FOLDERS, NOTE_TYPE_LABELS } from "@/components/notes/note-type-dialog";
-import { User, Copy, Check, FileText, Image as ImageIcon, File, BookmarkPlus, FolderPlus, Download, Play, Target } from "lucide-react";
+import { User, Copy, Check, FileText, Image as ImageIcon, File, BookmarkPlus, FolderPlus, Download, Play, Target, StickyNote } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -342,66 +342,79 @@ export function MessageBubble({ message, isStreaming, conversationId, userQuery,
       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
         <DialogContent className="max-w-md" data-testid="dialog-save-note">
           <DialogHeader>
-            <DialogTitle>Save as Note</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <StickyNote className="h-4 w-4 text-primary" />
+              </div>
+              Save as Note
+            </DialogTitle>
             <DialogDescription>
-              Save this AI response to your notes library for future revision.
+              Organize this response in your notes library for revision.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
-              <label className="text-sm font-medium mb-1.5 block">Title</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Title</label>
               <Input
                 value={noteTitle}
                 onChange={(e) => setNoteTitle(e.target.value)}
-                placeholder="Note title..."
+                placeholder="e.g. Cooperative Federalism — Key Concepts"
+                className="font-medium"
                 data-testid="input-note-title"
               />
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Subject</label>
-              <Select value={noteSubject} onValueChange={setNoteSubject}>
-                <SelectTrigger data-testid="select-note-subject">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SUBJECT_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Tags</label>
-              <Input
-                value={noteTags}
-                onChange={(e) => setNoteTags(e.target.value)}
-                placeholder="history, polity, economics (comma separated)"
-                data-testid="input-note-tags"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Folder</label>
-              {showNewFolderInput ? (
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={newFolderName}
-                    onChange={(e) => setNewFolderName(e.target.value)}
-                    placeholder="New folder name..."
-                    autoFocus
-                    data-testid="input-new-folder"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => { setShowNewFolderInput(false); setNewFolderName(""); }}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Subject</label>
+                <Select value={noteSubject} onValueChange={setNoteSubject}>
+                  <SelectTrigger data-testid="select-note-subject">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SUBJECT_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 flex items-center justify-between">
+                  Folder
+                  {!showNewFolderInput && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto p-0 text-[10px] font-bold normal-case tracking-normal"
+                      onClick={() => setShowNewFolderInput(true)}
+                      data-testid="button-create-folder"
+                    >
+                      + New
+                    </Button>
+                  )}
+                </label>
+                {showNewFolderInput ? (
+                  <div className="flex items-center gap-1.5">
+                    <Input
+                      value={newFolderName}
+                      onChange={(e) => setNewFolderName(e.target.value)}
+                      placeholder="Folder name"
+                      autoFocus
+                      className="text-sm"
+                      data-testid="input-new-folder"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="flex-shrink-0"
+                      onClick={() => { setShowNewFolderInput(false); setNewFolderName(""); }}
+                      data-testid="button-cancel-folder"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ) : (
                   <Select value={noteFolder || "none"} onValueChange={(v) => setNoteFolder(v === "none" ? "" : v)}>
-                    <SelectTrigger data-testid="select-note-folder" className="flex-1">
+                    <SelectTrigger data-testid="select-note-folder">
                       <SelectValue placeholder="Select folder" />
                     </SelectTrigger>
                     <SelectContent>
@@ -411,23 +424,27 @@ export function MessageBubble({ message, isStreaming, conversationId, userQuery,
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setShowNewFolderInput(true)}
-                    data-testid="button-create-folder"
-                  >
-                    <FolderPlus className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
+                )}
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Tags</label>
+              <Input
+                value={noteTags}
+                onChange={(e) => setNoteTags(e.target.value)}
+                placeholder="e.g. polity, federalism, governance"
+                className="text-sm"
+                data-testid="input-note-tags"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">Separate multiple tags with commas</p>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" size="sm" onClick={() => setShowSaveDialog(false)}>
               Cancel
             </Button>
             <Button
+              size="sm"
               onClick={handleSaveNote}
               disabled={saveNoteMutation.isPending}
               data-testid="button-confirm-save-note"
