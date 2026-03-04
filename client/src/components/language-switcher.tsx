@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/i18n/context";
 import { SUPPORTED_LANGUAGES, type LanguageCode } from "@/i18n/languages";
-import { Check, ChevronDown, Smartphone, ExternalLink, Globe } from "lucide-react";
-import { SiWhatsapp } from "react-icons/si";
+import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function GlobeIcon({ animate }: { animate: boolean }) {
@@ -58,40 +57,7 @@ export function LanguageSwitcher() {
   };
 
   return (
-    <div ref={containerRef} className="hidden md:flex items-center gap-1.5 fixed top-3 right-3 z-[50]" data-testid="language-switcher-container">
-      <a href="https://play.google.com/store/apps/details?id=com.egnmnw.isqbia" target="_blank" rel="noopener noreferrer" className="group relative" data-testid="link-topbar-download-app" title="Courses App" aria-label="Courses App">
-        <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 opacity-50 group-hover:opacity-90 blur-[1px] transition-opacity duration-300" />
-        <div className="relative flex items-center justify-center h-8 w-8 rounded-lg bg-background/90 dark:bg-background/80 backdrop-blur-md border border-emerald-500/25 hover:border-emerald-500/50 transition-all duration-300">
-          <div className="flex items-center justify-center h-5 w-5 rounded bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
-            <Smartphone className="h-3 w-3" />
-          </div>
-        </div>
-      </a>
-      <a href="https://learnpro.live/" target="_blank" rel="noopener noreferrer" className="group relative" data-testid="link-topbar-elearning" title="E-Learning Site" aria-label="E-Learning Site">
-        <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-violet-500 to-fuchsia-500 opacity-50 group-hover:opacity-90 blur-[1px] transition-opacity duration-300" />
-        <div className="relative flex items-center justify-center h-8 w-8 rounded-lg bg-background/90 dark:bg-background/80 backdrop-blur-md border border-violet-500/25 hover:border-violet-500/50 transition-all duration-300">
-          <div className="flex items-center justify-center h-5 w-5 rounded bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white">
-            <ExternalLink className="h-3 w-3" />
-          </div>
-        </div>
-      </a>
-      <a href="https://learnpro.in" target="_blank" rel="noopener noreferrer" className="group relative" data-testid="link-topbar-learnpro-home" title="Learnpro Home" aria-label="Learnpro Home">
-        <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 opacity-50 group-hover:opacity-90 blur-[1px] transition-opacity duration-300" />
-        <div className="relative flex items-center justify-center h-8 w-8 rounded-lg bg-background/90 dark:bg-background/80 backdrop-blur-md border border-amber-500/25 hover:border-amber-500/50 transition-all duration-300">
-          <div className="flex items-center justify-center h-5 w-5 rounded bg-gradient-to-br from-amber-500 to-orange-600 text-white">
-            <Globe className="h-3 w-3" />
-          </div>
-        </div>
-      </a>
-      <a href="https://wa.me/919102557680" target="_blank" rel="noopener noreferrer" className="group relative" data-testid="link-topbar-whatsapp" title="Contact Us" aria-label="Contact Us on WhatsApp">
-        <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-[#25D366] to-[#128C7E] opacity-50 group-hover:opacity-90 blur-[1px] transition-opacity duration-300" />
-        <div className="relative flex items-center justify-center h-8 w-8 rounded-lg bg-background/90 dark:bg-background/80 backdrop-blur-md border border-[#25D366]/25 hover:border-[#25D366]/50 transition-all duration-300">
-          <div className="flex items-center justify-center h-5 w-5 rounded bg-gradient-to-br from-[#25D366] to-[#128C7E] text-white">
-            <SiWhatsapp className="h-3 w-3" />
-          </div>
-        </div>
-      </a>
-      <div className="relative">
+    <div ref={containerRef} className="hidden md:block fixed top-3 right-3 z-[50]" data-testid="language-switcher-container">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
@@ -198,7 +164,6 @@ export function LanguageSwitcher() {
           to { opacity: 1; transform: translateX(0); }
         }
       `}</style>
-      </div>
     </div>
   );
 }

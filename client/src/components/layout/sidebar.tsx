@@ -92,6 +92,13 @@ export function Sidebar() {
   const phoneDisplay = user?.phone ? user.phone.replace("+91", "") : "";
   const initials = displayName.charAt(0).toUpperCase();
 
+  const externalLinks = [
+    { href: "https://play.google.com/store/apps/details?id=com.egnmnw.isqbia", icon: Smartphone, label: "Courses App", gradient: "from-emerald-500 to-teal-600", border: "border-emerald-500/25 hover:border-emerald-500/50", glow: "from-emerald-500 to-teal-500", textGradient: "from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400", testId: "link-right-download-app" },
+    { href: "https://learnpro.live/", icon: ExternalLink, label: "E-Learning Site", gradient: "from-violet-500 to-fuchsia-600", border: "border-violet-500/25 hover:border-violet-500/50", glow: "from-violet-500 to-fuchsia-500", textGradient: "from-violet-600 to-fuchsia-600 dark:from-violet-400 dark:to-fuchsia-400", testId: "link-right-elearning" },
+    { href: "https://learnpro.in", icon: Globe, label: "Learnpro Home", gradient: "from-amber-500 to-orange-600", border: "border-amber-500/25 hover:border-amber-500/50", glow: "from-amber-500 to-orange-500", textGradient: "from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400", testId: "link-right-learnpro-home" },
+    { href: "https://wa.me/919102557680", icon: SiWhatsapp, label: "Contact Us", gradient: "from-[#25D366] to-[#128C7E]", border: "border-[#25D366]/25 hover:border-[#25D366]/50", glow: "from-[#25D366] to-[#128C7E]", textGradient: "from-[#25D366] to-[#128C7E]", testId: "link-right-whatsapp" },
+  ];
+
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-secondary/30 border-r border-border">
       <div className="px-4 pt-4 pb-2 flex-shrink-0">
@@ -195,7 +202,7 @@ export function Sidebar() {
             </Button>
           </a>
 
-          <div className="mt-2 pt-2 border-t border-border/40 space-y-1">
+          <div className="mt-2 pt-2 border-t border-border/40 space-y-1 md:hidden">
             <a href="https://play.google.com/store/apps/details?id=com.egnmnw.isqbia" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileOpen(false)} className="group relative block" data-testid="link-sidebar-download-app">
               <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 opacity-0 group-hover:opacity-70 blur-[1px] transition-opacity duration-300" />
               <div className="relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
@@ -426,6 +433,28 @@ export function Sidebar() {
     <>
       <div className="hidden md:block w-72 h-screen flex-shrink-0">
         <SidebarContent />
+      </div>
+
+      <div className="hidden md:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-2 py-3 px-1.5 rounded-l-xl bg-background/80 dark:bg-background/70 backdrop-blur-md border border-r-0 border-border/50 shadow-lg" data-testid="right-icon-strip">
+        {externalLinks.map((link) => (
+          <a
+            key={link.testId}
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative"
+            data-testid={link.testId}
+            title={link.label}
+            aria-label={link.label}
+          >
+            <div className={cn("absolute -inset-[0.5px] rounded-lg bg-gradient-to-r opacity-0 group-hover:opacity-80 blur-[1px] transition-opacity duration-300", link.glow)} />
+            <div className={cn("relative flex items-center justify-center h-8 w-8 rounded-lg bg-background/90 dark:bg-background/80 transition-all duration-300", link.border)}>
+              <div className={cn("flex items-center justify-center h-5 w-5 rounded bg-gradient-to-br text-white", link.gradient)}>
+                <link.icon className="h-3 w-3" />
+              </div>
+            </div>
+          </a>
+        ))}
       </div>
 
       <div className="md:hidden flex items-center justify-between px-3 py-2.5 border-b bg-background sticky top-0 z-50 flex-shrink-0">
