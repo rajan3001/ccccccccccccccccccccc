@@ -2853,7 +2853,13 @@ function scheduleDailyBlogGeneration() {
     try {
       const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(blogPosts).where(eq(blogPosts.published, true));
       if (count < 5) {
-        console.log(`[Blog] ${count} published articles found. Use POST /api/blog/generate to create posts manually, or wait for scheduled auto-generation.`);
+        console.log(`[Blog] Only ${count} published articles found. Triggering immediate generation...`);
+        try {
+          const generated = await generateBlogPosts(5);
+          console.log(`[Blog] Immediate generation complete: ${generated} posts created`);
+        } catch (e) {
+          console.error("[Blog] Immediate generation failed:", e);
+        }
       }
 
       const postsWithoutImages = await db

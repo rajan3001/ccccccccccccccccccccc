@@ -1338,6 +1338,16 @@ export function scheduleDailyScraping() {
 
   console.log(`[Scraper] Scheduling auto-scrape every 90 minutes (${INTERVAL_MS}ms)`);
 
+  setTimeout(async () => {
+    try {
+      console.log("[Scraper] Running initial scrape on startup...");
+      const count = await runContentScrapeAndPublish(5);
+      console.log(`[Scraper] Initial scrape complete: ${count} articles published`);
+    } catch (e) {
+      console.error("[Scraper] Initial scrape failed:", e);
+    }
+  }, 15000);
+
   setInterval(async () => {
     try {
       console.log("[Scraper] Starting scheduled scrape...");
