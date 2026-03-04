@@ -45,8 +45,8 @@ import {
   CheckCircle2,
   StickyNote,
   Bell,
-  Filter,
   FolderPlus,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Note } from "@shared/models/notes";
@@ -116,12 +116,10 @@ export default function NotesPage() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
-  const [subjectFilter, setSubjectFilter] = useState("all");
-  const [folderFilter, setFolderFilter] = useState("all");
-  const [tagFilter, setTagFilter] = useState("all");
   const [showDueOnly, setShowDueOnly] = useState(false);
-  const [view, setView] = useState<"list" | "detail" | "edit">("list");
+  const [view, setView] = useState<"list" | "folder" | "detail" | "edit">("list");
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [openFolder, setOpenFolder] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
   const [editSubject, setEditSubject] = useState("none");
@@ -129,13 +127,9 @@ export default function NotesPage() {
   const [editFolder, setEditFolder] = useState("");
   const [showNewEditFolder, setShowNewEditFolder] = useState(false);
   const [newEditFolderName, setNewEditFolderName] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
 
   const filters: any = {};
   if (searchQuery) filters.search = searchQuery;
-  if (subjectFilter !== "all") filters.gsCategory = subjectFilter;
-  if (folderFilter !== "all") filters.folder = folderFilter;
-  if (tagFilter !== "all") filters.tag = tagFilter;
   if (showDueOnly) filters.dueForReview = true;
 
   const { data: notes, isLoading } = useNotes(filters);
@@ -237,193 +231,233 @@ export default function NotesPage() {
 
   const isDue = (note: Note) => note.nextReviewAt && new Date(note.nextReviewAt) <= new Date();
 
-  const renderListView = () => (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-notes-heading">
-              {t.notes.title}
-            </h1>
-            <p className="text-muted-foreground text-xs sm:text-sm mt-0.5">
-              {t.notes.savedNotes}
+  const groupNotesBySubject = (notesList: Note[]) => {
+    const groups: Record<string, Note[]> = {};
+    for (const note of notesList) {
+      const key = note.gsCategory || "Uncategorized";
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(note);
+    }
+    return groups;
+  };
+
+  const handleOpenFolder = (subject: string) => {
+    setOpenFolder(subject);
+    setView("folder");
+  };
+
+  const handleBackToFolders = () => {
+    setOpenFolder(null);
+    setView("list");
+  };
+
+  const renderListView = () => {
+    const grouped = notes ? groupNotesBySubject(notes) : {};
+    const subjectKeys = Object.keys(grouped).sort((a, b) => {
+      if (a === "Uncategorized") return 1;
+      if (b === "Uncategorized") return -1;
+      return a.localeCompare(b);
+    });
+
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="flex flex-col gap-4 mb-6">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-notes-heading">
+                {t.notes.title}
+              </h1>
+              <p className="text-muted-foreground text-xs sm:text-sm mt-0.5">
+                {t.notes.savedNotes}
+              </p>
+            </div>
+            {dueCount && dueCount.count > 0 && (
+              <Button
+                variant={showDueOnly ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowDueOnly(!showDueOnly)}
+                data-testid="button-due-for-review"
+              >
+                <Bell className="h-4 w-4 mr-1.5" />
+                {dueCount.count} {t.notes.due}
+              </Button>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={t.notes.searchNotes}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+                data-testid="input-search-notes"
+              />
+            </div>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          </div>
+        ) : !notes || notes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <StickyNote className="h-8 w-8 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">
+              {searchQuery || showDueOnly
+                ? t.notes.noMatchingNotes
+                : t.notes.noNotes}
+            </h3>
+            <p className="text-muted-foreground text-sm max-w-md">
+              {searchQuery
+                ? t.notes.adjustFilters
+                : t.notes.saveFromChat}
             </p>
           </div>
-          {dueCount && dueCount.count > 0 && (
-            <Button
-              variant={showDueOnly ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowDueOnly(!showDueOnly)}
-              data-testid="button-due-for-review"
-            >
-              <Bell className="h-4 w-4 mr-1.5" />
-              {dueCount.count} {t.notes.due}
-            </Button>
-          )}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={t.notes.searchNotes}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-              data-testid="input-search-notes"
-            />
-          </div>
-          <Button
-            variant={showFilters ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            data-testid="button-toggle-filters"
-          >
-            <Filter className="h-4 w-4 mr-1.5" />
-            {t.notes.filters}
-          </Button>
-        </div>
-
-        {showFilters && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.notes.subject}</label>
-              <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-                <SelectTrigger data-testid="select-subject-filter">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SUBJECT_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.value === "all" ? t.notes.allSubjects : opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.notes.folder}</label>
-              <Select value={folderFilter} onValueChange={setFolderFilter}>
-                <SelectTrigger data-testid="select-folder-filter">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t.notes.allFolders}</SelectItem>
-                  {(folders || []).map((f) => (
-                    <SelectItem key={f} value={f}>{f}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.notes.tag}</label>
-              <Select value={tagFilter} onValueChange={setTagFilter}>
-                <SelectTrigger data-testid="select-tag-filter">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t.notes.allTags}</SelectItem>
-                  {(tags || []).map((tg) => (
-                    <SelectItem key={tg} value={tg}>{tg}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        </div>
-      ) : !notes || notes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-            <StickyNote className="h-8 w-8 text-primary" />
-          </div>
-          <h3 className="text-lg font-semibold mb-2">
-            {searchQuery || subjectFilter !== "all" || folderFilter !== "all" || tagFilter !== "all" || showDueOnly
-              ? t.notes.noMatchingNotes
-              : t.notes.noNotes}
-          </h3>
-          <p className="text-muted-foreground text-sm max-w-md">
-            {searchQuery || subjectFilter !== "all"
-              ? t.notes.adjustFilters
-              : t.notes.saveFromChat}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {notes.map((note) => {
-            const noteTypeMatch = note.title.match(/^(Short Notes|Detailed Academic Notes|Class Notes|Quick Revision Cards)/);
-            const noteType = noteTypeMatch ? noteTypeMatch[1] : null;
-            const displayTitle = noteType ? note.title.replace(`${noteType} — `, "").replace(`${noteType}`, "").trim() || note.title : note.title;
-
-            return (
+        ) : searchQuery ? (
+          <div className="space-y-2">
+            {notes.map((note) => (
               <Card
                 key={note.id}
-                className={cn(
-                  "overflow-hidden cursor-pointer hover-elevate transition-all duration-200",
-                  isDue(note) && "border-amber-300 dark:border-amber-700"
-                )}
-                onClick={() => openDetail(note)}
+                className="p-3 cursor-pointer hover-elevate transition-all duration-200"
+                onClick={() => { setOpenFolder(null); openDetail(note); }}
                 data-testid={`card-note-${note.id}`}
               >
-                <div className="flex">
-                  {note.gsCategory && (
-                    <div className={cn("w-1 flex-shrink-0", SUBJECT_STRIP_COLORS[note.gsCategory] || "bg-gray-400")} />
-                  )}
-                  <div className="flex-1 p-4 min-w-0">
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-sm font-semibold text-foreground leading-snug" data-testid={`text-note-title-${note.id}`}>
-                          {displayTitle || "Untitled Note"}
-                        </h3>
-                        {noteType && (
-                          <span className="text-[11px] font-medium text-muted-foreground">{noteType}</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {isDue(note) && (
-                          <Badge variant="secondary" className="text-amber-600 dark:text-amber-400 text-[10px]">
-                            <Bell className="h-2.5 w-2.5 mr-0.5" />
-                            Review
-                          </Badge>
-                        )}
-                        <span className="text-[11px] text-muted-foreground">
-                          {new Date(note.updatedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {note.gsCategory && (
-                        <Badge variant="secondary" className={cn("text-[10px] px-1.5 py-0", SUBJECT_COLORS[note.gsCategory] || "")}>
-                          {note.gsCategory}
-                        </Badge>
-                      )}
-                      {note.folder && (
-                        <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded">
-                          <FolderOpen className="h-2.5 w-2.5" />
-                          {note.folder}
-                        </span>
-                      )}
-                      {((note.tags as string[]) || []).slice(0, 3).map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-[10px] px-1.5 py-0">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2 line-clamp-2 leading-relaxed">
-                      {note.content.replace(/[#*_`>|\-\[\]]/g, "").replace(/\n+/g, " ").trim().slice(0, 180)}
-                    </p>
+                <div className="flex items-center gap-3">
+                  <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0", note.gsCategory ? (SUBJECT_COLORS[note.gsCategory] || "bg-muted") : "bg-muted")}>
+                    <FileText className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate" data-testid={`text-note-title-${note.id}`}>{note.title}</p>
+                    <p className="text-[11px] text-muted-foreground">{note.gsCategory || "Uncategorized"}</p>
                   </div>
                 </div>
               </Card>
-            );
-          })}
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {subjectKeys.map((subject) => {
+              const subjectNotes = grouped[subject];
+              const stripColor = subject !== "Uncategorized" ? SUBJECT_STRIP_COLORS[subject] : "bg-gray-400 dark:bg-gray-500";
+              const badgeColor = subject !== "Uncategorized" ? SUBJECT_COLORS[subject] : "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300";
+              const dueInFolder = subjectNotes.filter(isDue).length;
+
+              return (
+                <Card
+                  key={subject}
+                  className="cursor-pointer hover-elevate transition-all duration-200 overflow-hidden group"
+                  onClick={() => handleOpenFolder(subject)}
+                  data-testid={`folder-${subject}`}
+                >
+                  <div className={cn("h-1.5 w-full", stripColor || "bg-gray-400 dark:bg-gray-500")} />
+                  <div className="p-4 flex flex-col items-center text-center">
+                    <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center mb-3", badgeColor || "bg-muted")}>
+                      <FolderOpen className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-xs sm:text-sm font-semibold text-foreground leading-tight mb-1 line-clamp-2" data-testid={`text-folder-name-${subject}`}>
+                      {subject}
+                    </h3>
+                    <span className="text-[11px] text-muted-foreground">
+                      {subjectNotes.length} {subjectNotes.length === 1 ? "note" : "notes"}
+                    </span>
+                    {dueInFolder > 0 && (
+                      <Badge variant="secondary" className="mt-2 text-amber-600 dark:text-amber-400 text-[10px]">
+                        <Bell className="h-2.5 w-2.5 mr-0.5" />
+                        {dueInFolder} due
+                      </Badge>
+                    )}
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderFolderView = () => {
+    if (!openFolder || !notes) return null;
+    const folderNotes = notes.filter((n) => (n.gsCategory || "Uncategorized") === openFolder);
+    const stripColor = openFolder !== "Uncategorized" ? SUBJECT_STRIP_COLORS[openFolder] : "bg-gray-400 dark:bg-gray-500";
+    const badgeColor = openFolder !== "Uncategorized" ? SUBJECT_COLORS[openFolder] : "";
+
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center gap-3 mb-6">
+          <Button variant="ghost" size="icon" onClick={handleBackToFolders} data-testid="button-back-to-folders">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center", badgeColor || "bg-muted")}>
+            <FolderOpen className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-display font-bold" data-testid="text-folder-heading">{openFolder}</h2>
+            <p className="text-xs text-muted-foreground">{folderNotes.length} {folderNotes.length === 1 ? "note" : "notes"}</p>
+          </div>
         </div>
-      )}
-    </div>
-  );
+
+        {folderNotes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <StickyNote className="h-8 w-8 text-muted-foreground mb-3" />
+            <p className="text-sm text-muted-foreground">No notes in this folder</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {folderNotes.map((note) => {
+              const noteTypeMatch = note.title.match(/^(Short Notes|Detailed Academic Notes|Class Notes|Quick Revision Cards)/);
+              const noteType = noteTypeMatch ? noteTypeMatch[1] : null;
+              const displayTitle = noteType ? note.title.replace(`${noteType} — `, "").replace(`${noteType}`, "").trim() || note.title : note.title;
+
+              return (
+                <Card
+                  key={note.id}
+                  className={cn(
+                    "overflow-hidden cursor-pointer hover-elevate transition-all duration-200",
+                    isDue(note) && "border-amber-300 dark:border-amber-700"
+                  )}
+                  onClick={() => openDetail(note)}
+                  data-testid={`card-note-${note.id}`}
+                >
+                  <div className={cn("h-1 w-full", stripColor || "bg-gray-400 dark:bg-gray-500")} />
+                  <div className="p-3">
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <h3 className="text-sm font-semibold text-foreground leading-snug line-clamp-2" data-testid={`text-note-title-${note.id}`}>
+                        {displayTitle || "Untitled Note"}
+                      </h3>
+                      {isDue(note) && (
+                        <Bell className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                      )}
+                    </div>
+                    {noteType && (
+                      <span className="text-[10px] font-medium text-muted-foreground">{noteType}</span>
+                    )}
+                    {note.folder && (
+                      <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground mt-1">
+                        <FolderOpen className="h-2.5 w-2.5" />
+                        {note.folder}
+                      </span>
+                    )}
+                    <p className="text-[11px] text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
+                      {note.content.replace(/[#*_`>|\-\[\]]/g, "").replace(/\n+/g, " ").trim().slice(0, 120)}
+                    </p>
+                    <span className="text-[10px] text-muted-foreground mt-2 block">
+                      {new Date(note.updatedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                    </span>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderDetailView = () => {
     if (!selectedNote) return null;
@@ -433,7 +467,7 @@ export default function NotesPage() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-4 gap-2">
           <button
-            onClick={() => { setView("list"); setSelectedNote(null); }}
+            onClick={() => { setView(openFolder ? "folder" : "list"); setSelectedNote(null); }}
             className="flex items-center gap-1 text-sm text-muted-foreground hover-elevate rounded-md p-1 -ml-1"
             data-testid="button-back-to-notes"
           >
@@ -682,6 +716,7 @@ export default function NotesPage() {
           </div>
           <div className="px-4 sm:px-6 py-6 sm:py-10">
             {view === "list" && renderListView()}
+            {view === "folder" && renderFolderView()}
             {view === "detail" && renderDetailView()}
             {view === "edit" && renderEditView()}
           </div>
