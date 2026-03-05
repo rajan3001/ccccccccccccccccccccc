@@ -110,13 +110,6 @@ export function Sidebar() {
     { href: "/study-progress", icon: BarChart3, label: t.nav.studyProgress, testId: "link-study-progress", match: (loc: string) => loc === "/study-progress" },
   ];
 
-  const mobileBottomItems = [
-    { href: "/chat/new", icon: MessageSquare, label: "Chat", testId: "bottom-chat", match: (loc: string) => loc.startsWith("/chat") || loc === "/" },
-    { href: "/current-affairs", icon: Newspaper, label: t.nav.currentAffairs?.split(" ")[0] || "News", testId: "bottom-current-affairs", match: (loc: string) => loc.startsWith("/current-affairs") },
-    { href: "/notes", icon: StickyNote, label: t.nav.myNotes?.split(" ").pop() || "Notes", testId: "bottom-notes", match: (loc: string) => loc === "/notes" },
-    { href: "/practice-quiz", icon: Brain, label: "Quiz", testId: "bottom-quiz", match: (loc: string) => loc === "/practice-quiz" },
-    { href: "/study-planner", icon: CalendarCheck, label: "Planner", testId: "bottom-planner", match: (loc: string) => loc === "/study-planner" },
-  ];
 
   const SidebarContent = ({ showExternalLinks = true }: { showExternalLinks?: boolean }) => (
     <div className="flex flex-col h-full bg-secondary/30 border-r border-border">
@@ -163,44 +156,6 @@ export function Sidebar() {
             </Button>
           </a>
 
-          {showExternalLinks && <div className="mt-2 pt-2 border-t border-border/40 space-y-1">
-            <a href="https://play.google.com/store/apps/details?id=com.egnmnw.isqbia" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileOpen(false)} className="group relative block" data-testid="link-sidebar-download-app">
-              <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 opacity-0 group-hover:opacity-70 blur-[1px] transition-opacity duration-300" />
-              <div className="relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                <div className="flex items-center justify-center h-5 w-5 rounded bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex-shrink-0">
-                  <Smartphone className="h-3 w-3" />
-                </div>
-                <span className="bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent font-semibold">Courses App</span>
-              </div>
-            </a>
-            <a href="https://learnpro.live/" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileOpen(false)} className="group relative block" data-testid="link-sidebar-elearning">
-              <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-violet-500 to-fuchsia-500 opacity-0 group-hover:opacity-70 blur-[1px] transition-opacity duration-300" />
-              <div className="relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                <div className="flex items-center justify-center h-5 w-5 rounded bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white flex-shrink-0">
-                  <ExternalLink className="h-3 w-3" />
-                </div>
-                <span className="bg-gradient-to-r from-violet-600 to-fuchsia-600 dark:from-violet-400 dark:to-fuchsia-400 bg-clip-text text-transparent font-semibold">E-Learning Site</span>
-              </div>
-            </a>
-            <a href="https://learnpro.in" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileOpen(false)} className="group relative block" data-testid="link-sidebar-learnpro-home">
-              <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 opacity-0 group-hover:opacity-70 blur-[1px] transition-opacity duration-300" />
-              <div className="relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                <div className="flex items-center justify-center h-5 w-5 rounded bg-gradient-to-br from-amber-500 to-orange-600 text-white flex-shrink-0">
-                  <Globe className="h-3 w-3" />
-                </div>
-                <span className="bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent font-semibold">Learnpro Home</span>
-              </div>
-            </a>
-            <a href="https://wa.me/919102557680" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileOpen(false)} className="group relative block" data-testid="link-sidebar-whatsapp">
-              <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-[#25D366] to-[#128C7E] opacity-0 group-hover:opacity-70 blur-[1px] transition-opacity duration-300" />
-              <div className="relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                <div className="flex items-center justify-center h-5 w-5 rounded bg-gradient-to-br from-[#25D366] to-[#128C7E] text-white flex-shrink-0">
-                  <SiWhatsapp className="h-3 w-3" />
-                </div>
-                <span className="bg-gradient-to-r from-[#25D366] to-[#128C7E] bg-clip-text text-transparent font-semibold">Contact Us</span>
-              </div>
-            </a>
-          </div>}
 
         </div>
       </div>
@@ -352,6 +307,31 @@ export function Sidebar() {
           </Popover>
         </div>
       </div>
+
+      {showExternalLinks && (
+        <div className="px-4 py-2 border-t border-border/40 bg-background/30 flex-shrink-0">
+          <div className="flex items-center justify-around">
+            {externalLinks.map((link) => (
+              <a
+                key={link.testId}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsMobileOpen(false)}
+                className="flex flex-col items-center gap-1 py-1 px-2"
+                data-testid={link.testId.replace("link-right-", "link-bottom-")}
+              >
+                <div className={cn("flex items-center justify-center h-7 w-7 rounded-lg bg-gradient-to-br text-white", link.gradient)}>
+                  <link.icon className="h-3.5 w-3.5" />
+                </div>
+                <span className={cn("text-[9px] font-semibold leading-tight bg-gradient-to-r bg-clip-text text-transparent", link.textGradient)}>
+                  {link.label.split(" ")[0]}
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
         <AlertDialogContent>
@@ -543,28 +523,6 @@ export function Sidebar() {
         </div>
       </div>
 
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border/50 safe-area-bottom" data-testid="mobile-bottom-nav">
-        <div className="flex items-center justify-around px-1 py-1.5">
-          {mobileBottomItems.map((item) => {
-            const isActive = item.match(location);
-            return (
-              <Link key={item.testId} href={item.href}>
-                <button
-                  className={cn(
-                    "flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-all min-w-[52px]",
-                    isActive ? "text-primary" : "text-muted-foreground"
-                  )}
-                  data-testid={item.testId}
-                >
-                  <item.icon className={cn("h-5 w-5", isActive && "text-primary")} />
-                  <span className={cn("text-[10px] leading-tight", isActive ? "font-bold" : "font-medium")}>{item.label}</span>
-                  {isActive && <div className="h-0.5 w-4 rounded-full bg-primary mt-0.5" />}
-                </button>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
     </>
   );
 }

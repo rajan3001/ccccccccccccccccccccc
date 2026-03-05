@@ -329,8 +329,3 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-@media (max-width: 767px) {
-  main {
-    padding-bottom: 4rem;
-  }
-}
