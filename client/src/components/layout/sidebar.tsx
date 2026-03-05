@@ -101,6 +101,23 @@ export function Sidebar() {
     { href: "https://wa.me/919102557680", icon: SiWhatsapp, label: "Contact Us", gradient: "from-[#25D366] to-[#128C7E]", border: "border-[#25D366]/25 hover:border-[#25D366]/50", glow: "from-[#25D366] to-[#128C7E]", textGradient: "from-[#25D366] to-[#128C7E]", testId: "link-right-whatsapp" },
   ];
 
+  const navItems = [
+    { href: "/current-affairs", icon: Newspaper, label: t.nav.currentAffairs, testId: "link-current-affairs", match: (loc: string) => loc.startsWith("/current-affairs") },
+    { href: "/practice-quiz", icon: Brain, label: t.nav.practiceQuiz, testId: "link-practice-quiz", match: (loc: string) => loc === "/practice-quiz" },
+    { href: "/paper-evaluation", icon: FileCheck, label: t.nav.answerEvaluation, testId: "link-paper-evaluation", match: (loc: string) => loc === "/paper-evaluation" },
+    { href: "/notes", icon: StickyNote, label: t.nav.myNotes, testId: "link-my-notes", match: (loc: string) => loc === "/notes" },
+    { href: "/study-planner", icon: CalendarCheck, label: t.nav.studyPlanner, testId: "link-study-planner", match: (loc: string) => loc === "/study-planner" },
+    { href: "/study-progress", icon: BarChart3, label: t.nav.studyProgress, testId: "link-study-progress", match: (loc: string) => loc === "/study-progress" },
+  ];
+
+  const mobileBottomItems = [
+    { href: "/chat/new", icon: MessageSquare, label: "Chat", testId: "bottom-chat", match: (loc: string) => loc.startsWith("/chat") || loc === "/" },
+    { href: "/current-affairs", icon: Newspaper, label: t.nav.currentAffairs?.split(" ")[0] || "News", testId: "bottom-current-affairs", match: (loc: string) => loc.startsWith("/current-affairs") },
+    { href: "/notes", icon: StickyNote, label: t.nav.myNotes?.split(" ").pop() || "Notes", testId: "bottom-notes", match: (loc: string) => loc === "/notes" },
+    { href: "/practice-quiz", icon: Brain, label: "Quiz", testId: "bottom-quiz", match: (loc: string) => loc === "/practice-quiz" },
+    { href: "/study-planner", icon: CalendarCheck, label: "Planner", testId: "bottom-planner", match: (loc: string) => loc === "/study-planner" },
+  ];
+
   const SidebarContent = ({ showExternalLinks = true }: { showExternalLinks?: boolean }) => (
     <div className="flex flex-col h-full bg-secondary/30 border-r border-border">
       <div className="px-4 pt-4 pb-2 flex-shrink-0">
@@ -120,77 +137,19 @@ export function Sidebar() {
         </Button>
 
         <div className="mt-1 space-y-0.5">
-          <Link href="/current-affairs" onClick={() => setIsMobileOpen(false)}>
-            <Button
-              variant={location.startsWith("/current-affairs") ? "default" : "ghost"}
-              className="w-full justify-start gap-2"
-              size="sm"
-              data-testid="link-current-affairs"
-            >
-              <Newspaper className="h-4 w-4" />
-              {t.nav.currentAffairs}
-            </Button>
-          </Link>
-
-          <Link href="/practice-quiz" onClick={() => setIsMobileOpen(false)}>
-            <Button
-              variant={location === "/practice-quiz" ? "default" : "ghost"}
-              className="w-full justify-start gap-2"
-              size="sm"
-              data-testid="link-practice-quiz"
-            >
-              <Brain className="h-4 w-4" />
-              {t.nav.practiceQuiz}
-            </Button>
-          </Link>
-
-          <Link href="/paper-evaluation" onClick={() => setIsMobileOpen(false)}>
-            <Button
-              variant={location === "/paper-evaluation" ? "default" : "ghost"}
-              className="w-full justify-start gap-2"
-              size="sm"
-              data-testid="link-paper-evaluation"
-            >
-              <FileCheck className="h-4 w-4" />
-              {t.nav.answerEvaluation}
-            </Button>
-          </Link>
-
-          <Link href="/notes" onClick={() => setIsMobileOpen(false)}>
-            <Button
-              variant={location === "/notes" ? "default" : "ghost"}
-              className="w-full justify-start gap-2"
-              size="sm"
-              data-testid="link-my-notes"
-            >
-              <StickyNote className="h-4 w-4" />
-              {t.nav.myNotes}
-            </Button>
-          </Link>
-
-          <Link href="/study-planner" onClick={() => setIsMobileOpen(false)}>
-            <Button
-              variant={location === "/study-planner" ? "default" : "ghost"}
-              className="w-full justify-start gap-2"
-              size="sm"
-              data-testid="link-study-planner"
-            >
-              <CalendarCheck className="h-4 w-4" />
-              {t.nav.studyPlanner}
-            </Button>
-          </Link>
-
-          <Link href="/study-progress" onClick={() => setIsMobileOpen(false)}>
-            <Button
-              variant={location === "/study-progress" ? "default" : "ghost"}
-              className="w-full justify-start gap-2"
-              size="sm"
-              data-testid="link-study-progress"
-            >
-              <BarChart3 className="h-4 w-4" />
-              {t.nav.studyProgress}
-            </Button>
-          </Link>
+          {navItems.map((item) => (
+            <Link key={item.testId} href={item.href} onClick={() => setIsMobileOpen(false)}>
+              <Button
+                variant={item.match(location) ? "default" : "ghost"}
+                className="w-full justify-start gap-2"
+                size="sm"
+                data-testid={item.testId}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </Button>
+            </Link>
+          ))}
 
           <a href="/blog" onClick={() => setIsMobileOpen(false)}>
             <Button
@@ -315,47 +274,35 @@ export function Sidebar() {
         </ScrollArea>
       </div>
 
-      <div className="px-4 py-3 border-t border-border/50 bg-background/50 flex-shrink-0">
-        <div className="space-y-1.5">
-          {isPro ? (
-            <Link href="/subscription" className="block" onClick={() => setIsMobileOpen(false)}>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-sm font-semibold border border-primary/20 cursor-pointer hover:shadow-sm transition-all">
-                <Crown className="h-4 w-4" />
-                <span>{tierLabel} Plan Active</span>
-              </div>
-            </Link>
-          ) : (
-            <Link href="/subscription" className="block" onClick={() => setIsMobileOpen(false)}>
-              <div className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-100 to-teal-50 dark:from-emerald-900/30 dark:to-teal-800/20 border border-emerald-200 dark:border-emerald-700/50 text-emerald-900 dark:text-emerald-300 text-sm font-semibold cursor-pointer hover:shadow-md transition-all">
-                <Crown className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                <span>{t.nav.upgradePro}</span>
-              </div>
-            </Link>
-          )}
+      <div className="px-4 py-2 border-t border-border/50 bg-background/50 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <Link href="/subscription" className="flex-shrink-0" onClick={() => setIsMobileOpen(false)}>
+            <div className={cn(
+              "flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold cursor-pointer transition-all",
+              isPro
+                ? "bg-primary/10 text-primary border border-primary/20"
+                : "bg-gradient-to-r from-emerald-100 to-teal-50 dark:from-emerald-900/30 dark:to-teal-800/20 border border-emerald-200 dark:border-emerald-700/50 text-emerald-900 dark:text-emerald-300"
+            )} data-testid="link-subscription-badge">
+              <Crown className="h-3 w-3" />
+              <span>{isPro ? tierLabel : t.nav.upgradePro}</span>
+            </div>
+          </Link>
 
           <Popover>
             <PopoverTrigger asChild>
-              <div className="flex items-center justify-between px-2 cursor-pointer rounded-md hover-elevate py-1.5" data-testid="button-profile-menu">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <div className="relative">
-                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold border border-primary/20">
-                      {initials}
-                    </div>
-                    <Badge
-                      variant="secondary"
-                      className="absolute -bottom-1 -right-1 text-[8px] px-1 py-0 leading-tight font-bold no-default-hover-elevate no-default-active-elevate"
-                    >
-                      {tierLabel || t.common.free}
-                    </Badge>
+              <div className="flex items-center justify-between flex-1 min-w-0 px-2 cursor-pointer rounded-md hover-elevate py-1" data-testid="button-profile-menu">
+                <div className="flex items-center gap-2 text-sm font-medium min-w-0">
+                  <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold border border-primary/20 flex-shrink-0">
+                    {initials}
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-foreground leading-none truncate">{displayName}</span>
+                    <span className="text-xs text-foreground leading-none truncate">{displayName}</span>
                     {phoneDisplay && (
-                      <span className="text-xs text-muted-foreground leading-none mt-1">{phoneDisplay}</span>
+                      <span className="text-[10px] text-muted-foreground leading-none mt-0.5">{phoneDisplay}</span>
                     )}
                   </div>
                 </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
               </div>
             </PopoverTrigger>
             <PopoverContent side="top" align="start" className="w-64 p-0" sideOffset={8}>
@@ -593,6 +540,29 @@ export function Sidebar() {
               `}</style>
             </>
           )}
+        </div>
+      </div>
+
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border/50 safe-area-bottom" data-testid="mobile-bottom-nav">
+        <div className="flex items-center justify-around px-1 py-1.5">
+          {mobileBottomItems.map((item) => {
+            const isActive = item.match(location);
+            return (
+              <Link key={item.testId} href={item.href}>
+                <button
+                  className={cn(
+                    "flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-all min-w-[52px]",
+                    isActive ? "text-primary" : "text-muted-foreground"
+                  )}
+                  data-testid={item.testId}
+                >
+                  <item.icon className={cn("h-5 w-5", isActive && "text-primary")} />
+                  <span className={cn("text-[10px] leading-tight", isActive ? "font-bold" : "font-medium")}>{item.label}</span>
+                  {isActive && <div className="h-0.5 w-4 rounded-full bg-primary mt-0.5" />}
+                </button>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </>
