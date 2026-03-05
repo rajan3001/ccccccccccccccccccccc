@@ -15,7 +15,7 @@ The Learnpro AI platform is built with a modern web stack. The frontend is devel
 
 **Key Architectural Decisions & Features:**
 - **Authentication**: Custom Phone OTP authentication via Twilio SMS, with session persistence for 30 days.
-- **File Storage**: Replit Object Storage (leveraging Google Cloud Storage) for user uploads like answer sheets and attachments.
+- **File Storage**: Replit Object Storage (leveraging Google Cloud Storage) for user uploads like answer sheets and attachments. Includes local filesystem fallback (`.uploads/` directory) when Object Storage bucket is not provisioned. The fallback auto-detects availability on startup and provides the same API interface (`/api/uploads/request-url` → presigned URL or local PUT endpoint).
 - **AI Integration**: Gemini 2.5 Flash via Replit AI Integrations for all AI-driven functionalities, including chat, content generation (Current Affairs, Quizzes), and evaluations.
 - **UI/UX**: Features a multi-step onboarding wizard, a personalized dashboard, and a consistent design language using shadcn/ui. Client-side PDF generation with Learnpro branding is implemented for various reports.
 - **Core Modules**:

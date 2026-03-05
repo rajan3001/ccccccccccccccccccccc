@@ -48,3 +48,5 @@ expertMode = true
 
 [userenv.shared]
 CUSTOM_DOMAIN = "learnproai.in"
+PRIVATE_OBJECT_DIR = "/replit-objstore-fbf0372a-ee27-44b3-bf34-8c87fccff2f2"
+PUBLIC_OBJECT_SEARCH_PATHS = "/replit-objstore-fbf0372a-ee27-44b3-bf34-8c87fccff2f2"
