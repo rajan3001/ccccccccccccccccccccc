@@ -172,6 +172,209 @@ function validateQuestions(questions: any[], examStage: string): ValidationResul
   return { valid, rejected };
 }
 
+export async function pyqIngestCore(params: {
+  fileObjectPath: string; examType: string; examStage: string; year: string; paperType: string;
+}): Promise<any> {
+  const { fileObjectPath, examType, examStage, year, paperType } = params;
+
+  if (!fileObjectPath || !examType || !examStage || !year || !paperType) {
+    throw Object.assign(new Error("Missing required fields"), { statusCode: 400 });
+  }
+  if (!PYQ_EXAM_STAGES.includes(examStage)) {
+    throw Object.assign(new Error("examStage must be 'Prelims' or 'Mains'"), { statusCode: 400 });
+  }
+
+  let fileData: Buffer;
+  const localUploadsDir = path.resolve(process.cwd(), ".uploads");
+  const localFileName = fileObjectPath.replace(/^\/objects\/uploads\//, "");
+  const localFilePath = path.join(localUploadsDir, localFileName);
+
+  if (fs.existsSync(localFilePath)) {
+    fileData = fs.readFileSync(localFilePath);
+  } else {
+    try {
+      const file = await objectStorage.getObjectEntityFile(fileObjectPath);
+      const [downloaded] = await file.download();
+      fileData = downloaded;
+    } catch (e) {
+      throw Object.assign(new Error("File not found. Please re-upload the PDF."), { statusCode: 404 });
+    }
+  }
+
+  let extractedText = "";
+  try {
+    const pdfMod = await import("pdf-parse");
+    const pdfParse = pdfMod.default || pdfMod.PDFParse || pdfMod;
+    const pdfResult = await (typeof pdfParse === "function" ? pdfParse(fileData) : (pdfMod as any).PDFParse(fileData));
+    extractedText = pdfResult.text || "";
+  } catch (e) {
+    console.log("pdf-parse failed, will use Gemini OCR:", e);
+  }
+
+  if (extractedText.length < 500) {
+    console.log("Text too short or extraction failed, using Gemini OCR...");
+    const ocrResult = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{
+        role: "user",
+        parts: [
+          { text: "Extract ALL text from this PDF exactly as written. Preserve question numbers, options, and formatting. Return only the extracted text, no commentary." },
+          { inlineData: { mimeType: "application/pdf", data: fileData.toString("base64") } },
+        ],
+      }],
+      config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
+    });
+    extractedText = (ocrResult.text || "").trim();
+  }
+
+  extractedText = cleanExtractedText(extractedText);
+
+  if (extractedText.length < 100) {
+    throw Object.assign(new Error("Could not extract sufficient text from PDF"), { statusCode: 400 });
+  }
+
+  const chunks = chunkByQuestions(extractedText, 12);
+  let allExtracted: ExtractedQuestion[] = [];
+  const errors: string[] = [];
+
+  for (let i = 0; i < chunks.length; i++) {
+    const chunkText = chunks[i].join("\n\n");
+    const structurePrompt = `You are extracting questions from an official ${examStage} exam paper (${examType} ${year} ${paperType}).
+Return ONLY a raw JSON array. No markdown, no explanation, no wrapping.
+Schema per question:
+{ "questionNumber": number, "questionText": string, "options": [string,string,string,string] | null, "questionType": "mcq" | "mains", "correctIndex": 0-3 | null, "marks": number }
+Rules:
+- Preserve original question wording exactly — do not paraphrase
+- Do not merge or split questions
+- Do not hallucinate or guess answers — if unsure about correctIndex, use null
+- ${examStage === "Prelims" ? 'questionType must be "mcq", options must be exactly 4 strings, marks default 2' : 'questionType must be "mains", options must be null, marks as stated or default 10'}
+
+Text to extract from:
+${chunkText}`;
+
+    try {
+      const result = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ role: "user", parts: [{ text: structurePrompt }] }],
+        config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
+      });
+      const parsed = parseAIJson(result.text || "");
+      const arr = Array.isArray(parsed) ? parsed : [parsed];
+      allExtracted.push(...arr);
+    } catch (e: any) {
+      errors.push(`Chunk ${i + 1}: ${e.message}`);
+    }
+  }
+
+  const { valid, rejected } = validateQuestions(allExtracted, examStage);
+
+  let classified: { questionNumber: number; topic: string; subTopic: string | null; difficulty: string }[] = [];
+  if (valid.length > 0) {
+    const topicList = PYQ_TOPICS.filter(t => t !== "Unclassified").join(", ");
+    const subTopicInfo = Object.entries(PYQ_SUBTOPICS)
+      .filter(([k]) => k !== "Unclassified")
+      .map(([k, v]) => `${k}: [${v.join(", ")}]`)
+      .join("\n");
+
+    const classifyPrompt = `Classify each question. You MUST choose from the provided lists ONLY.
+Topics: [${topicList}]
+SubTopics by Topic:
+${subTopicInfo}
+If uncertain, use topic: "Unclassified", subTopic: null
+Also classify difficulty: "Easy", "Moderate", or "Hard" based on concept depth and analytical requirement.
+Return ONLY a raw JSON array: [{ "questionNumber": number, "topic": string, "subTopic": string|null, "difficulty": string }]
+
+Questions:
+${valid.map(q => `Q${q.questionNumber}: ${q.questionText.substring(0, 200)}`).join("\n")}`;
+
+    try {
+      const classResult = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ role: "user", parts: [{ text: classifyPrompt }] }],
+        config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
+      });
+      classified = parseAIJson(classResult.text || "");
+      if (!Array.isArray(classified)) classified = [];
+    } catch (e: any) {
+      errors.push(`Classification failed: ${e.message}`);
+    }
+  }
+
+  const classMap = new Map(classified.map(c => [c.questionNumber, c]));
+
+  let inserted = 0;
+  let skipped = 0;
+
+  for (const q of valid) {
+    const cls = classMap.get(q.questionNumber);
+    const topic = cls?.topic && (PYQ_TOPICS as readonly string[]).includes(cls.topic) ? cls.topic : "Unclassified";
+    const subTopic = cls?.subTopic && PYQ_SUBTOPICS[topic]?.includes(cls.subTopic) ? cls.subTopic : null;
+    const difficulty = cls?.difficulty && ["Easy", "Moderate", "Hard"].includes(cls.difficulty) ? cls.difficulty : null;
+    const tHash = hashText(q.questionText);
+
+    const existing = await db.select({ id: pyqQuestions.id })
+      .from(pyqQuestions)
+      .where(
+        or(
+          and(
+            eq(pyqQuestions.examType, examType),
+            eq(pyqQuestions.examStage, examStage),
+            eq(pyqQuestions.year, Number(year)),
+            eq(pyqQuestions.paperType, paperType),
+            eq(pyqQuestions.questionNumber, q.questionNumber)
+          ),
+          eq(pyqQuestions.textHash, tHash)
+        )
+      )
+      .limit(1);
+
+    if (existing.length > 0) {
+      skipped++;
+      continue;
+    }
+
+    try {
+      await db.insert(pyqQuestions).values({
+        examType,
+        examStage,
+        year: Number(year),
+        paperType,
+        questionNumber: q.questionNumber,
+        questionText: q.questionText,
+        questionType: q.questionType,
+        options: q.options,
+        correctIndex: q.correctIndex,
+        marks: q.marks,
+        topic,
+        subTopic,
+        difficulty,
+        textHash: tHash,
+      });
+      inserted++;
+    } catch (e: any) {
+      if (e.code === "23505") {
+        skipped++;
+      } else {
+        errors.push(`Insert Q${q.questionNumber}: ${e.message}`);
+      }
+    }
+  }
+
+  return {
+    totalExtracted: allExtracted.length,
+    validated: valid.length,
+    inserted,
+    skipped,
+    rejected: rejected.length,
+    rejectedDetails: rejected.map(r => ({
+      questionNumber: r.question?.questionNumber,
+      text: r.question?.questionText?.substring(0, 100),
+      reasons: r.reasons,
+    })),
+    errors,
+  };
+}
+
 export function registerPyqRoutes(app: Express): void {
 
   app.post("/api/pyq/ingest", isAuthenticated, async (req: any, res: Response) => {
@@ -184,417 +387,11 @@ export function registerPyqRoutes(app: Express): void {
         return res.status(429).json({ error: "Rate limit exceeded. Max 5 uploads per hour." });
       }
 
-      const { fileObjectPath, examType, examStage, year, paperType } = req.body;
-      if (!fileObjectPath || !examType || !examStage || !year || !paperType) {
-        return res.status(400).json({ error: "Missing required fields: fileObjectPath, examType, examStage, year, paperType" });
-      }
-      if (!PYQ_EXAM_STAGES.includes(examStage)) {
-        return res.status(400).json({ error: "examStage must be 'Prelims' or 'Mains'" });
-      }
-
-      let fileData: Buffer;
-      const localUploadsDir = path.resolve(process.cwd(), ".uploads");
-      const localFileName = fileObjectPath.replace(/^\/objects\/uploads\//, "");
-      const localFilePath = path.join(localUploadsDir, localFileName);
-
-      if (fs.existsSync(localFilePath)) {
-        fileData = fs.readFileSync(localFilePath);
-      } else {
-        try {
-          const file = await objectStorage.getObjectEntityFile(fileObjectPath);
-          const [downloaded] = await file.download();
-          fileData = downloaded;
-        } catch (e) {
-          return res.status(404).json({ error: "File not found. Please re-upload the PDF." });
-        }
-      }
-
-      let extractedText = "";
-      try {
-        const pdfMod = await import("pdf-parse");
-        const pdfParse = pdfMod.default || pdfMod.PDFParse || pdfMod;
-        const pdfResult = await (typeof pdfParse === "function" ? pdfParse(fileData) : (pdfMod as any).PDFParse(fileData));
-        extractedText = pdfResult.text || "";
-      } catch (e) {
-        console.log("pdf-parse failed, will use Gemini OCR:", e);
-      }
-
-      if (extractedText.length < 500) {
-        console.log("Text too short or extraction failed, using Gemini OCR...");
-        const ocrResult = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: [{
-            role: "user",
-            parts: [
-              { text: "Extract ALL text from this PDF exactly as written. Preserve question numbers, options, and formatting. Return only the extracted text, no commentary." },
-              { inlineData: { mimeType: "application/pdf", data: fileData.toString("base64") } },
-            ],
-          }],
-          config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
-        });
-        extractedText = (ocrResult.text || "").trim();
-      }
-
-      extractedText = cleanExtractedText(extractedText);
-
-      if (extractedText.length < 100) {
-        return res.status(400).json({ error: "Could not extract sufficient text from PDF" });
-      }
-
-      const chunks = chunkByQuestions(extractedText, 12);
-      let allExtracted: ExtractedQuestion[] = [];
-      const errors: string[] = [];
-
-      for (let i = 0; i < chunks.length; i++) {
-        const chunkText = chunks[i].join("\n\n");
-        const structurePrompt = `You are extracting questions from an official ${examStage} exam paper (${examType} ${year} ${paperType}).
-Return ONLY a raw JSON array. No markdown, no explanation, no wrapping.
-Schema per question:
-{ "questionNumber": number, "questionText": string, "options": [string,string,string,string] | null, "questionType": "mcq" | "mains", "correctIndex": 0-3 | null, "marks": number }
-Rules:
-- Preserve original question wording exactly — do not paraphrase
-- Do not merge or split questions
-- Do not hallucinate or guess answers — if unsure about correctIndex, use null
-- ${examStage === "Prelims" ? 'questionType must be "mcq", options must be exactly 4 strings, marks default 2' : 'questionType must be "mains", options must be null, marks as stated or default 10'}
-
-Text to extract from:
-${chunkText}`;
-
-        try {
-          const result = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: [{ role: "user", parts: [{ text: structurePrompt }] }],
-            config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
-          });
-          const parsed = parseAIJson(result.text || "");
-          const arr = Array.isArray(parsed) ? parsed : [parsed];
-          allExtracted.push(...arr);
-        } catch (e: any) {
-          errors.push(`Chunk ${i + 1}: ${e.message}`);
-        }
-      }
-
-      const { valid, rejected } = validateQuestions(allExtracted, examStage);
-
-      let classified: { questionNumber: number; topic: string; subTopic: string | null; difficulty: string }[] = [];
-      if (valid.length > 0) {
-        const topicList = PYQ_TOPICS.filter(t => t !== "Unclassified").join(", ");
-        const subTopicInfo = Object.entries(PYQ_SUBTOPICS)
-          .filter(([k]) => k !== "Unclassified")
-          .map(([k, v]) => `${k}: [${v.join(", ")}]`)
-          .join("\n");
-
-        const classifyPrompt = `Classify each question. You MUST choose from the provided lists ONLY.
-Topics: [${topicList}]
-SubTopics by Topic:
-${subTopicInfo}
-If uncertain, use topic: "Unclassified", subTopic: null
-Also classify difficulty: "Easy", "Moderate", or "Hard" based on concept depth and analytical requirement.
-Return ONLY a raw JSON array: [{ "questionNumber": number, "topic": string, "subTopic": string|null, "difficulty": string }]
-
-Questions:
-${valid.map(q => `Q${q.questionNumber}: ${q.questionText.substring(0, 200)}`).join("\n")}`;
-
-        try {
-          const classResult = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: [{ role: "user", parts: [{ text: classifyPrompt }] }],
-            config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
-          });
-          classified = parseAIJson(classResult.text || "");
-          if (!Array.isArray(classified)) classified = [];
-        } catch (e: any) {
-          errors.push(`Classification failed: ${e.message}`);
-        }
-      }
-
-      const classMap = new Map(classified.map(c => [c.questionNumber, c]));
-
-      let inserted = 0;
-      let skipped = 0;
-
-      for (const q of valid) {
-        const cls = classMap.get(q.questionNumber);
-        const topic = cls?.topic && (PYQ_TOPICS as readonly string[]).includes(cls.topic) ? cls.topic : "Unclassified";
-        const subTopic = cls?.subTopic && PYQ_SUBTOPICS[topic]?.includes(cls.subTopic) ? cls.subTopic : null;
-        const difficulty = cls?.difficulty && ["Easy", "Moderate", "Hard"].includes(cls.difficulty) ? cls.difficulty : null;
-        const tHash = hashText(q.questionText);
-
-        const existing = await db.select({ id: pyqQuestions.id })
-          .from(pyqQuestions)
-          .where(
-            or(
-              and(
-                eq(pyqQuestions.examType, examType),
-                eq(pyqQuestions.examStage, examStage),
-                eq(pyqQuestions.year, Number(year)),
-                eq(pyqQuestions.paperType, paperType),
-                eq(pyqQuestions.questionNumber, q.questionNumber)
-              ),
-              eq(pyqQuestions.textHash, tHash)
-            )
-          )
-          .limit(1);
-
-        if (existing.length > 0) {
-          skipped++;
-          continue;
-        }
-
-        try {
-          await db.insert(pyqQuestions).values({
-            examType,
-            examStage,
-            year: Number(year),
-            paperType,
-            questionNumber: q.questionNumber,
-            questionText: q.questionText,
-            questionType: q.questionType,
-            options: q.options,
-            correctIndex: q.correctIndex,
-            marks: q.marks,
-            topic,
-            subTopic,
-            difficulty,
-            textHash: tHash,
-          });
-          inserted++;
-        } catch (e: any) {
-          if (e.code === "23505") {
-            skipped++;
-          } else {
-            errors.push(`Insert Q${q.questionNumber}: ${e.message}`);
-          }
-        }
-      }
-
-      res.json({
-        totalExtracted: allExtracted.length,
-        validated: valid.length,
-        inserted,
-        skipped,
-        rejected: rejected.length,
-        rejectedDetails: rejected.map(r => ({
-          questionNumber: r.question?.questionNumber,
-          text: r.question?.questionText?.substring(0, 100),
-          reasons: r.reasons,
-        })),
-        errors,
-      });
+      const result = await pyqIngestCore(req.body);
+      res.json(result);
     } catch (error: any) {
       console.error("PYQ ingest error:", error);
-      res.status(500).json({ error: "Failed to process PDF: " + error.message });
-    }
-  });
-
-  app.post("/api/pyq/ingest/admin", async (req: any, res: Response) => {
-    try {
-      const remoteIp = req.ip || req.connection?.remoteAddress || "";
-      const isLocal = remoteIp === "127.0.0.1" || remoteIp === "::1" || remoteIp === "::ffff:127.0.0.1";
-      if (!isLocal) {
-        return res.status(403).json({ error: "Admin only (internal)" });
-      }
-
-      const { fileObjectPath, examType, examStage, year, paperType } = req.body;
-      if (!fileObjectPath || !examType || !examStage || !year || !paperType) {
-        return res.status(400).json({ error: "Missing required fields" });
-      }
-      if (!PYQ_EXAM_STAGES.includes(examStage)) {
-        return res.status(400).json({ error: "examStage must be 'Prelims' or 'Mains'" });
-      }
-
-      let fileData: Buffer;
-      const localUploadsDir = path.resolve(process.cwd(), ".uploads");
-      const localFileName = fileObjectPath.replace(/^\/objects\/uploads\//, "");
-      const localFilePath = path.join(localUploadsDir, localFileName);
-
-      if (fs.existsSync(localFilePath)) {
-        fileData = fs.readFileSync(localFilePath);
-      } else {
-        try {
-          const file = await objectStorage.getObjectEntityFile(fileObjectPath);
-          const [downloaded] = await file.download();
-          fileData = downloaded;
-        } catch (e) {
-          return res.status(404).json({ error: "File not found. Please re-upload the PDF." });
-        }
-      }
-
-      let extractedText = "";
-      try {
-        const pdfMod = await import("pdf-parse");
-        const pdfParse = pdfMod.default || pdfMod.PDFParse || pdfMod;
-        const pdfResult = await (typeof pdfParse === "function" ? pdfParse(fileData) : (pdfMod as any).PDFParse(fileData));
-        extractedText = pdfResult.text || "";
-      } catch (e) {
-        console.log("pdf-parse failed, will use Gemini OCR:", e);
-      }
-
-      if (extractedText.length < 500) {
-        console.log("Text too short or extraction failed, using Gemini OCR...");
-        const ocrResult = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: [{
-            role: "user",
-            parts: [
-              { text: "Extract ALL text from this PDF exactly as written. Preserve question numbers, options, and formatting. Return only the extracted text, no commentary." },
-              { inlineData: { mimeType: "application/pdf", data: fileData.toString("base64") } },
-            ],
-          }],
-          config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
-        });
-        extractedText = (ocrResult.text || "").trim();
-      }
-
-      extractedText = cleanExtractedText(extractedText);
-
-      if (extractedText.length < 100) {
-        return res.status(400).json({ error: "Could not extract sufficient text from PDF" });
-      }
-
-      const chunks = chunkByQuestions(extractedText, 12);
-      let allExtracted: ExtractedQuestion[] = [];
-      const errors: string[] = [];
-
-      for (let i = 0; i < chunks.length; i++) {
-        const chunkText = chunks[i].join("\n\n");
-        const structurePrompt = `You are extracting questions from an official ${examStage} exam paper (${examType} ${year} ${paperType}).
-Return ONLY a raw JSON array. No markdown, no explanation, no wrapping.
-Schema per question:
-{ "questionNumber": number, "questionText": string, "options": [string,string,string,string] | null, "questionType": "mcq" | "mains", "correctIndex": 0-3 | null, "marks": number }
-Rules:
-- Preserve original question wording exactly — do not paraphrase
-- Do not merge or split questions
-- Do not hallucinate or guess answers — if unsure about correctIndex, use null
-- ${examStage === "Prelims" ? 'questionType must be "mcq", options must be exactly 4 strings, marks default 2' : 'questionType must be "mains", options must be null, marks as stated or default 10'}
-
-Text to extract from:
-${chunkText}`;
-
-        try {
-          const result = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: [{ role: "user", parts: [{ text: structurePrompt }] }],
-            config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
-          });
-          const parsed = parseAIJson(result.text || "");
-          const arr = Array.isArray(parsed) ? parsed : [parsed];
-          allExtracted.push(...arr);
-        } catch (e: any) {
-          errors.push(`Chunk ${i + 1}: ${e.message}`);
-        }
-      }
-
-      const { valid, rejected } = validateQuestions(allExtracted, examStage);
-
-      let classified: { questionNumber: number; topic: string; subTopic: string | null; difficulty: string }[] = [];
-      if (valid.length > 0) {
-        const topicList = PYQ_TOPICS.filter(t => t !== "Unclassified").join(", ");
-        const subTopicInfo = Object.entries(PYQ_SUBTOPICS)
-          .filter(([k]) => k !== "Unclassified")
-          .map(([k, v]) => `${k}: [${v.join(", ")}]`)
-          .join("\n");
-
-        const classifyPrompt = `Classify each question. You MUST choose from the provided lists ONLY.
-Topics: [${topicList}]
-SubTopics by Topic:
-${subTopicInfo}
-If uncertain, use topic: "Unclassified", subTopic: null
-Also classify difficulty: "Easy", "Moderate", or "Hard" based on concept depth and analytical requirement.
-Return ONLY a raw JSON array: [{ "questionNumber": number, "topic": string, "subTopic": string|null, "difficulty": string }]
-
-Questions:
-${valid.map(q => `Q${q.questionNumber}: ${q.questionText.substring(0, 200)}`).join("\n")}`;
-
-        try {
-          const classResult = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: [{ role: "user", parts: [{ text: classifyPrompt }] }],
-            config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
-          });
-          classified = parseAIJson(classResult.text || "");
-          if (!Array.isArray(classified)) classified = [];
-        } catch (e: any) {
-          errors.push(`Classification failed: ${e.message}`);
-        }
-      }
-
-      const classMap = new Map(classified.map(c => [c.questionNumber, c]));
-
-      let inserted = 0;
-      let skipped = 0;
-
-      for (const q of valid) {
-        const cls = classMap.get(q.questionNumber);
-        const topic = cls?.topic && (PYQ_TOPICS as readonly string[]).includes(cls.topic) ? cls.topic : "Unclassified";
-        const subTopic = cls?.subTopic && PYQ_SUBTOPICS[topic]?.includes(cls.subTopic) ? cls.subTopic : null;
-        const difficulty = cls?.difficulty && ["Easy", "Moderate", "Hard"].includes(cls.difficulty) ? cls.difficulty : null;
-        const tHash = hashText(q.questionText);
-
-        const existing = await db.select({ id: pyqQuestions.id })
-          .from(pyqQuestions)
-          .where(
-            or(
-              and(
-                eq(pyqQuestions.examType, examType),
-                eq(pyqQuestions.examStage, examStage),
-                eq(pyqQuestions.year, Number(year)),
-                eq(pyqQuestions.paperType, paperType),
-                eq(pyqQuestions.questionNumber, q.questionNumber)
-              ),
-              eq(pyqQuestions.textHash, tHash)
-            )
-          )
-          .limit(1);
-
-        if (existing.length > 0) {
-          skipped++;
-          continue;
-        }
-
-        try {
-          await db.insert(pyqQuestions).values({
-            examType,
-            examStage,
-            year: Number(year),
-            paperType,
-            questionNumber: q.questionNumber,
-            questionText: q.questionText,
-            questionType: q.questionType,
-            options: q.options,
-            correctIndex: q.correctIndex,
-            marks: q.marks,
-            topic,
-            subTopic,
-            difficulty,
-            textHash: tHash,
-          });
-          inserted++;
-        } catch (e: any) {
-          if (e.code === "23505") {
-            skipped++;
-          } else {
-            errors.push(`Insert Q${q.questionNumber}: ${e.message}`);
-          }
-        }
-      }
-
-      res.json({
-        totalExtracted: allExtracted.length,
-        validated: valid.length,
-        inserted,
-        skipped,
-        rejected: rejected.length,
-        rejectedDetails: rejected.map(r => ({
-          questionNumber: r.question?.questionNumber,
-          text: r.question?.questionText?.substring(0, 100),
-          reasons: r.reasons,
-        })),
-        errors,
-      });
-    } catch (error: any) {
-      console.error("PYQ admin ingest error:", error);
-      res.status(500).json({ error: "Failed to process PDF: " + error.message });
+      res.status(error.statusCode || 500).json({ error: error.message || "Failed to process PDF" });
     }
   });
 
