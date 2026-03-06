@@ -4,7 +4,17 @@ import { eq, asc, sql, and, lt } from "drizzle-orm";
 import { pyqIngestCore } from "./pyq-routes";
 
 let isProcessing = false;
+let currentJobId: number | null = null;
 let workerInterval: ReturnType<typeof setInterval> | null = null;
+const cancelledJobs = new Set<number>();
+
+export function cancelJob(jobId: number) {
+  cancelledJobs.add(jobId);
+}
+
+export function isJobCancelled(jobId: number): boolean {
+  return cancelledJobs.has(jobId);
+}
 
 async function updateJob(jobId: number, updates: Partial<{
   status: string; progress: string; totalExtracted: number;
@@ -39,6 +49,7 @@ async function processNextJob() {
   if (!job) return;
 
   isProcessing = true;
+  currentJobId = job.id;
   const jobName = job.original_name;
   const jobFileName = job.file_name;
   const jobExamType = job.exam_type;
@@ -55,31 +66,45 @@ async function processNextJob() {
       year: String(jobYear),
       paperType: jobPaperType,
       onProgress: async (msg: string) => {
+        if (cancelledJobs.has(job.id)) {
+          throw new Error("Job cancelled by user");
+        }
         updateJob(job.id, { progress: msg }).catch(() => {});
       },
+      isCancelled: () => cancelledJobs.has(job.id),
     });
 
-    await updateJob(job.id, {
-      status: "completed",
-      progress: "Done!",
-      totalExtracted: result.totalExtracted || 0,
-      validated: result.validated || 0,
-      inserted: result.inserted || 0,
-      skipped: result.skipped || 0,
-      rejected: result.rejected || 0,
-      errorDetails: result.errors?.length ? JSON.stringify(result.errors) : null,
-    });
-
-    console.log(`[PYQ Worker] Job #${job.id} completed: ${result.inserted} inserted, ${result.skipped} skipped`);
+    if (cancelledJobs.has(job.id)) {
+      cancelledJobs.delete(job.id);
+      console.log(`[PYQ Worker] Job #${job.id} was cancelled`);
+    } else {
+      await updateJob(job.id, {
+        status: "completed",
+        progress: "Done!",
+        totalExtracted: result.totalExtracted || 0,
+        validated: result.validated || 0,
+        inserted: result.inserted || 0,
+        skipped: result.skipped || 0,
+        rejected: result.rejected || 0,
+        errorDetails: result.errors?.length ? JSON.stringify(result.errors) : null,
+      });
+      console.log(`[PYQ Worker] Job #${job.id} completed: ${result.inserted} inserted, ${result.skipped} skipped`);
+    }
   } catch (err: any) {
-    console.error(`[PYQ Worker] Job #${job.id} failed:`, err.message);
-    await updateJob(job.id, {
-      status: "failed",
-      progress: "Failed: " + (err.message || "Unknown error"),
-      errorDetails: err.message || "Unknown error",
-    });
+    if (cancelledJobs.has(job.id)) {
+      cancelledJobs.delete(job.id);
+      console.log(`[PYQ Worker] Job #${job.id} cancelled`);
+    } else {
+      console.error(`[PYQ Worker] Job #${job.id} failed:`, err.message);
+      await updateJob(job.id, {
+        status: "failed",
+        progress: "Failed: " + (err.message || "Unknown error"),
+        errorDetails: err.message || "Unknown error",
+      });
+    }
   } finally {
     isProcessing = false;
+    currentJobId = null;
   }
 }
 

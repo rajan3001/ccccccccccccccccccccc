@@ -8,6 +8,7 @@ import { conversations, messages, quizAttempts, quizQuestions, dailyTopics, dail
 import { timetableSlots, syllabusTopics, userSyllabusProgress, dailyStudyGoals } from "@shared/schema";
 import { pyqQuestions, pyqAttempts, PYQ_TOPICS, PYQ_SUBTOPICS, pyqIngestionJobs } from "@shared/schema";
 import { pyqIngestCore } from "./pyq-routes";
+import { cancelJob } from "./pyq-worker";
 import { eq, sql, desc, asc, count, inArray, and, gte, lte } from "drizzle-orm";
 
 const ADMIN_USER = process.env.ADMIN_USER || "admin";
@@ -91,14 +92,48 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
+  app.post("/admin/api/pyq/jobs/:id/cancel", basicAuth, async (req: any, res: any) => {
+    try {
+      const id = parseInt(req.params.id);
+      const [job] = await db.select().from(pyqIngestionJobs).where(eq(pyqIngestionJobs.id, id)).limit(1);
+      if (!job) return res.status(404).json({ error: "Job not found" });
+      if (job.status === "processing") {
+        cancelJob(id);
+        await db.update(pyqIngestionJobs)
+          .set({ status: "cancelled", progress: "Cancelled by user", updatedAt: new Date() })
+          .where(eq(pyqIngestionJobs.id, id));
+      } else if (job.status === "queued") {
+        await db.update(pyqIngestionJobs)
+          .set({ status: "cancelled", progress: "Cancelled before processing", updatedAt: new Date() })
+          .where(eq(pyqIngestionJobs.id, id));
+      }
+      res.json({ success: true });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   app.delete("/admin/api/pyq/jobs/:id", basicAuth, async (req: any, res: any) => {
     try {
       const id = parseInt(req.params.id);
       const [job] = await db.select().from(pyqIngestionJobs).where(eq(pyqIngestionJobs.id, id)).limit(1);
       if (job && job.status === "processing") {
-        return res.status(400).json({ error: "Cannot delete a job that is currently processing" });
+        cancelJob(id);
+        await db.update(pyqIngestionJobs)
+          .set({ status: "cancelled", progress: "Stopped and removed", updatedAt: new Date() })
+          .where(eq(pyqIngestionJobs.id, id));
       }
       await db.delete(pyqIngestionJobs).where(eq(pyqIngestionJobs.id, id));
+      res.json({ success: true });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post("/admin/api/pyq/jobs/clear-finished", basicAuth, async (_req: any, res: any) => {
+    try {
+      const result = await db.delete(pyqIngestionJobs)
+        .where(inArray(pyqIngestionJobs.status, ["completed", "failed", "cancelled"]));
       res.json({ success: true });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
@@ -1277,7 +1312,10 @@ function getAdminHtml(): string {
         <div class="card" style="margin-bottom:20px;">
           <div class="card-header">
             <h3>Ingestion Queue</h3>
-            <button class="btn btn-secondary" onclick="loadPyqJobs()" style="font-size:12px;padding:5px 12px;">Refresh</button>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-secondary" onclick="clearFinishedJobs()" style="font-size:12px;padding:5px 12px;">Clear Finished</button>
+              <button class="btn btn-secondary" onclick="loadPyqJobs()" style="font-size:12px;padding:5px 12px;">Refresh</button>
+            </div>
           </div>
           <div class="card-body" id="pyq-jobs-container" style="padding:20px;">
             <div class="loading">Loading jobs...</div>
@@ -2108,6 +2146,7 @@ function getAdminHtml(): string {
           let statusColor, statusBg, statusIcon;
           if (j.status === "completed") { statusColor = "#16a34a"; statusBg = "#f0fdf4"; statusIcon = "&#x2705;"; }
           else if (j.status === "failed") { statusColor = "#dc2626"; statusBg = "#fef2f2"; statusIcon = "&#x274c;"; }
+          else if (j.status === "cancelled") { statusColor = "#94a3b8"; statusBg = "#f1f5f9"; statusIcon = "&#x23f8;"; }
           else if (j.status === "processing") { statusColor = "#d97706"; statusBg = "#fffbeb"; statusIcon = "&#x23f3;"; }
           else { statusColor = "#64748b"; statusBg = "#f8fafc"; statusIcon = "&#x1f4cb;"; }
 
@@ -2130,7 +2169,8 @@ function getAdminHtml(): string {
           }
           else if (j.status === "failed") progressPercent = 100;
 
-          html += '<div style="background:' + statusBg + ';border:1px solid ' + (j.status === "completed" ? "#bbf7d0" : j.status === "failed" ? "#fecaca" : j.status === "processing" ? "#fde68a" : "#e2e8f0") + ';border-radius:10px;padding:16px;margin-bottom:12px;">';
+          var borderColor = j.status === "completed" ? "#bbf7d0" : j.status === "failed" ? "#fecaca" : j.status === "cancelled" ? "#e2e8f0" : j.status === "processing" ? "#fde68a" : "#e2e8f0";
+          html += '<div style="background:' + statusBg + ';border:1px solid ' + borderColor + ';border-radius:10px;padding:16px;margin-bottom:12px;">';
           html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
           html += '<div style="display:flex;align-items:center;gap:8px;">';
           html += '<span style="font-size:16px;">' + statusIcon + '</span>';
@@ -2140,14 +2180,18 @@ function getAdminHtml(): string {
           html += '</div></div>';
           html += '<div style="display:flex;align-items:center;gap:6px;">';
           html += '<span style="font-size:11px;font-weight:600;color:' + statusColor + ';text-transform:uppercase;">' + esc(j.status) + '</span>';
-          if (j.status === "failed") {
-            html += '<button class="btn btn-secondary" style="font-size:11px;padding:3px 8px;" onclick="retryJob(' + j.id + ')">Retry</button>';
+          if (j.status === "processing" || j.status === "queued") {
+            html += '<button class="btn" style="font-size:11px;padding:4px 10px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;" onclick="cancelJob(' + j.id + ')">&#x23f9; Stop</button>';
           }
-          html += '<button class="btn btn-secondary" style="font-size:11px;padding:3px 8px;color:#dc2626;" onclick="deleteJob(' + j.id + ')">&#x1f5d1;</button>';
+          if (j.status === "failed" || j.status === "cancelled") {
+            html += '<button class="btn btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="retryJob(' + j.id + ')">&#x1f504; Retry</button>';
+          }
+          html += '<button class="btn" style="font-size:11px;padding:4px 10px;background:#fff;color:#dc2626;border:1px solid #fecaca;" onclick="deleteJob(' + j.id + ')" title="Remove from list">&#x1f5d1; Delete</button>';
           html += '</div></div>';
 
           html += '<div style="background:rgba(0,0,0,0.06);border-radius:6px;height:8px;overflow:hidden;margin-bottom:6px;">';
-          html += '<div style="height:100%;border-radius:6px;transition:width 0.5s ease;width:' + progressPercent + '%;background:' + (j.status === "failed" ? "#dc2626" : j.status === "completed" ? "#16a34a" : "#d97706") + ';"></div>';
+          var barColor = j.status === "failed" ? "#dc2626" : j.status === "completed" ? "#16a34a" : j.status === "cancelled" ? "#94a3b8" : "#d97706";
+          html += '<div style="height:100%;border-radius:6px;transition:width 0.5s ease;width:' + progressPercent + '%;background:' + barColor + ';"></div>';
           html += '</div>';
 
           html += '<div style="font-size:12px;color:' + statusColor + ';">' + esc(j.progress || "—") + '</div>';
@@ -2175,6 +2219,22 @@ function getAdminHtml(): string {
         if (!silent) container.innerHTML = '<div class="loading">Error loading jobs</div>';
         console.error(e);
       }
+    }
+
+    async function clearFinishedJobs() {
+      if (!confirm("Remove all completed, failed, and cancelled jobs?")) return;
+      try {
+        await fetch("/admin/api/pyq/jobs/clear-finished", { method: "POST" });
+        loadPyqJobs();
+      } catch (e) { alert("Error: " + e.message); }
+    }
+
+    async function cancelJob(id) {
+      if (!confirm("Stop processing this job?")) return;
+      try {
+        await fetch("/admin/api/pyq/jobs/" + id + "/cancel", { method: "POST" });
+        loadPyqJobs();
+      } catch (e) { alert("Error: " + e.message); }
     }
 
     async function retryJob(id) {

@@ -106,11 +106,17 @@ function cleanExtractedText(text: string): string {
 }
 
 function chunkByQuestions(text: string, chunkSize: number = 12): string[][] {
-  const parts = text.split(/(?=\d+\.\s)/);
-  const questions = parts.filter(p => /^\d+\.\s/.test(p.trim()) && p.trim().length > 20);
+  const parts = text.split(/(?=(?:^|\n)\s*(?:Q\.?\s*)?\d+[\.\)]\s)/m);
+  const questions = parts.filter(p => /(?:^|\n)\s*(?:Q\.?\s*)?\d+[\.\)]\s/.test(p.trim()) && p.trim().length > 10);
   const chunks: string[][] = [];
   for (let i = 0; i < questions.length; i += chunkSize) {
     chunks.push(questions.slice(i, i + chunkSize));
+  }
+  if (chunks.length === 0) {
+    const charLimit = 8000;
+    for (let i = 0; i < text.length; i += charLimit) {
+      chunks.push([text.substring(i, i + charLimit)]);
+    }
   }
   return chunks.length > 0 ? chunks : [[text]];
 }
@@ -135,18 +141,34 @@ function validateQuestions(questions: any[], examStage: string): ValidationResul
 
   for (const q of questions) {
     const reasons: string[] = [];
+
+    if (!q.questionNumber && q.questionNumber !== 0) {
+      if (typeof q.question_number === "number") q.questionNumber = q.question_number;
+      else if (typeof q.qno === "number") q.questionNumber = q.qno;
+    }
+    if (!q.questionText && typeof q.question_text === "string") q.questionText = q.question_text;
+    if (!q.questionText && typeof q.question === "string") q.questionText = q.question;
+    if (!q.questionType && typeof q.question_type === "string") q.questionType = q.question_type;
+
     if (!q.questionNumber || q.questionNumber < 1) reasons.push("Invalid questionNumber");
-    if (!q.questionText || q.questionText.length < 30) reasons.push("questionText too short (< 30 chars)");
-    if (!q.marks || q.marks < 1) reasons.push("Invalid marks");
+    if (!q.questionText || q.questionText.length < 15) reasons.push("questionText too short (< 15 chars)");
+
+    const defaultMarks = examStage === "Prelims" ? 2 : 10;
+    if (!q.marks || q.marks < 1) q.marks = defaultMarks;
 
     if (examStage === "Prelims" || q.questionType === "mcq") {
-      if (!Array.isArray(q.options) || q.options.length !== 4) {
-        reasons.push("MCQ must have exactly 4 options");
-      } else if (q.options.some((o: any) => typeof o !== "string" || o.trim() === "")) {
-        reasons.push("MCQ options must be non-empty strings");
+      if (!Array.isArray(q.options) || q.options.length < 2 || q.options.length > 6) {
+        reasons.push("MCQ must have 2-6 options");
+      } else {
+        q.options = q.options.filter((o: any) => typeof o === "string" && o.trim() !== "");
+        if (q.options.length < 2) reasons.push("MCQ must have at least 2 non-empty options");
+        while (q.options.length < 4) q.options.push("(option not available)");
       }
-      if (q.correctIndex !== null && q.correctIndex !== undefined && (q.correctIndex < 0 || q.correctIndex > 3)) {
-        reasons.push("correctIndex must be 0-3 or null");
+      if (q.correctIndex !== null && q.correctIndex !== undefined) {
+        const maxIdx = Array.isArray(q.options) ? q.options.length - 1 : 3;
+        if (q.correctIndex < 0 || q.correctIndex > maxIdx) {
+          q.correctIndex = null;
+        }
       }
     }
 
@@ -160,10 +182,10 @@ function validateQuestions(questions: any[], examStage: string): ValidationResul
       valid.push({
         questionNumber: q.questionNumber,
         questionText: q.questionText,
-        options: q.options || null,
+        options: q.options ? q.options.slice(0, 4) : null,
         questionType: examStage === "Prelims" ? "mcq" : (q.questionType || "mains"),
         correctIndex: q.correctIndex ?? null,
-        marks: q.marks || (examStage === "Prelims" ? 2 : 10),
+        marks: q.marks,
       });
     } else {
       rejected.push({ question: q, reasons });
@@ -175,9 +197,11 @@ function validateQuestions(questions: any[], examStage: string): ValidationResul
 export async function pyqIngestCore(params: {
   fileObjectPath: string; examType: string; examStage: string; year: string; paperType: string;
   onProgress?: (msg: string) => void;
+  isCancelled?: () => boolean;
 }): Promise<any> {
-  const { fileObjectPath, examType, examStage, year, paperType, onProgress } = params;
+  const { fileObjectPath, examType, examStage, year, paperType, onProgress, isCancelled } = params;
   const report = onProgress || (() => {});
+  const checkCancel = () => { if (isCancelled?.()) throw new Error("Job cancelled by user"); };
 
   if (!fileObjectPath || !examType || !examStage || !year || !paperType) {
     throw Object.assign(new Error("Missing required fields"), { statusCode: 400 });
@@ -226,18 +250,30 @@ export async function pyqIngestCore(params: {
   if (extractedText.length < 500) {
     report("Using Gemini OCR for text extraction...");
     console.log("Text too short or extraction failed, using Gemini OCR...");
-    const ocrResult = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: [{
-        role: "user",
-        parts: [
-          { text: "Extract ALL text from this PDF exactly as written. Preserve question numbers, options, and formatting. Return only the extracted text, no commentary." },
-          { inlineData: { mimeType: "application/pdf", data: fileData.toString("base64") } },
-        ],
-      }],
-      config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
-    });
-    extractedText = (ocrResult.text || "").trim();
+    for (let ocrAttempt = 0; ocrAttempt < 2; ocrAttempt++) {
+      try {
+        if (ocrAttempt > 0) {
+          report("Retrying OCR extraction...");
+          await new Promise(r => setTimeout(r, 3000));
+        }
+        const ocrResult = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [{
+            role: "user",
+            parts: [
+              { text: "Extract ALL text from this PDF exactly as written. Preserve EVERY question number, EVERY option, and ALL formatting. Do NOT skip any content. Return only the extracted text, no commentary." },
+              { inlineData: { mimeType: "application/pdf", data: fileData.toString("base64") } },
+            ],
+          }],
+          config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
+        });
+        const ocrText = (ocrResult.text || "").trim();
+        if (ocrText.length > extractedText.length) extractedText = ocrText;
+        if (extractedText.length >= 500) break;
+      } catch (e: any) {
+        console.error("OCR attempt " + (ocrAttempt + 1) + " failed:", e.message);
+      }
+    }
   }
 
   extractedText = cleanExtractedText(extractedText);
@@ -246,38 +282,88 @@ export async function pyqIngestCore(params: {
     throw Object.assign(new Error("Could not extract sufficient text from PDF"), { statusCode: 400 });
   }
 
+  checkCancel();
   report("Splitting into chunks for AI processing...");
   const chunks = chunkByQuestions(extractedText, 12);
   let allExtracted: ExtractedQuestion[] = [];
   const errors: string[] = [];
 
   for (let i = 0; i < chunks.length; i++) {
+    checkCancel();
     const chunkText = chunks[i].join("\n\n");
     const structurePrompt = `You are extracting questions from an official ${examStage} exam paper (${examType} ${year} ${paperType}).
+CRITICAL: You MUST extract EVERY SINGLE question from this text. Do NOT skip any question. Missing even one question is unacceptable.
 Return ONLY a raw JSON array. No markdown, no explanation, no wrapping.
 Schema per question:
 { "questionNumber": number, "questionText": string, "options": [string,string,string,string] | null, "questionType": "mcq" | "mains", "correctIndex": 0-3 | null, "marks": number }
 Rules:
+- Extract ALL questions — do not skip any, even if poorly formatted or partially visible
 - Preserve original question wording exactly — do not paraphrase
+- Include the full question text including any statements, data, or context that precedes the actual question
 - Do not merge or split questions
 - Do not hallucinate or guess answers — if unsure about correctIndex, use null
+- If marks are not specified, default to ${examStage === "Prelims" ? "2" : "10"}
 - ${examStage === "Prelims" ? 'questionType must be "mcq", options must be exactly 4 strings, marks default 2' : 'questionType must be "mains", options must be null, marks as stated or default 10'}
 
 Text to extract from:
 ${chunkText}`;
 
     report(`Extracting questions (chunk ${i + 1}/${chunks.length})...`);
+    let chunkSuccess = false;
+    for (let attempt = 0; attempt < 3 && !chunkSuccess; attempt++) {
+      try {
+        if (attempt > 0) {
+          report(`Retrying chunk ${i + 1}/${chunks.length} (attempt ${attempt + 1}/3)...`);
+          await new Promise(r => setTimeout(r, 2000 * attempt));
+        }
+        const result = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [{ role: "user", parts: [{ text: structurePrompt }] }],
+          config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
+        });
+        const parsed = parseAIJson(result.text || "");
+        const arr = Array.isArray(parsed) ? parsed : [parsed];
+        allExtracted.push(...arr);
+        chunkSuccess = true;
+      } catch (e: any) {
+        if (attempt === 2) {
+          errors.push(`Chunk ${i + 1} FAILED after 3 attempts: ${e.message}`);
+        }
+      }
+    }
+  }
+
+  const seenNumbers = new Set(allExtracted.map(q => q.questionNumber).filter(Boolean));
+  const maxQ = Math.max(0, ...seenNumbers);
+  const missingNums: number[] = [];
+  for (let n = 1; n <= maxQ; n++) {
+    if (!seenNumbers.has(n)) missingNums.push(n);
+  }
+  if (missingNums.length > 0 && missingNums.length <= 20) {
+    report(`Detected ${missingNums.length} missing questions (${missingNums.join(",")}), attempting recovery...`);
+    const recoveryPrompt = `The following question numbers are missing from a ${examStage} paper (${examType} ${year} ${paperType}): ${missingNums.join(", ")}
+Search the text below carefully and extract ONLY the missing questions.
+Return a raw JSON array with the same schema:
+{ "questionNumber": number, "questionText": string, "options": [string,string,string,string] | null, "questionType": "${examStage === "Prelims" ? "mcq" : "mains"}", "correctIndex": 0-3 | null, "marks": number }
+If a question truly does not exist in the text, do not fabricate it.
+
+Full text:
+${extractedText.substring(0, 30000)}`;
     try {
-      const result = await ai.models.generateContent({
+      const recoveryResult = await ai.models.generateContent({
         model: "gemini-2.5-flash",
-        contents: [{ role: "user", parts: [{ text: structurePrompt }] }],
+        contents: [{ role: "user", parts: [{ text: recoveryPrompt }] }],
         config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
       });
-      const parsed = parseAIJson(result.text || "");
-      const arr = Array.isArray(parsed) ? parsed : [parsed];
-      allExtracted.push(...arr);
+      const recovered = parseAIJson(recoveryResult.text || "");
+      const recoveredArr = Array.isArray(recovered) ? recovered : [recovered];
+      const newOnes = recoveredArr.filter((q: any) => q.questionNumber && !seenNumbers.has(q.questionNumber));
+      if (newOnes.length > 0) {
+        allExtracted.push(...newOnes);
+        report(`Recovered ${newOnes.length} missing questions!`);
+      }
     } catch (e: any) {
-      errors.push(`Chunk ${i + 1}: ${e.message}`);
+      errors.push(`Recovery pass failed: ${e.message}`);
     }
   }
 
@@ -304,26 +390,32 @@ Return ONLY a raw JSON array: [{ "questionNumber": number, "topic": string, "sub
 Questions:
 ${valid.map(q => `Q${q.questionNumber}: ${q.questionText.substring(0, 200)}`).join("\n")}`;
 
-    try {
-      const classResult = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: [{ role: "user", parts: [{ text: classifyPrompt }] }],
-        config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
-      });
-      classified = parseAIJson(classResult.text || "");
-      if (!Array.isArray(classified)) classified = [];
-    } catch (e: any) {
-      errors.push(`Classification failed: ${e.message}`);
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        if (attempt > 0) await new Promise(r => setTimeout(r, 2000));
+        const classResult = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [{ role: "user", parts: [{ text: classifyPrompt }] }],
+          config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
+        });
+        classified = parseAIJson(classResult.text || "");
+        if (!Array.isArray(classified)) classified = [];
+        break;
+      } catch (e: any) {
+        if (attempt === 1) errors.push(`Classification failed after 2 attempts: ${e.message}`);
+      }
     }
   }
 
   const classMap = new Map(classified.map(c => [c.questionNumber, c]));
 
+  checkCancel();
   report(`Inserting ${valid.length} questions into database...`);
   let inserted = 0;
   let skipped = 0;
 
   for (const q of valid) {
+    checkCancel();
     const cls = classMap.get(q.questionNumber);
     const topic = cls?.topic && (PYQ_TOPICS as readonly string[]).includes(cls.topic) ? cls.topic : "Unclassified";
     const subTopic = cls?.subTopic && PYQ_SUBTOPICS[topic]?.includes(cls.subTopic) ? cls.subTopic : null;
