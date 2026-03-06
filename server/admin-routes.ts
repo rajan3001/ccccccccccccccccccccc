@@ -858,10 +858,14 @@ export function registerAdminRoutes(app: Express) {
   });
 
   app.get("/admin", basicAuth, (_req, res) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
     res.send(getAdminHtml());
   });
 
   app.get("/admin/{*path}", basicAuth, (_req, res) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
     res.send(getAdminHtml());
   });
 }

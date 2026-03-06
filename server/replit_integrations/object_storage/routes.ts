@@ -93,6 +93,56 @@ export function registerObjectStorageRoutes(app: Express): void {
     }
   });
 
+  app.post("/api/objects/upload", (req, res) => {
+    ensureUploadsDir();
+    const chunks: Buffer[] = [];
+    let totalSize = 0;
+    req.on("data", (chunk: Buffer) => {
+      totalSize += chunk.length;
+      if (totalSize > MAX_UPLOAD_SIZE) {
+        if (!res.headersSent) res.status(413).json({ error: "File too large" });
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on("end", () => {
+      if (totalSize > MAX_UPLOAD_SIZE || res.headersSent) return;
+      try {
+        let fileBuffer = Buffer.concat(chunks);
+        const boundary = (req.headers["content-type"] || "").match(/boundary=(.+)/);
+        if (boundary) {
+          const raw = fileBuffer.toString("binary");
+          const parts = raw.split("--" + boundary[1]);
+          for (const part of parts) {
+            const headerEnd = part.indexOf("\r\n\r\n");
+            if (headerEnd === -1) continue;
+            const headers = part.substring(0, headerEnd);
+            if (headers.includes("filename=")) {
+              const body = part.substring(headerEnd + 4);
+              const cleaned = body.replace(/\r\n--$/, "").replace(/\r\n$/, "");
+              fileBuffer = Buffer.from(cleaned, "binary");
+              break;
+            }
+          }
+        }
+        const fileId = randomUUID();
+        const localFileName = `${fileId}.pdf`;
+        const filePath = path.join(LOCAL_UPLOADS_DIR, localFileName);
+        fs.writeFileSync(filePath, fileBuffer);
+        const objectPath = `/objects/uploads/${localFileName}`;
+        res.json({ objectPath, path: objectPath, fileName: localFileName, size: fileBuffer.length });
+      } catch (err: any) {
+        console.error("Upload error:", err);
+        if (!res.headersSent) res.status(500).json({ error: "Upload failed" });
+      }
+    });
+    req.on("error", (err) => {
+      console.error("Upload stream error:", err);
+      if (!res.headersSent) res.status(500).json({ error: "Upload failed" });
+    });
+  });
+
   app.put("/api/uploads/local/:fileName", isAuthenticated, (req, res) => {
     const { fileName } = req.params;
     const safe = sanitizeFileName(fileName);
