@@ -47,7 +47,8 @@ All domain references use the `SITE_DOMAIN` environment variable (server-side) a
 ### Admin Panel
 - **URL**: `/admin` — server-rendered HTML dashboard with left sidebar navigation
 - **Auth**: HTTP Basic Auth using `ADMIN_USER` and `ADMIN_PASS` env vars (defaults: `admin` / `admin@learnpro2026`)
-- **Sections**: Dashboard (stats + recent users), Users, Subscriptions, Conversations, Current Affairs, Quizzes, Evaluations, Notes, Articles
+- **Sections**: Dashboard (stats + recent users), Users, Subscriptions, Conversations, Current Affairs, Quizzes, Evaluations, Notes, Articles, Backup & Import
+- **Backup & Import System**: Full database export/import with upsert logic. Export downloads all data as JSON. Import uses phone-number matching for users (existing progress never lost), ID-based deduplication for all other records. Supports unlimited re-imports without data loss. API: `GET /admin/api/export`, `POST /admin/api/import`. Body limit: 200MB for large imports.
 - **API Endpoints**: All under `/admin/api/*` with pagination support
 - **File**: `server/admin-routes.ts`
 

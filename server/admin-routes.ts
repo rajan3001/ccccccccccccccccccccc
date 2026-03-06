@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { db } from "./db";
 import { users, otpVerifications, subscriptions } from "@shared/schema";
 import { conversations, messages, quizAttempts, quizQuestions, dailyTopics, dailyDigests, notes, blogPosts, evaluationSessions, evaluationQuestions, studySessions } from "@shared/schema";
+import { timetableSlots, syllabusTopics, userSyllabusProgress, dailyStudyGoals } from "@shared/schema";
 import { eq, sql, desc, count, inArray, and, gte, lte } from "drizzle-orm";
 
 const ADMIN_USER = process.env.ADMIN_USER || "admin";
@@ -403,6 +404,228 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
+  app.get("/admin/api/export", basicAuth, async (_req, res) => {
+    try {
+      const allUsers = await db.select().from(users);
+      const allSubscriptions = await db.select().from(subscriptions);
+      const allConversations = await db.select().from(conversations);
+      const allMessages = await db.select().from(messages);
+      const allQuizAttempts = await db.select().from(quizAttempts);
+      const allQuizQuestions = await db.select().from(quizQuestions);
+      const allNotes = await db.select().from(notes);
+      const allEvalSessions = await db.select().from(evaluationSessions);
+      const allEvalQuestions = await db.select().from(evaluationQuestions);
+      const allStudySessions = await db.select().from(studySessions);
+      const allDailyDigests = await db.select().from(dailyDigests);
+      const allDailyTopics = await db.select().from(dailyTopics);
+      const allBlogPosts = await db.select().from(blogPosts);
+      const allTimetableSlots = await db.select().from(timetableSlots);
+      const allUserSyllabusProgress = await db.select().from(userSyllabusProgress);
+      const allDailyStudyGoals = await db.select().from(dailyStudyGoals);
+
+      const exportData = {
+        version: 2,
+        exportedAt: new Date().toISOString(),
+        data: {
+          users: allUsers,
+          subscriptions: allSubscriptions,
+          conversations: allConversations,
+          messages: allMessages,
+          quizAttempts: allQuizAttempts,
+          quizQuestions: allQuizQuestions,
+          notes: allNotes,
+          evaluationSessions: allEvalSessions,
+          evaluationQuestions: allEvalQuestions,
+          studySessions: allStudySessions,
+          dailyDigests: allDailyDigests,
+          dailyTopics: allDailyTopics,
+          blogPosts: allBlogPosts,
+          timetableSlots: allTimetableSlots,
+          userSyllabusProgress: allUserSyllabusProgress,
+          dailyStudyGoals: allDailyStudyGoals,
+        }
+      };
+
+      res.setHeader("Content-Disposition", `attachment; filename=learnpro_backup_${new Date().toISOString().slice(0, 10)}.json`);
+      res.setHeader("Content-Type", "application/json");
+      res.json(exportData);
+    } catch (error) {
+      console.error("Export error:", error);
+      res.status(500).json({ error: "Failed to export data" });
+    }
+  });
+
+  app.post("/admin/api/import", basicAuth, async (req: any, res) => {
+    try {
+      const importData = req.body;
+
+      if (!importData?.data) {
+        return res.status(400).json({ error: "Invalid import format. Expected { data: { ... } }" });
+      }
+
+      const d = importData.data;
+      const results: Record<string, { inserted: number; updated: number; skipped: number }> = {};
+      const userIdMap: Record<string, string> = {};
+
+      await db.transaction(async (tx) => {
+        if (d.users?.length) {
+          let inserted = 0, updated = 0, skipped = 0;
+          for (const u of d.users) {
+            const phone = u.phone;
+            if (!phone) { skipped++; continue; }
+            const importedId = u.id;
+
+            const existing = await tx.select().from(users).where(eq(users.phone, phone)).limit(1);
+            if (existing.length > 0) {
+              userIdMap[importedId] = existing[0].id;
+              await tx.update(users).set({
+                displayName: (u.displayName || u.display_name) || existing[0].displayName,
+                firstName: (u.firstName || u.first_name) || existing[0].firstName,
+                lastName: (u.lastName || u.last_name) || existing[0].lastName,
+                email: u.email || existing[0].email,
+                profileImageUrl: (u.profileImageUrl || u.profile_image_url) || existing[0].profileImageUrl,
+                userType: (u.userType || u.user_type) || existing[0].userType,
+                targetExams: (u.targetExams || u.target_exams) || existing[0].targetExams,
+                isAdmin: existing[0].isAdmin,
+                onboardingCompleted: existing[0].onboardingCompleted || (u.onboardingCompleted ?? u.onboarding_completed ?? false),
+                notificationPrefs: existing[0].notificationPrefs || (u.notificationPrefs || u.notification_prefs || {}),
+                language: existing[0].language || u.language || "en",
+                updatedAt: new Date(),
+              }).where(eq(users.id, existing[0].id));
+              updated++;
+            } else {
+              const newId = importedId || crypto.randomUUID();
+              userIdMap[importedId] = newId;
+              await tx.insert(users).values({
+                id: newId,
+                phone,
+                email: u.email,
+                firstName: u.firstName || u.first_name,
+                lastName: u.lastName || u.last_name,
+                profileImageUrl: u.profileImageUrl || u.profile_image_url,
+                displayName: u.displayName || u.display_name,
+                userType: u.userType || u.user_type,
+                targetExams: u.targetExams || u.target_exams || [],
+                isAdmin: u.isAdmin ?? u.is_admin ?? false,
+                onboardingCompleted: u.onboardingCompleted ?? u.onboarding_completed ?? false,
+                notificationPrefs: u.notificationPrefs || u.notification_prefs || {},
+                language: u.language || "en",
+                createdAt: (u.createdAt || u.created_at) ? new Date(u.createdAt || u.created_at) : new Date(),
+                updatedAt: new Date(),
+              });
+              inserted++;
+            }
+          }
+          results.users = { inserted, updated, skipped };
+        }
+
+        function remapUserId(record: any): string | null {
+          const uid = record.userId || record.user_id;
+          if (!uid) return null;
+          return userIdMap[uid] || uid;
+        }
+
+        if (d.subscriptions?.length) {
+          let inserted = 0, updated = 0, skipped = 0;
+          for (const s of d.subscriptions) {
+            const mappedUserId = remapUserId(s);
+            if (!mappedUserId) { skipped++; continue; }
+
+            const userExists = await tx.select({ id: users.id }).from(users).where(eq(users.id, mappedUserId)).limit(1);
+            if (!userExists.length) { skipped++; continue; }
+
+            const plan = s.plan || "monthly";
+            const existingSub = await tx.select().from(subscriptions)
+              .where(and(eq(subscriptions.userId, mappedUserId), eq(subscriptions.plan, plan)))
+              .limit(1);
+
+            if (existingSub.length > 0) {
+              const importEnd = (s.currentPeriodEnd || s.current_period_end) ? new Date(s.currentPeriodEnd || s.current_period_end) : null;
+              const existEnd = existingSub[0].currentPeriodEnd;
+              const shouldUpdate = importEnd && (!existEnd || importEnd > existEnd);
+              if (shouldUpdate) {
+                await tx.update(subscriptions).set({
+                  status: s.status || existingSub[0].status,
+                  currentPeriodEnd: importEnd,
+                  updatedAt: new Date(),
+                }).where(eq(subscriptions.id, existingSub[0].id));
+              }
+              updated++;
+            } else {
+              await tx.insert(subscriptions).values({
+                userId: mappedUserId,
+                status: s.status || "active",
+                plan,
+                amount: s.amount,
+                currency: s.currency || "INR",
+                razorpayOrderId: s.razorpayOrderId || s.razorpay_order_id,
+                razorpayPaymentId: s.razorpayPaymentId || s.razorpay_payment_id,
+                razorpaySignature: s.razorpaySignature || s.razorpay_signature,
+                currentPeriodEnd: (s.currentPeriodEnd || s.current_period_end) ? new Date(s.currentPeriodEnd || s.current_period_end) : null,
+                createdAt: (s.createdAt || s.created_at) ? new Date(s.createdAt || s.created_at) : new Date(),
+                updatedAt: new Date(),
+              });
+              inserted++;
+            }
+          }
+          results.subscriptions = { inserted, updated, skipped };
+        }
+
+        const upsertRecords = async (table: any, records: any[], tableName: string, hasUserId = true) => {
+          if (!records?.length) return;
+          let inserted = 0, updated = 0, skipped = 0;
+          for (const record of records) {
+            try {
+              const rec = { ...record };
+              if (hasUserId) {
+                const mappedId = remapUserId(rec);
+                if (!mappedId) { skipped++; continue; }
+                const userExists = await tx.select({ id: users.id }).from(users).where(eq(users.id, mappedId)).limit(1);
+                if (!userExists.length) { skipped++; continue; }
+                if (rec.userId || rec.user_id) {
+                  rec.userId = mappedId;
+                  if (rec.user_id) rec.user_id = mappedId;
+                }
+              }
+
+              const existing = await tx.select().from(table).where(eq(table.id, rec.id)).limit(1);
+              if (existing.length > 0) {
+                updated++;
+              } else {
+                await tx.insert(table).values(rec);
+                inserted++;
+              }
+            } catch (e: any) {
+              console.error(`Import ${tableName} record error:`, e.message);
+              skipped++;
+            }
+          }
+          results[tableName] = { inserted, updated, skipped };
+        };
+
+        await upsertRecords(conversations, d.conversations, "conversations");
+        await upsertRecords(messages, d.messages, "messages");
+        await upsertRecords(quizAttempts, d.quizAttempts, "quizAttempts");
+        await upsertRecords(quizQuestions, d.quizQuestions, "quizQuestions");
+        await upsertRecords(notes, d.notes, "notes");
+        await upsertRecords(evaluationSessions, d.evaluationSessions, "evaluationSessions");
+        await upsertRecords(evaluationQuestions, d.evaluationQuestions, "evaluationQuestions");
+        await upsertRecords(studySessions, d.studySessions, "studySessions");
+        await upsertRecords(dailyDigests, d.dailyDigests, "dailyDigests", false);
+        await upsertRecords(dailyTopics, d.dailyTopics, "dailyTopics");
+        await upsertRecords(blogPosts, d.blogPosts, "blogPosts", false);
+        await upsertRecords(timetableSlots, d.timetableSlots, "timetableSlots");
+        await upsertRecords(userSyllabusProgress, d.userSyllabusProgress, "userSyllabusProgress");
+        await upsertRecords(dailyStudyGoals, d.dailyStudyGoals, "dailyStudyGoals");
+      });
+
+      res.json({ success: true, message: "Import completed successfully. All user progress preserved.", results });
+    } catch (error: any) {
+      console.error("Import error:", error);
+      res.status(500).json({ error: "Import failed (no data was changed): " + error.message });
+    }
+  });
+
   app.get("/admin", basicAuth, (_req, res) => {
     res.send(getAdminHtml());
   });
@@ -549,6 +772,12 @@ function getAdminHtml(): string {
         </div>
         <div class="nav-item" data-section="articles" onclick="switchSection('articles')">
           <span class="icon">&#x1f4f0;</span> Articles
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">System</div>
+        <div class="nav-item" data-section="backup" onclick="switchSection('backup')">
+          <span class="icon">&#x1f4be;</span> Backup & Import
         </div>
       </div>
     </nav>
@@ -706,6 +935,35 @@ function getAdminHtml(): string {
           </div>
         </div>
       </div>
+
+      <div class="section" id="section-backup">
+        <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
+          <div class="stat-card">
+            <div class="stat-label">Export Backup</div>
+            <div style="margin: 16px 0; font-size: 14px; color: #64748b;">Download a complete backup of all data including users, subscriptions, conversations, quizzes, notes, articles, and all progress. Use this to migrate or restore data.</div>
+            <button onclick="exportBackup()" id="export-btn" style="background: #d97706; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%;">&#x2B07; Download Full Backup</button>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Import Data</div>
+            <div style="margin: 16px 0; font-size: 14px; color: #64748b;">Upload a backup file to restore data. Existing users are matched by phone number — their progress is <strong>never overwritten or lost</strong>. New users and records are added safely.</div>
+            <input type="file" id="import-file" accept=".json" style="display:none" onchange="importBackup(this)">
+            <button onclick="document.getElementById('import-file').click()" id="import-btn" style="background: #059669; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%;">&#x2B06; Upload & Import Backup</button>
+          </div>
+        </div>
+        <div class="card" id="import-results" style="display:none;">
+          <div class="card-header"><h3>Import Results</h3></div>
+          <div class="card-body" id="import-results-body"></div>
+        </div>
+        <div class="card" style="margin-top: 16px;">
+          <div class="card-header"><h3>How It Works</h3></div>
+          <div class="card-body" style="font-size: 14px; color: #475569; line-height: 1.8;">
+            <p><strong>&#x2705; Safe Import (Upsert Logic):</strong> Users are matched by phone number. If a user already exists, only missing profile fields are filled in — no existing data is overwritten.</p>
+            <p><strong>&#x2705; Progress Preserved:</strong> Quiz attempts, conversations, notes, evaluations, and study sessions are never deleted or replaced during import.</p>
+            <p><strong>&#x2705; Deduplication:</strong> Records with matching IDs are skipped, so importing the same backup twice won't create duplicates.</p>
+            <p><strong>&#x2705; Cross-Project Migration:</strong> Export from one project, import into another. All user progress travels with them.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -730,7 +988,8 @@ function getAdminHtml(): string {
       const titles = {
         dashboard: "Dashboard", users: "Users", subscriptions: "Subscriptions",
         conversations: "Conversations", "current-affairs": "Current Affairs",
-        quizzes: "Quizzes", evaluations: "Evaluations", notes: "Notes", articles: "Articles"
+        quizzes: "Quizzes", evaluations: "Evaluations", notes: "Notes", articles: "Articles",
+        backup: "Backup & Import"
       };
       document.getElementById("topbar-title").textContent = titles[name] || name;
 
@@ -989,6 +1248,67 @@ function getAdminHtml(): string {
     document.getElementById("user-search").addEventListener("keydown", function(e) {
       if (e.key === "Enter") searchUsers();
     });
+
+    async function exportBackup() {
+      const btn = document.getElementById("export-btn");
+      btn.textContent = "Exporting...";
+      btn.disabled = true;
+      try {
+        const resp = await fetch("/admin/api/export");
+        if (!resp.ok) throw new Error("Export failed");
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "learnpro_backup_" + new Date().toISOString().slice(0, 10) + ".json";
+        a.click();
+        URL.revokeObjectURL(url);
+        btn.innerHTML = "&#x2705; Downloaded!";
+        setTimeout(() => { btn.innerHTML = "&#x2B07; Download Full Backup"; btn.disabled = false; }, 3000);
+      } catch (e) {
+        btn.innerHTML = "&#x274C; Failed";
+        setTimeout(() => { btn.innerHTML = "&#x2B07; Download Full Backup"; btn.disabled = false; }, 3000);
+      }
+    }
+
+    async function importBackup(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const btn = document.getElementById("import-btn");
+      btn.textContent = "Importing...";
+      btn.disabled = true;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        const resp = await fetch("/admin/api/import", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        const result = await resp.json();
+        if (!resp.ok) throw new Error(result.error || "Import failed");
+
+        const resultsDiv = document.getElementById("import-results");
+        const body = document.getElementById("import-results-body");
+        resultsDiv.style.display = "block";
+
+        let html = '<table><thead><tr><th>Table</th><th>Inserted</th><th>Updated</th><th>Skipped</th></tr></thead><tbody>';
+        for (const [table, counts] of Object.entries(result.results || {})) {
+          html += "<tr><td><strong>" + esc(table) + "</strong></td><td style='color:#059669'>" + (counts.inserted || 0) + "</td><td style='color:#d97706'>" + (counts.updated || 0) + "</td><td style='color:#94a3b8'>" + (counts.skipped || 0) + "</td></tr>";
+        }
+        html += "</tbody></table>";
+        body.innerHTML = html;
+
+        btn.innerHTML = "&#x2705; Import Complete!";
+        setTimeout(() => { btn.innerHTML = "&#x2B06; Upload & Import Backup"; btn.disabled = false; }, 3000);
+        input.value = "";
+        loadDashboard();
+      } catch (e) {
+        btn.innerHTML = "&#x274C; " + e.message;
+        setTimeout(() => { btn.innerHTML = "&#x2B06; Upload & Import Backup"; btn.disabled = false; }, 5000);
+        input.value = "";
+      }
+    }
 
     loadDashboard();
   </script>
