@@ -193,9 +193,6 @@ export function registerPyqRoutes(app: Express): void {
       const file = await objectStorage.getObjectEntityFile(fileObjectPath);
       const [fileData] = await file.download();
 
-      if (fileData.length > 10 * 1024 * 1024) {
-        return res.status(400).json({ error: "File too large. Maximum 10MB." });
-      }
 
       let extractedText = "";
       try {

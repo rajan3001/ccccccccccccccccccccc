@@ -1141,7 +1141,7 @@ function getAdminHtml(): string {
           <div class="card-body" style="padding:20px;">
             <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
               <div style="flex:1;min-width:180px;">
-                <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">PDF File (max 10MB)</label>
+                <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">PDF File</label>
                 <input type="file" id="pyq-pdf-file" accept=".pdf" style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;width:100%;font-size:13px;" />
               </div>
               <div>
@@ -1915,7 +1915,6 @@ function getAdminHtml(): string {
       const fileInput = document.getElementById("pyq-pdf-file");
       const file = fileInput.files[0];
       if (!file) { alert("Please select a PDF file"); return; }
-      if (file.size > 10 * 1024 * 1024) { alert("File too large. Maximum 10MB."); return; }
 
       const btn = document.getElementById("pyq-upload-btn");
       const progress = document.getElementById("pyq-upload-progress");
