@@ -1,0 +1,297 @@
+The biggest challenge in a PYQ system is not building the software, but getting clean, structured PYQ data because UPSC/JPSC publish them as PDFs on their websites, not as an API.
+
+So the system must ingest PYQs automatically from PDFs and convert them into structured questions.
+
+I'll explain the correct architecture used by serious EdTech platforms.
+
+1. Where PYQs Actually Come From
+
+Sources of PYQs:
+
+Official exam websites
+
+UPSC
+
+JPSC
+
+State PSC sites
+
+Coaching institute compilations
+
+Open educational repositories
+
+Manually curated datasets
+
+But official sources publish PDFs, like:
+
+https://upsc.gov.in/sites/default/files/qp-csp-2023-gs1.pdf
+
+These contain unstructured text.
+
+Example:
+
+1. Consider the following statements:
+1. The Constitution of India...
+2. The Parliament...
+
+Which of the above are correct?
+
+(a) 1 only
+(b) 2 only
+(c) Both
+(d) None
+
+So the system must extract and structure these automatically.
+
+2. How Serious Platforms Do This
+
+They use a PYQ Ingestion Pipeline.
+
+Pipeline:
+
+PDF Downloader
+      ↓
+PDF Parser
+      ↓
+Question Extractor
+      ↓
+AI Structuring
+      ↓
+Topic Classifier
+      ↓
+Database
+
+This is exactly similar to your MCQ pipeline idea.
+
+3. Step-by-Step System for Fetching PYQs
+Step 1 — Download Official Papers
+
+Create a scraper script.
+
+Example sources:
+
+UPSC previous papers
+https://upsc.gov.in/examinations/previous-question-papers
+
+JPSC
+
+https://www.jpsc.gov.in
+
+Script downloads PDFs automatically.
+
+Example Python logic:
+
+import requests
+
+url = "https://upsc.gov.in/sites/default/files/qp-csp-2023-gs1.pdf"
+pdf = requests.get(url)
+
+with open("upsc_2023_prelims.pdf", "wb") as f:
+    f.write(pdf.content)
+Step 2 — Extract Text from PDF
+
+Use
+
+pdf-parse
+PyMuPDF
+pdfminer
+
+Example:
+
+import fitz
+
+doc = fitz.open("upsc_2023_prelims.pdf")
+
+for page in doc:
+    print(page.get_text())
+Step 3 — AI Question Structuring
+
+Now send extracted text to Claude / Gemini.
+
+Prompt:
+
+Extract each question with options.
+
+Return JSON format:
+
+{
+questionNumber:
+questionText:
+options:
+correctAnswer: null
+}
+
+Output example:
+
+{
+questionNumber:1
+questionText:"Consider the following statements..."
+options:["1 only","2 only","Both","None"]
+}
+
+Now it becomes structured.
+
+Step 4 — Topic Classification
+
+AI assigns topic.
+
+Example:
+
+question → Indian Polity
+subtopic → Parliament
+microtopic → Constitutional Amendment
+
+Now your database becomes topic searchable.
+
+Step 5 — Store in PYQ Database
+
+Insert into:
+
+pyq_questions
+
+Fields:
+
+examType: UPSC
+year: 2023
+paper: Prelims GS1
+topic: Polity
+
+Now you have a fully searchable PYQ bank.
+
+4. How Platforms Build Their PYQ Database
+
+They do one-time ingestion.
+
+Example:
+
+UPSC Prelims 1995–2024
+UPSC Mains 1995–2024
+State PSC papers
+
+Total questions:
+
+Prelims ≈ 3000
+Mains ≈ 2000
+
+Once ingested, the system never needs scraping again.
+
+Only add new year annually.
+
+5. Why You Should NOT Scrape Every Time
+
+Do not fetch PYQs dynamically from UPSC website.
+
+Reasons:
+
+Websites change structure
+
+PDFs change format
+
+Slow performance
+
+Legal risk
+
+Instead:
+
+Ingest once → store forever
+6. Best Approach for LearnPro
+
+Your system should include Admin PYQ Import Tool.
+
+Admin uploads:
+
+UPSC_2023_prelims.pdf
+
+Then pipeline runs:
+
+PDF
+→ Extract
+→ Structure
+→ Topic classify
+→ Save
+
+Your admin panel becomes PYQ ingestion tool.
+
+7. AI Can Also Fix Errors
+
+PDF extraction is messy.
+
+AI can repair:
+
+Example raw text:
+
+1.Consider the followingstatements:
+1.The Constitution...
+
+AI cleans it.
+
+This is why Claude/Gemini should be in the pipeline.
+
+8. Your PYQ Feature Will Become Very Powerful
+
+Once database exists, you can do:
+
+Topic Frequency
+Article 368 → 4 times
+Federalism → 6 times
+Preamble → 3 times
+Exam Prediction
+Topics likely next year
+Smart Revision
+Study topic → see all PYQs
+AI Practice
+PYQ based mock tests
+9. Important Legal Note
+
+UPSC questions are public domain educational material, but avoid:
+
+Copying explanations from coaching institutes
+
+Copying copyrighted books
+
+Use your own explanations.
+
+10. Recommended Initial PYQ Dataset
+
+Start with:
+
+UPSC Prelims 2013–2024
+UPSC Mains 2013–2024
+
+That alone gives:
+
+~1200 questions
+
+Enough for launch.
+
+11. How Big Platforms Do It
+
+Example:
+
+ForumIAS
+InsightsIAS
+Drishti
+VisionIAS
+
+All have internal PYQ databases built exactly this way.
+
+None fetch directly from UPSC every time.
+
+Final Answer
+
+Your system should NOT fetch PYQs live from UPSC/JPSC websites.
+
+Instead build:
+
+PYQ Ingestion Pipeline
+PDF upload
+↓
+Text extraction
+↓
+AI structuring
+↓
+Topic classification
+↓
+Database
+
+Then users practice from your internal PYQ database.

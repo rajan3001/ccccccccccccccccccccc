@@ -1,0 +1,197 @@
+did you categorized between prelims and mains exam
+
+Yes — and this separation is extremely important. In your specification you did include it, but it can be improved slightly to make the system clearer and safer.
+
+Right now your schema distinguishes them using two fields:
+
+paperType
+questionType
+
+Example:
+
+paperType: Prelims / GS-I / GS-II / GS-III / GS-IV / Essay
+questionType: mcq / mains
+
+This works, but in production systems we usually add one more explicit layer to avoid confusion.
+
+1. How Prelims vs Mains Should Be Categorized
+
+Add a dedicated field:
+
+examStage
+
+Example values:
+
+Prelims
+Mains
+Interview
+
+So your table becomes:
+
+pyq_questions
+field	example
+examType	UPSC
+examStage	Prelims
+year	2023
+paperType	GS-I
+questionType	mcq
+
+Example for mains:
+
+field	example
+examType	UPSC
+examStage	Mains
+paperType	GS-II
+questionType	mains
+2. Why This Matters
+
+Because the system behavior is different.
+
+Prelims
+MCQ
+4 options
+instant scoring
+accuracy metrics
+Mains
+descriptive answers
+AI evaluation
+rubric scoring
+word limit
+
+If the system depends only on questionType, you can get messy cases.
+
+Example:
+
+questionType: mcq
+paperType: GS-I
+
+That could confuse the system.
+
+Explicit stage avoids this.
+
+3. Example Database Record
+Prelims question
+examType: UPSC
+examStage: Prelims
+year: 2023
+paperType: GS
+questionType: mcq
+questionNumber: 14
+topic: Polity
+Mains question
+examType: UPSC
+examStage: Mains
+year: 2022
+paperType: GS-II
+questionType: mains
+questionNumber: 7
+topic: Governance
+marks: 10
+4. Frontend UI Separation
+
+On the PYQ page you should separate them clearly.
+
+Example tabs:
+
+Prelims PYQs
+Mains PYQs
+
+Inside each tab filters behave differently.
+
+Prelims filters
+Year
+Subject
+Difficulty
+Mains filters
+Year
+Paper (GS-I GS-II GS-III GS-IV Essay)
+Marks (10/15/20)
+Topic
+5. Practice Mode Should Also Change
+Prelims Practice
+select option
+submit
+show correct answer
+Mains Practice
+write answer
+AI evaluation
+rubric scoring
+
+Your system already supports this — it just needs the stage field.
+
+6. AI Ingestion Must Detect Stage
+
+During ingestion you already pass metadata:
+
+examType
+year
+paperType
+
+Add:
+
+examStage
+
+Example admin upload form:
+
+Exam: UPSC
+Stage: Prelims
+Year: 2023
+Paper: GS
+
+or
+
+Exam: UPSC
+Stage: Mains
+Year: 2023
+Paper: GS-II
+7. Trends Should Also Separate Them
+
+Example results:
+
+Prelims trend
+Environment → 8 times (2016–2024)
+Polity → 10 times
+Mains trend
+Federalism → 4 times
+Judicial Review → 3 times
+
+These trends must not mix.
+
+8. "Asked Before" Tag Should Show Stage
+
+Example:
+
+Asked in:
+UPSC 2023 Prelims Q14
+UPSC 2021 GS-II Mains Q7
+
+This is extremely useful for aspirants.
+
+9. Final Recommended Schema
+
+Add this column:
+
+examStage varchar
+
+Example schema update:
+
+examType
+examStage
+year
+paperType
+questionType
+Final Answer
+
+Yes — your system does separate Prelims and Mains, but adding examStage makes the architecture cleaner and more robust.
+
+It will help in:
+
+practice mode
+
+AI evaluation
+
+trend analysis
+
+UI filtering
+
+PYQ tagging

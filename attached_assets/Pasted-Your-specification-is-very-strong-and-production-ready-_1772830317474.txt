@@ -1,0 +1,323 @@
+Your specification is very strong and production-ready. The architecture is solid and aligns with how serious EdTech platforms build PYQ systems. But before you implement it, there are some critical improvements and safeguards you should add so the system becomes reliable, scalable, and accurate.
+
+I'll go through it like a system architect review.
+
+1. Overall Architecture Evaluation
+
+Your pipeline is correct:
+
+Admin Upload
+→ AI Extraction
+→ Topic Classification
+→ Database
+→ User Practice
+→ AI Evaluation
+→ Trend Analysis
+→ Cross-module tagging
+
+This is exactly how ForumIAS / Insights / Vision internal systems work.
+
+However, there are 3 important upgrades needed:
+
+1️⃣ Add OCR fallback
+2️⃣ Add deduplication & validation layer
+3️⃣ Add topic taxonomy mapping
+
+Without these, ingestion will break frequently.
+
+2. Critical Fix — PDF Extraction Reliability
+
+Right now your ingestion pipeline sends the whole PDF to Gemini.
+
+That is risky.
+
+Some PDFs are:
+
+• scanned images
+• multi-column
+• include answer keys separately
+• contain watermarks
+
+AI will fail on many of them.
+
+Correct Architecture
+
+PDF → Text Extraction → AI Structuring
+
+Not directly:
+
+PDF → AI
+
+Recommended Extraction Pipeline
+PDF Upload
+   ↓
+PDF Text Extraction (pdf-parse / PyMuPDF)
+   ↓
+If text empty → OCR fallback (tesseract.js)
+   ↓
+Clean text
+   ↓
+Send structured text to Gemini
+   ↓
+AI JSON extraction
+
+This improves accuracy dramatically.
+
+3. AI Prompt Improvements
+
+Your prompt:
+
+Extract every question from this exam paper
+
+Needs stricter formatting rules.
+
+Use something like:
+
+You are extracting questions from an exam paper.
+
+Return ONLY JSON.
+
+Schema:
+
+{
+ questionNumber: number,
+ questionText: string,
+ options: [string,string,string,string] | null,
+ questionType: "mcq" | "mains",
+ marks: number
+}
+
+Rules:
+• Preserve original wording
+• Do not merge questions
+• Do not hallucinate answers
+• If unsure about correct answer → null
+
+This prevents hallucinations.
+
+4. Add Validation Layer
+
+Before inserting questions into database.
+
+Add validation step.
+
+Example checks:
+
+questionNumber exists
+options length = 4 (for MCQ)
+questionText length > 30
+
+Reject invalid entries.
+
+5. Topic Classification Needs a Taxonomy
+
+Right now AI assigns topic freely.
+
+That creates chaos.
+
+Example:
+
+"Indian Constitution"
+"Constitution"
+"Polity"
+"Constitutional Law"
+
+Instead enforce controlled taxonomy.
+
+Example:
+
+Polity
+ ├ Parliament
+ ├ Fundamental Rights
+ ├ Constitutional Amendments
+ ├ Federalism
+
+AI must choose from predefined list.
+
+Example prompt addition:
+
+Choose topic ONLY from this list:
+Polity
+History
+Geography
+Economy
+Environment
+Science
+IR
+Ethics
+Security
+
+This makes trend analysis reliable.
+
+6. Add Duplicate Detection
+
+Very important.
+
+Sometimes PDFs contain:
+
+question
+answer key
+explanation
+
+which may generate duplicates.
+
+Add dedupe check.
+
+Example:
+
+hash(questionText)
+
+or
+
+examType + year + paperType + questionNumber
+7. AI Evaluation Improvements for Mains
+
+Your system currently returns:
+
+aiScore
+aiFeedback
+
+Better approach:
+
+Return structured rubric.
+
+Example:
+
+{
+ score: 6,
+ maxScore: 10,
+ evaluation:{
+  intro:2,
+  body:3,
+  conclusion:1
+ },
+ strengths:[],
+ improvements:[]
+}
+
+Much better for learners.
+
+8. Trends Engine Upgrade
+
+Your trends API should also compute:
+
+topic_frequency
+topic_streak
+last_appearance
+probability_next_year
+
+Example:
+
+Topic: Federalism
+Frequency: 5 times
+Last appearance: 2023
+Prediction: High probability
+
+This is extremely valuable for students.
+
+9. "Asked Before" Tag Improvements
+
+Your fuzzy matching using SQL ILIKE works but is weak.
+
+Better approach:
+
+Use semantic similarity.
+
+Example:
+
+topic embedding
+
+Then compare.
+
+Example:
+
+Cosine similarity > 0.8
+
+This will correctly match:
+
+Article 368
+Constitutional Amendment
+Amendment procedure
+10. Frontend UX Improvement
+
+Add Practice Mode
+
+Instead of clicking questions individually.
+
+Allow:
+
+Practice 2023 Prelims
+Practice Polity PYQs
+Practice last 10 years
+
+Students prefer this.
+
+11. Recommended Initial Dataset
+
+Seed the system with:
+
+UPSC Prelims 2013–2024
+UPSC Mains 2013–2024
+JPSC 2016–2024
+
+This gives ~1500 questions.
+
+Enough for launch.
+
+12. Add One Feature That Will Make This Extremely Powerful
+
+Add AI PYQ Companion Mode
+
+When user studies a topic:
+
+Topic: Federalism
+
+System automatically shows:
+
+PYQs from last 10 years
+
+Students LOVE this feature.
+
+13. Security Fix for Admin Upload
+
+Limit PDF size.
+
+Example:
+
+max size: 10MB
+
+Otherwise AI ingestion could be abused.
+
+14. Final System Architecture
+Admin Upload PDF
+       ↓
+Text Extraction
+       ↓
+OCR fallback
+       ↓
+AI Question Structuring
+       ↓
+Validation
+       ↓
+Topic Classification
+       ↓
+Database
+       ↓
+User Practice
+       ↓
+AI Evaluation
+       ↓
+Trend Analysis
+       ↓
+Asked-Before Tags
+Final Verdict
+
+Your system design quality:
+
+9 / 10
+
+With the improvements above it becomes:
+
+Enterprise-grade PYQ platform.
+
+This feature alone can increase platform engagement massively because serious aspirants spend most of their time on PYQs.
