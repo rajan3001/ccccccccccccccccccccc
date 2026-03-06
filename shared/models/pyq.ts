@@ -80,6 +80,30 @@ export interface PyqMainsFeedback {
   overallFeedback: string;
 }
 
+export const pyqIngestionJobs = pgTable("pyq_ingestion_jobs", {
+  id: serial("id").primaryKey(),
+  fileName: varchar("file_name").notNull(),
+  originalName: varchar("original_name").notNull(),
+  examType: varchar("exam_type").notNull(),
+  examStage: varchar("exam_stage").notNull(),
+  year: integer("year").notNull(),
+  paperType: varchar("paper_type").notNull(),
+  status: varchar("status").notNull().default("queued"),
+  progress: text("progress").default("Waiting in queue..."),
+  totalExtracted: integer("total_extracted").default(0),
+  validated: integer("validated").default(0),
+  inserted: integer("inserted").default(0),
+  skipped: integer("skipped").default(0),
+  rejected: integer("rejected").default(0),
+  errorDetails: text("error_details"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index("pyq_ingestion_jobs_status_idx").on(table.status),
+]);
+
+export type PyqIngestionJob = typeof pyqIngestionJobs.$inferSelect;
+
 export const insertPyqQuestionSchema = createInsertSchema(pyqQuestions).omit({
   id: true,
   createdAt: true,

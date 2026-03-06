@@ -14,6 +14,7 @@ import { registerPaymentRoutes, reconcilePendingSubscription } from "./payment-r
 import { registerBlogRoutes } from "./blog-routes";
 import { registerAdminRoutes } from "./admin-routes";
 import { registerPyqRoutes } from "./pyq-routes";
+import { startPyqWorker } from "./pyq-worker";
 import { api } from "@shared/routes";
 import { db } from "./db";
 import { quizAttempts, conversations, messages, dailyTopics, notes } from "@shared/schema";
@@ -38,6 +39,8 @@ export async function registerRoutes(
   registerBlogRoutes(app);
   registerAdminRoutes(app);
   registerPyqRoutes(app);
+
+  startPyqWorker().catch(err => console.error("[PYQ Worker] Failed to start:", err));
 
   // Subscription Routes
   app.get(api.subscription.get.path, isAuthenticated, async (req: any, res) => {

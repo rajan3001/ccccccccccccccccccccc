@@ -174,8 +174,10 @@ function validateQuestions(questions: any[], examStage: string): ValidationResul
 
 export async function pyqIngestCore(params: {
   fileObjectPath: string; examType: string; examStage: string; year: string; paperType: string;
+  onProgress?: (msg: string) => void;
 }): Promise<any> {
-  const { fileObjectPath, examType, examStage, year, paperType } = params;
+  const { fileObjectPath, examType, examStage, year, paperType, onProgress } = params;
+  const report = onProgress || (() => {});
 
   if (!fileObjectPath || !examType || !examStage || !year || !paperType) {
     throw Object.assign(new Error("Missing required fields"), { statusCode: 400 });
@@ -184,6 +186,7 @@ export async function pyqIngestCore(params: {
     throw Object.assign(new Error("examStage must be 'Prelims' or 'Mains'"), { statusCode: 400 });
   }
 
+  report("Reading PDF file...");
   let fileData: Buffer;
   const localUploadsDir = path.resolve(process.cwd(), ".uploads");
   const localFileName = fileObjectPath.replace(/^\/objects\/uploads\//, "");
@@ -201,6 +204,7 @@ export async function pyqIngestCore(params: {
     }
   }
 
+  report("Extracting text from PDF...");
   let extractedText = "";
   try {
     const pdfMod = await import("pdf-parse");
@@ -220,6 +224,7 @@ export async function pyqIngestCore(params: {
   }
 
   if (extractedText.length < 500) {
+    report("Using Gemini OCR for text extraction...");
     console.log("Text too short or extraction failed, using Gemini OCR...");
     const ocrResult = await ai.models.generateContent({
       model: "gemini-2.5-flash",
@@ -241,6 +246,7 @@ export async function pyqIngestCore(params: {
     throw Object.assign(new Error("Could not extract sufficient text from PDF"), { statusCode: 400 });
   }
 
+  report("Splitting into chunks for AI processing...");
   const chunks = chunkByQuestions(extractedText, 12);
   let allExtracted: ExtractedQuestion[] = [];
   const errors: string[] = [];
@@ -260,6 +266,7 @@ Rules:
 Text to extract from:
 ${chunkText}`;
 
+    report(`Extracting questions (chunk ${i + 1}/${chunks.length})...`);
     try {
       const result = await ai.models.generateContent({
         model: "gemini-2.5-flash",
@@ -274,10 +281,12 @@ ${chunkText}`;
     }
   }
 
+  report(`Validating ${allExtracted.length} extracted questions...`);
   const { valid, rejected } = validateQuestions(allExtracted, examStage);
 
   let classified: { questionNumber: number; topic: string; subTopic: string | null; difficulty: string }[] = [];
   if (valid.length > 0) {
+    report(`Classifying ${valid.length} questions by topic & difficulty...`);
     const topicList = PYQ_TOPICS.filter(t => t !== "Unclassified").join(", ");
     const subTopicInfo = Object.entries(PYQ_SUBTOPICS)
       .filter(([k]) => k !== "Unclassified")
@@ -310,6 +319,7 @@ ${valid.map(q => `Q${q.questionNumber}: ${q.questionText.substring(0, 200)}`).jo
 
   const classMap = new Map(classified.map(c => [c.questionNumber, c]));
 
+  report(`Inserting ${valid.length} questions into database...`);
   let inserted = 0;
   let skipped = 0;
 

@@ -6,9 +6,9 @@ import * as path from "path";
 import { users, otpVerifications, subscriptions } from "@shared/schema";
 import { conversations, messages, quizAttempts, quizQuestions, dailyTopics, dailyDigests, notes, blogPosts, evaluationSessions, evaluationQuestions, studySessions } from "@shared/schema";
 import { timetableSlots, syllabusTopics, userSyllabusProgress, dailyStudyGoals } from "@shared/schema";
-import { pyqQuestions, pyqAttempts, PYQ_TOPICS, PYQ_SUBTOPICS } from "@shared/schema";
+import { pyqQuestions, pyqAttempts, PYQ_TOPICS, PYQ_SUBTOPICS, pyqIngestionJobs } from "@shared/schema";
 import { pyqIngestCore } from "./pyq-routes";
-import { eq, sql, desc, count, inArray, and, gte, lte } from "drizzle-orm";
+import { eq, sql, desc, asc, count, inArray, and, gte, lte } from "drizzle-orm";
 
 const ADMIN_USER = process.env.ADMIN_USER || "admin";
 const ADMIN_PASS = process.env.ADMIN_PASS || "admin@learnpro2026";
@@ -60,6 +60,60 @@ export function registerAdminRoutes(app: Express) {
       res.json(result);
     } catch (e: any) {
       res.status(e.statusCode || 500).json({ error: e.message });
+    }
+  });
+
+  app.post("/admin/api/pyq/queue", basicAuth, async (req: any, res: any) => {
+    try {
+      const { fileName, originalName, examType, examStage, year, paperType } = req.body;
+      if (!fileName || !originalName || !examType || !examStage || !year || !paperType) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      const [job] = await db.insert(pyqIngestionJobs).values({
+        fileName, originalName, examType, examStage,
+        year: Number(year), paperType,
+        status: "queued", progress: "Waiting in queue...",
+      }).returning();
+      res.json({ success: true, job });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.get("/admin/api/pyq/jobs", basicAuth, async (_req: any, res: any) => {
+    try {
+      const jobs = await db.select().from(pyqIngestionJobs)
+        .orderBy(desc(pyqIngestionJobs.createdAt))
+        .limit(50);
+      res.json({ jobs });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.delete("/admin/api/pyq/jobs/:id", basicAuth, async (req: any, res: any) => {
+    try {
+      const id = parseInt(req.params.id);
+      const [job] = await db.select().from(pyqIngestionJobs).where(eq(pyqIngestionJobs.id, id)).limit(1);
+      if (job && job.status === "processing") {
+        return res.status(400).json({ error: "Cannot delete a job that is currently processing" });
+      }
+      await db.delete(pyqIngestionJobs).where(eq(pyqIngestionJobs.id, id));
+      res.json({ success: true });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post("/admin/api/pyq/jobs/:id/retry", basicAuth, async (req: any, res: any) => {
+    try {
+      const id = parseInt(req.params.id);
+      await db.update(pyqIngestionJobs)
+        .set({ status: "queued", progress: "Re-queued for retry...", updatedAt: new Date(), totalExtracted: 0, validated: 0, inserted: 0, skipped: 0, rejected: 0, errorDetails: null })
+        .where(eq(pyqIngestionJobs.id, id));
+      res.json({ success: true });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
     }
   });
 
@@ -1214,10 +1268,19 @@ function getAdminHtml(): string {
                 <select id="pyq-year" style="padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;">
                 </select>
               </div>
-              <button class="btn btn-primary" onclick="uploadPyqPdf()" id="pyq-upload-btn">Upload & Process</button>
+              <button class="btn btn-primary" onclick="uploadPyqPdf()" id="pyq-upload-btn">Upload & Queue</button>
             </div>
             <div id="pyq-upload-progress" style="display:none;padding:12px;background:#fffbeb;border-radius:8px;font-size:13px;color:#92400e;"></div>
-            <div id="pyq-upload-results" style="display:none;margin-top:12px;"></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header">
+            <h3>Ingestion Queue</h3>
+            <button class="btn btn-secondary" onclick="loadPyqJobs()" style="font-size:12px;padding:5px 12px;">Refresh</button>
+          </div>
+          <div class="card-body" id="pyq-jobs-container" style="padding:20px;">
+            <div class="loading">Loading jobs...</div>
           </div>
         </div>
 
@@ -1814,6 +1877,7 @@ function getAdminHtml(): string {
           return '<div class="stat-card"><div class="label">' + s.label + '</div><div class="value">' + s.value + '</div></div>';
         }).join('');
       } catch (e) { console.error(e); }
+      loadPyqJobs();
       filterPyqStage("");
     }
 
@@ -1953,6 +2017,8 @@ function getAdminHtml(): string {
       }
     }
 
+    let jobPollInterval = null;
+
     async function uploadPyqPdf() {
       const fileInput = document.getElementById("pyq-pdf-file");
       const file = fileInput.files[0];
@@ -1960,11 +2026,11 @@ function getAdminHtml(): string {
 
       const btn = document.getElementById("pyq-upload-btn");
       const progress = document.getElementById("pyq-upload-progress");
-      const results = document.getElementById("pyq-upload-results");
       btn.disabled = true;
-      btn.textContent = "Processing...";
+      btn.textContent = "Uploading...";
       progress.style.display = "block";
-      results.style.display = "none";
+      progress.style.background = "#fffbeb";
+      progress.style.color = "#92400e";
 
       try {
         progress.textContent = "Uploading PDF...";
@@ -1977,52 +2043,154 @@ function getAdminHtml(): string {
         if (!uploadRes.ok) throw new Error("Upload failed: " + (await uploadRes.text()));
         const uploadData = await uploadRes.json();
 
-        progress.textContent = "Extracting text & structuring questions...";
-        const ingestRes = await fetch("/admin/api/pyq/ingest", {
+        progress.textContent = "Queuing for processing...";
+        const queueRes = await fetch("/admin/api/pyq/queue", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            fileObjectPath: uploadData.objectPath || uploadData.path,
+            fileName: uploadData.fileName,
+            originalName: file.name,
             examType: document.getElementById("pyq-exam-type").value,
             examStage: document.getElementById("pyq-exam-stage").value,
             year: document.getElementById("pyq-year").value,
             paperType: document.getElementById("pyq-paper-type").value,
           }),
         });
-        const data = await ingestRes.json();
-        if (!ingestRes.ok) throw new Error(data.error || "Ingestion failed");
+        const queueData = await queueRes.json();
+        if (!queueRes.ok) throw new Error(queueData.error || "Queue failed");
 
-        progress.textContent = "Done!";
-        let html = '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;">';
-        html += '<div style="font-weight:600;color:#16a34a;margin-bottom:8px;">Processing Complete</div>';
-        html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;font-size:13px;">';
-        html += '<div><strong>Extracted:</strong> ' + data.totalExtracted + '</div>';
-        html += '<div><strong>Validated:</strong> ' + data.validated + '</div>';
-        html += '<div><strong>Inserted:</strong> ' + data.inserted + '</div>';
-        html += '<div><strong>Skipped:</strong> ' + data.skipped + '</div>';
-        html += '<div><strong>Rejected:</strong> ' + data.rejected + '</div>';
-        html += '</div>';
-        if (data.rejectedDetails && data.rejectedDetails.length > 0) {
-          html += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:13px;color:#dc2626;">View rejected questions (' + data.rejectedDetails.length + ')</summary>';
-          html += '<div style="margin-top:8px;font-size:12px;">';
-          data.rejectedDetails.forEach(function(r) {
-            html += '<div style="padding:4px 0;border-bottom:1px solid #e2e8f0;"><strong>Q' + (r.questionNumber || '?') + ':</strong> ' + esc(r.text || '') + '<br><span style="color:#dc2626;">' + (r.reasons || []).join(", ") + '</span></div>';
-          });
-          html += '</div></details>';
-        }
-        html += '</div>';
-        results.innerHTML = html;
-        results.style.display = "block";
-        setTimeout(function() { progress.style.display = "none"; }, 2000);
-        loadPyqBank();
+        progress.textContent = "Queued! Processing will happen in the background.";
+        progress.style.background = "#f0fdf4";
+        progress.style.color = "#16a34a";
+        setTimeout(function() { progress.style.display = "none"; }, 3000);
+        loadPyqJobs();
+        startJobPolling();
       } catch (e) {
         progress.textContent = "Error: " + e.message;
         progress.style.background = "#fef2f2";
         progress.style.color = "#dc2626";
       }
       btn.disabled = false;
-      btn.textContent = "Upload & Process";
+      btn.textContent = "Upload & Queue";
       fileInput.value = "";
+    }
+
+    function startJobPolling() {
+      if (jobPollInterval) return;
+      jobPollInterval = setInterval(function() {
+        loadPyqJobs(true);
+      }, 3000);
+    }
+
+    function stopJobPolling() {
+      if (jobPollInterval) { clearInterval(jobPollInterval); jobPollInterval = null; }
+    }
+
+    async function loadPyqJobs(silent) {
+      const container = document.getElementById("pyq-jobs-container");
+      if (!silent) container.innerHTML = '<div class="loading">Loading jobs...</div>';
+      try {
+        const res = await fetch("/admin/api/pyq/jobs");
+        const d = await res.json();
+        const jobs = d.jobs || [];
+        if (jobs.length === 0) {
+          container.innerHTML = '<div class="empty-state"><p>No ingestion jobs yet. Upload a PDF to get started.</p></div>';
+          stopJobPolling();
+          return;
+        }
+
+        let hasActive = false;
+        let html = '';
+        jobs.forEach(function(j) {
+          const isActive = j.status === "queued" || j.status === "processing";
+          if (isActive) hasActive = true;
+
+          let statusColor, statusBg, statusIcon;
+          if (j.status === "completed") { statusColor = "#16a34a"; statusBg = "#f0fdf4"; statusIcon = "&#x2705;"; }
+          else if (j.status === "failed") { statusColor = "#dc2626"; statusBg = "#fef2f2"; statusIcon = "&#x274c;"; }
+          else if (j.status === "processing") { statusColor = "#d97706"; statusBg = "#fffbeb"; statusIcon = "&#x23f3;"; }
+          else { statusColor = "#64748b"; statusBg = "#f8fafc"; statusIcon = "&#x1f4cb;"; }
+
+          let progressPercent = 0;
+          if (j.status === "completed") progressPercent = 100;
+          else if (j.status === "processing") {
+            const prog = (j.progress || "").toLowerCase();
+            if (prog.includes("reading")) progressPercent = 10;
+            else if (prog.includes("extracting text") || prog.includes("ocr")) progressPercent = 20;
+            else if (prog.includes("splitting")) progressPercent = 30;
+            else if (prog.includes("chunk")) {
+              var m = prog.match(/chunk (\\d+)\\/(\\d+)/);
+              if (m) progressPercent = 30 + Math.round(40 * parseInt(m[1]) / parseInt(m[2]));
+              else progressPercent = 50;
+            }
+            else if (prog.includes("validating")) progressPercent = 75;
+            else if (prog.includes("classifying")) progressPercent = 85;
+            else if (prog.includes("inserting")) progressPercent = 92;
+            else progressPercent = 15;
+          }
+          else if (j.status === "failed") progressPercent = 100;
+
+          html += '<div style="background:' + statusBg + ';border:1px solid ' + (j.status === "completed" ? "#bbf7d0" : j.status === "failed" ? "#fecaca" : j.status === "processing" ? "#fde68a" : "#e2e8f0") + ';border-radius:10px;padding:16px;margin-bottom:12px;">';
+          html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+          html += '<div style="display:flex;align-items:center;gap:8px;">';
+          html += '<span style="font-size:16px;">' + statusIcon + '</span>';
+          html += '<div>';
+          html += '<div style="font-weight:600;font-size:14px;color:#1e293b;">' + esc(j.originalName) + '</div>';
+          html += '<div style="font-size:11px;color:#94a3b8;">' + esc(j.examType) + ' ' + esc(j.examStage) + ' ' + j.year + ' ' + esc(j.paperType) + '</div>';
+          html += '</div></div>';
+          html += '<div style="display:flex;align-items:center;gap:6px;">';
+          html += '<span style="font-size:11px;font-weight:600;color:' + statusColor + ';text-transform:uppercase;">' + esc(j.status) + '</span>';
+          if (j.status === "failed") {
+            html += '<button class="btn btn-secondary" style="font-size:11px;padding:3px 8px;" onclick="retryJob(' + j.id + ')">Retry</button>';
+          }
+          html += '<button class="btn btn-secondary" style="font-size:11px;padding:3px 8px;color:#dc2626;" onclick="deleteJob(' + j.id + ')">&#x1f5d1;</button>';
+          html += '</div></div>';
+
+          html += '<div style="background:rgba(0,0,0,0.06);border-radius:6px;height:8px;overflow:hidden;margin-bottom:6px;">';
+          html += '<div style="height:100%;border-radius:6px;transition:width 0.5s ease;width:' + progressPercent + '%;background:' + (j.status === "failed" ? "#dc2626" : j.status === "completed" ? "#16a34a" : "#d97706") + ';"></div>';
+          html += '</div>';
+
+          html += '<div style="font-size:12px;color:' + statusColor + ';">' + esc(j.progress || "—") + '</div>';
+
+          if (j.status === "completed") {
+            html += '<div style="display:flex;gap:12px;margin-top:8px;font-size:12px;color:#475569;">';
+            html += '<span>Extracted: <strong>' + (j.totalExtracted || 0) + '</strong></span>';
+            html += '<span>Validated: <strong>' + (j.validated || 0) + '</strong></span>';
+            html += '<span>Inserted: <strong>' + (j.inserted || 0) + '</strong></span>';
+            html += '<span>Skipped: <strong>' + (j.skipped || 0) + '</strong></span>';
+            html += '<span>Rejected: <strong>' + (j.rejected || 0) + '</strong></span>';
+            html += '</div>';
+          }
+          if (j.status === "failed" && j.errorDetails) {
+            html += '<div style="margin-top:6px;font-size:12px;color:#dc2626;word-break:break-all;">' + esc(j.errorDetails) + '</div>';
+          }
+          html += '</div>';
+        });
+
+        container.innerHTML = html;
+
+        if (hasActive) startJobPolling();
+        else { stopJobPolling(); loadPyqBank(); }
+      } catch (e) {
+        if (!silent) container.innerHTML = '<div class="loading">Error loading jobs</div>';
+        console.error(e);
+      }
+    }
+
+    async function retryJob(id) {
+      try {
+        await fetch("/admin/api/pyq/jobs/" + id + "/retry", { method: "POST" });
+        loadPyqJobs();
+        startJobPolling();
+      } catch (e) { alert("Error: " + e.message); }
+    }
+
+    async function deleteJob(id) {
+      if (!confirm("Remove this job from the list?")) return;
+      try {
+        await fetch("/admin/api/pyq/jobs/" + id, { method: "DELETE" });
+        loadPyqJobs();
+      } catch (e) { alert("Error: " + e.message); }
     }
 
     async function importPyqJson() {
