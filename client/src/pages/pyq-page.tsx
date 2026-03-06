@@ -27,6 +27,153 @@ import {
 type StageTab = "Prelims" | "Mains";
 type SubTab = "browse" | "trends" | "stats";
 
+function FormattedQuestionText({ text, className, prefix }: { text: string; className?: string; prefix?: string }) {
+  const parts = useMemo(() => {
+    let cleaned = text;
+
+    const lines = cleaned.split('\n');
+    const elements: React.ReactNode[] = [];
+    let i = 0;
+    let prefixUsed = false;
+
+    const addPrefix = () => {
+      if (prefix && !prefixUsed) {
+        prefixUsed = true;
+        return <span className="font-semibold">{prefix} </span>;
+      }
+      return null;
+    };
+
+    while (i < lines.length) {
+      const line = lines[i].trim();
+
+      if (line === '') { i++; continue; }
+
+      const hasColonPairs = (() => {
+        if (i + 2 >= lines.length) return false;
+        let pairCount = 0;
+        for (let j = i; j < Math.min(i + 8, lines.length); j++) {
+          if (/^\(?[a-d]\)?\s+.+\s*:\s*.+/i.test(lines[j].trim())) pairCount++;
+        }
+        return pairCount >= 2;
+      })();
+
+      if (hasColonPairs) {
+        const headerLine = lines[i]?.trim();
+        let headerCols: [string, string] | null = null;
+        const headerMatch = headerLine.match(/^(.+?)\s{2,}(.+)$/);
+        if (headerMatch && !/^\(?[a-d]\)/i.test(headerLine)) {
+          headerCols = [headerMatch[1].trim(), headerMatch[2].trim()];
+          i++;
+        }
+
+        const rows: [string, string, string][] = [];
+        while (i < lines.length) {
+          const l = lines[i].trim();
+          const m = l.match(/^\(?([a-d])\)?\s+(.+?)\s*:\s*(.+)/i);
+          if (m) {
+            rows.push([m[1], m[2].trim(), m[3].trim()]);
+            i++;
+          } else break;
+        }
+
+        if (rows.length >= 2) {
+          elements.push(
+            <div key={`tbl-${elements.length}`} className="my-3 overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                {headerCols && (
+                  <thead>
+                    <tr className="bg-muted/50">
+                      <th className="border border-border px-3 py-1.5 text-left font-semibold w-8"></th>
+                      <th className="border border-border px-3 py-1.5 text-left font-semibold">{headerCols[0]}</th>
+                      <th className="border border-border px-3 py-1.5 text-left font-semibold">{headerCols[1]}</th>
+                    </tr>
+                  </thead>
+                )}
+                <tbody>
+                  {rows.map((r, ri) => (
+                    <tr key={ri} className={ri % 2 === 1 ? "bg-muted/30" : ""}>
+                      <td className="border border-border px-3 py-1.5 text-center font-medium">({r[0]})</td>
+                      <td className="border border-border px-3 py-1.5">{r[1]}</td>
+                      <td className="border border-border px-3 py-1.5">{r[2]}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+          continue;
+        }
+      }
+
+      const numberedMatch = line.match(/^(\d+)\.\s+(.+)/);
+      if (numberedMatch) {
+        const items: { num: string; text: string }[] = [];
+        while (i < lines.length) {
+          const l = lines[i].trim();
+          const nm = l.match(/^(\d+)\.\s+(.+)/);
+          if (nm) {
+            items.push({ num: nm[1], text: nm[2] });
+            i++;
+          } else break;
+        }
+        elements.push(
+          <div key={`list-${elements.length}`} className="my-2 ml-1 space-y-1">
+            {items.map((item, ii) => (
+              <div key={ii} className="flex gap-2">
+                <span className="text-muted-foreground font-medium flex-shrink-0 w-5 text-right">{item.num}.</span>
+                <span>{item.text}</span>
+              </div>
+            ))}
+          </div>
+        );
+        continue;
+      }
+
+      const optionLineMatch = line.match(/^\(?([a-d])\)\s+(.+)/i);
+      if (optionLineMatch) {
+        const opts: { letter: string; text: string }[] = [];
+        while (i < lines.length) {
+          const l = lines[i].trim();
+          const om = l.match(/^\(?([a-d])\)\s+(.+)/i);
+          if (om) {
+            opts.push({ letter: om[1], text: om[2] });
+            i++;
+          } else break;
+        }
+        elements.push(
+          <div key={`opts-${elements.length}`} className="my-2 ml-1 space-y-0.5">
+            {opts.map((o, oi) => (
+              <div key={oi} className="flex gap-2">
+                <span className="text-muted-foreground font-medium flex-shrink-0">({o.letter})</span>
+                <span>{o.text}</span>
+              </div>
+            ))}
+          </div>
+        );
+        continue;
+      }
+
+      const p = addPrefix();
+      elements.push(<span key={`line-${elements.length}`}>{p}{line}{'\n'}</span>);
+      i++;
+    }
+
+    if (!prefixUsed && prefix) {
+      elements.unshift(<span key="prefix-only" className="font-semibold">{prefix} </span>);
+    }
+
+    return elements;
+  }, [text, prefix]);
+
+  return <div className={className}>{parts}</div>;
+}
+
+function formatOptionText(text: string): React.ReactNode {
+  if (!text.includes('\n')) return text;
+  return <span style={{ whiteSpace: 'pre-line' }}>{text}</span>;
+}
+
 interface QuestionWithAttempt extends PyqQuestion {
   attempted: boolean;
   attemptResult: {
@@ -376,9 +523,9 @@ export default function PyqPage() {
                     {currentQuestion.marks} marks
                   </Badge>
                 </div>
-                <p className="text-base font-medium text-foreground leading-relaxed" data-testid="text-question">
-                  Q{currentQuestion.questionNumber}. {currentQuestion.questionText}
-                </p>
+                <div className="text-base font-medium text-foreground leading-relaxed" data-testid="text-question">
+                  <FormattedQuestionText text={currentQuestion.questionText} prefix={`Q${currentQuestion.questionNumber}.`} />
+                </div>
               </CardContent>
             </Card>
 
@@ -427,7 +574,7 @@ export default function PyqPage() {
                           "text-sm",
                           submitted && isWrong && "line-through text-muted-foreground"
                         )}>
-                          {option}
+                          {formatOptionText(option)}
                         </span>
                       </div>
                     </button>

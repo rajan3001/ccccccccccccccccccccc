@@ -305,6 +305,17 @@ Rules:
 - If marks are not specified, default to ${examStage === "Prelims" ? "2" : "10"}
 - ${examStage === "Prelims" ? 'questionType must be "mcq", options must be exactly 4 strings, marks default 2' : 'questionType must be "mains", options must be null, marks as stated or default 10'}
 
+CRITICAL FORMATTING RULES for questionText:
+- Use \\n (newline) to separate logical parts of the question
+- For NUMBERED STATEMENTS/LISTS: Put each numbered item on its own line using \\n
+  Example: "Consider the following statements:\\n1. Statement one here.\\n2. Statement two here.\\n3. Statement three here.\\nWhich of the statements given above is/are correct?"
+- For MATCH-THE-COLUMN / MATCH-THE-PAIRS questions: Format each pair as "(a) Left Item : Right Item" on separate lines using \\n. Include column headers if present.
+  Example: "Which one of the following pairs is correctly matched?\\nGeographical Feature  Region\\n(a) Abyssinian Plateau : Arabia\\n(b) Atlas Mountains : North-Western Africa\\n(c) Guiana Highlands : South-Western Africa\\n(d) Okavango Basin : Patagonia"
+- For SELECT THE CORRECT ANSWER inline options like "(a) 1 only (b) 2 and 3 only": put each on its own line
+  Example: "Select the correct answer using the codes given below.\\n(a) 1 only\\n(b) 2 and 3 only\\n(c) 1 and 3 only\\n(d) 1, 2 and 3"
+- Do NOT flatten multi-line content into a single line. Preserve the logical structure.
+- The options array should contain ONLY the final answer choices (a/b/c/d), NOT the numbered statements from the question body
+
 Text to extract from:
 ${chunkText}`;
 
