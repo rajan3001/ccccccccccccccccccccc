@@ -969,7 +969,7 @@ function getAdminHtml(): string {
 <body>
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <h1>Learnpro <span class="brand-ai">AI</span></h1>
+      <h1>Learnpro <span class="brand-ai">AI</span> <sup style="font-size:10px;font-weight:500;opacity:0.6;margin-left:2px;">v1.1</sup></h1>
       <div class="subtitle">Admin Panel</div>
     </div>
     <nav class="sidebar-nav">
