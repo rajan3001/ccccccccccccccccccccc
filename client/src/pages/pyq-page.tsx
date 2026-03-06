@@ -886,6 +886,7 @@ function BrowseView({
   availablePapers: string[];
   startPractice: (q: QuestionWithAttempt[]) => void;
 }) {
+  const { t } = useLanguage();
   const hasFilters = filters.year || filters.topic || filters.difficulty || filters.paperType;
 
   return (
