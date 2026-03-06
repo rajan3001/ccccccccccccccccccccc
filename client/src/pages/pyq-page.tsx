@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/i18n/context";
+import { InlineLanguageButton } from "@/components/inline-language-button";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -605,7 +606,7 @@ export default function PyqPage() {
                           : <XCircle className="h-5 w-5 text-red-500" />
                         }
                         <span className={cn("font-semibold", mcqResult.isCorrect ? "text-emerald-600" : "text-red-600")} data-testid="text-result">
-                          {mcqResult.isCorrect ? "Correct!" : "Incorrect"}
+                          {mcqResult.isCorrect ? t.pyq.correctResult : t.pyq.incorrectResult}
                         </span>
                       </div>
                       {mcqResult.explanation && (
@@ -691,10 +692,10 @@ export default function PyqPage() {
 
                         <div className="space-y-3">
                           {[
-                            { label: "Introduction", value: mainsResult.feedback.introduction, max: 2 },
-                            { label: "Body", value: mainsResult.feedback.body, max: 4 },
-                            { label: "Conclusion", value: mainsResult.feedback.conclusion, max: 2 },
-                            { label: "Content Coverage", value: mainsResult.feedback.contentCoverage, max: 2 },
+                            { label: t.pyq.introduction, value: mainsResult.feedback.introduction, max: 2 },
+                            { label: t.pyq.body, value: mainsResult.feedback.body, max: 4 },
+                            { label: t.pyq.conclusion, value: mainsResult.feedback.conclusion, max: 2 },
+                            { label: t.pyq.contentCoverage, value: mainsResult.feedback.contentCoverage, max: 2 },
                           ].map((item) => (
                             <div key={item.label}>
                               <div className="flex items-center justify-between mb-1">
@@ -711,7 +712,7 @@ export default function PyqPage() {
                     {mainsResult.feedback.strengths.length > 0 && (
                       <Card>
                         <CardContent className="p-4">
-                          <h4 className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 mb-2" data-testid="text-strengths-title">Strengths</h4>
+                          <h4 className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 mb-2" data-testid="text-strengths-title">{t.pyq.strengths}</h4>
                           <ul className="space-y-1.5">
                             {mainsResult.feedback.strengths.map((s, i) => (
                               <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -727,7 +728,7 @@ export default function PyqPage() {
                     {mainsResult.feedback.improvements.length > 0 && (
                       <Card>
                         <CardContent className="p-4">
-                          <h4 className="text-sm font-semibold text-amber-600 dark:text-amber-400 mb-2" data-testid="text-improvements-title">Areas to Improve</h4>
+                          <h4 className="text-sm font-semibold text-amber-600 dark:text-amber-400 mb-2" data-testid="text-improvements-title">{t.pyq.areasToImprove}</h4>
                           <ul className="space-y-1.5">
                             {mainsResult.feedback.improvements.map((s, i) => (
                               <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -743,7 +744,7 @@ export default function PyqPage() {
                     {mainsResult.feedback.overallFeedback && (
                       <Card>
                         <CardContent className="p-4">
-                          <h4 className="text-sm font-semibold mb-2" data-testid="text-overall-title">Overall Feedback</h4>
+                          <h4 className="text-sm font-semibold mb-2" data-testid="text-overall-title">{t.pyq.overallFeedback}</h4>
                           <p className="text-sm text-muted-foreground" data-testid="text-overall-feedback">{mainsResult.feedback.overallFeedback}</p>
                         </CardContent>
                       </Card>
@@ -770,7 +771,7 @@ export default function PyqPage() {
                   </Button>
                 )}
                 <Button onClick={handleNextQuestion} data-testid="button-next-question">
-                  {currentQIndex + 1 >= practiceQuestions.length ? "Finish" : t.pyq.nextQuestion}
+                  {currentQIndex + 1 >= practiceQuestions.length ? t.pyq.finish : t.pyq.nextQuestion}
                   <ArrowRight className="h-4 w-4 ml-1.5" />
                 </Button>
               </div>
@@ -786,9 +787,12 @@ export default function PyqPage() {
       <Sidebar />
       <main className="flex-1 overflow-y-auto min-h-0">
         <div className="max-w-6xl mx-auto px-4 py-4 sm:px-6 sm:py-5 pb-20">
-          <div className="mb-4">
-            <h1 className="text-xl font-bold text-foreground" data-testid="text-page-title">{t.pyq.title}</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">{t.pyq.browse}</p>
+          <div className="mb-4 flex items-start justify-between">
+            <div>
+              <h1 className="text-xl font-bold text-foreground" data-testid="text-page-title">{t.pyq.title}</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">{t.pyq.browse}</p>
+            </div>
+            <InlineLanguageButton />
           </div>
 
           <div className="flex items-center gap-1 mb-4 border-b">
@@ -888,56 +892,56 @@ function BrowseView({
     <div>
       <div className="flex flex-wrap items-end gap-3 mb-4">
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground font-medium">Year</label>
+          <label className="text-xs text-muted-foreground font-medium">{t.pyq.year}</label>
           <select
             value={filters.year}
             onChange={(e) => setFilters({ ...filters, year: e.target.value, page: 1 })}
             className="h-9 rounded-md border border-border bg-background px-3 text-sm"
             data-testid="select-year"
           >
-            <option value="">All Years</option>
+            <option value="">{t.pyq.allYears}</option>
             {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground font-medium">Topic</label>
+          <label className="text-xs text-muted-foreground font-medium">{t.pyq.topic}</label>
           <select
             value={filters.topic}
             onChange={(e) => setFilters({ ...filters, topic: e.target.value, page: 1 })}
             className="h-9 rounded-md border border-border bg-background px-3 text-sm"
             data-testid="select-topic"
           >
-            <option value="">All Topics</option>
+            <option value="">{t.pyq.allTopics}</option>
             {PYQ_TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground font-medium">Difficulty</label>
+          <label className="text-xs text-muted-foreground font-medium">{t.pyq.difficulty}</label>
           <select
             value={filters.difficulty}
             onChange={(e) => setFilters({ ...filters, difficulty: e.target.value, page: 1 })}
             className="h-9 rounded-md border border-border bg-background px-3 text-sm"
             data-testid="select-difficulty"
           >
-            <option value="">All</option>
-            <option value="Easy">Easy</option>
-            <option value="Moderate">Moderate</option>
-            <option value="Hard">Hard</option>
+            <option value="">{t.pyq.all}</option>
+            <option value="Easy">{t.pyq.easy}</option>
+            <option value="Moderate">{t.pyq.moderate}</option>
+            <option value="Hard">{t.pyq.hard}</option>
           </select>
         </div>
 
         {stageTab === "Mains" && (
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-muted-foreground font-medium">Paper</label>
+            <label className="text-xs text-muted-foreground font-medium">{t.pyq.paper}</label>
             <select
               value={filters.paperType}
               onChange={(e) => setFilters({ ...filters, paperType: e.target.value, page: 1 })}
               className="h-9 rounded-md border border-border bg-background px-3 text-sm"
               data-testid="select-paper"
             >
-              <option value="">All Papers</option>
+              <option value="">{t.pyq.allPapers}</option>
               {availablePapers.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
           </div>
@@ -946,7 +950,7 @@ function BrowseView({
         {hasFilters && (
           <Button variant="ghost" size="sm" onClick={resetFilters} data-testid="button-reset-filters">
             <RotateCcw className="h-3.5 w-3.5 mr-1" />
-            Reset
+            {t.pyq.reset}
           </Button>
         )}
       </div>
@@ -954,7 +958,7 @@ function BrowseView({
       {questionsData && questionsData.questions.length > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <span className="text-sm text-muted-foreground" data-testid="text-total-results">
-            {questionsData.total} question{questionsData.total !== 1 ? "s" : ""} found
+            {questionsData.total} {questionsData.total !== 1 ? t.pyq.questionsFound : t.pyq.questionFound}
           </span>
           <Button
             size="sm"
@@ -962,7 +966,7 @@ function BrowseView({
             data-testid="button-start-practice"
           >
             <Target className="h-3.5 w-3.5 mr-1.5" />
-            Practice {filters.year ? `${filters.year} ${stageTab}` : filters.topic ? `${filters.topic} ${stageTab}` : `All ${stageTab}`}
+            {t.pyq.practiceAllStage} {filters.year ? `${filters.year} ${stageTab}` : filters.topic ? `${filters.topic} ${stageTab}` : stageTab}
           </Button>
         </div>
       )}
@@ -1082,7 +1086,7 @@ function BrowseView({
             </p>
             {hasFilters && (
               <Button variant="outline" size="sm" className="mt-3" onClick={resetFilters} data-testid="button-reset-filters-empty">
-                Reset Filters
+                {t.pyq.resetFilters}
               </Button>
             )}
           </CardContent>
