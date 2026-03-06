@@ -261,7 +261,7 @@ export async function pyqIngestCore(params: {
           contents: [{
             role: "user",
             parts: [
-              { text: "Extract ALL text from this PDF exactly as written. Preserve EVERY question number, EVERY option, and ALL formatting. Do NOT skip any content. Return only the extracted text, no commentary." },
+              { text: "Extract ALL text from this PDF exactly as written. Preserve EVERY question number, EVERY option, and ALL formatting. Do NOT skip any content. IMPORTANT: UPSC papers are bilingual (Hindi + English). Extract ONLY the ENGLISH version of each question. Skip all Hindi/Devanagari text entirely. Return only the extracted English text, no commentary." },
               { inlineData: { mimeType: "application/pdf", data: fileData.toString("base64") } },
             ],
           }],
@@ -304,6 +304,7 @@ Rules:
 - Do not hallucinate or guess answers — if unsure about correctIndex, use null
 - If marks are not specified, default to ${examStage === "Prelims" ? "2" : "10"}
 - ${examStage === "Prelims" ? 'questionType must be "mcq", options must be exactly 4 strings, marks default 2' : 'questionType must be "mains", options must be null, marks as stated or default 10'}
+- IMPORTANT: UPSC papers are bilingual (Hindi + English). Extract ONLY the ENGLISH version of each question. If a question appears in both Hindi and English, use ONLY the English text. Skip any question that is ONLY in Hindi/Devanagari with no English equivalent visible in this chunk.
 
 CRITICAL FORMATTING RULES for questionText:
 - Use \\n (newline) to separate logical parts of the question
