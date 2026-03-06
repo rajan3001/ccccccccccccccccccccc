@@ -1896,8 +1896,7 @@ function getAdminHtml(): string {
       loadPyqQuestions(1);
     }
 
-    async function loadPyqBank() {
-      initPyqDropdowns();
+    async function loadPyqStats() {
       try {
         const res = await fetch("/admin/api/pyq-stats");
         const d = await res.json();
@@ -1915,6 +1914,11 @@ function getAdminHtml(): string {
           return '<div class="stat-card"><div class="label">' + s.label + '</div><div class="value">' + s.value + '</div></div>';
         }).join('');
       } catch (e) { console.error(e); }
+    }
+
+    async function loadPyqBank() {
+      initPyqDropdowns();
+      await loadPyqStats();
       loadPyqJobs();
       filterPyqStage("");
     }
@@ -2213,8 +2217,9 @@ function getAdminHtml(): string {
 
         container.innerHTML = html;
 
+        loadPyqStats();
         if (hasActive) startJobPolling();
-        else { stopJobPolling(); loadPyqBank(); }
+        else { stopJobPolling(); loadPyqQuestions(1); }
       } catch (e) {
         if (!silent) container.innerHTML = '<div class="loading">Error loading jobs</div>';
         console.error(e);
