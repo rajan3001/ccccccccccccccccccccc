@@ -6,7 +6,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 const LOCAL_UPLOADS_DIR = path.resolve(process.cwd(), ".uploads");
-const MAX_UPLOAD_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_UPLOAD_SIZE = 200 * 1024 * 1024; // 200 MB
 
 function ensureUploadsDir() {
   if (!fs.existsSync(LOCAL_UPLOADS_DIR)) {
