@@ -32,6 +32,7 @@ import {
   Smartphone,
   ExternalLink,
   Home,
+  ScrollText,
 } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { cn } from "@/lib/utils";
@@ -108,6 +109,7 @@ export function Sidebar() {
     { href: "/notes", icon: StickyNote, label: t.nav.myNotes, testId: "link-my-notes", match: (loc: string) => loc === "/notes" },
     { href: "/study-planner", icon: CalendarCheck, label: t.nav.studyPlanner, testId: "link-study-planner", match: (loc: string) => loc === "/study-planner" },
     { href: "/study-progress", icon: BarChart3, label: t.nav.studyProgress, testId: "link-study-progress", match: (loc: string) => loc === "/study-progress" },
+    { href: "/pyq", icon: ScrollText, label: t.nav.pyqPractice, testId: "link-pyq-practice", match: (loc: string) => loc === "/pyq" },
   ];
 
 

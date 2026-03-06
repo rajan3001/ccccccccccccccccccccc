@@ -3,6 +3,7 @@ import { db } from "./db";
 import { users, otpVerifications, subscriptions } from "@shared/schema";
 import { conversations, messages, quizAttempts, quizQuestions, dailyTopics, dailyDigests, notes, blogPosts, evaluationSessions, evaluationQuestions, studySessions } from "@shared/schema";
 import { timetableSlots, syllabusTopics, userSyllabusProgress, dailyStudyGoals } from "@shared/schema";
+import { pyqQuestions, pyqAttempts, PYQ_TOPICS, PYQ_SUBTOPICS } from "@shared/schema";
 import { eq, sql, desc, count, inArray, and, gte, lte } from "drizzle-orm";
 
 const ADMIN_USER = process.env.ADMIN_USER || "admin";
@@ -422,6 +423,8 @@ export function registerAdminRoutes(app: Express) {
       const allTimetableSlots = await db.select().from(timetableSlots);
       const allUserSyllabusProgress = await db.select().from(userSyllabusProgress);
       const allDailyStudyGoals = await db.select().from(dailyStudyGoals);
+      const allPyqQuestions = await db.select().from(pyqQuestions);
+      const allPyqAttempts = await db.select().from(pyqAttempts);
 
       const exportData = {
         version: 2,
@@ -443,6 +446,8 @@ export function registerAdminRoutes(app: Express) {
           timetableSlots: allTimetableSlots,
           userSyllabusProgress: allUserSyllabusProgress,
           dailyStudyGoals: allDailyStudyGoals,
+          pyqQuestions: allPyqQuestions,
+          pyqAttempts: allPyqAttempts,
         }
       };
 
@@ -617,12 +622,200 @@ export function registerAdminRoutes(app: Express) {
         await upsertRecords(timetableSlots, d.timetableSlots, "timetableSlots");
         await upsertRecords(userSyllabusProgress, d.userSyllabusProgress, "userSyllabusProgress");
         await upsertRecords(dailyStudyGoals, d.dailyStudyGoals, "dailyStudyGoals");
+
+        if (d.pyqQuestions?.length) {
+          let inserted = 0, updated = 0, skipped = 0;
+          for (const q of d.pyqQuestions) {
+            try {
+              const existing = await tx.select({ id: pyqQuestions.id }).from(pyqQuestions).where(eq(pyqQuestions.id, q.id)).limit(1);
+              if (existing.length > 0) {
+                updated++;
+                continue;
+              }
+              if (q.textHash) {
+                const byHash = await tx.select({ id: pyqQuestions.id }).from(pyqQuestions).where(eq(pyqQuestions.textHash, q.textHash)).limit(1);
+                if (byHash.length > 0) { skipped++; continue; }
+              }
+              await tx.insert(pyqQuestions).values(q);
+              inserted++;
+            } catch (e: any) {
+              if (e.code === "23505") skipped++;
+              else { console.error("Import pyqQuestion error:", e.message); skipped++; }
+            }
+          }
+          results.pyqQuestions = { inserted, updated, skipped };
+        }
+
+        await upsertRecords(pyqAttempts, d.pyqAttempts, "pyqAttempts");
       });
 
       res.json({ success: true, message: "Import completed successfully. All user progress preserved.", results });
     } catch (error: any) {
       console.error("Import error:", error);
       res.status(500).json({ error: "Import failed (no data was changed): " + error.message });
+    }
+  });
+
+  app.get("/admin/api/pyq/questions", basicAuth, async (req, res) => {
+    try {
+      const { examType, examStage, year, paperType, topic, page = "1", limit = "20" } = req.query;
+      const pageNum = Math.max(1, parseInt(page as string));
+      const limitNum = Math.min(100, Math.max(1, parseInt(limit as string)));
+      const offset = (pageNum - 1) * limitNum;
+
+      const conditions: any[] = [];
+      if (examType) conditions.push(eq(pyqQuestions.examType, examType as string));
+      if (examStage) conditions.push(eq(pyqQuestions.examStage, examStage as string));
+      if (year) conditions.push(eq(pyqQuestions.year, Number(year)));
+      if (paperType) conditions.push(eq(pyqQuestions.paperType, paperType as string));
+      if (topic) conditions.push(eq(pyqQuestions.topic, topic as string));
+
+      const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+      const [{ total }] = await db.select({ total: sql<number>`count(*)::int` })
+        .from(pyqQuestions)
+        .where(where as any);
+
+      const questions = await db.select()
+        .from(pyqQuestions)
+        .where(where as any)
+        .orderBy(desc(pyqQuestions.year), pyqQuestions.questionNumber)
+        .limit(limitNum)
+        .offset(offset);
+
+      res.json({ questions, total, page: pageNum, totalPages: Math.ceil(total / limitNum) });
+    } catch (error: any) {
+      console.error("Admin PYQ list error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.put("/admin/api/pyq/questions/:id", basicAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = { ...req.body };
+      delete updates.id;
+      delete updates.createdAt;
+
+      if (updates.questionText) {
+        const { createHash } = await import("crypto");
+        const normalized = updates.questionText.toLowerCase().replace(/[^\w\s]/g, "").replace(/\s+/g, " ").trim();
+        updates.textHash = createHash("sha256").update(normalized).digest("hex").substring(0, 64);
+      }
+
+      const [updated] = await db.update(pyqQuestions)
+        .set(updates)
+        .where(eq(pyqQuestions.id, id))
+        .returning();
+
+      if (!updated) return res.status(404).json({ error: "Question not found" });
+      res.json(updated);
+    } catch (error: any) {
+      console.error("Admin PYQ update error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/admin/api/pyq/questions/:id", basicAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const [deleted] = await db.delete(pyqQuestions)
+        .where(eq(pyqQuestions.id, id))
+        .returning({ id: pyqQuestions.id });
+
+      if (!deleted) return res.status(404).json({ error: "Question not found" });
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Admin PYQ delete error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/admin/api/pyq/bulk-import", basicAuth, async (req: any, res) => {
+    try {
+      const { questions } = req.body;
+      if (!Array.isArray(questions) || questions.length === 0) {
+        return res.status(400).json({ error: "Provide a non-empty 'questions' array" });
+      }
+
+      const { createHash } = await import("crypto");
+      let inserted = 0, skipped = 0;
+      const errors: string[] = [];
+
+      for (const q of questions) {
+        if (!q.examType || !q.examStage || !q.year || !q.paperType || !q.questionNumber || !q.questionText || !q.questionType) {
+          errors.push("Q" + (q.questionNumber || "?") + ": Missing required fields");
+          continue;
+        }
+        const normalized = q.questionText.toLowerCase().replace(/[^\w\s]/g, "").replace(/\s+/g, " ").trim();
+        const tHash = createHash("sha256").update(normalized).digest("hex").substring(0, 64);
+
+        const existing = await db.select({ id: pyqQuestions.id })
+          .from(pyqQuestions)
+          .where(eq(pyqQuestions.textHash, tHash))
+          .limit(1);
+        if (existing.length > 0) { skipped++; continue; }
+
+        try {
+          await db.insert(pyqQuestions).values({
+            examType: q.examType,
+            examStage: q.examStage,
+            year: Number(q.year),
+            paperType: q.paperType,
+            questionNumber: q.questionNumber,
+            questionText: q.questionText,
+            questionType: q.questionType,
+            options: q.options || null,
+            correctIndex: q.correctIndex ?? null,
+            marks: q.marks || (q.examStage === "Prelims" ? 2 : 10),
+            topic: q.topic || "Unclassified",
+            subTopic: q.subTopic || null,
+            difficulty: q.difficulty || null,
+            explanation: q.explanation || null,
+            textHash: tHash,
+          });
+          inserted++;
+        } catch (e: any) {
+          if (e.code === "23505") skipped++;
+          else errors.push("Q" + q.questionNumber + ": " + e.message);
+        }
+      }
+
+      res.json({ total: questions.length, inserted, skipped, errors });
+    } catch (error: any) {
+      console.error("Admin PYQ bulk import error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/admin/api/pyq-stats", basicAuth, async (_req, res) => {
+    try {
+      const [totalCount] = await db.select({ count: sql<number>`count(*)::int` }).from(pyqQuestions);
+      const [prelimsCount] = await db.select({ count: sql<number>`count(*)::int` }).from(pyqQuestions).where(eq(pyqQuestions.examStage, "Prelims"));
+      const [mainsCount] = await db.select({ count: sql<number>`count(*)::int` }).from(pyqQuestions).where(eq(pyqQuestions.examStage, "Mains"));
+      const [attemptsCount] = await db.select({ count: sql<number>`count(*)::int` }).from(pyqAttempts);
+
+      const byExamType = await db.select({
+        examType: pyqQuestions.examType,
+        count: sql<number>`count(*)::int`,
+      }).from(pyqQuestions).groupBy(pyqQuestions.examType);
+
+      const byTopic = await db.select({
+        topic: pyqQuestions.topic,
+        count: sql<number>`count(*)::int`,
+      }).from(pyqQuestions).groupBy(pyqQuestions.topic).orderBy(desc(sql`count(*)`));
+
+      res.json({
+        total: totalCount?.count || 0,
+        prelims: prelimsCount?.count || 0,
+        mains: mainsCount?.count || 0,
+        attempts: attemptsCount?.count || 0,
+        byExamType: byExamType || [],
+        byTopic: byTopic || [],
+      });
+    } catch (error) {
+      console.error("Admin PYQ stats error:", error);
+      res.status(500).json({ error: "Failed to fetch PYQ stats" });
     }
   });
 
@@ -772,6 +965,9 @@ function getAdminHtml(): string {
         </div>
         <div class="nav-item" data-section="articles" onclick="switchSection('articles')">
           <span class="icon">&#x1f4f0;</span> Articles
+        </div>
+        <div class="nav-item" data-section="pyq-bank" onclick="switchSection('pyq-bank')">
+          <span class="icon">&#x1f4d6;</span> PYQ Bank
         </div>
       </div>
       <div class="nav-section">
@@ -936,6 +1132,193 @@ function getAdminHtml(): string {
         </div>
       </div>
 
+      <!-- PYQ Bank Section -->
+      <div class="section" id="section-pyq-bank">
+        <div class="stats-grid" id="pyq-stats-grid"></div>
+
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header"><h3>PDF Ingestion</h3></div>
+          <div class="card-body" style="padding:20px;">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
+              <div style="flex:1;min-width:180px;">
+                <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">PDF File (max 10MB)</label>
+                <input type="file" id="pyq-pdf-file" accept=".pdf" style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;width:100%;font-size:13px;" />
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Exam Type</label>
+                <select id="pyq-exam-type" style="padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;">
+                  <option value="UPSC">UPSC</option>
+                  <option value="JPSC">JPSC</option>
+                  <option value="BPSC">BPSC</option>
+                  <option value="MPSC">MPSC</option>
+                  <option value="UPPSC">UPPSC</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Stage</label>
+                <select id="pyq-exam-stage" onchange="updatePyqPaperTypes()" style="padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;">
+                  <option value="Prelims">Prelims</option>
+                  <option value="Mains">Mains</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Paper Type</label>
+                <select id="pyq-paper-type" style="padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;">
+                  <option value="GS">GS</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Year</label>
+                <select id="pyq-year" style="padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;">
+                </select>
+              </div>
+              <button class="btn btn-primary" onclick="uploadPyqPdf()" id="pyq-upload-btn">Upload & Process</button>
+            </div>
+            <div id="pyq-upload-progress" style="display:none;padding:12px;background:#fffbeb;border-radius:8px;font-size:13px;color:#92400e;"></div>
+            <div id="pyq-upload-results" style="display:none;margin-top:12px;"></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header"><h3>Bulk JSON Import</h3></div>
+          <div class="card-body" style="padding:20px;">
+            <div style="display:flex;gap:12px;align-items:center;">
+              <input type="file" id="pyq-json-file" accept=".json" style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;flex:1;" />
+              <button class="btn btn-primary" onclick="importPyqJson()" id="pyq-json-btn">Import JSON</button>
+            </div>
+            <div style="margin-top:8px;font-size:12px;color:#94a3b8;">JSON format: { "questions": [{ examType, examStage, year, paperType, questionNumber, questionText, questionType, options, correctIndex, marks, topic, difficulty }] }</div>
+            <div id="pyq-json-results" style="display:none;margin-top:12px;"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header" style="flex-wrap:wrap;gap:8px;">
+            <h3>Questions</h3>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="btn btn-secondary pyq-stage-tab" data-stage="" onclick="filterPyqStage('')" style="font-size:12px;padding:5px 12px;">All</button>
+              <button class="btn btn-secondary pyq-stage-tab" data-stage="Prelims" onclick="filterPyqStage('Prelims')" style="font-size:12px;padding:5px 12px;">Prelims</button>
+              <button class="btn btn-secondary pyq-stage-tab" data-stage="Mains" onclick="filterPyqStage('Mains')" style="font-size:12px;padding:5px 12px;">Mains</button>
+            </div>
+          </div>
+          <div style="padding:12px 20px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid #f1f5f9;">
+            <select id="pyq-filter-exam" onchange="loadPyqQuestions(1)" style="padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;">
+              <option value="">All Exams</option>
+              <option value="UPSC">UPSC</option>
+              <option value="JPSC">JPSC</option>
+              <option value="BPSC">BPSC</option>
+            </select>
+            <select id="pyq-filter-year" onchange="loadPyqQuestions(1)" style="padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;">
+              <option value="">All Years</option>
+            </select>
+            <select id="pyq-filter-paper" onchange="loadPyqQuestions(1)" style="padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;">
+              <option value="">All Papers</option>
+              <option value="GS">GS</option>
+              <option value="GS-I">GS-I</option>
+              <option value="GS-II">GS-II</option>
+              <option value="GS-III">GS-III</option>
+              <option value="GS-IV">GS-IV</option>
+              <option value="Essay">Essay</option>
+            </select>
+            <select id="pyq-filter-topic" onchange="loadPyqQuestions(1)" style="padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;">
+              <option value="">All Topics</option>
+            </select>
+          </div>
+          <div class="card-body">
+            <div class="table-wrapper">
+              <table>
+                <thead><tr><th>#</th><th>Exam</th><th>Stage</th><th>Year</th><th>Paper</th><th>Topic</th><th>Difficulty</th><th>Type</th><th>Text</th><th>Actions</th></tr></thead>
+                <tbody id="pyq-tbody"><tr><td colspan="10" class="loading">Loading...</td></tr></tbody>
+              </table>
+            </div>
+            <div class="pagination" id="pyq-pagination"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PYQ Edit Modal -->
+      <div id="pyq-edit-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:100;overflow-y:auto;">
+        <div style="max-width:640px;margin:40px auto;background:#fff;border-radius:12px;padding:24px;position:relative;">
+          <h3 style="margin-bottom:16px;font-size:16px;font-weight:600;">Edit Question</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Exam Type</label>
+              <input id="pyq-edit-examType" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;" />
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Stage</label>
+              <select id="pyq-edit-examStage" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;">
+                <option value="Prelims">Prelims</option>
+                <option value="Mains">Mains</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Year</label>
+              <input type="number" id="pyq-edit-year" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;" />
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Paper Type</label>
+              <input id="pyq-edit-paperType" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;" />
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Question Number</label>
+              <input type="number" id="pyq-edit-questionNumber" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;" />
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Question Type</label>
+              <select id="pyq-edit-questionType" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;">
+                <option value="mcq">MCQ</option>
+                <option value="mains">Mains</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Marks</label>
+              <input type="number" id="pyq-edit-marks" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;" />
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Correct Index (0-3)</label>
+              <input type="number" id="pyq-edit-correctIndex" min="0" max="3" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;" />
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Topic</label>
+              <select id="pyq-edit-topic" onchange="updatePyqEditSubTopics()" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;">
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Sub Topic</label>
+              <select id="pyq-edit-subTopic" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;">
+                <option value="">None</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Difficulty</label>
+              <select id="pyq-edit-difficulty" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;">
+                <option value="">Unset</option>
+                <option value="Easy">Easy</option>
+                <option value="Moderate">Moderate</option>
+                <option value="Hard">Hard</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:12px;">
+            <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Question Text</label>
+            <textarea id="pyq-edit-questionText" rows="4" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;resize:vertical;"></textarea>
+          </div>
+          <div style="margin-top:12px;">
+            <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Options (JSON array, e.g. ["A","B","C","D"])</label>
+            <input id="pyq-edit-options" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;" />
+          </div>
+          <div style="margin-top:12px;">
+            <label style="font-size:12px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">Explanation</label>
+            <textarea id="pyq-edit-explanation" rows="3" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;resize:vertical;"></textarea>
+          </div>
+          <input type="hidden" id="pyq-edit-id" />
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">
+            <button class="btn btn-secondary" onclick="closePyqEditModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="savePyqEdit()" id="pyq-save-btn">Save Changes</button>
+          </div>
+        </div>
+      </div>
+
       <div class="section" id="section-backup">
         <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
           <div class="stat-card">
@@ -989,7 +1372,7 @@ function getAdminHtml(): string {
         dashboard: "Dashboard", users: "Users", subscriptions: "Subscriptions",
         conversations: "Conversations", "current-affairs": "Current Affairs",
         quizzes: "Quizzes", evaluations: "Evaluations", notes: "Notes", articles: "Articles",
-        backup: "Backup & Import"
+        "pyq-bank": "PYQ Bank", backup: "Backup & Import"
       };
       document.getElementById("topbar-title").textContent = titles[name] || name;
 
@@ -1005,6 +1388,7 @@ function getAdminHtml(): string {
         evaluations: () => loadEvaluations(1),
         notes: () => loadNotes(1),
         articles: () => loadArticles(1),
+        "pyq-bank": loadPyqBank,
       };
       if (loaders[name]) loaders[name]();
     }
@@ -1308,6 +1692,335 @@ function getAdminHtml(): string {
         setTimeout(() => { btn.innerHTML = "&#x2B06; Upload & Import Backup"; btn.disabled = false; }, 5000);
         input.value = "";
       }
+    }
+
+    const PYQ_TOPICS = ${JSON.stringify(PYQ_TOPICS)};
+    const PYQ_SUBTOPICS = ${JSON.stringify(PYQ_SUBTOPICS)};
+    let pyqStageFilter = "";
+
+    function initPyqDropdowns() {
+      const yearSel = document.getElementById("pyq-year");
+      const filterYearSel = document.getElementById("pyq-filter-year");
+      const filterTopicSel = document.getElementById("pyq-filter-topic");
+      const editTopicSel = document.getElementById("pyq-edit-topic");
+
+      yearSel.innerHTML = "";
+      for (let y = 2026; y >= 2013; y--) {
+        yearSel.innerHTML += '<option value="' + y + '">' + y + '</option>';
+      }
+      filterYearSel.innerHTML = '<option value="">All Years</option>';
+      for (let y = 2026; y >= 2013; y--) {
+        filterYearSel.innerHTML += '<option value="' + y + '">' + y + '</option>';
+      }
+      filterTopicSel.innerHTML = '<option value="">All Topics</option>';
+      editTopicSel.innerHTML = "";
+      PYQ_TOPICS.forEach(function(t) {
+        filterTopicSel.innerHTML += '<option value="' + t + '">' + t + '</option>';
+        editTopicSel.innerHTML += '<option value="' + t + '">' + t + '</option>';
+      });
+    }
+
+    function updatePyqPaperTypes() {
+      const stage = document.getElementById("pyq-exam-stage").value;
+      const sel = document.getElementById("pyq-paper-type");
+      if (stage === "Prelims") {
+        sel.innerHTML = '<option value="GS">GS</option>';
+      } else {
+        sel.innerHTML = '<option value="GS-I">GS-I</option><option value="GS-II">GS-II</option><option value="GS-III">GS-III</option><option value="GS-IV">GS-IV</option><option value="Essay">Essay</option>';
+      }
+    }
+
+    function updatePyqEditSubTopics() {
+      const topic = document.getElementById("pyq-edit-topic").value;
+      const sel = document.getElementById("pyq-edit-subTopic");
+      sel.innerHTML = '<option value="">None</option>';
+      const subs = PYQ_SUBTOPICS[topic] || [];
+      subs.forEach(function(s) {
+        sel.innerHTML += '<option value="' + s + '">' + s + '</option>';
+      });
+    }
+
+    function filterPyqStage(stage) {
+      pyqStageFilter = stage;
+      document.querySelectorAll(".pyq-stage-tab").forEach(function(b) {
+        b.classList.toggle("btn-primary", b.getAttribute("data-stage") === stage);
+        b.classList.toggle("btn-secondary", b.getAttribute("data-stage") !== stage);
+      });
+      if (stage === "") {
+        document.querySelectorAll(".pyq-stage-tab[data-stage='']")[0].classList.add("btn-primary");
+        document.querySelectorAll(".pyq-stage-tab[data-stage='']")[0].classList.remove("btn-secondary");
+      }
+      loadPyqQuestions(1);
+    }
+
+    async function loadPyqBank() {
+      initPyqDropdowns();
+      try {
+        const res = await fetch("/admin/api/pyq-stats");
+        const d = await res.json();
+        const grid = document.getElementById("pyq-stats-grid");
+        const examCards = (d.byExamType || []).map(function(e) {
+          return { label: e.examType, value: e.count };
+        });
+        const cards = [
+          { label: "Total Questions", value: d.total },
+          { label: "Prelims", value: d.prelims },
+          { label: "Mains", value: d.mains },
+          { label: "Total Attempts", value: d.attempts },
+        ].concat(examCards);
+        grid.innerHTML = cards.map(function(s) {
+          return '<div class="stat-card"><div class="label">' + s.label + '</div><div class="value">' + s.value + '</div></div>';
+        }).join('');
+      } catch (e) { console.error(e); }
+      filterPyqStage("");
+    }
+
+    async function loadPyqQuestions(page) {
+      const tbody = document.getElementById("pyq-tbody");
+      tbody.innerHTML = '<tr><td colspan="10" class="loading">Loading...</td></tr>';
+      try {
+        const params = new URLSearchParams({ page: page, limit: 20 });
+        if (pyqStageFilter) params.set("examStage", pyqStageFilter);
+        const examF = document.getElementById("pyq-filter-exam").value;
+        const yearF = document.getElementById("pyq-filter-year").value;
+        const paperF = document.getElementById("pyq-filter-paper").value;
+        const topicF = document.getElementById("pyq-filter-topic").value;
+        if (examF) params.set("examType", examF);
+        if (yearF) params.set("year", yearF);
+        if (paperF) params.set("paperType", paperF);
+        if (topicF) params.set("topic", topicF);
+
+        const res = await fetch("/admin/api/pyq/questions?" + params);
+        const d = await res.json();
+        if (!d.questions || !d.questions.length) {
+          tbody.innerHTML = '<tr><td colspan="10" class="loading">No questions found</td></tr>';
+          document.getElementById("pyq-pagination").innerHTML = "";
+          return;
+        }
+        tbody.innerHTML = d.questions.map(function(q, i) {
+          const idx = (d.page - 1) * 20 + i + 1;
+          const diffClass = q.difficulty === "Easy" ? "tag-active" : q.difficulty === "Hard" ? "tag-pending" : "tag-plan";
+          const stageClass = q.examStage === "Prelims" ? "tag-active" : "tag-plan";
+          const typeClass = q.questionType === "mcq" ? "tag-active" : "tag-plan";
+          const textPreview = (q.questionText || "").substring(0, 80) + ((q.questionText || "").length > 80 ? "..." : "");
+          return '<tr>' +
+            '<td>' + idx + '</td>' +
+            '<td>' + esc(q.examType) + '</td>' +
+            '<td><span class="tag ' + stageClass + '">' + esc(q.examStage) + '</span></td>' +
+            '<td>' + q.year + '</td>' +
+            '<td>' + esc(q.paperType) + '</td>' +
+            '<td><span class="tag tag-plan">' + esc(q.topic) + '</span></td>' +
+            '<td>' + (q.difficulty ? '<span class="tag ' + diffClass + '">' + esc(q.difficulty) + '</span>' : '—') + '</td>' +
+            '<td><span class="tag ' + typeClass + '">' + esc(q.questionType) + '</span></td>' +
+            '<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + esc(q.questionText) + '">' + esc(textPreview) + '</td>' +
+            '<td style="white-space:nowrap;"><button class="btn btn-secondary" style="font-size:11px;padding:4px 8px;margin-right:4px;" onclick=\\'openPyqEditModal(' + q.id + ')\\'>Edit</button><button class="btn btn-secondary" style="font-size:11px;padding:4px 8px;color:#dc2626;" onclick=\\'deletePyqQuestion(' + q.id + ')\\'>Del</button></td>' +
+            '</tr>';
+        }).join('');
+        renderPagination("pyq-pagination", d.page, d.totalPages, d.total, "loadPyqQuestions");
+      } catch (e) {
+        console.error(e);
+        tbody.innerHTML = '<tr><td colspan="10" class="loading">Error loading questions</td></tr>';
+      }
+    }
+
+    async function openPyqEditModal(id) {
+      try {
+        const res = await fetch("/admin/api/pyq/questions?limit=100");
+        const d = await res.json();
+        const q = d.questions.find(function(x) { return x.id === id; });
+        if (!q) { alert("Question not found"); return; }
+        document.getElementById("pyq-edit-id").value = q.id;
+        document.getElementById("pyq-edit-examType").value = q.examType || "";
+        document.getElementById("pyq-edit-examStage").value = q.examStage || "Prelims";
+        document.getElementById("pyq-edit-year").value = q.year || "";
+        document.getElementById("pyq-edit-paperType").value = q.paperType || "";
+        document.getElementById("pyq-edit-questionNumber").value = q.questionNumber || "";
+        document.getElementById("pyq-edit-questionType").value = q.questionType || "mcq";
+        document.getElementById("pyq-edit-marks").value = q.marks || "";
+        document.getElementById("pyq-edit-correctIndex").value = q.correctIndex != null ? q.correctIndex : "";
+        document.getElementById("pyq-edit-topic").value = q.topic || "Unclassified";
+        updatePyqEditSubTopics();
+        document.getElementById("pyq-edit-subTopic").value = q.subTopic || "";
+        document.getElementById("pyq-edit-difficulty").value = q.difficulty || "";
+        document.getElementById("pyq-edit-questionText").value = q.questionText || "";
+        document.getElementById("pyq-edit-options").value = q.options ? JSON.stringify(q.options) : "";
+        document.getElementById("pyq-edit-explanation").value = q.explanation || "";
+        document.getElementById("pyq-edit-modal").style.display = "block";
+      } catch (e) {
+        console.error(e);
+        alert("Failed to load question");
+      }
+    }
+
+    function closePyqEditModal() {
+      document.getElementById("pyq-edit-modal").style.display = "none";
+    }
+
+    async function savePyqEdit() {
+      const id = document.getElementById("pyq-edit-id").value;
+      const btn = document.getElementById("pyq-save-btn");
+      btn.textContent = "Saving...";
+      btn.disabled = true;
+      try {
+        let options = null;
+        const optStr = document.getElementById("pyq-edit-options").value.trim();
+        if (optStr) { try { options = JSON.parse(optStr); } catch { alert("Invalid options JSON"); btn.textContent = "Save Changes"; btn.disabled = false; return; } }
+        const correctIdx = document.getElementById("pyq-edit-correctIndex").value;
+        const body = {
+          examType: document.getElementById("pyq-edit-examType").value,
+          examStage: document.getElementById("pyq-edit-examStage").value,
+          year: parseInt(document.getElementById("pyq-edit-year").value),
+          paperType: document.getElementById("pyq-edit-paperType").value,
+          questionNumber: parseInt(document.getElementById("pyq-edit-questionNumber").value),
+          questionType: document.getElementById("pyq-edit-questionType").value,
+          marks: parseInt(document.getElementById("pyq-edit-marks").value),
+          correctIndex: correctIdx !== "" ? parseInt(correctIdx) : null,
+          topic: document.getElementById("pyq-edit-topic").value,
+          subTopic: document.getElementById("pyq-edit-subTopic").value || null,
+          difficulty: document.getElementById("pyq-edit-difficulty").value || null,
+          questionText: document.getElementById("pyq-edit-questionText").value,
+          options: options,
+          explanation: document.getElementById("pyq-edit-explanation").value || null,
+        };
+        const res = await fetch("/admin/api/pyq/questions/" + id, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error || "Failed"); }
+        closePyqEditModal();
+        loadPyqQuestions(1);
+        btn.textContent = "Save Changes";
+        btn.disabled = false;
+      } catch (e) {
+        alert("Error: " + e.message);
+        btn.textContent = "Save Changes";
+        btn.disabled = false;
+      }
+    }
+
+    async function deletePyqQuestion(id) {
+      if (!confirm("Delete this question?")) return;
+      try {
+        const res = await fetch("/admin/api/pyq/questions/" + id, { method: "DELETE" });
+        if (!res.ok) throw new Error("Delete failed");
+        loadPyqQuestions(1);
+        loadPyqBank();
+      } catch (e) {
+        alert("Error: " + e.message);
+      }
+    }
+
+    async function uploadPyqPdf() {
+      const fileInput = document.getElementById("pyq-pdf-file");
+      const file = fileInput.files[0];
+      if (!file) { alert("Please select a PDF file"); return; }
+      if (file.size > 10 * 1024 * 1024) { alert("File too large. Maximum 10MB."); return; }
+
+      const btn = document.getElementById("pyq-upload-btn");
+      const progress = document.getElementById("pyq-upload-progress");
+      const results = document.getElementById("pyq-upload-results");
+      btn.disabled = true;
+      btn.textContent = "Processing...";
+      progress.style.display = "block";
+      results.style.display = "none";
+
+      try {
+        progress.textContent = "Uploading PDF...";
+        const formData = new FormData();
+        formData.append("file", file);
+        const uploadRes = await fetch("/api/objects/upload", { method: "POST", body: formData });
+        if (!uploadRes.ok) throw new Error("Upload failed");
+        const uploadData = await uploadRes.json();
+
+        progress.textContent = "Extracting text & structuring questions...";
+        const ingestRes = await fetch("/api/pyq/ingest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileObjectPath: uploadData.objectPath || uploadData.path,
+            examType: document.getElementById("pyq-exam-type").value,
+            examStage: document.getElementById("pyq-exam-stage").value,
+            year: document.getElementById("pyq-year").value,
+            paperType: document.getElementById("pyq-paper-type").value,
+          }),
+        });
+        const data = await ingestRes.json();
+        if (!ingestRes.ok) throw new Error(data.error || "Ingestion failed");
+
+        progress.textContent = "Done!";
+        let html = '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;">';
+        html += '<div style="font-weight:600;color:#16a34a;margin-bottom:8px;">Processing Complete</div>';
+        html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;font-size:13px;">';
+        html += '<div><strong>Extracted:</strong> ' + data.totalExtracted + '</div>';
+        html += '<div><strong>Validated:</strong> ' + data.validated + '</div>';
+        html += '<div><strong>Inserted:</strong> ' + data.inserted + '</div>';
+        html += '<div><strong>Skipped:</strong> ' + data.skipped + '</div>';
+        html += '<div><strong>Rejected:</strong> ' + data.rejected + '</div>';
+        html += '</div>';
+        if (data.rejectedDetails && data.rejectedDetails.length > 0) {
+          html += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:13px;color:#dc2626;">View rejected questions (' + data.rejectedDetails.length + ')</summary>';
+          html += '<div style="margin-top:8px;font-size:12px;">';
+          data.rejectedDetails.forEach(function(r) {
+            html += '<div style="padding:4px 0;border-bottom:1px solid #e2e8f0;"><strong>Q' + (r.questionNumber || '?') + ':</strong> ' + esc(r.text || '') + '<br><span style="color:#dc2626;">' + (r.reasons || []).join(", ") + '</span></div>';
+          });
+          html += '</div></details>';
+        }
+        html += '</div>';
+        results.innerHTML = html;
+        results.style.display = "block";
+        setTimeout(function() { progress.style.display = "none"; }, 2000);
+        loadPyqBank();
+      } catch (e) {
+        progress.textContent = "Error: " + e.message;
+        progress.style.background = "#fef2f2";
+        progress.style.color = "#dc2626";
+      }
+      btn.disabled = false;
+      btn.textContent = "Upload & Process";
+      fileInput.value = "";
+    }
+
+    async function importPyqJson() {
+      const fileInput = document.getElementById("pyq-json-file");
+      const file = fileInput.files[0];
+      if (!file) { alert("Please select a JSON file"); return; }
+
+      const btn = document.getElementById("pyq-json-btn");
+      const results = document.getElementById("pyq-json-results");
+      btn.disabled = true;
+      btn.textContent = "Importing...";
+
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        const questions = data.questions || data;
+        if (!Array.isArray(questions)) throw new Error("Expected a JSON array or { questions: [...] }");
+
+        const res = await fetch("/admin/api/pyq/bulk-import", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ questions }),
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || "Import failed");
+
+        let html = '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px;font-size:13px;">';
+        html += '<strong>Total:</strong> ' + result.total + ' | <strong>Inserted:</strong> ' + result.inserted + ' | <strong>Skipped:</strong> ' + result.skipped;
+        if (result.errors && result.errors.length > 0) {
+          html += '<br><span style="color:#dc2626;">Errors: ' + result.errors.join("; ") + '</span>';
+        }
+        html += '</div>';
+        results.innerHTML = html;
+        results.style.display = "block";
+        loadPyqBank();
+      } catch (e) {
+        results.innerHTML = '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;font-size:13px;color:#dc2626;">Error: ' + e.message + '</div>';
+        results.style.display = "block";
+      }
+      btn.disabled = false;
+      btn.textContent = "Import JSON";
+      fileInput.value = "";
     }
 
     loadDashboard();

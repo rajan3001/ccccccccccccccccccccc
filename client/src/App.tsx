@@ -20,6 +20,7 @@ const PaperEvaluationPage = lazy(() => import("@/pages/paper-evaluation-page"));
 const NotesPage = lazy(() => import("@/pages/notes-page"));
 const StudyPlannerPage = lazy(() => import("@/pages/study-planner-page"));
 const StudyProgressPage = lazy(() => import("@/pages/study-progress-page"));
+const PyqPage = lazy(() => import("@/pages/pyq-page"));
 const SettingsPage = lazy(() => import("@/pages/settings-page"));
 const PrivacyPolicyPage = lazy(() => import("@/pages/privacy-policy-page"));
 const TermsOfServicePage = lazy(() => import("@/pages/terms-of-service-page"));
@@ -80,6 +81,7 @@ function Router() {
         <Route path="/notes"><AuthGate><NotesPage /></AuthGate></Route>
         <Route path="/study-planner"><AuthGate><StudyPlannerPage /></AuthGate></Route>
         <Route path="/study-progress"><AuthGate><StudyProgressPage /></AuthGate></Route>
+        <Route path="/pyq"><AuthGate><PyqPage /></AuthGate></Route>
         <Route path="/settings"><AuthGate><SettingsPage /></AuthGate></Route>
         <Route path="/subscription" component={SubscriptionPage} />
         <Route path="/privacy-policy" component={PrivacyPolicyPage} />

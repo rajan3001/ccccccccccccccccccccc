@@ -4,8 +4,9 @@ import { Logo } from "@/components/ui/logo";
 import { StyledMarkdown, StreamingMarkdown } from "@/components/ui/styled-markdown";
 import { detectMCQContent } from "@/components/chat/chat-quiz-panel";
 import { detectNoteType, NOTE_TYPE_FOLDERS, NOTE_TYPE_LABELS } from "@/components/notes/note-type-dialog";
-import { User, Copy, Check, FileText, Image as ImageIcon, File, BookmarkPlus, FolderPlus, Download, Play, Target, StickyNote } from "lucide-react";
+import { User, Copy, Check, FileText, Image as ImageIcon, File, BookmarkPlus, FolderPlus, Download, Play, Target, StickyNote, ScrollText } from "lucide-react";
 import { useState } from "react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -169,6 +170,13 @@ export function MessageBubble({ message, isStreaming, conversationId, userQuery,
   };
 
   const attachments: AttachmentData[] = (message as any).attachments || [];
+
+  const topicForPyq = !isUser && !isStreaming && userQuery ? userQuery.replace(/[#*_`]/g, "").trim().split(/\s+/).slice(0, 8).join(" ") : "";
+  const { data: pyqMatches } = useQuery<{ id: number; examType: string; examStage: string; year: number; paperType: string; questionNumber: number; topic: string }[]>({
+    queryKey: [`/api/pyq/matches?topic=${encodeURIComponent(topicForPyq)}`],
+    enabled: !!topicForPyq && topicForPyq.length > 3,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const hasMCQ = !isUser && !isStreaming && !!message.content && detectMCQContent(message.content);
 
@@ -334,6 +342,28 @@ export function MessageBubble({ message, isStreaming, conversationId, userQuery,
                 <Download className="h-4 w-4 mr-1.5" />
                 Download as PDF
               </Button>
+            </div>
+          )}
+
+          {!isUser && !isStreaming && pyqMatches && pyqMatches.length > 0 && (
+            <div className="mt-3 p-3 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30" data-testid="pyq-asked-before-card">
+              <div className="flex items-center gap-2 mb-2">
+                <ScrollText className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">Asked before</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {pyqMatches.map((match) => (
+                  <Link
+                    key={match.id}
+                    href={`/pyq?id=${match.id}`}
+                    data-testid={`link-pyq-match-${match.id}`}
+                  >
+                    <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full border border-amber-300 dark:border-amber-600 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 cursor-pointer hover-elevate">
+                      {match.examType} {match.year} {match.examStage} Q.{match.questionNumber}
+                    </span>
+                  </Link>
+                ))}
+              </div>
             </div>
           )}
         </div>

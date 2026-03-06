@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { UpgradeBanner } from "@/components/upgrade-banner";
 import { useSubscription } from "@/hooks/use-subscription";
@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/i18n/context";
 import { InlineLanguageButton } from "@/components/inline-language-button";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import {
   Select,
   SelectContent,
@@ -292,6 +294,23 @@ function SyllabusTab({ selectedExam, onExamChange, userExams }: { selectedExam: 
   const [lastExam, setLastExam] = useState(selectedExam);
   const [initialized, setInitialized] = useState(false);
 
+  const uniqueTopicNames = useMemo(() => {
+    if (!topics) return "";
+    const names = new Set<string>();
+    for (const tp of topics) {
+      if (tp.parentTopic !== null && tp.topic) {
+        names.add(tp.topic);
+      }
+    }
+    return Array.from(names).slice(0, 50).join(",");
+  }, [topics]);
+
+  const { data: pyqTopicCounts } = useQuery<Record<string, number>>({
+    queryKey: [`/api/pyq/topic-counts?topics=${encodeURIComponent(uniqueTopicNames)}`],
+    enabled: !!uniqueTopicNames && uniqueTopicNames.length > 0,
+    staleTime: 10 * 60 * 1000,
+  });
+
   useEffect(() => {
     if (selectedExam !== lastExam) {
       setExpandedPapers({});
@@ -391,19 +410,29 @@ function SyllabusTab({ selectedExam, onExamChange, userExams }: { selectedExam: 
                       </div>
                       {sectionExpanded && (
                         <div className="px-3 pb-3 space-y-1">
-                          {sectionTopics.map((topic: any) => (
-                            <label
-                              key={topic.id}
-                              className="flex items-center gap-3 p-2 rounded-md hover-elevate cursor-pointer"
-                              data-testid={`checkbox-topic-${topic.id}`}
-                            >
-                              <Checkbox
-                                checked={topic.completed}
-                                onCheckedChange={(checked) => toggleTopic.mutate({ topicId: topic.id, completed: !!checked })}
-                              />
-                              <span className={cn("text-sm", topic.completed && "line-through text-muted-foreground")}>{topic.topic}</span>
-                            </label>
-                          ))}
+                          {sectionTopics.map((topic: any) => {
+                            const pyqCount = pyqTopicCounts?.[topic.topic] || 0;
+                            return (
+                              <label
+                                key={topic.id}
+                                className="flex items-center gap-3 p-2 rounded-md hover-elevate cursor-pointer"
+                                data-testid={`checkbox-topic-${topic.id}`}
+                              >
+                                <Checkbox
+                                  checked={topic.completed}
+                                  onCheckedChange={(checked) => toggleTopic.mutate({ topicId: topic.id, completed: !!checked })}
+                                />
+                                <span className={cn("text-sm flex-1", topic.completed && "line-through text-muted-foreground")}>{topic.topic}</span>
+                                {pyqCount >= 2 && (
+                                  <Link href={`/pyq?topic=${encodeURIComponent(topic.topic)}`} data-testid={`badge-pyq-count-${topic.id}`}>
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border border-amber-300 dark:border-amber-600 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 cursor-pointer hover-elevate no-default-active-elevate" onClick={(e) => e.stopPropagation()}>
+                                      PYQ: {pyqCount}x
+                                    </span>
+                                  </Link>
+                                )}
+                              </label>
+                            );
+                          })}
                         </div>
                       )}
                     </div>

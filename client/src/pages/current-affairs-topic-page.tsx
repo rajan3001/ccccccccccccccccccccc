@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useParams, Link, useLocation } from "wouter";
 import { StyledMarkdown } from "@/components/ui/styled-markdown";
+import { useQuery } from "@tanstack/react-query";
 import {
   Loader2,
   Download,
@@ -17,6 +18,7 @@ import {
   Clock,
   BookOpen,
   Sparkles,
+  ScrollText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { generatePDF } from "@/lib/pdf-generator";
@@ -80,6 +82,13 @@ export default function CurrentAffairsTopicPage() {
   const nextTopic = topicData?.nextTopic;
   const topicIndex = topicData?.topicIndex || 0;
   const totalTopics = topicData?.totalTopics || 0;
+
+  const pyqSearchTopic = topic?.title || "";
+  const { data: pyqMatches } = useQuery<{ id: number; examType: string; examStage: string; year: number; paperType: string; questionNumber: number; topic: string }[]>({
+    queryKey: [`/api/pyq/matches?topic=${encodeURIComponent(pyqSearchTopic)}`],
+    enabled: !!pyqSearchTopic && pyqSearchTopic.length > 3,
+    staleTime: 5 * 60 * 1000,
+  });
 
   useEffect(() => {
     if (prevLangRef.current !== language) {
@@ -348,6 +357,28 @@ export default function CurrentAffairsTopicPage() {
               {topic.summary}
             </p>
           </Card>
+
+          {pyqMatches && pyqMatches.length > 0 && (
+            <div className="mb-6 p-3.5 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30" data-testid="pyq-connection-card">
+              <div className="flex items-center gap-2 mb-2.5">
+                <ScrollText className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">PYQ Connection</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {pyqMatches.map((match) => (
+                  <Link
+                    key={match.id}
+                    href={`/pyq?id=${match.id}`}
+                    data-testid={`link-pyq-match-${match.id}`}
+                  >
+                    <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border border-amber-300 dark:border-amber-600 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 cursor-pointer hover-elevate">
+                      {match.examType} {match.year} {match.examStage} Q.{match.questionNumber} ({match.topic})
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="space-y-1">
             {isStreaming && !detailContent && (
