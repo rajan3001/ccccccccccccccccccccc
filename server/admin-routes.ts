@@ -1506,6 +1506,7 @@ function getAdminHtml(): string {
 
     function switchSection(name) {
       currentSection = name;
+      window.location.hash = name;
       document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
       document.getElementById("section-" + name).classList.add("active");
       document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
@@ -2300,7 +2301,10 @@ function getAdminHtml(): string {
       fileInput.value = "";
     }
 
-    loadDashboard();
+    var initSection = window.location.hash.replace("#", "") || "dashboard";
+    var validSections = ["dashboard","users","subscriptions","conversations","current-affairs","quizzes","evaluations","notes","articles","pyq-bank","backup"];
+    if (validSections.indexOf(initSection) === -1) initSection = "dashboard";
+    switchSection(initSection);
   </script>
 </body>
 </html>`;
