@@ -1,5 +1,8 @@
 import type { Express } from "express";
 import { db } from "./db";
+import { randomUUID } from "crypto";
+import * as fs from "fs";
+import * as path from "path";
 import { users, otpVerifications, subscriptions } from "@shared/schema";
 import { conversations, messages, quizAttempts, quizQuestions, dailyTopics, dailyDigests, notes, blogPosts, evaluationSessions, evaluationQuestions, studySessions } from "@shared/schema";
 import { timetableSlots, syllabusTopics, userSyllabusProgress, dailyStudyGoals } from "@shared/schema";
@@ -24,7 +27,48 @@ function basicAuth(req: any, res: any, next: any) {
   next();
 }
 
+const LOCAL_UPLOADS_DIR = path.resolve(process.cwd(), ".uploads");
+function ensureUploadsDir() {
+  if (!fs.existsSync(LOCAL_UPLOADS_DIR)) fs.mkdirSync(LOCAL_UPLOADS_DIR, { recursive: true });
+}
+
 export function registerAdminRoutes(app: Express) {
+  app.post("/admin/api/upload", basicAuth, (req: any, res: any) => {
+    ensureUploadsDir();
+    const chunks: Buffer[] = [];
+    req.on("data", (chunk: Buffer) => chunks.push(chunk));
+    req.on("end", () => {
+      try {
+        const fileData = Buffer.concat(chunks);
+        const ext = ".pdf";
+        const fileName = `${randomUUID()}${ext}`;
+        const filePath = path.join(LOCAL_UPLOADS_DIR, fileName);
+        fs.writeFileSync(filePath, fileData);
+        const objectPath = `/objects/uploads/${fileName}`;
+        res.json({ objectPath, fileName, size: fileData.length });
+      } catch (e: any) {
+        res.status(500).json({ error: e.message });
+      }
+    });
+    req.on("error", (e: any) => res.status(500).json({ error: e.message }));
+  });
+
+  app.post("/admin/api/pyq/ingest", basicAuth, async (req: any, res: any) => {
+    try {
+      const { fileObjectPath, examType, examStage, year, paperType } = req.body;
+      const response = await fetch(`http://localhost:${process.env.PORT || 5000}/api/pyq/ingest/admin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileObjectPath, examType, examStage, year, paperType }),
+      });
+      const data = await response.json();
+      if (!response.ok) return res.status(response.status).json(data);
+      res.json(data);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   app.get("/admin/api/stats", basicAuth, async (_req, res) => {
     try {
       const [userCount] = await db.select({ count: sql<number>`count(*)::int` }).from(users);
@@ -1926,14 +1970,17 @@ function getAdminHtml(): string {
 
       try {
         progress.textContent = "Uploading PDF...";
-        const formData = new FormData();
-        formData.append("file", file);
-        const uploadRes = await fetch("/api/objects/upload", { method: "POST", body: formData });
-        if (!uploadRes.ok) throw new Error("Upload failed");
+        const arrayBuf = await file.arrayBuffer();
+        const uploadRes = await fetch("/admin/api/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/octet-stream" },
+          body: arrayBuf,
+        });
+        if (!uploadRes.ok) throw new Error("Upload failed: " + (await uploadRes.text()));
         const uploadData = await uploadRes.json();
 
         progress.textContent = "Extracting text & structuring questions...";
-        const ingestRes = await fetch("/api/pyq/ingest", {
+        const ingestRes = await fetch("/admin/api/pyq/ingest", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
