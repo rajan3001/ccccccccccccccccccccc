@@ -7,7 +7,7 @@ import { users, otpVerifications, subscriptions } from "@shared/schema";
 import { conversations, messages, quizAttempts, quizQuestions, dailyTopics, dailyDigests, notes, blogPosts, evaluationSessions, evaluationQuestions, studySessions } from "@shared/schema";
 import { timetableSlots, syllabusTopics, userSyllabusProgress, dailyStudyGoals } from "@shared/schema";
 import { pyqQuestions, pyqAttempts, PYQ_TOPICS, PYQ_SUBTOPICS, pyqIngestionJobs } from "@shared/schema";
-import { pyqIngestCore } from "./pyq-routes";
+import { pyqIngestCore, pyqAI, parseAIJson } from "./pyq-routes";
 import { cancelJob } from "./pyq-worker";
 import { eq, sql, desc, asc, count, inArray, and, gte, lte } from "drizzle-orm";
 
@@ -135,6 +135,70 @@ export function registerAdminRoutes(app: Express) {
       const result = await db.delete(pyqIngestionJobs)
         .where(inArray(pyqIngestionJobs.status, ["completed", "failed", "cancelled"]));
       res.json({ success: true });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post("/admin/api/pyq/fix-structure", basicAuth, async (_req: any, res: any) => {
+    try {
+      const allQ = await db.select().from(pyqQuestions).where(eq(pyqQuestions.questionType, "mcq"));
+      const batchSize = 20;
+      let fixedCount = 0;
+      const errors: string[] = [];
+
+      for (let b = 0; b < allQ.length; b += batchSize) {
+        const batch = allQ.slice(b, b + batchSize);
+
+        const fixPrompt = `You are a formatting quality-checker for exam questions. Fix structural issues in these questions WITHOUT changing any content or meaning.
+
+Fix these specific issues:
+1. OPTIONS: Each option must be a single complete string. If an option's text was split across lines (e.g. "United Nations Conference on\\nTrade and Development"), merge it into one line.
+2. QUESTION TEXT: Remove stray line breaks that split a sentence mid-way. Keep intentional line breaks for numbered lists (1. 2. 3.) and match-the-column formatting.
+3. OPTIONS ARRAY: Ensure each option is clean and trimmed. Remove any leading "(a)" "(b)" etc. from option strings.
+4. If options contain "(option not available)" and the real options are in the questionText, extract them into the options array.
+5. Do NOT change content, meaning, question numbers, correct answers, marks, or question type.
+
+Return ONLY a raw JSON array: [{ "id": number, "questionText": string, "options": [string,string,string,string] }]
+
+Questions:
+${JSON.stringify(batch.map(q => ({ id: q.id, questionText: q.questionText, options: q.options })))}`;
+
+        try {
+          const result = await pyqAI.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: [{ role: "user", parts: [{ text: fixPrompt }] }],
+            config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
+          });
+          const fixed = parseAIJson(result.text || "");
+          const fixedArr = Array.isArray(fixed) ? fixed : [fixed];
+
+          for (const fix of fixedArr) {
+            if (!fix.id || !fix.questionText) continue;
+            const orig = batch.find(q => q.id === fix.id);
+            if (!orig) continue;
+
+            const textChanged = fix.questionText !== orig.questionText;
+            const optsChanged = JSON.stringify(fix.options) !== JSON.stringify(orig.options);
+
+            if (textChanged || optsChanged) {
+              await db.update(pyqQuestions)
+                .set({
+                  questionText: fix.questionText,
+                  options: fix.options && Array.isArray(fix.options) && fix.options.length >= 2 ? fix.options : orig.options,
+                })
+                .where(eq(pyqQuestions.id, fix.id));
+              fixedCount++;
+            }
+          }
+        } catch (e: any) {
+          errors.push(`Batch ${Math.floor(b / batchSize) + 1} failed: ${e.message}`);
+        }
+
+        await new Promise(r => setTimeout(r, 500));
+      }
+
+      res.json({ success: true, total: allQ.length, fixed: fixedCount, errors });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
     }

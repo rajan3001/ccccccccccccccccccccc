@@ -25,7 +25,8 @@ function getAI(): GoogleGenAI {
   }
   return _ai;
 }
-const ai = new Proxy({} as GoogleGenAI, { get(_t, p) { return (getAI() as any)[p]; } });
+export const pyqAI = new Proxy({} as GoogleGenAI, { get(_t, p) { return (getAI() as any)[p]; } });
+const ai = pyqAI;
 
 const objectStorage = new ObjectStorageService();
 
@@ -71,7 +72,7 @@ function fixNewlinesInStrings(s: string): string {
   return result;
 }
 
-function parseAIJson(text: string): any {
+export function parseAIJson(text: string): any {
   let cleaned = text.trim();
   cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
   cleaned = cleaned.replace(/\r\n/g, "\n");
@@ -380,7 +381,78 @@ ${extractedText.substring(0, 30000)}`;
   }
 
   report(`Validating ${allExtracted.length} extracted questions...`);
-  const { valid, rejected } = validateQuestions(allExtracted, examStage);
+  const { valid: validRaw, rejected } = validateQuestions(allExtracted, examStage);
+
+  // ── Agent 1: Language Filter ──
+  // Remove any questions still containing Hindi/Devanagari text
+  checkCancel();
+  report(`Language filter: checking ${validRaw.length} questions...`);
+  const devanagariRe = /[\u0900-\u097F]/;
+  const langFiltered = validRaw.filter(q => {
+    if (devanagariRe.test(q.questionText)) return false;
+    if (q.options && q.options.some((o: string) => devanagariRe.test(o))) return false;
+    return true;
+  });
+  const langRemoved = validRaw.length - langFiltered.length;
+  if (langRemoved > 0) {
+    report(`Language filter: removed ${langRemoved} non-English questions`);
+  }
+
+  // ── Agent 2: Structure Fix ──
+  // Fix formatting issues: broken option text, orphaned lines, etc.
+  checkCancel();
+  let valid = langFiltered;
+  if (valid.length > 0) {
+    report(`Structure fix: cleaning ${valid.length} questions...`);
+    const batchSize = 25;
+    const structureFixed: ExtractedQuestion[] = [];
+    for (let b = 0; b < valid.length; b += batchSize) {
+      checkCancel();
+      const batch = valid.slice(b, b + batchSize);
+      const fixPrompt = `You are a formatting quality-checker for exam questions. Fix structural issues in these questions WITHOUT changing any content or meaning.
+
+Fix these specific issues:
+1. OPTIONS: Each option (a/b/c/d) must be a single complete string. If an option's text was split across lines (e.g. "United Nations Conference on\\nTrade and Development"), merge it into one line ("United Nations Conference on Trade and Development").
+2. QUESTION TEXT: Remove any stray line breaks that split a single sentence mid-way. Keep intentional line breaks for numbered lists (1. 2. 3.) and match-the-column formatting.
+3. OPTIONS ARRAY: Ensure each option is clean, trimmed, and contains the full answer text. Remove any leading "(a)" "(b)" etc. from option strings since the array index indicates which option it is.
+4. Do NOT change question numbers, correct answers, marks, or question type.
+5. Do NOT rephrase or rewrite — only fix broken formatting.
+
+Return ONLY a raw JSON array with the same schema:
+[{ "questionNumber": number, "questionText": string, "options": [string,string,string,string] | null, "questionType": "mcq" | "mains", "correctIndex": 0-3 | null, "marks": number }]
+
+Questions to fix:
+${JSON.stringify(batch)}`;
+
+      try {
+        const fixResult = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [{ role: "user", parts: [{ text: fixPrompt }] }],
+          config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
+        });
+        const fixed = parseAIJson(fixResult.text || "");
+        const fixedArr = Array.isArray(fixed) ? fixed : [fixed];
+        const fixedMap = new Map(fixedArr.map((q: any) => [q.questionNumber, q]));
+        for (const orig of batch) {
+          const fix = fixedMap.get(orig.questionNumber);
+          if (fix && fix.questionText && typeof fix.questionText === "string") {
+            structureFixed.push({
+              ...orig,
+              questionText: fix.questionText,
+              options: fix.options && Array.isArray(fix.options) && fix.options.length >= 2 ? fix.options : orig.options,
+            });
+          } else {
+            structureFixed.push(orig);
+          }
+        }
+      } catch (e: any) {
+        structureFixed.push(...batch);
+        errors.push(`Structure fix batch failed: ${e.message}`);
+      }
+    }
+    valid = structureFixed;
+    report(`Structure fix: completed for ${valid.length} questions`);
+  }
 
   let classified: { questionNumber: number; topic: string; subTopic: string | null; difficulty: string }[] = [];
   if (valid.length > 0) {
