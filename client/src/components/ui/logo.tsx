@@ -38,7 +38,7 @@ export function Logo({ className = "", size = "md", withText = true, variant = "
       {withText && (
         <span className={`font-display font-bold tracking-tight ${textColorClass} ${textSizeClasses[size]}`}>
           Learnpro <span className={aiColorClass}>AI</span>
-          <sup className={`ml-1 font-medium opacity-60 ${size === "sm" ? "text-[8px]" : size === "md" ? "text-[9px]" : size === "lg" ? "text-[11px]" : "text-sm"}`}>v1.1</sup>
+          <span className={`ml-1 font-medium opacity-50 self-end ${size === "sm" ? "text-[7px]" : size === "md" ? "text-[8px]" : size === "lg" ? "text-[10px]" : "text-xs"}`} style={{ verticalAlign: "baseline", lineHeight: 1 }}>v1.1</span>
         </span>
       )}
     </div>

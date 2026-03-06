@@ -32,7 +32,7 @@ function PageLoader() {
       <img src="/favicon.png" alt="" width={40} height={40} style={{ borderRadius: 8, filter: 'drop-shadow(0 0 12px rgba(196,127,23,0.4))', animation: 'lp-pulse 2.4s ease-in-out infinite' }} />
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontFamily: "'Plus Jakarta Sans',system-ui,sans-serif", fontSize: 20, fontWeight: 700, letterSpacing: 3, color: '#c97a0a', textTransform: 'uppercase' as const }}>
-          Learnpro <span style={{ color: '#e8d5b0', fontWeight: 300 }}>AI</span><sup style={{ marginLeft: 4, fontSize: 8, fontWeight: 500, opacity: 0.6 }}>v1.1</sup>
+          Learnpro <span style={{ color: '#e8d5b0', fontWeight: 300 }}>AI</span><span style={{ marginLeft: 4, fontSize: 7, fontWeight: 500, opacity: 0.5, verticalAlign: 'baseline' }}>v1.1</span>
         </div>
         <div style={{ marginTop: 4, fontFamily: "'Inter',system-ui,sans-serif", fontSize: 9, letterSpacing: 4, color: 'rgba(232,213,176,0.35)', textTransform: 'uppercase' as const, fontWeight: 500 }}>
           Intelligence Redefined
