@@ -235,4 +235,58 @@ export async function autoSeedIfNeeded() {
   } catch (err) {
     console.error("[Auto-Seed] Error during auto-seed:", err);
   }
+
+  await fixUnclassifiedPyq();
+}
+
+async function fixUnclassifiedPyq() {
+  try {
+    const [{ count }] = await db.select({ count: sql<number>`count(*)::int` })
+      .from(pyqQuestions)
+      .where(sql`topic = 'Unclassified'`);
+
+    if (count === 0) return;
+
+    console.log(`[Auto-Seed] Found ${count} unclassified PYQ questions, applying fixes from seed data...`);
+    const pyqSeedData = loadJson("pyq-questions.json");
+    if (pyqSeedData.length === 0) {
+      console.log("[Auto-Seed] No PYQ seed data found, skipping fix.");
+      return;
+    }
+
+    const classifiedMap = new Map<number, { topic: string; subTopic: string | null }>();
+    for (const q of pyqSeedData) {
+      const topic = q.topic || g(q, "topic", "topic");
+      if (topic && topic !== "Unclassified") {
+        classifiedMap.set(q.id, {
+          topic,
+          subTopic: g(q, "sub_topic", "subTopic") || null
+        });
+      }
+    }
+
+    const client = await pool.connect();
+    try {
+      let fixed = 0;
+      const unclassified = await db.select({ id: pyqQuestions.id })
+        .from(pyqQuestions)
+        .where(sql`topic = 'Unclassified'`);
+
+      for (const row of unclassified) {
+        const fix = classifiedMap.get(row.id);
+        if (fix) {
+          await client.query(
+            `UPDATE pyq_questions SET topic = $1, sub_topic = $2 WHERE id = $3`,
+            [fix.topic, fix.subTopic, row.id]
+          );
+          fixed++;
+        }
+      }
+      console.log(`[Auto-Seed] Fixed ${fixed}/${count} unclassified PYQ questions from seed data.`);
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error("[Auto-Seed] Error fixing unclassified PYQ:", err);
+  }
 }
