@@ -83,7 +83,6 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  await autoSeedIfNeeded();
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
@@ -122,6 +121,7 @@ app.use((req, res, next) => {
     },
     () => {
       log(`serving on port ${port}`);
+      autoSeedIfNeeded().catch(err => console.error("[Auto-Seed] Error:", err));
     },
   );
 })();
