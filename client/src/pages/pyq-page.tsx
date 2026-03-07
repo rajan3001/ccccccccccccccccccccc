@@ -28,11 +28,60 @@ import {
 type StageTab = "Prelims" | "Mains";
 type SubTab = "browse" | "trends" | "stats";
 
-function FormattedQuestionText({ text, className, prefix }: { text: string; className?: string; prefix?: string }) {
-  const parts = useMemo(() => {
-    let cleaned = text;
+function mergeQuestionLines(raw: string): string[] {
+  const rawLines = raw.split('\n');
+  const merged: string[] = [];
 
-    const lines = cleaned.split('\n');
+  for (let i = 0; i < rawLines.length; i++) {
+    const line = rawLines[i].trim();
+    if (line === '') { merged.push(''); continue; }
+
+    const isStructural =
+      /^\d+\.\s/.test(line) ||
+      /^\(?[a-d]\)\s/i.test(line) ||
+      /^select the correct/i.test(line) ||
+      /^which of the/i.test(line) ||
+      /^how many of the/i.test(line) ||
+      /^consider the following/i.test(line) ||
+      /^with reference to/i.test(line);
+
+    if (isStructural || merged.length === 0) {
+      merged.push(line);
+    } else {
+      const prev = merged[merged.length - 1];
+      const prevIsEmpty = prev === '';
+      const prevIsStructural =
+        /^\d+\.\s/.test(prev) ||
+        /^\(?[a-d]\)\s/i.test(prev);
+
+      if (prevIsEmpty) {
+        merged.push(line);
+      } else if (prevIsStructural) {
+        merged[merged.length - 1] = prev + ' ' + line;
+      } else {
+        const prevEndsClean = /[.?!:;,)\]]$/.test(prev.trim());
+        if (prevEndsClean) {
+          merged.push(line);
+        } else {
+          merged[merged.length - 1] = prev + ' ' + line;
+        }
+      }
+    }
+  }
+
+  return merged.filter(l => l !== '');
+}
+
+function FormattedQuestionText({ text, className, prefix, hasOptions }: { text: string; className?: string; prefix?: string; hasOptions?: boolean }) {
+  const parts = useMemo(() => {
+    let lines = mergeQuestionLines(text);
+    if (hasOptions) {
+      const optionLines = lines.filter(l => /^\(?[a-d]\)\s/i.test(l.trim()));
+      const nonOptionLines = lines.filter(l => !/^\(?[a-d]\)\s/i.test(l.trim()));
+      if (nonOptionLines.length > 0) {
+        lines = nonOptionLines;
+      }
+    }
     const elements: React.ReactNode[] = [];
     let i = 0;
     let prefixUsed = false;
@@ -47,7 +96,6 @@ function FormattedQuestionText({ text, className, prefix }: { text: string; clas
 
     while (i < lines.length) {
       const line = lines[i].trim();
-
       if (line === '') { i++; continue; }
 
       const hasColonPairs = (() => {
@@ -165,7 +213,7 @@ function FormattedQuestionText({ text, className, prefix }: { text: string; clas
     }
 
     return elements;
-  }, [text, prefix]);
+  }, [text, prefix, hasOptions]);
 
   return <div className={className}>{parts}</div>;
 }
@@ -525,7 +573,7 @@ export default function PyqPage() {
                   </Badge>
                 </div>
                 <div className="text-base font-medium text-foreground leading-relaxed" data-testid="text-question">
-                  <FormattedQuestionText text={currentQuestion.questionText} prefix={`Q${currentQuestion.questionNumber}.`} />
+                  <FormattedQuestionText text={currentQuestion.questionText} prefix={`Q${currentQuestion.questionNumber}.`} hasOptions={!!currentQuestion.options?.length} />
                 </div>
               </CardContent>
             </Card>

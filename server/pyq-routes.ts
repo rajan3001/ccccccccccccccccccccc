@@ -409,14 +409,24 @@ ${extractedText.substring(0, 30000)}`;
     for (let b = 0; b < valid.length; b += batchSize) {
       checkCancel();
       const batch = valid.slice(b, b + batchSize);
-      const fixPrompt = `You are a formatting quality-checker for exam questions. Fix structural issues in these questions WITHOUT changing any content or meaning.
+      const fixPrompt = `You are a formatting quality-checker for UPSC exam questions extracted from PDF. Fix structural issues WITHOUT changing any content or meaning.
 
-Fix these specific issues:
-1. OPTIONS: Each option (a/b/c/d) must be a single complete string. If an option's text was split across lines (e.g. "United Nations Conference on\\nTrade and Development"), merge it into one line ("United Nations Conference on Trade and Development").
-2. QUESTION TEXT: Remove any stray line breaks that split a single sentence mid-way. Keep intentional line breaks for numbered lists (1. 2. 3.) and match-the-column formatting.
-3. OPTIONS ARRAY: Ensure each option is clean, trimmed, and contains the full answer text. Remove any leading "(a)" "(b)" etc. from option strings since the array index indicates which option it is.
-4. Do NOT change question numbers, correct answers, marks, or question type.
-5. Do NOT rephrase or rewrite — only fix broken formatting.
+CRITICAL RULES:
+1. MERGE BROKEN LINES: PDF extraction often breaks sentences across multiple lines. Merge any line that is a continuation of a sentence into the previous line. A line is a continuation if:
+   - The previous line does NOT end with a period, question mark, colon, or closing bracket
+   - The current line does NOT start with a numbered list item (1. 2. 3.) or option letter ((a) (b) etc.)
+   Example: "The roads and river-routes\\nwere completely immune from robbery." → "The roads and river-routes were completely immune from robbery."
+
+2. QUESTION TEXT: The questionText should be one clean flowing paragraph (or multiple paragraphs for list-type questions). Remove ALL unnecessary \\n within sentences. Keep \\n ONLY before:
+   - Numbered list items: "1. ", "2. ", "3. "
+   - "Select the correct answer", "Which of the above", "How many of the above"
+   - "Consider the following"
+
+3. MATCH-THE-COLUMN / PAIR QUESTIONS: If the question is about matching pairs (e.g. "correctly matched", "Match List-I with List-II"), the question text should contain the stem question followed by the list items. Each option in the options array should be a complete pair or combination on a single line.
+
+4. OPTIONS: Each option must be a single complete string on one line. Merge any option text that was split across lines. Remove leading "(a)" "(b)" "(c)" "(d)" from option text since the array index indicates which option it is.
+
+5. Do NOT change question numbers, correct answers, marks, or question type.
 
 Return ONLY a raw JSON array with the same schema:
 [{ "questionNumber": number, "questionText": string, "options": [string,string,string,string] | null, "questionType": "mcq" | "mains", "correctIndex": 0-3 | null, "marks": number }]

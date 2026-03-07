@@ -143,21 +143,42 @@ export function registerAdminRoutes(app: Express) {
   app.post("/admin/api/pyq/fix-structure", basicAuth, async (_req: any, res: any) => {
     try {
       const allQ = await db.select().from(pyqQuestions).where(eq(pyqQuestions.questionType, "mcq"));
+      const needsFix = allQ.filter(q => {
+        const t = q.questionText || "";
+        if (/[a-z]\n[a-z]/i.test(t)) return true;
+        if (/\n\(?[a-d]\)/i.test(t) && q.options && q.options.length >= 2) return true;
+        if (q.options?.some((o: string) => /\n/.test(o))) return true;
+        return false;
+      });
+      res.json({ success: true, message: `Processing ${needsFix.length} of ${allQ.length} questions in background...` });
+
       const batchSize = 20;
       let fixedCount = 0;
       const errors: string[] = [];
 
-      for (let b = 0; b < allQ.length; b += batchSize) {
-        const batch = allQ.slice(b, b + batchSize);
+      for (let b = 0; b < needsFix.length; b += batchSize) {
+        const batch = needsFix.slice(b, b + batchSize);
 
-        const fixPrompt = `You are a formatting quality-checker for exam questions. Fix structural issues in these questions WITHOUT changing any content or meaning.
+        const fixPrompt = `You are a formatting quality-checker for UPSC exam questions extracted from PDF. Fix structural issues WITHOUT changing any content or meaning.
 
-Fix these specific issues:
-1. OPTIONS: Each option must be a single complete string. If an option's text was split across lines (e.g. "United Nations Conference on\\nTrade and Development"), merge it into one line.
-2. QUESTION TEXT: Remove stray line breaks that split a sentence mid-way. Keep intentional line breaks for numbered lists (1. 2. 3.) and match-the-column formatting.
-3. OPTIONS ARRAY: Ensure each option is clean and trimmed. Remove any leading "(a)" "(b)" etc. from option strings.
-4. If options contain "(option not available)" and the real options are in the questionText, extract them into the options array.
-5. Do NOT change content, meaning, question numbers, correct answers, marks, or question type.
+CRITICAL RULES:
+1. MERGE BROKEN LINES: PDF extraction often breaks sentences across multiple lines. Merge any line that is a continuation of a sentence into the previous line. A line is a continuation if:
+   - The previous line does NOT end with a period, question mark, colon, or closing bracket
+   - The current line does NOT start with a numbered list item (1. 2. 3.) or option letter ((a) (b) etc.)
+   Example: "The roads and river-routes\\nwere completely immune from robbery." → "The roads and river-routes were completely immune from robbery."
+
+2. QUESTION TEXT: The questionText should be one clean flowing paragraph (or multiple paragraphs for list-type questions). Remove ALL unnecessary \\n within sentences. Keep \\n ONLY before:
+   - Numbered list items: "1. ", "2. ", "3. "
+   - "Select the correct answer", "Which of the above", "How many of the above"
+   - "Consider the following"
+
+3. MATCH-THE-COLUMN / PAIR QUESTIONS: If the question is about matching pairs (e.g. "correctly matched", "Match List-I with List-II"), the question text should contain the stem question followed by the list items. Each option in the options array should be a complete pair or combination on a single line.
+
+4. OPTIONS: Each option must be a single complete string on one line. Merge any option text that was split across lines. Remove leading "(a)" "(b)" "(c)" "(d)" from option text since the UI adds these.
+
+5. If options contain "(option not available)" placeholder text and the real options exist in questionText, extract them.
+
+6. Do NOT change content, meaning, or correct answers.
 
 Return ONLY a raw JSON array: [{ "id": number, "questionText": string, "options": [string,string,string,string] }]
 
@@ -198,9 +219,9 @@ ${JSON.stringify(batch.map(q => ({ id: q.id, questionText: q.questionText, optio
         await new Promise(r => setTimeout(r, 500));
       }
 
-      res.json({ success: true, total: allQ.length, fixed: fixedCount, errors });
+      console.log(`[Structure Fix] Done: ${fixedCount} of ${needsFix.length} fixed. Errors: ${errors.length}`);
     } catch (e: any) {
-      res.status(500).json({ error: e.message });
+      console.error(`[Structure Fix] Error: ${e.message}`);
     }
   });
 
