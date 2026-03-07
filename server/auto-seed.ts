@@ -5,14 +5,12 @@ import {
   dailyDigests, dailyTopics
 } from "@shared/schema";
 import { readFileSync, existsSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { join, resolve } from "path";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const seedDataDir = resolve(process.cwd(), "server", "seed-data");
 
 function loadJson(filename: string): any[] {
-  const path = join(__dirname, "seed-data", filename);
+  const path = join(seedDataDir, filename);
   if (!existsSync(path)) {
     return [];
   }
