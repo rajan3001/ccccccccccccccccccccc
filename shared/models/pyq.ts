@@ -8,7 +8,7 @@ export const PYQ_TOPICS = [
   "Polity", "History", "Geography", "Economy", "Environment",
   "Science & Technology", "International Relations", "Ethics",
   "Security", "Society", "Art & Culture", "Disaster Management",
-  "Governance", "Unclassified"
+  "Governance"
 ] as const;
 
 export const PYQ_SUBTOPICS: Record<string, string[]> = {
@@ -25,7 +25,6 @@ export const PYQ_SUBTOPICS: Record<string, string[]> = {
   "Art & Culture": ["Architecture", "Painting", "Music & Dance", "Literature", "Festivals", "Heritage Sites"],
   "Disaster Management": ["Floods", "Earthquakes", "Cyclones", "NDMA", "Mitigation Strategies"],
   Governance: ["E-Governance", "Transparency", "Accountability", "Citizen Charter", "RTI"],
-  Unclassified: [],
 };
 
 export const PYQ_EXAM_STAGES = ["Prelims", "Mains"] as const;
@@ -44,7 +43,7 @@ export const pyqQuestions = pgTable("pyq_questions", {
   options: text("options").array(),
   correctIndex: integer("correct_index"),
   marks: integer("marks").notNull().default(2),
-  topic: varchar("topic").notNull().default("Unclassified"),
+  topic: varchar("topic").notNull(),
   subTopic: varchar("sub_topic"),
   difficulty: varchar("difficulty"),
   explanation: text("explanation"),

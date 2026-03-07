@@ -1054,7 +1054,7 @@ function BrowseView({
                             {q.paperType}
                           </Badge>
                         )}
-                        {q.topic && q.topic !== "Unclassified" && (
+                        {q.topic && (
                           <Badge variant="secondary" className="text-[10px] no-default-hover-elevate no-default-active-elevate">
                             {q.topic}
                           </Badge>

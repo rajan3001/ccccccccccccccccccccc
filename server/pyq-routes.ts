@@ -467,9 +467,8 @@ ${JSON.stringify(batch)}`;
   let classified: { questionNumber: number; topic: string; subTopic: string | null; difficulty: string }[] = [];
   if (valid.length > 0) {
     report(`Classifying ${valid.length} questions by topic & difficulty...`);
-    const topicList = PYQ_TOPICS.filter(t => t !== "Unclassified").join(", ");
+    const topicList = PYQ_TOPICS.join(", ");
     const subTopicInfo = Object.entries(PYQ_SUBTOPICS)
-      .filter(([k]) => k !== "Unclassified")
       .map(([k, v]) => `${k}: [${v.join(", ")}]`)
       .join("\n");
 
@@ -477,7 +476,7 @@ ${JSON.stringify(batch)}`;
 Topics: [${topicList}]
 SubTopics by Topic:
 ${subTopicInfo}
-If uncertain, use topic: "Unclassified", subTopic: null
+You MUST classify every question into one of the valid topics. Pick the closest match if uncertain.
 Also classify difficulty: "Easy", "Moderate", or "Hard" based on concept depth and analytical requirement.
 Return ONLY a raw JSON array: [{ "questionNumber": number, "topic": string, "subTopic": string|null, "difficulty": string }]
 
@@ -511,7 +510,21 @@ ${valid.map(q => `Q${q.questionNumber}: ${q.questionText.substring(0, 200)}`).jo
   for (const q of valid) {
     checkCancel();
     const cls = classMap.get(q.questionNumber);
-    const topic = cls?.topic && (PYQ_TOPICS as readonly string[]).includes(cls.topic) ? cls.topic : "Unclassified";
+    let topic = cls?.topic && (PYQ_TOPICS as readonly string[]).includes(cls.topic) ? cls.topic : null;
+    if (!topic) {
+      try {
+        const singleClassify = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [{ role: "user", parts: [{ text: `Classify this UPSC question into exactly one topic from: ${PYQ_TOPICS.join(", ")}\nQuestion: ${q.questionText.substring(0, 300)}\nReturn ONLY the topic name, nothing else.` }] }],
+          config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
+        });
+        const aiTopic = (singleClassify.text || "").trim();
+        topic = (PYQ_TOPICS as readonly string[]).includes(aiTopic) ? aiTopic : PYQ_TOPICS[0];
+      } catch {
+        topic = PYQ_TOPICS[0];
+        errors.push(`Could not classify Q${q.questionNumber}, defaulted to ${topic}`);
+      }
+    }
     const subTopic = cls?.subTopic && PYQ_SUBTOPICS[topic]?.includes(cls.subTopic) ? cls.subTopic : null;
     const difficulty = cls?.difficulty && ["Easy", "Moderate", "Hard"].includes(cls.difficulty) ? cls.difficulty : null;
     const tHash = hashText(q.questionText);
@@ -653,7 +666,20 @@ export function registerPyqRoutes(app: Express): void {
 
         if (existing.length > 0) { skipped++; continue; }
 
-        const topic = q.topic && (PYQ_TOPICS as readonly string[]).includes(q.topic) ? q.topic : "Unclassified";
+        let topic = q.topic && (PYQ_TOPICS as readonly string[]).includes(q.topic) ? q.topic : null;
+        if (!topic) {
+          try {
+            const singleResult = await ai.models.generateContent({
+              model: "gemini-2.5-flash",
+              contents: [{ role: "user", parts: [{ text: `Classify this UPSC question into exactly one topic from: ${PYQ_TOPICS.join(", ")}\nQuestion: ${q.questionText.substring(0, 300)}\nReturn ONLY the topic name, nothing else.` }] }],
+              config: { thinkingConfig: { thinkingBudget: 0 }, temperature: 0 },
+            });
+            const aiTopic = (singleResult.text || "").trim();
+            topic = (PYQ_TOPICS as readonly string[]).includes(aiTopic) ? aiTopic : PYQ_TOPICS[0];
+          } catch {
+            topic = PYQ_TOPICS[0];
+          }
+        }
         const subTopic = q.subTopic && PYQ_SUBTOPICS[topic]?.includes(q.subTopic) ? q.subTopic : null;
 
         try {
