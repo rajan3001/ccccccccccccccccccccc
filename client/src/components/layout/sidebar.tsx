@@ -109,7 +109,7 @@ export function Sidebar() {
     { href: "/notes", icon: StickyNote, label: t.nav.myNotes, testId: "link-my-notes", match: (loc: string) => loc === "/notes" },
     { href: "/study-planner", icon: CalendarCheck, label: t.nav.studyPlanner, testId: "link-study-planner", match: (loc: string) => loc === "/study-planner" },
     { href: "/study-progress", icon: BarChart3, label: t.nav.studyProgress, testId: "link-study-progress", match: (loc: string) => loc === "/study-progress" },
-    { href: "/pyq", icon: ScrollText, label: t.nav.pyqPractice, testId: "link-pyq-practice", match: (loc: string) => loc === "/pyq" },
+    { href: "/pyq", icon: ScrollText, label: t.nav.pyqPractice, testId: "link-pyq-practice", match: (loc: string) => loc === "/pyq", badge: "Beta" },
   ];
 
 
@@ -142,6 +142,11 @@ export function Sidebar() {
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
+                {item.badge && (
+                  <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400" data-testid={`badge-${item.badge.toLowerCase()}-sidebar`}>
+                    {item.badge}
+                  </span>
+                )}
               </Button>
             </Link>
           ))}

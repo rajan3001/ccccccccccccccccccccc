@@ -837,7 +837,10 @@ export default function PyqPage() {
         <div className="max-w-6xl mx-auto px-4 py-4 sm:px-6 sm:py-5 pb-20">
           <div className="mb-4 flex items-start justify-between">
             <div>
-              <h1 className="text-xl font-bold text-foreground" data-testid="text-page-title">{t.pyq.title}</h1>
+              <h1 className="text-xl font-bold text-foreground flex items-center gap-2" data-testid="text-page-title">
+                {t.pyq.title}
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400" data-testid="badge-beta-header">Beta</span>
+              </h1>
               <p className="text-sm text-muted-foreground mt-0.5">{t.pyq.browse}</p>
             </div>
             <InlineLanguageButton />
