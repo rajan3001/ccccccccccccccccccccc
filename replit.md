@@ -45,11 +45,17 @@ All domain references use the `SITE_DOMAIN` environment variable (server-side) a
 5. Sessions are cookie-based without a fixed domain — users will need to re-login on the new domain, but all their data remains intact
 6. Object Storage files are domain-independent (Google Cloud Storage)
 
+### Auto-Seed System
+- **Auto-seed on startup** (`server/auto-seed.ts`): On every app start, checks if tables are empty and seeds from `server/seed-data/*.json` files. Covers: users, subscriptions, syllabus topics, PYQ questions, blog posts, daily digests, daily topics. Uses `ON CONFLICT DO NOTHING` for safe re-runs.
+- **Save to seed files**: Admin panel button or `POST /admin/api/save-seed` exports current DB data to seed JSON files, so new clones/deployments automatically get the latest data.
+- **Manual seed**: `npm run seed` (skips if data exists) or `npm run seed -- --force` (re-seeds everything).
+- **Seed data files**: `server/seed-data/` — `users.json`, `subscriptions.json`, `syllabus.json`, `pyq-questions.json`, `blog-posts.json`, `daily-digests.json`, `daily-topics.json`.
+
 ### Admin Panel
 - **URL**: `/admin` — server-rendered HTML dashboard with left sidebar navigation
 - **Auth**: HTTP Basic Auth using `ADMIN_USER` and `ADMIN_PASS` env vars (defaults: `admin` / `admin@learnpro2026`)
 - **Sections**: Dashboard (stats + recent users), Users, Subscriptions, Conversations, Current Affairs, Quizzes, Evaluations, Notes, Articles, Backup & Import
-- **Backup & Import System**: Full database export/import with upsert logic. Export downloads all data as JSON. Import uses phone-number matching for users (existing progress never lost), ID-based deduplication for all other records. Supports unlimited re-imports without data loss. API: `GET /admin/api/export`, `POST /admin/api/import`. Body limit: 200MB for large imports.
+- **Backup & Import System**: Full database export/import with upsert logic. Export downloads all data as JSON. Import uses phone-number matching for users (existing progress never lost), ID-based deduplication for all other records. Supports unlimited re-imports without data loss. API: `GET /admin/api/export`, `POST /admin/api/import`. Body limit: 200MB for large imports. **Save to Seed**: `POST /admin/api/save-seed` saves current data to seed files for automatic restoration on fresh clones.
 - **API Endpoints**: All under `/admin/api/*` with pagination support
 - **File**: `server/admin-routes.ts`
 

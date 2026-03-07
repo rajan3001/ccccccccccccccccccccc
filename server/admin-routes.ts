@@ -672,6 +672,45 @@ ${JSON.stringify(batch.map(q => ({ id: q.id, questionText: q.questionText, optio
     }
   });
 
+  app.post("/admin/api/save-seed", basicAuth, async (_req, res) => {
+    try {
+      const seedDir = path.resolve(process.cwd(), "server", "seed-data");
+      if (!fs.existsSync(seedDir)) fs.mkdirSync(seedDir, { recursive: true });
+
+      const allUsers = await db.select().from(users);
+      const allSubs = await db.select().from(subscriptions);
+      const allSyllabus = await db.select().from(syllabusTopics);
+      const allPyq = await db.select().from(pyqQuestions);
+      const allBlog = await db.select().from(blogPosts);
+      const allDigests = await db.select().from(dailyDigests);
+      const allTopics = await db.select().from(dailyTopics);
+
+      fs.writeFileSync(path.join(seedDir, "users.json"), JSON.stringify(allUsers, null, 2));
+      fs.writeFileSync(path.join(seedDir, "subscriptions.json"), JSON.stringify(allSubs, null, 2));
+      fs.writeFileSync(path.join(seedDir, "syllabus.json"), JSON.stringify(allSyllabus, null, 2));
+      fs.writeFileSync(path.join(seedDir, "pyq-questions.json"), JSON.stringify(allPyq, null, 2));
+      fs.writeFileSync(path.join(seedDir, "blog-posts.json"), JSON.stringify(allBlog, null, 2));
+      fs.writeFileSync(path.join(seedDir, "daily-digests.json"), JSON.stringify(allDigests, null, 2));
+      fs.writeFileSync(path.join(seedDir, "daily-topics.json"), JSON.stringify(allTopics, null, 2));
+
+      res.json({
+        success: true,
+        saved: {
+          users: allUsers.length,
+          subscriptions: allSubs.length,
+          syllabus: allSyllabus.length,
+          pyqQuestions: allPyq.length,
+          blogPosts: allBlog.length,
+          dailyDigests: allDigests.length,
+          dailyTopics: allTopics.length,
+        }
+      });
+    } catch (error) {
+      console.error("Save seed error:", error);
+      res.status(500).json({ error: "Failed to save seed data" });
+    }
+  });
+
   app.post("/admin/api/import", basicAuth, async (req: any, res) => {
     try {
       const importData = req.body;
@@ -1561,6 +1600,14 @@ function getAdminHtml(): string {
             <button onclick="document.getElementById('import-file').click()" id="import-btn" style="background: #059669; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%;">&#x2B06; Upload & Import Backup</button>
           </div>
         </div>
+        <div class="stats-grid" style="grid-template-columns: 1fr; margin-top: 16px;">
+          <div class="stat-card">
+            <div class="stat-label">Save to Seed Files</div>
+            <div style="margin: 16px 0; font-size: 14px; color: #64748b;">Save current database data (users, PYQ questions, blog posts, syllabus, current affairs) to seed files. This ensures data is automatically restored on fresh deployments or clones.</div>
+            <button onclick="saveSeedData()" id="save-seed-btn" style="background: #7c3aed; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%;">&#x1F4BE; Save Current Data to Seed Files</button>
+            <div id="save-seed-result" style="display:none; margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 13px;"></div>
+          </div>
+        </div>
         <div class="card" id="import-results" style="display:none;">
           <div class="card-header"><h3>Import Results</h3></div>
           <div class="card-body" id="import-results-body"></div>
@@ -1920,6 +1967,36 @@ function getAdminHtml(): string {
         btn.innerHTML = "&#x274C; " + e.message;
         setTimeout(() => { btn.innerHTML = "&#x2B06; Upload & Import Backup"; btn.disabled = false; }, 5000);
         input.value = "";
+      }
+    }
+
+    async function saveSeedData() {
+      const btn = document.getElementById("save-seed-btn");
+      const resultDiv = document.getElementById("save-seed-result");
+      btn.textContent = "Saving...";
+      btn.disabled = true;
+      try {
+        const resp = await fetch("/admin/api/save-seed", { method: "POST" });
+        const result = await resp.json();
+        if (!resp.ok) throw new Error(result.error || "Save failed");
+        resultDiv.style.display = "block";
+        resultDiv.style.background = "#f0fdf4";
+        resultDiv.style.color = "#166534";
+        let html = "<strong>Seed files saved successfully!</strong><br>";
+        const s = result.saved;
+        html += "Users: " + s.users + " | Subscriptions: " + s.subscriptions + " | Syllabus: " + s.syllabus;
+        html += " | PYQ: " + s.pyqQuestions + " | Blog: " + s.blogPosts;
+        html += " | Digests: " + s.dailyDigests + " | Topics: " + s.dailyTopics;
+        resultDiv.innerHTML = html;
+        btn.innerHTML = "&#x2705; Saved!";
+        setTimeout(() => { btn.innerHTML = "&#x1F4BE; Save Current Data to Seed Files"; btn.disabled = false; }, 3000);
+      } catch (e) {
+        resultDiv.style.display = "block";
+        resultDiv.style.background = "#fef2f2";
+        resultDiv.style.color = "#991b1b";
+        resultDiv.textContent = "Error: " + e.message;
+        btn.innerHTML = "&#x274C; Failed";
+        setTimeout(() => { btn.innerHTML = "&#x1F4BE; Save Current Data to Seed Files"; btn.disabled = false; }, 3000);
       }
     }
 

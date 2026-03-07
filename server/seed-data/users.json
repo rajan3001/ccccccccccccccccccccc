@@ -1,1 +1,174 @@
-[{"id":"a625443d-c6bd-45bc-83c4-9d0fdab40aca","phone":"+919102179641","email":null,"first_name":"Rajan","last_name":"Kumar","profile_image_url":null,"display_name":"Rajan Kumar","user_type":"college_student","target_exams":["JPSC"],"is_admin":false,"onboarding_completed":true,"notification_prefs":{},"language":"en","created_at":"2026-03-04 20:13:24.224662","updated_at":"2026-03-06 23:43:39.826"},{"id":"5c68647b-0ac6-4652-b132-c9221a2bbeaa","phone":"+919162866973","email":null,"first_name":"Kalyani","last_name":null,"profile_image_url":null,"display_name":"Kalyani","user_type":"full_time_aspirant","target_exams":["JPSC"],"is_admin":false,"onboarding_completed":true,"notification_prefs":{},"language":"en","created_at":"2026-03-05 00:00:00","updated_at":"2026-03-06 21:19:18.833"},{"id":"8eba1783-944d-423b-88ac-b4796bfa0a16","phone":"+919774646313","email":null,"first_name":"Sherry","last_name":null,"profile_image_url":null,"display_name":"Sherry","user_type":"working_professional","target_exams":["UPSC","MeghalayaPSC"],"is_admin":false,"onboarding_completed":true,"notification_prefs":{},"language":"en","created_at":"2026-03-05 00:00:00","updated_at":"2026-03-06 21:19:18.835"},{"id":"c146aa07-90da-4f07-98a5-076031a2ccbe","phone":"+919779859564","email":null,"first_name":"Sudarshan","last_name":"Kumar Singh","profile_image_url":null,"display_name":"Sudarshan Kumar Singh","user_type":"working_professional","target_exams":["JPSC"],"is_admin":false,"onboarding_completed":true,"notification_prefs":{},"language":"en","created_at":"2026-03-05 00:00:00","updated_at":"2026-03-06 21:19:18.836"},{"id":"13f9fff0-3b98-47a7-8321-8e61fee47bfe","phone":"+918732086071","email":null,"first_name":"Lasuki","last_name":"Pde","profile_image_url":null,"display_name":"Lasuki Pde","user_type":"full_time_aspirant","target_exams":["MeghalayaPSC"],"is_admin":false,"onboarding_completed":true,"notification_prefs":{},"language":"en","created_at":"2026-03-05 00:00:00","updated_at":"2026-03-06 21:19:18.837"},{"id":"e42dcf55-7b08-4f7f-8a89-b3bcc4d3c8ce","phone":"+917005389954","email":null,"first_name":"Medonboklang","last_name":null,"profile_image_url":null,"display_name":"Medonboklang","user_type":"working_professional","target_exams":["MeghalayaPSC"],"is_admin":false,"onboarding_completed":true,"notification_prefs":{},"language":"en","created_at":"2026-03-05 00:00:00","updated_at":"2026-03-06 21:19:18.832"},{"id":"cd86cbea-80a3-499e-a34c-6ff619b33be6","phone":"+919123466769","email":null,"first_name":"seema","last_name":null,"profile_image_url":null,"display_name":"seema","user_type":"full_time_aspirant","target_exams":["JPSC"],"is_admin":false,"onboarding_completed":true,"notification_prefs":{},"language":"en","created_at":"2026-03-06 00:00:00","updated_at":"2026-03-06 21:19:18.831"},{"id":"1f8c2558-a2f5-4ccd-b0c4-2d7418cf0de6","phone":"+916205673586","email":null,"first_name":"Nitesh","last_name":null,"profile_image_url":null,"display_name":"Nitesh","user_type":"college_student","target_exams":["JPSC"],"is_admin":false,"onboarding_completed":true,"notification_prefs":{},"language":"en","created_at":"2026-03-06 00:00:00","updated_at":"2026-03-06 21:19:18.83"},{"id":"a297338c-f124-439b-b804-c15d1ae3cdc5","phone":"+917903789516","email":null,"first_name":"Rohit","last_name":null,"profile_image_url":null,"display_name":"Rohit","user_type":"full_time_aspirant","target_exams":["JPSC"],"is_admin":false,"onboarding_completed":true,"notification_prefs":{},"language":"en","created_at":"2026-03-06 00:00:00","updated_at":"2026-03-06 21:19:18.829"}]
+[
+  {
+    "id": "a297338c-f124-439b-b804-c15d1ae3cdc5",
+    "phone": "+917903789516",
+    "email": null,
+    "firstName": "Rohit",
+    "lastName": null,
+    "profileImageUrl": null,
+    "displayName": "Rohit",
+    "userType": "full_time_aspirant",
+    "targetExams": [
+      "JPSC"
+    ],
+    "isAdmin": false,
+    "onboardingCompleted": true,
+    "notificationPrefs": {},
+    "language": "en",
+    "createdAt": "2026-03-06T00:00:00.000Z",
+    "updatedAt": "2026-03-07T00:26:08.064Z"
+  },
+  {
+    "id": "1f8c2558-a2f5-4ccd-b0c4-2d7418cf0de6",
+    "phone": "+916205673586",
+    "email": null,
+    "firstName": "Nitesh",
+    "lastName": null,
+    "profileImageUrl": null,
+    "displayName": "Nitesh",
+    "userType": "college_student",
+    "targetExams": [
+      "JPSC"
+    ],
+    "isAdmin": false,
+    "onboardingCompleted": true,
+    "notificationPrefs": {},
+    "language": "en",
+    "createdAt": "2026-03-06T00:00:00.000Z",
+    "updatedAt": "2026-03-07T00:26:08.066Z"
+  },
+  {
+    "id": "cd86cbea-80a3-499e-a34c-6ff619b33be6",
+    "phone": "+919123466769",
+    "email": null,
+    "firstName": "seema",
+    "lastName": null,
+    "profileImageUrl": null,
+    "displayName": "seema",
+    "userType": "full_time_aspirant",
+    "targetExams": [
+      "JPSC"
+    ],
+    "isAdmin": false,
+    "onboardingCompleted": true,
+    "notificationPrefs": {},
+    "language": "en",
+    "createdAt": "2026-03-06T00:00:00.000Z",
+    "updatedAt": "2026-03-07T00:26:08.067Z"
+  },
+  {
+    "id": "e42dcf55-7b08-4f7f-8a89-b3bcc4d3c8ce",
+    "phone": "+917005389954",
+    "email": null,
+    "firstName": "Medonboklang",
+    "lastName": null,
+    "profileImageUrl": null,
+    "displayName": "Medonboklang",
+    "userType": "working_professional",
+    "targetExams": [
+      "MeghalayaPSC"
+    ],
+    "isAdmin": false,
+    "onboardingCompleted": true,
+    "notificationPrefs": {},
+    "language": "en",
+    "createdAt": "2026-03-05T00:00:00.000Z",
+    "updatedAt": "2026-03-07T00:26:08.068Z"
+  },
+  {
+    "id": "5c68647b-0ac6-4652-b132-c9221a2bbeaa",
+    "phone": "+919162866973",
+    "email": null,
+    "firstName": "Kalyani",
+    "lastName": null,
+    "profileImageUrl": null,
+    "displayName": "Kalyani",
+    "userType": "full_time_aspirant",
+    "targetExams": [
+      "JPSC"
+    ],
+    "isAdmin": false,
+    "onboardingCompleted": true,
+    "notificationPrefs": {},
+    "language": "en",
+    "createdAt": "2026-03-05T00:00:00.000Z",
+    "updatedAt": "2026-03-07T00:26:08.069Z"
+  },
+  {
+    "id": "8eba1783-944d-423b-88ac-b4796bfa0a16",
+    "phone": "+919774646313",
+    "email": null,
+    "firstName": "Sherry",
+    "lastName": null,
+    "profileImageUrl": null,
+    "displayName": "Sherry",
+    "userType": "working_professional",
+    "targetExams": [
+      "UPSC",
+      "MeghalayaPSC"
+    ],
+    "isAdmin": false,
+    "onboardingCompleted": true,
+    "notificationPrefs": {},
+    "language": "en",
+    "createdAt": "2026-03-05T00:00:00.000Z",
+    "updatedAt": "2026-03-07T00:26:08.070Z"
+  },
+  {
+    "id": "c146aa07-90da-4f07-98a5-076031a2ccbe",
+    "phone": "+919779859564",
+    "email": null,
+    "firstName": "Sudarshan",
+    "lastName": "Kumar Singh",
+    "profileImageUrl": null,
+    "displayName": "Sudarshan Kumar Singh",
+    "userType": "working_professional",
+    "targetExams": [
+      "JPSC"
+    ],
+    "isAdmin": false,
+    "onboardingCompleted": true,
+    "notificationPrefs": {},
+    "language": "en",
+    "createdAt": "2026-03-05T00:00:00.000Z",
+    "updatedAt": "2026-03-07T00:26:08.071Z"
+  },
+  {
+    "id": "13f9fff0-3b98-47a7-8321-8e61fee47bfe",
+    "phone": "+918732086071",
+    "email": null,
+    "firstName": "Lasuki",
+    "lastName": "Pde",
+    "profileImageUrl": null,
+    "displayName": "Lasuki Pde",
+    "userType": "full_time_aspirant",
+    "targetExams": [
+      "MeghalayaPSC"
+    ],
+    "isAdmin": false,
+    "onboardingCompleted": true,
+    "notificationPrefs": {},
+    "language": "en",
+    "createdAt": "2026-03-05T00:00:00.000Z",
+    "updatedAt": "2026-03-07T00:26:08.072Z"
+  },
+  {
+    "id": "a625443d-c6bd-45bc-83c4-9d0fdab40aca",
+    "phone": "+919102179641",
+    "email": null,
+    "firstName": "Rajan",
+    "lastName": "Kumar",
+    "profileImageUrl": null,
+    "displayName": "Rajan Kumar",
+    "userType": "college_student",
+    "targetExams": [
+      "JPSC"
+    ],
+    "isAdmin": false,
+    "onboardingCompleted": true,
+    "notificationPrefs": {},
+    "language": "en",
+    "createdAt": "2026-03-04T20:13:24.224Z",
+    "updatedAt": "2026-03-07T00:26:08.073Z"
+  }
+]

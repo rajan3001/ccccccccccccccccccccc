@@ -3,6 +3,7 @@ import compression from "compression";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { autoSeedIfNeeded } from "./auto-seed";
 
 process.on("uncaughtException", (err) => {
   console.error("[FATAL] Uncaught exception:", err.message, err.stack);
@@ -82,6 +83,7 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  await autoSeedIfNeeded();
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
