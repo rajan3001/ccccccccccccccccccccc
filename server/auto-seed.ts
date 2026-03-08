@@ -49,7 +49,8 @@ export async function autoSeedIfNeeded() {
     const needsTopics = topicCount === 0 && topicSeedData.length > 0;
 
     if (!needsUsers && !needsSubs && !needsSyllabus && !needsPyq && !needsBlog && !needsDigests && !needsTopics) {
-      console.log(`[Auto-Seed] Database has data (${userCount} users, ${syllabusCount} syllabus, ${pyqCount} PYQ, ${blogCount} blog, ${digestCount} digests, ${topicCount} topics). Skipping.`);
+      console.log(`[Auto-Seed] Database has data (${userCount} users, ${syllabusCount} syllabus, ${pyqCount} PYQ, ${blogCount} blog, ${digestCount} digests, ${topicCount} topics). Skipping seed.`);
+      await fixUnclassifiedPyq();
       return;
     }
 
