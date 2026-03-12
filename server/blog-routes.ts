@@ -5,6 +5,8 @@ import { blogPosts, type InsertBlogPost, BLOG_CATEGORIES } from "@shared/schema"
 import { eq, desc, and, sql, isNull } from "drizzle-orm";
 import { objectStorageClient } from "./replit_integrations/object_storage/objectStorage";
 import { runContentScrapeAndPublish, scheduleDailyScraping } from "./blog-scraper";
+import * as fs from "fs";
+import * as path from "path";
 
 const SITE_DOMAIN = process.env.SITE_DOMAIN || "learnproai.in";
 const SITE_URL = `https://${SITE_DOMAIN}`;
@@ -594,7 +596,19 @@ DESIGN REQUIREMENTS:
 
 let isGenerating = false;
 
-export async function generateBlogPosts(count: number = 5): Promise<number> {
+async function saveBlogSeedFile() {
+  try {
+    const seedDir = path.resolve(process.cwd(), "server", "seed-data");
+    if (!fs.existsSync(seedDir)) fs.mkdirSync(seedDir, { recursive: true });
+    const allBlog = await db.select().from(blogPosts);
+    fs.writeFileSync(path.join(seedDir, "blog-posts.json"), JSON.stringify(allBlog, null, 2));
+    console.log(`[Blog Seed] Saved ${allBlog.length} blog posts to seed file.`);
+  } catch (e) {
+    console.error("[Blog Seed] Failed to save blog seed file:", (e as Error).message);
+  }
+}
+
+export async function generateBlogPosts(count: number = 6): Promise<number> {
   if (isGenerating) {
     console.log("Blog generation already in progress");
     return 0;
@@ -607,32 +621,46 @@ export async function generateBlogPosts(count: number = 5): Promise<number> {
     const topics = await selectTopicsForGeneration(count);
     console.log(`Generating ${topics.length} blog posts...`);
 
-    for (const { topic, category } of topics) {
-      try {
-        console.log(`Generating: ${topic}`);
-        const post = await generateBlogContent(topic, category);
-        if (!post) continue;
+    const CONCURRENCY = 3;
+    const chunks: typeof topics[] = [];
+    for (let i = 0; i < topics.length; i += CONCURRENCY) {
+      chunks.push(topics.slice(i, i + CONCURRENCY));
+    }
 
-        await db.insert(blogPosts).values(post);
-        generated++;
-        console.log(`Published: ${post.title}`);
-
-        generateAndUploadCoverImage(topic, post.slug).then(async (imageUrl) => {
-          if (imageUrl) {
-            try {
-              await db.update(blogPosts).set({ coverImageUrl: imageUrl }).where(eq(blogPosts.slug, post.slug));
-              console.log(`[Cover] Updated image for: ${post.title}`);
-            } catch (e) {
-              console.error(`[Cover] DB update failed for "${post.title}":`, (e as Error).message);
+    for (const chunk of chunks) {
+      const results = await Promise.allSettled(
+        chunk.map(async ({ topic, category }) => {
+          console.log(`Generating: ${topic}`);
+          const post = await generateBlogContent(topic, category);
+          if (!post) return null;
+          await db.insert(blogPosts).values(post);
+          console.log(`Published: ${post.title}`);
+          generateAndUploadCoverImage(topic, post.slug).then(async (imageUrl) => {
+            if (imageUrl) {
+              try {
+                await db.update(blogPosts).set({ coverImageUrl: imageUrl }).where(eq(blogPosts.slug, post.slug));
+                console.log(`[Cover] Updated image for: ${post.title}`);
+              } catch (e) {
+                console.error(`[Cover] DB update failed for "${post.title}":`, (e as Error).message);
+              }
             }
-          }
-        }).catch(e => console.error(`[Cover] Image gen failed for "${post.title}":`, (e as Error).message));
+          }).catch(e => console.error(`[Cover] Image gen failed for "${post.title}":`, (e as Error).message));
+          return post;
+        })
+      );
 
-        await new Promise(r => setTimeout(r, 5000));
-      } catch (e) {
-        console.error(`Failed to generate post for "${topic}":`, (e as Error).message);
-        await new Promise(r => setTimeout(r, 3000));
+      for (const r of results) {
+        if (r.status === "fulfilled" && r.value) generated++;
+        if (r.status === "rejected") console.error(`Failed to generate post:`, r.reason?.message);
       }
+
+      if (chunks.indexOf(chunk) < chunks.length - 1) {
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
+
+    if (generated > 0) {
+      saveBlogSeedFile().catch(() => {});
     }
   } finally {
     isGenerating = false;
@@ -2810,31 +2838,12 @@ Allow: /
 }
 
 function scheduleDailyBlogGeneration() {
-  const GENERATION_HOURS = [4, 10, 16, 22];
-  const POSTS_PER_BATCH = 5;
+  // Every 2 hours = 12 runs/day × 6 posts = 72 articles/day
+  const INTERVAL_MS = 2 * 60 * 60 * 1000;
+  const POSTS_PER_BATCH = 6;
 
   function scheduleNext() {
-    const now = new Date();
-    let nextRun: Date | null = null;
-
-    for (const hour of GENERATION_HOURS) {
-      const candidate = new Date();
-      candidate.setHours(hour, 0, 0, 0);
-      if (candidate > now) {
-        nextRun = candidate;
-        break;
-      }
-    }
-
-    if (!nextRun) {
-      nextRun = new Date();
-      nextRun.setDate(nextRun.getDate() + 1);
-      nextRun.setHours(GENERATION_HOURS[0], 0, 0, 0);
-    }
-
-    const delay = nextRun.getTime() - now.getTime();
-    console.log(`[Blog] Next auto-generation scheduled at ${nextRun.toISOString()} (in ${Math.round(delay / 3600000)}h)`);
-
+    console.log(`[Blog] Next auto-generation in 2h (${POSTS_PER_BATCH} posts/batch → ~72/day)`);
     setTimeout(async () => {
       try {
         console.log("[Blog] Starting batch auto-generation...");
@@ -2844,7 +2853,7 @@ function scheduleDailyBlogGeneration() {
         console.error("[Blog] Batch auto-generation failed:", e);
       }
       scheduleNext();
-    }, delay);
+    }, INTERVAL_MS);
   }
 
   scheduleNext();
@@ -2852,10 +2861,10 @@ function scheduleDailyBlogGeneration() {
   setTimeout(async () => {
     try {
       const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(blogPosts).where(eq(blogPosts.published, true));
-      if (count < 5) {
+      if (count < 20) {
         console.log(`[Blog] Only ${count} published articles found. Triggering immediate generation...`);
         try {
-          const generated = await generateBlogPosts(5);
+          const generated = await generateBlogPosts(12);
           console.log(`[Blog] Immediate generation complete: ${generated} posts created`);
         } catch (e) {
           console.error("[Blog] Immediate generation failed:", e);
