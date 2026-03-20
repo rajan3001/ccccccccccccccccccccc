@@ -21,7 +21,18 @@ const PRODUCTION_DOMAIN = process.env.SITE_DOMAIN || "learnproai.in";
 app.use((req, res, next) => {
   if (process.env.NODE_ENV !== "production") return next();
   const host = req.hostname;
-  if (host && host !== PRODUCTION_DOMAIN && host !== "localhost" && !host.startsWith("127.") && !host.startsWith("0.0.0.0") && (host.includes("replit") || host.includes("repl.co") || host.includes("worf."))) {
+  if (
+    host &&
+    host !== PRODUCTION_DOMAIN &&
+    host !== "localhost" &&
+    !host.startsWith("127.") &&
+    !host.startsWith("0.0.0.0") &&
+    !host.includes("replit") &&
+    !host.includes("repl.co") &&
+    !host.includes("worf.") &&
+    !host.includes(".replit.dev") &&
+    !host.includes(".repl.co")
+  ) {
     const redirectUrl = `https://${PRODUCTION_DOMAIN}${req.originalUrl}`;
     return res.redirect(301, redirectUrl);
   }
